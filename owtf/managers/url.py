@@ -8,7 +8,13 @@ from owtf.lib.exceptions import InvalidParameterType
 from owtf.managers.target import is_url_in_scope, target_required
 from owtf.models.url import Url
 from owtf.utils.strings import str2bool
-from owtf.settings import is_file_regex, is_image_regex, is_small_file_regex, is_ssi_regex, is_url_regex
+from owtf.settings import (
+    is_file_regex,
+    is_image_regex,
+    is_small_file_regex,
+    is_ssi_regex,
+    is_url_regex,
+)
 
 num_urls_before = 0
 
@@ -260,7 +266,9 @@ def search_all_urls(session, criteria, target_id=None):
     """
     total = get_count(session.query(Url).filter_by(target_id=target_id))
     filtered_url_objs = url_gen_query(session, criteria, target_id).all()
-    filtered_number = get_count(url_gen_query(session, criteria, target_id, for_stats=True))
+    filtered_number = get_count(
+        url_gen_query(session, criteria, target_id, for_stats=True)
+    )
     results = {
         "records_total": total,
         "records_filtered": filtered_number,

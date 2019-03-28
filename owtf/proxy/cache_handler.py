@@ -48,10 +48,14 @@ class CacheHandler(object):
         cookie_string = ""
         try:
             if self.blacklist:
-                string_with_spaces = re.sub(self.cookie_regex, "", self.request.headers["Cookie"]).strip()
+                string_with_spaces = re.sub(
+                    self.cookie_regex, "", self.request.headers["Cookie"]
+                ).strip()
                 cookie_string = "".join(string_with_spaces.split(" "))
             else:
-                cookies_matrix = re.findall(self.cookie_regex, self.request.headers["Cookie"])
+                cookies_matrix = re.findall(
+                    self.cookie_regex, self.request.headers["Cookie"]
+                )
                 for cookie_tuple in cookies_matrix:
                     for item in cookie_tuple:
                         if item:
@@ -178,9 +182,14 @@ def response_from_cache(file_path):
     with open(file_path, "r") as f:
         cache_dict = json.loads(f.read())
     dummy_response.code = cache_dict["response_code"]
-    dummy_response.headers = tornado.httputil.HTTPHeaders(cache_dict["response_headers"])
+    dummy_response.headers = tornado.httputil.HTTPHeaders(
+        cache_dict["response_headers"]
+    )
     dummy_response.header_string = "\r\n".join(
-        ["{!s}: {!s}".format(name, value) for name, value in cache_dict["response_headers"].items()]
+        [
+            "{!s}: {!s}".format(name, value)
+            for name, value in cache_dict["response_headers"].items()
+        ]
     )
     if cache_dict["binary_response"] is True:
         dummy_response.body = base64.b64decode(cache_dict["response_body"])
@@ -212,7 +221,9 @@ def request_from_cache(file_path):
     dummy_request.headers = cache_dict["request_headers"]
     dummy_request.body = cache_dict["request_body"]
     dummy_request.raw_request = "{!s} {!s} {!s}\r\n".format(
-        cache_dict["request_method"], cache_dict["request_url"], cache_dict["request_version"]
+        cache_dict["request_method"],
+        cache_dict["request_url"],
+        cache_dict["request_version"],
     )
     for name, value in cache_dict["request_headers"].items():
         dummy_request.raw_request += "{!s}: {!s}\r\n".format(name, value)

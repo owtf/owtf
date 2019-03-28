@@ -28,7 +28,9 @@ from owtf.utils.timer import timer
 
 __all__ = ["plugin_helper"]
 
-PLUGIN_OUTPUT = {"type": None, "output": None}  # This will be json encoded and stored in db as string
+PLUGIN_OUTPUT = {
+    "type": None, "output": None
+}  # This will be json encoded and stored in db as string
 
 
 class PluginHelper(object):
@@ -80,7 +82,9 @@ class PluginHelper(object):
     def resource_linklist(self, ResourceListName, ResourceList):
         plugin_output = dict(PLUGIN_OUTPUT)
         plugin_output["type"] = "resource_linklist"
-        plugin_output["output"] = {"ResourceListName": ResourceListName, "ResourceList": ResourceList}
+        plugin_output["output"] = {
+            "ResourceListName": ResourceListName, "ResourceList": ResourceList
+        }
         return ([plugin_output])
 
     def Tabbedresource_linklist(self, ResourcesList):
@@ -93,7 +97,9 @@ class PluginHelper(object):
         plugin_output = dict(PLUGIN_OUTPUT)
         plugin_output["type"] = "ListPostProcessing"
         plugin_output["output"] = {
-            "ResourceListName": ResourceListName, "link_list": link_list, "HTMLlink_list": HTMLlink_list
+            "ResourceListName": ResourceListName,
+            "link_list": link_list,
+            "HTMLlink_list": HTMLlink_list,
         }
         return ([plugin_output])
 
@@ -114,7 +120,11 @@ class PluginHelper(object):
                     NotSandboxedPath = self.runner.dump_output_file(
                         "NOT_SANDBOXED_%s.html" % Name, FilteredHTML, PluginInfo
                     )
-                    logging.info("File: NOT_SANDBOXED_%s.html saved to: %s", Name, NotSandboxedPath)
+                    logging.info(
+                        "File: NOT_SANDBOXED_%s.html saved to: %s",
+                        Name,
+                        NotSandboxedPath,
+                    )
                     iframe_template = Template(
                         """
                         <iframe src="{{ NotSandboxedPath }}" sandbox="" security="restricted"  frameborder='0'
@@ -123,13 +133,21 @@ class PluginHelper(object):
                         </iframe>
                         """
                     )
-                    iframe = iframe_template.generate(NotSandboxedPath=NotSandboxedPath.split("/")[-1])
-                    SandboxedPath = self.runner.dump_output_file("SANDBOXED_%s.html" % Name, iframe, PluginInfo)
-                    logging.info("File: SANDBOXED_%s.html saved to: %s", Name, SandboxedPath)
+                    iframe = iframe_template.generate(
+                        NotSandboxedPath=NotSandboxedPath.split("/")[-1]
+                    )
+                    SandboxedPath = self.runner.dump_output_file(
+                        "SANDBOXED_%s.html" % Name, iframe, PluginInfo
+                    )
+                    logging.info(
+                        "File: SANDBOXED_%s.html saved to: %s", Name, SandboxedPath
+                    )
                     link_list.append((Name, SandboxedPath))
         plugin_output = dict(PLUGIN_OUTPUT)
         plugin_output["type"] = "Requestlink_list"
-        plugin_output["output"] = {"ResourceListName": ResourceListName, "link_list": link_list}
+        plugin_output["output"] = {
+            "ResourceListName": ResourceListName, "link_list": link_list
+        }
         return ([plugin_output])
 
     def VulnerabilitySearchBox(self, SearchStr):
@@ -143,20 +161,26 @@ class PluginHelper(object):
         PluginOutputDir = self.InitPluginOutputDir(PluginInfo)
         plugin_output["type"] = "SuggestedCommandBox"
         plugin_output["output"] = {
-            "PluginOutputDir": PluginOutputDir, "CommandCategoryList": CommandCategoryList, "Header": Header
+            "PluginOutputDir": PluginOutputDir,
+            "CommandCategoryList": CommandCategoryList,
+            "Header": Header,
         }
         return ([plugin_output])
 
     def SetConfigPluginOutputDir(self, PluginInfo):
         PluginOutputDir = self.runner.get_plugin_output_dir(PluginInfo)
         # FULL output path for plugins to use
-        target_manager.set_path("plugin_output_dir", "{}/{}".format(os.getcwd(), PluginOutputDir))
+        target_manager.set_path(
+            "plugin_output_dir", "{}/{}".format(os.getcwd(), PluginOutputDir)
+        )
         self.shell.refresh_replacements()  # Get dynamic replacement, i.e. plugin-specific output directory
         return PluginOutputDir
 
     def InitPluginOutputDir(self, PluginInfo):
         PluginOutputDir = self.SetConfigPluginOutputDir(PluginInfo)
-        FileOperations.create_missing_dirs(PluginOutputDir)  # Create output dir so that scripts can cd to it :)
+        FileOperations.create_missing_dirs(
+            PluginOutputDir
+        )  # Create output dir so that scripts can cd to it :)
         return PluginOutputDir
 
     def RunCommand(self, Command, PluginInfo, PluginOutputDir):
@@ -167,7 +191,9 @@ class PluginHelper(object):
         ModifiedCommand = shell.get_modified_shell_cmd(Command, PluginOutputDir)
 
         try:
-            RawOutput = shell.shell_exec_monitor(self.session, ModifiedCommand, PluginInfo)
+            RawOutput = shell.shell_exec_monitor(
+                self.session, ModifiedCommand, PluginInfo
+            )
         except PluginAbortException as PartialOutput:
             RawOutput = str(PartialOutput.parameter)  # Save Partial Output
             PluginAbort = True
@@ -176,7 +202,14 @@ class PluginHelper(object):
             FrameworkAbort = True
         TimeStr = timer.get_elapsed_time_as_str("FormatCommandAndOutput")
         logging.info("Time=%s", TimeStr)
-        out = [ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir]
+        out = [
+            ModifiedCommand,
+            FrameworkAbort,
+            PluginAbort,
+            TimeStr,
+            RawOutput,
+            PluginOutputDir,
+        ]
         return out
 
     def GetCommandOutputFileNameAndExtension(self, InputName):
@@ -192,12 +225,16 @@ class PluginHelper(object):
             return str(Snippet)
         return cgi.escape(str(Snippet))  # Escape snippet to avoid breaking HTML
 
-    def CommandDump(self, CommandIntro, OutputIntro, ResourceList, PluginInfo, PreviousOutput):
+    def CommandDump(
+        self, CommandIntro, OutputIntro, ResourceList, PluginInfo, PreviousOutput
+    ):
         output_list = []
         PluginOutputDir = self.InitPluginOutputDir(PluginInfo)
         ResourceList = sorted(ResourceList, key=lambda x: x[0] == "Extract URLs")
         for Name, Command in ResourceList:
-            dump_file_name = "%s.txt" % os.path.splitext(Name)[0]  # Add txt extension to avoid wrong mimetypes
+            dump_file_name = "%s.txt" % os.path.splitext(Name)[
+                0
+            ]  # Add txt extension to avoid wrong mimetypes
             plugin_output = dict(PLUGIN_OUTPUT)
             ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir = self.RunCommand(
                 Command, PluginInfo, PluginOutputDir
@@ -237,13 +274,20 @@ class PluginHelper(object):
         if True:
             VisitURLs = True
             # Visit all URLs if not in Cache
-            for Transaction in self.requester.get_transactions(True, get_urls_to_visit()):
+            for Transaction in self.requester.get_transactions(
+                True, get_urls_to_visit()
+            ):
                 if Transaction is not None and Transaction.found:
                     NumFound += 1
         TimeStr = self.timer.get_elapsed_time_as_str("LogURLsFromStr")
         logging.info("Spider/URL scraper time=%s", TimeStr)
         plugin_output["type"] = "URLsFromStr"
-        plugin_output["output"] = {"TimeStr": TimeStr, "VisitURLs": VisitURLs, "URLList": URLList, "NumFound": NumFound}
+        plugin_output["output"] = {
+            "TimeStr": TimeStr,
+            "VisitURLs": VisitURLs,
+            "URLList": URLList,
+            "NumFound": NumFound,
+        }
         return [plugin_output]
 
     def DumpFile(self, Filename, Contents, PluginInfo, LinkName=""):
@@ -259,19 +303,26 @@ class PluginHelper(object):
             """
         )
 
-        return [save_path, template.generate(LinkName=LinkName, Link="../../../{}".format(save_path))]
+        return [
+            save_path,
+            template.generate(LinkName=LinkName, Link="../../../{}".format(save_path)),
+        ]
 
     def DumpFileGetLink(self, Filename, Contents, PluginInfo, LinkName=""):
         return self.DumpFile(Filename, Contents, PluginInfo, LinkName)[1]
 
-    def AnalyseRobotsEntries(self, Contents):  # Find the entries of each kind and count them
+    def AnalyseRobotsEntries(
+        self, Contents
+    ):  # Find the entries of each kind and count them
         num_lines = len(Contents.split("\n"))  # Total number of robots.txt entries
         AllowedEntries = list(
             set(self.robots_allow_regex.findall(Contents))
         )  # list(set()) is to avoid repeated entries
         num_allow = len(AllowedEntries)  # Number of lines that start with "Allow:"
         DisallowedEntries = list(set(self.robots_disallow_regex.findall(Contents)))
-        num_disallow = len(DisallowedEntries)  # Number of lines that start with "Disallow:"
+        num_disallow = len(
+            DisallowedEntries
+        )  # Number of lines that start with "Disallow:"
         SitemapEntries = list(set(self.robots_sitemap.findall(Contents)))
         num_sitemap = len(SitemapEntries)  # Number of lines that start with "Sitemap:"
         RobotsFound = True
@@ -288,7 +339,9 @@ class PluginHelper(object):
             RobotsFound,
         ]
 
-    def ProcessRobots(self, PluginInfo, Contents, LinkStart, LinkEnd, Filename="robots.txt"):
+    def ProcessRobots(
+        self, PluginInfo, Contents, LinkStart, LinkEnd, Filename="robots.txt"
+    ):
         plugin_output = dict(PLUGIN_OUTPUT)
         plugin_output["type"] = "Robots"
         num_lines, AllowedEntries, num_allow, DisallowedEntries, num_disallow, SitemapEntries, num_sitemap, NotStr = self.AnalyseRobotsEntries(
@@ -309,7 +362,9 @@ class PluginHelper(object):
                     if "Sitemap Entries" == Display:
                         URL = Entry
                         add_url(self.session, URL)  # Store real links in the DB
-                        Links.append([Entry, Entry])  # Show link in defined format (passive/semi_passive)
+                        Links.append(
+                            [Entry, Entry]
+                        )  # Show link in defined format (passive/semi_passive)
                     else:
                         URL = TopURL + Entry
                         add_url(self.session, URL)  # Store real links in the DB
@@ -342,7 +397,9 @@ class PluginHelper(object):
         # perform get transactions but don't save the transaction ids etc..
         plugin_output = dict(PLUGIN_OUTPUT)
         plugin_output["type"] = "TransactionTableForURLList"
-        plugin_output["output"] = {"UseCache": UseCache, "URLList": URLList, "Method": Method, "Data": Data}
+        plugin_output["output"] = {
+            "UseCache": UseCache, "URLList": URLList, "Method": Method, "Data": Data
+        }
         return ([plugin_output])
 
     def TransactionTableForURL(self, UseCache, URL, Method=None, Data=None):
@@ -351,7 +408,9 @@ class PluginHelper(object):
         self.requester.get_transaction(UseCache, URL, method=Method, data=Data)
         plugin_output = dict(PLUGIN_OUTPUT)
         plugin_output["type"] = "TransactionTableForURL"
-        plugin_output["output"] = {"UseCache": UseCache, "URL": URL, "Method": Method, "Data": Data}
+        plugin_output["output"] = {
+            "UseCache": UseCache, "URL": URL, "Method": Method, "Data": Data
+        }
         return ([plugin_output])
 
     def CreateMatchTables(self, Num):

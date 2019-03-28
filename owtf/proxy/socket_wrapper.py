@@ -9,7 +9,18 @@ from tornado import ioloop
 from owtf.proxy.gen_cert import gen_signed_cert
 
 
-def starttls(socket, domain, ca_crt, ca_key, ca_pass, certs_folder, success=None, failure=None, io=None, **options):
+def starttls(
+    socket,
+    domain,
+    ca_crt,
+    ca_key,
+    ca_pass,
+    certs_folder,
+    success=None,
+    failure=None,
+    io=None,
+    **options
+):
     """Wrap an active socket in an SSL socket.
 
     Taken from https://gist.github.com/weaver/293449/4d9f64652583611d267604531a1d5f8c32ac6b16.
@@ -45,7 +56,13 @@ def starttls(socket, domain, ca_crt, ca_key, ca_pass, certs_folder, success=None
 
     # The idea is to handle domains with greater than 3 dots using wildcard certs
     if domain.count(".") >= 3:
-        key, cert = gen_signed_cert("*." + ".".join(domain.split(".")[-3:]), ca_crt, ca_key, ca_pass, certs_folder)
+        key, cert = gen_signed_cert(
+            "*." + ".".join(domain.split(".")[-3:]),
+            ca_crt,
+            ca_key,
+            ca_pass,
+            certs_folder,
+        )
     else:
         key, cert = gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder)
     options.setdefault("certfile", cert)

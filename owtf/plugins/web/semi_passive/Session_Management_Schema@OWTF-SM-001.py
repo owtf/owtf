@@ -21,7 +21,9 @@ def run(PluginInfo):
     cookie_dict = defaultdict(list)
 
     # Get all possible values of the cookie names and values
-    for id in search_by_regex_names([config_handler.get_val("HEADERS_FOR_COOKIES")]):  # Transactions with cookies
+    for id in search_by_regex_names(
+        [config_handler.get_val("HEADERS_FOR_COOKIES")]
+    ):  # Transactions with cookies
         url = get_transaction_by_id(id)
         if url:
             url = url.url  # Limitation: Not Checking POST, normally not a problem

@@ -10,5 +10,7 @@ DESCRIPTION = "Searches transaction DB for SSL protections"
 def run(PluginInfo):
     title = "This plugin looks for server-side protection headers to enforce SSL<br />"
     Content = plugin_helper.HtmlString(title)
-    Content += plugin_helper.FindResponseHeaderMatchesForRegexpName("HEADERS_FOR_SSL_PROTECTION")
+    Content += plugin_helper.FindResponseHeaderMatchesForRegexpName(
+        "HEADERS_FOR_SSL_PROTECTION"
+    )
     return Content

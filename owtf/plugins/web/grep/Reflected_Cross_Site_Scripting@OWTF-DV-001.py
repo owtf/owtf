@@ -11,5 +11,7 @@ def run(PluginInfo):
     # Background: http://jeremiahgrossman.blogspot.com/2010/01/to-disable-ie8s-xss-filter-or-not.html
     title = "This plugin looks for server-side protection headers against XSS (TODO: Check vuln scanners' output!)<br/>"
     Content = plugin_helper.HtmlString(title)
-    Content += plugin_helper.FindResponseHeaderMatchesForRegexpName("HEADERS_FOR_XSS_PROTECTION")
+    Content += plugin_helper.FindResponseHeaderMatchesForRegexpName(
+        "HEADERS_FOR_XSS_PROTECTION"
+    )
     return Content

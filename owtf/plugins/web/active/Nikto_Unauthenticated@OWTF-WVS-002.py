@@ -9,8 +9,14 @@ DESCRIPTION = "Active Vulnerability Scanning without credentials via nikto"
 
 
 def run(PluginInfo):
-    NiktoOutput = plugin_helper.CommandDump("Test Command", "Output", get_resources("Nikto_Unauth"), PluginInfo, [])
+    NiktoOutput = plugin_helper.CommandDump(
+        "Test Command", "Output", get_resources("Nikto_Unauth"), PluginInfo, []
+    )
     Content = plugin_helper.CommandDump(
-        "Test Command", "Output", get_resources("Nikto_Verify_Unauth"), PluginInfo, NiktoOutput
+        "Test Command",
+        "Output",
+        get_resources("Nikto_Verify_Unauth"),
+        PluginInfo,
+        NiktoOutput,
     )
     return Content + NiktoOutput  # Show Nikto Verify FIRST (more useful, with links to findings, etc)

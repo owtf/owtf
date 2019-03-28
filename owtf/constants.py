@@ -30,35 +30,52 @@ SUPPORTED_MAPPINGS = ["OWASP_V3", "OWASP_V4", "NIST", "OWASP_TOP_10", "CWE"]
 MAPPINGS = {
     "OWTF-IG-001": {
         "OWASP_V3": ["OWASP-IG-001", "Spiders Robots and Crawlers"],
-        "OWASP_V4": ["OTF-INFO-003", "Review Webserver Metafiles for Information Leakage"],
+        "OWASP_V4": [
+            "OTF-INFO-003", "Review Webserver Metafiles for Information Leakage"
+        ],
         "NIST": ["AU-13", "Monitoring for Information Disclosure - Spider, Robots"],
         "OWASP_TOP_10": ["A6", "Sensitive Data Exposure - Spider, Robots"],
-        "CWE": ["CWE-312", "Cleartext Storage of Sensitive Information - Spider, Robots"],
+        "CWE": [
+            "CWE-312", "Cleartext Storage of Sensitive Information - Spider, Robots"
+        ],
     },
     "OWTF-IG-002": {
         "OWASP_V3": ["OWASP-IG-002", "Search Engine Discovery/Reconnaissance"],
-        "OWASP_V4": ["OTG-INFO-001", "Conduct Search Engine Discovery and Reconnaissance"],
+        "OWASP_V4": [
+            "OTG-INFO-001", "Conduct Search Engine Discovery and Reconnaissance"
+        ],
         "NIST": ["AU-13", "Monitoring for Information Disclosure - Search Engine"],
         "OWASP_TOP_10": ["A6", "Sensitive Data Exposure - Search Engine"],
-        "CWE": ["CWE-312", "Cleartext Storage of Sensitive Information - Search Engine"],
+        "CWE": [
+            "CWE-312", "Cleartext Storage of Sensitive Information - Search Engine"
+        ],
     },
     "OWTF-IG-003": {
         "OWASP_V3": ["OWASP-IG-003", "Identify application entry points"],
         "OWASP_V4": ["OTG-INFO-006", "Identify application entry points"],
-        "NIST": ["AU-13", "Monitoring for Information Disclosure - Application Entry Points"],
+        "NIST": [
+            "AU-13", "Monitoring for Information Disclosure - Application Entry Points"
+        ],
         "OWASP_TOP_10": ["A6", "Sensitive Data Exposure - Application Entry Points"],
     },
     "OWTF-IG-004": {
         "OWASP_V3": ["OWASP-IG-004", "Testing for Web Application Fingerprint"],
         "OWASP_V4": ["OTG-INFO-002", "Fingerprint Web Server"],
-        "NIST": ["AU-13", "Monitoring for Information Disclosure - Application Fingerprinting"],
+        "NIST": [
+            "AU-13",
+            "Monitoring for Information Disclosure - Application Fingerprinting",
+        ],
         "OWASP_TOP_10": ["A6", "Sensitive Data Exposure - Application Fingerprinting"],
     },
     "OWTF-IG-005": {
         "OWASP_V3": ["OWASP-IG-005", "Application Discovery"],
         "OWASP_V4": ["OTG-INFO-004", "Enumerate Applications on Webserver"],
-        "NIST": ["AU-13", "Monitoring for Information Disclosure - Application Discovery"],
-        "OWASP_TOP_10": ["A9", "Using Components with Known Vulnerabilities - Application Discovery"],
+        "NIST": [
+            "AU-13", "Monitoring for Information Disclosure - Application Discovery"
+        ],
+        "OWASP_TOP_10": [
+            "A9", "Using Components with Known Vulnerabilities - Application Discovery"
+        ],
     },
     "OWTF-IG-006": {
         "OWASP_V3": ["OWASP-IG-006", "Analysis of Error Codes"],
@@ -72,49 +89,90 @@ MAPPINGS = {
         "OWASP_V3": ["OWASP-CM-001", "SSL/TLS Testing"],
         "OWASP_V4": ["OTG-INFO-011", "Map Network and Application Architecture"],
         "NIST": ["SC-13", "Cryptographic Protection - SSL/TLS implementation"],
-        "OWASP_TOP_10": ["A9", "Using Components with Known Vulnerabilities - SSL/TLS implementation"],
+        "OWASP_TOP_10": [
+            "A9", "Using Components with Known Vulnerabilities - SSL/TLS implementation"
+        ],
     },
     "OWTF-CM-002": {
         "OWASP_V3": ["OWASP-CM-002", "DB Listener Testing"],
         "OWASP_V4": ["OTG-CONFIG-002", "Test Application Platform Configuration"],
-        "NIST": ["AC-03", "Access Enforcement - DB testing, Application Platform configuration"],
-        "OWASP_TOP_10": ["A5", "Security Misconfiguration - DB testing, Application Platform configuration"],
-        "CWE": ["CWE-16", "Configuration - DB testing, Application Platform configuration"],
+        "NIST": [
+            "AC-03",
+            "Access Enforcement - DB testing, Application Platform configuration",
+        ],
+        "OWASP_TOP_10": [
+            "A5",
+            "Security Misconfiguration - DB testing, Application Platform configuration",
+        ],
+        "CWE": [
+            "CWE-16", "Configuration - DB testing, Application Platform configuration"
+        ],
     },
     "OWTF-CM-003": {
         "OWASP_V3": ["OWASP-CM-003", "Infrastructure Configuration Management Testing"],
-        "OWASP_V4": ["OTG-CONFIG-003", "Test File Extensions Handling for Sensitive Information"],
+        "OWASP_V4": [
+            "OTG-CONFIG-003", "Test File Extensions Handling for Sensitive Information"
+        ],
         "NIST": ["CM-6", "Configuration Settings - File Extensions"],
         "OWASP_TOP_10": ["A5", "Security Misconfiguration - File Extensions"],
         "CWE": ["CWE-16", "Configuration - File Extensions"],
     },
     "OWTF-CM-004": {
         "OWASP_V3": ["OWASP-CM-004", "Application Configuration Management Testing"],
-        "OWASP_V4": ["OTG-CONFIG-004", "Backup and Unreferenced Files for Sensitive Information"],
+        "OWASP_V4": [
+            "OTG-CONFIG-004", "Backup and Unreferenced Files for Sensitive Information"
+        ],
         "NIST": ["CM-6", "Configuration Settings - Backup and Unreferenced files"],
-        "OWASP_TOP_10": ["A5", "Security Misconfiguration - Backup and Unreferenced files"],
+        "OWASP_TOP_10": [
+            "A5", "Security Misconfiguration - Backup and Unreferenced files"
+        ],
         "CWE": ["CWE-16", "Configuration - Backup and Unreferenced files"],
     },
     "OWTF-CM-005": {
         "OWASP_V3": ["OWASP-CM-005", "Testing for File Extensions Handling"],
-        "OWASP_V4": ["OTG-CONFIG-005", "Enumerate Infrastructure and Application Admin Interfaces"],
-        "NIST": ["CM-10", "Software Usage Restrictions - File Extensions Handling, Admin interfaces"],
-        "OWASP_TOP_10": ["A5", "Security Misconfiguration - File Extensions Handling, Admin interfaces"],
+        "OWASP_V4": [
+            "OTG-CONFIG-005",
+            "Enumerate Infrastructure and Application Admin Interfaces",
+        ],
+        "NIST": [
+            "CM-10",
+            "Software Usage Restrictions - File Extensions Handling, Admin interfaces",
+        ],
+        "OWASP_TOP_10": [
+            "A5",
+            "Security Misconfiguration - File Extensions Handling, Admin interfaces",
+        ],
         "CWE": ["CWE-16", "Configuration - File Extensions Handling, Admin interfaces"],
     },
     "OWTF-CM-006": {
         "OWASP_V3": ["OWASP-CM-006", "Old backup and unreferenced files"],
         "OWASP_V4": ["OTG-CONFIG-006", "Test HTTP Methods"],
         "NIST": ["AC-03", "Access Enforcement - Old backup, unreferrenced files"],
-        "OWASP_TOP_10": ["A6", "Sensitive Data Exposure - Old backup, unreferrenced files"],
-        "CWE": ["CWE-312", "Cleartext Storage of Sensitive Information - Old backup, unreferrenced files"],
+        "OWASP_TOP_10": [
+            "A6", "Sensitive Data Exposure - Old backup, unreferrenced files"
+        ],
+        "CWE": [
+            "CWE-312",
+            "Cleartext Storage of Sensitive Information - Old backup, unreferrenced files",
+        ],
     },
     "OWTF-CM-007": {
         "OWASP_V3": ["OWASP-CM-007", "Infrastructure and Application Admin Interfaces"],
-        "OWASP_V4": ["OTG-CONFIG-007", "Testing for Database credentials/connection strings"],
-        "NIST": ["AC-06", "Least Privilege - Admin interfaces, DB credentials/connection strings"],
-        "OWASP_TOP_10": ["A5", "Security Misconfiguration - Admin interfaces, DB credentials/connection strings"],
-        "CWE": ["CWE-16", "Configuration- Admin interfaces, DB credentials/connection strings"],
+        "OWASP_V4": [
+            "OTG-CONFIG-007", "Testing for Database credentials/connection strings"
+        ],
+        "NIST": [
+            "AC-06",
+            "Least Privilege - Admin interfaces, DB credentials/connection strings",
+        ],
+        "OWASP_TOP_10": [
+            "A5",
+            "Security Misconfiguration - Admin interfaces, DB credentials/connection strings",
+        ],
+        "CWE": [
+            "CWE-16",
+            "Configuration- Admin interfaces, DB credentials/connection strings",
+        ],
     },
     "OWTF-CM-008": {
         "OWASP_V3": ["OWASP-CM-008", "Testing for HTTP Methods and XST"],
@@ -125,13 +183,24 @@ MAPPINGS = {
     },
     "OWTF-AT-001": {
         "OWASP_V3": ["OWASP-AT-001", "Credentials transport over an encrypted channel"],
-        "OWASP_V4": ["OTG-AUTHN-001", "Testing for Credentials Transported over an Encrypted Channel"],
-        "NIST": ["SC-13", "Cryptographic Protection - Encrypted transport of credentials"],
-        "OWASP_TOP_10": ["A9", "Using Components with Known Vulnerabilities - Encrypted transport of credentials"],
+        "OWASP_V4": [
+            "OTG-AUTHN-001",
+            "Testing for Credentials Transported over an Encrypted Channel",
+        ],
+        "NIST": [
+            "SC-13", "Cryptographic Protection - Encrypted transport of credentials"
+        ],
+        "OWASP_TOP_10": [
+            "A9",
+            "Using Components with Known Vulnerabilities - Encrypted transport of credentials",
+        ],
     },
     "OWTF-AT-002": {
         "OWASP_V3": ["OWASP-AT-002", "Testing for user enumeration"],
-        "OWASP_V4": ["OTG-IDENT-004", "Testing for Account Enumeration and Guessable User Account"],
+        "OWASP_V4": [
+            "OTG-IDENT-004",
+            "Testing for Account Enumeration and Guessable User Account",
+        ],
         "NIST": ["IA-6", "Authenticator Feedback - User enumeration"],
         "OWASP_TOP_10": ["A5", "Security Misconfiguration - User enumeration"],
         "CWE": ["CWE-16", "Configuration - User enumeration"],
@@ -140,7 +209,9 @@ MAPPINGS = {
         "OWASP_V3": ["OWASP-AT-003", "Testing for Guessable (Dictionary) User Account"],
         "OWASP_V4": ["OTG-AUTHN-002", "Testing for default credentials"],
         "NIST": ["IA-6", "Authenticator Feedback - Default and guessable credentials"],
-        "OWASP_TOP_10": ["A5", "Security Misconfiguration - Default and guessable credentials"],
+        "OWASP_TOP_10": [
+            "A5", "Security Misconfiguration - Default and guessable credentials"
+        ],
         "CWE": ["CWE-16", "Configuration - Default and guessable credentials"],
     },
     "OWTF-AT-004": {
@@ -154,13 +225,20 @@ MAPPINGS = {
         "OWASP_V3": ["OWASP-AT-005", "Testing for bypassing authentication schema"],
         "OWASP_V4": ["OTG-AUTHN-004", "Testing for bypassing authentication schema"],
         "NIST": ["AC-10", "Concurrent Session Control"],
-        "OWASP_TOP_10": ["A2", "Broken Authentication and Session Management -bypassing authentication schema"],
+        "OWASP_TOP_10": [
+            "A2",
+            "Broken Authentication and Session Management -bypassing authentication schema",
+        ],
     },
     "OWTF-AT-006": {
-        "OWASP_V3": ["OWASP-AT-006", "Testing for vulnerable remember password and pwd reset"],
+        "OWASP_V3": [
+            "OWASP-AT-006", "Testing for vulnerable remember password and pwd reset"
+        ],
         "OWASP_V4": ["OTG-AUTHN-005", "Test remember password functionality"],
         "NIST": ["IA-6", "Authenticator Feedback - Remember Password functionality"],
-        "OWASP_TOP_10": ["A5", "Security Misconfiguration - Remember Password functionality"],
+        "OWASP_TOP_10": [
+            "A5", "Security Misconfiguration - Remember Password functionality"
+        ],
         "CWE": ["CWE-16", "Configuration - - Remember Password functionality"],
     },
     "OWTF-AT-007": {
@@ -185,40 +263,62 @@ MAPPINGS = {
             "Identification and Authentication (Organizational Users) - Multiple Factor Auth, weak/unenforced username policy",
         ],
         "OWASP_TOP_10": [
-            "A2", "Broken Authentication and Session Management - Multiple Factor Auth, weak/unenforced username policy"
+            "A2",
+            "Broken Authentication and Session Management - Multiple Factor Auth, weak/unenforced username policy",
         ],
     },
     "OWTF-AT-010": {
         "OWASP_V3": ["OWASP-AT-010", "Testing for Race Conditions"],
-        "OWASP_V4": ["OTG-AUTHZ-009", "Testing for failure to restrict access to authenticated resource"],
-        "NIST": ["SI-16", "Memory Protection - Race conditions, Bad authentication validation"],
-        "OWASP_TOP_10": ["A5", "Security Misconfiguration - Race conditions, Bad authentication validation"],
-        "CWE": ["CWE-16", "Configuration - Race conditions, Bad authentication validation"],
+        "OWASP_V4": [
+            "OTG-AUTHZ-009",
+            "Testing for failure to restrict access to authenticated resource",
+        ],
+        "NIST": [
+            "SI-16",
+            "Memory Protection - Race conditions, Bad authentication validation",
+        ],
+        "OWASP_TOP_10": [
+            "A5",
+            "Security Misconfiguration - Race conditions, Bad authentication validation",
+        ],
+        "CWE": [
+            "CWE-16", "Configuration - Race conditions, Bad authentication validation"
+        ],
     },
     "OWTF-SM-001": {
         "category": "Authentication",
         "OWASP_V3": ["OWASP-SM-001", "Testing for Session Management Schema"],
         "OWASP_V4": ["OTG-SESS-001", "Testing for Bypassing Session Management Schema"],
         "NIST": ["SC-10", "Network Disconnect"],
-        "OWASP_TOP_10": ["A2", "Broken Authentication and Session Management - Session Management Schema"],
+        "OWASP_TOP_10": [
+            "A2",
+            "Broken Authentication and Session Management - Session Management Schema",
+        ],
     },
     "OWTF-SM-002": {
         "OWASP_V3": ["OWASP-SM-002", "Testing for Cookies attributes"],
         "OWASP_V4": ["OTG-SESS-002", "Testing for Cookies attributes"],
         "NIST": ["SC-23", "Session Authenticity - Cookie Attributes"],
-        "OWASP_TOP_10": ["A2", "Broken Authentication and Session Management - Cookies attributes"],
+        "OWASP_TOP_10": [
+            "A2", "Broken Authentication and Session Management - Cookies attributes"
+        ],
     },
     "OWTF-SM-003": {
         "OWASP_V3": ["OWASP-SM-003", "Testing for Session Fixation"],
         "OWASP_V4": ["OTG-SESS-003", "Testing for Session Fixation"],
         "NIST": ["SC-23", "Session Authenticity - Session Fixation"],
-        "OWASP_TOP_10": ["A2", "Broken Authentication and Session Management - Session Fixation"],
+        "OWASP_TOP_10": [
+            "A2", "Broken Authentication and Session Management - Session Fixation"
+        ],
     },
     "OWTF-SM-004": {
         "OWASP_V3": ["OWASP-SM-004", "Testing for Exposed Session Variables"],
         "OWASP_V4": ["OTG-SESS-004", "Testing for Exposed Session Variables"],
         "NIST": ["AC-03", "Access Enforcement - Exposed session variables"],
-        "OWASP_TOP_10": ["A2", "Broken Authentication and Session Management - Exposed Session Variables"],
+        "OWASP_TOP_10": [
+            "A2",
+            "Broken Authentication and Session Management - Exposed Session Variables",
+        ],
     },
     "OWTF-SM-005": {
         "category": "CSRF",
@@ -239,7 +339,9 @@ MAPPINGS = {
         "OWASP_V3": ["OWASP-AZ-002", "Testing for bypassing authorization schema"],
         "OWASP_V4": ["OTG-AUTHZ-003", "Testing for bypassing authorization schema"],
         "NIST": ["AC-6", "Least Privilege - Bypass authorization scheme"],
-        "OWASP_TOP_10": ["A5", "Security Misconfiguration - Bypass authorization scheme"],
+        "OWASP_TOP_10": [
+            "A5", "Security Misconfiguration - Bypass authorization scheme"
+        ],
         "CWE": ["CWE-16", "Configuration - Bypass authorization scheme"],
     },
     "OWTF-AZ-003": {
@@ -269,8 +371,12 @@ MAPPINGS = {
         "category": "XSS",
         "OWASP_V3": ["OWASP-DV-003", "Testing for DOM based Cross Site Scripting"],
         "OWASP_V4": ["OTG-INPVAL-003", "Testing for HTTP Verb Tampering"],
-        "NIST": ["SI-10", "Information Input Validation - DOM XSS, HTTP verb tampering"],
-        "OWASP_TOP_10": ["A3", "Cross-Site Scripting(XSS) - DOM XSS, HTTP verb tampering"],
+        "NIST": [
+            "SI-10", "Information Input Validation - DOM XSS, HTTP verb tampering"
+        ],
+        "OWASP_TOP_10": [
+            "A3", "Cross-Site Scripting(XSS) - DOM XSS, HTTP verb tampering"
+        ],
         "CWE": ["CWE-79", "Cross-site Scripting - DOM XSS, HTTP verb tampering"],
     },
     "OWTF-DV-004": {
@@ -385,19 +491,27 @@ MAPPINGS = {
     "OWTF-DS-005": {
         "OWASP_V3": ["OWASP-DS-005", "User Input as a Loop Counter"],
         "NIST": ["SC-05", "Denial of Service Protection - User input as loop counter"],
-        "OWASP_TOP_10": ["A5", "Security Misconfiguration - DoS user input as loop counter"],
+        "OWASP_TOP_10": [
+            "A5", "Security Misconfiguration - DoS user input as loop counter"
+        ],
         "CWE": ["CWE-16", "Configuration - DoS user input as loop counter"],
     },
     "OWTF-DS-006": {
         "OWASP_V3": ["OWASP-DS-006", "Writing User Provided Data to Disk"],
         "NIST": ["SC-05", "Denial of Service Protection - Writing input data to disk"],
-        "OWASP_TOP_10": ["A5", "Security Misconfiguration - DoS Writing input data to disk"],
+        "OWASP_TOP_10": [
+            "A5", "Security Misconfiguration - DoS Writing input data to disk"
+        ],
         "CWE": ["CWE-16", "Configuration - DoS Writing input data to disk"],
     },
     "OWTF-DS-007": {
         "OWASP_V3": ["OWASP-DS-007", "Failure to Release Resources"],
-        "NIST": ["SC-05", "Denial of Service Protection - Failure to release resources"],
-        "OWASP_TOP_10": ["A5", "Security Misconfiguration - DoS Failure to release resources"],
+        "NIST": [
+            "SC-05", "Denial of Service Protection - Failure to release resources"
+        ],
+        "OWASP_TOP_10": [
+            "A5", "Security Misconfiguration - DoS Failure to release resources"
+        ],
         "CWE": ["CWE-16", "Configuration - DoS Failure to release resources"],
     },
     "OWTF-DS-008": {
@@ -408,7 +522,9 @@ MAPPINGS = {
     },
     "OWTF-WS-001": {
         "OWASP_V3": ["OWASP-WS-001", "WS Information Gathering"],
-        "NIST": ["AU-13", "Monitoring for Information Disclosure - Information Gathering"],
+        "NIST": [
+            "AU-13", "Monitoring for Information Disclosure - Information Gathering"
+        ],
     },
     "OWTF-WS-002": {
         "OWASP_V3": ["OWASP-WS-002", "Testing WSDL"],
@@ -418,7 +534,9 @@ MAPPINGS = {
     "OWTF-WS-004": {"OWASP_V3": ["OWASP-WS-004", "XML content-level Testing"]},
     "OWTF-WS-005": {
         "OWASP_V3": ["OWASP-WS-005", "HTTP GET parameters/REST Testing"],
-        "NIST": ["SI-10", "Information Input Validation - HTTP parameters/REST testing"],
+        "NIST": [
+            "SI-10", "Information Input Validation - HTTP parameters/REST testing"
+        ],
     },
     "OWTF-WS-006": {
         "OWASP_V3": ["OWASP-WS-006", "Naughty SOAP attachments"],
@@ -426,13 +544,17 @@ MAPPINGS = {
     },
     "OWTF-WS-007": {
         "OWASP_V3": ["OWASP-WS-007", "Replay Testing"],
-        "NIST": ["IA-2", "Identification and Authentication (Organizational Users) - Replay testing"],
+        "NIST": [
+            "IA-2",
+            "Identification and Authentication (Organizational Users) - Replay testing",
+        ],
     },
     "OWTF-AJ-001": {
         "OWASP_V3": ["OWASP-AJ-001", "AJAX Vulnerabilities"],
         "NIST": ["AC-03", "Access Enforcement - AJAX vulnerabilities"],
     },
     "OWTF-AJ-002": {
-        "OWASP_V3": ["OWASP-AJ-002", "AJAX Testing"], "NIST": ["AC-03", "Access Enforcement - AJAX testing"]
+        "OWASP_V3": ["OWASP-AJ-002", "AJAX Testing"],
+        "NIST": ["AC-03", "Access Enforcement - AJAX testing"],
     },
 }
