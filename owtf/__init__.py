@@ -5,7 +5,7 @@ from typing import Any, NamedTuple
 
 from owtf.utils.logger import OWTFLogger
 
-__version__ = "2.5.0"
+__version__ = "2.6.0"
 __homepage__ = "https://github.com/owtf/owtf"
 __docformat__ = "markdown"
 
