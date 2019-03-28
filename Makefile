@@ -5,6 +5,8 @@ mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 VENV_PATH=$$HOME/.virtualenvs/${PROJ}
 
+.PHONY: venv setup web docs lint clean bump build release
+
 check-root:
 ifeq ($(USER), root)
 	@echo "WARNING: Installing as root should be avoided at all costs. Use a virtualenv."
