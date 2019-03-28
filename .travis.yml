@@ -1,6 +1,10 @@
-language: python
+language:
+  - python
+  - node_js
 python:
   - '3.6'
+node_js:
+  - '7'
 branches:
   only:
   - master
@@ -11,10 +15,11 @@ dist:
   - xenial
 sudo:
   - required
+cache: yarn
 before_install:
   - sudo apt-get purge python-openssl
   - sudo apt-get install libffi-dev libyaml-dev python-yaml
-  - sudo pip install pyopenssl 
+  - sudo pip install pyopenssl
   - psql postgres -c "CREATE USER owtf_db_user WITH PASSWORD 'jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=';"
   - psql postgres -c "CREATE DATABASE owtf_db WITH OWNER owtf_db_user ENCODING 'utf-8' TEMPLATE template0;"
 install:
@@ -37,6 +42,7 @@ script:
   #- python -m unittest tests.functional.cli.test_scope
   #- python -m unittest tests.functional.cli.test_type
   - python -m unittest tests.functional.plugins.web
+  - yarn test
 notifications:
   email: false
   slack:
