@@ -5,7 +5,7 @@ from collections import namedtuple as NamedTuple
 
 from owtf.utils.logger import OWTFLogger
 
-__version__ = "2.4.0"
+__version__ = "version='2.5.0'"
 __homepage__ = "https://github.com/owtf/owtf"
 __docformat__ = "markdown"
 
