@@ -1,48 +1,56 @@
-language:
-  - python
-  - node_js
-python:
-  - '3.6'
-node_js:
-  - '7'
-branches:
-  only:
-  - master
-  - develop
-services:
-  - postgresql
-dist:
-  - xenial
-sudo:
-  - required
-cache: yarn
-before_install:
-  - sudo apt-get purge python-openssl
-  - sudo apt-get install libffi-dev libyaml-dev python-yaml
-  - sudo pip install pyopenssl
-  - psql postgres -c "CREATE USER owtf_db_user WITH PASSWORD 'jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=';"
-  - psql postgres -c "CREATE DATABASE owtf_db WITH OWNER owtf_db_user ENCODING 'utf-8' TEMPLATE template0;"
-install:
-  - pip install -r requirements/base.txt
-  - echo '\n\n' | python setup.py develop
-before_script:
-  - pip install mock pyHamcrest
-  - cp -f ./tests/fixtures/profiles/plugin_web/groups.cfg ~/.owtf/conf/profiles/plugin_web/groups.cfg
-  - cp -f ./tests/fixtures/profiles/plugin_net/groups.cfg ~/.owtf/conf/profiles/plugin_net/groups.cfg
-  - cp -f ./tests/fixtures/profiles/plugin_aux/groups.cfg ~/.owtf/conf/profiles/plugin_aux/groups.cfg
-  - git config --global user.email "tasty@mac.test"
-  - git config --global user.name "Tasty Test"
-  - "./tests/fixtures/skipfish.sh"
-script:
-  - python -m unittest tests.functional.cli.test_empty_run
-  #- python -m unittest tests.functional.cli.test_except
-  - python -m unittest tests.functional.cli.test_list_plugins
-  - python -m unittest tests.functional.cli.test_nowebui
-  #- python -m unittest tests.functional.cli.test_only
-  #- python -m unittest tests.functional.cli.test_scope
-  #- python -m unittest tests.functional.cli.test_type
-  - python -m unittest tests.functional.plugins.web
-  - yarn test
+matrix:
+  include:
+    - language:
+        - python
+      python:
+        - '3.6'
+      branches:
+        only:
+        - master
+        - develop
+      services:
+        - postgresql
+      dist:
+        - xenial
+      sudo:
+        - required
+      before_install:
+        - sudo apt-get purge python-openssl
+        - sudo apt-get install libffi-dev libyaml-dev python-yaml
+        - sudo pip install pyopenssl
+        - psql postgres -c "CREATE USER owtf_db_user WITH PASSWORD 'jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=';"
+        - psql postgres -c "CREATE DATABASE owtf_db WITH OWNER owtf_db_user ENCODING 'utf-8' TEMPLATE template0;"
+      install:
+        - pip install -r requirements/base.txt
+        - echo '\n\n' | python setup.py develop
+      before_script:
+        - pip install mock pyHamcrest
+        - cp -f ./tests/fixtures/profiles/plugin_web/groups.cfg ~/.owtf/conf/profiles/plugin_web/groups.cfg
+        - cp -f ./tests/fixtures/profiles/plugin_net/groups.cfg ~/.owtf/conf/profiles/plugin_net/groups.cfg
+        - cp -f ./tests/fixtures/profiles/plugin_aux/groups.cfg ~/.owtf/conf/profiles/plugin_aux/groups.cfg
+        - git config --global user.email "tasty@mac.test"
+        - git config --global user.name "Tasty Test"
+        - "./tests/fixtures/skipfish.sh"
+      script:
+        - python -m unittest tests.functional.cli.test_empty_run
+        #- python -m unittest tests.functional.cli.test_except
+        - python -m unittest tests.functional.cli.test_list_plugins
+        - python -m unittest tests.functional.cli.test_nowebui
+        #- python -m unittest tests.functional.cli.test_only
+        #- python -m unittest tests.functional.cli.test_scope
+        #- python -m unittest tests.functional.cli.test_type
+        - python -m unittest tests.functional.plugins.web
+
+    - language: node_js
+      node_js:
+        - '11'
+      before_install:
+        - cd owtf/webapp
+      install:
+        - sudo yarn install
+      scripts:
+        - yarn test
+
 notifications:
   email: false
   slack:
