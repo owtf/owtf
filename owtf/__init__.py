@@ -5,8 +5,9 @@ from typing import Any, NamedTuple
 
 try:
     from owtf.utils.logger import OWTFLogger
+
     OWTFLogger().enable_logging()
-except ModuleNotFoundError as e:
+except ImportError as e:
     print(e)
 
 __version__ = "2.6.0"
@@ -14,13 +15,7 @@ __homepage__ = "https://github.com/owtf/owtf"
 __docformat__ = "markdown"
 
 
-version_info_t = NamedTuple(
-    "version_info_t", [
-        ("major", int),
-        ("minor", int),
-        ("patch", int),
-    ]
-)
+version_info_t = NamedTuple("version_info_t", [("major", int), ("minor", int), ("patch", int)])
 
 # bumpversion can only search for {current_version}
 # so we have to parse the version here.
