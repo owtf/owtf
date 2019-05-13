@@ -37,7 +37,9 @@ def num_transactions(session, scope=True, target_id=None):
     :return: Number of transactions in scope
     :rtype: `int`
     """
-    count = get_count(session.query(Transaction).filter_by(scope=scope, target_id=target_id))
+    count = get_count(
+        session.query(Transaction).filter_by(scope=scope, target_id=target_id)
+    )
     return count
 
 
@@ -73,33 +75,53 @@ def transaction_gen_query(session, criteria, target_id, for_stats=False):
         if criteria.get("url", None):
             if isinstance(criteria.get("url"), list):
                 criteria["url"] = criteria["url"][0]
-            query = query.filter(Transaction.url.like("%%{!s}%%".format(criteria["url"])))
+            query = query.filter(
+                Transaction.url.like("%%{!s}%%".format(criteria["url"]))
+            )
         if criteria.get("method", None):
             if isinstance(criteria.get("method"), list):
                 criteria["method"] = criteria["method"][0]
-            query = query.filter(Transaction.method.like("%%{!s}%%".format(criteria.get("method"))))
+            query = query.filter(
+                Transaction.method.like("%%{!s}%%".format(criteria.get("method")))
+            )
         if criteria.get("data", None):
             if isinstance(criteria.get("data"), list):
                 criteria["data"] = criteria["data"][0]
-            query = query.filter(Transaction.data.like("%%{!s}%%".format(criteria.get("data"))))
+            query = query.filter(
+                Transaction.data.like("%%{!s}%%".format(criteria.get("data")))
+            )
         if criteria.get("raw_request", None):
             if isinstance(criteria.get("raw_request"), list):
                 criteria["raw_request"] = criteria["raw_request"][0]
-            query = query.filter(Transaction.raw_request.like("%%{!s}%%".format(criteria.get("raw_request"))))
+            query = query.filter(
+                Transaction.raw_request.like(
+                    "%%{!s}%%".format(criteria.get("raw_request"))
+                )
+            )
         if criteria.get("response_status", None):
             if isinstance(criteria.get("response_status"), list):
                 criteria["response_status"] = criteria["response_status"][0]
-            query = query.filter(Transaction.response_status.like("%%{!s}%%".format(criteria.get("response_status"))))
+            query = query.filter(
+                Transaction.response_status.like(
+                    "%%{!s}%%".format(criteria.get("response_status"))
+                )
+            )
         if criteria.get("response_headers", None):
             if isinstance(criteria.get("response_headers"), list):
                 criteria["response_headers"] = criteria["response_headers"][0]
-            query = query.filter(Transaction.response_headers.like("%%{!s}%%".format(criteria.get("response_headers"))))
+            query = query.filter(
+                Transaction.response_headers.like(
+                    "%%{!s}%%".format(criteria.get("response_headers"))
+                )
+            )
         if criteria.get("response_body", None):
             if isinstance(criteria.get("response_body"), list):
                 criteria["response_body"] = criteria["response_body"][0]
             query = query.filter(
                 Transaction.binary_response is False,
-                Transaction.response_body.like("%%{!s}%%".format(criteria.get("response_body"))),
+                Transaction.response_body.like(
+                    "%%{!s}%%".format(criteria.get("response_body"))
+                ),
             )
     else:  # If transaction filter is being done
         if criteria.get("url", None):
@@ -216,7 +238,11 @@ def get_transactions(transactions):
     :return: List of transactions
     :rtype: `list`
     """
-    return [get_transaction(transaction) for transaction in transactions if transaction is not None]
+    return [
+        get_transaction(transaction)
+        for transaction in transactions
+        if transaction is not None
+    ]
 
 
 def get_transaction_model(transaction):
@@ -316,7 +342,10 @@ def log_transactions(session, transaction_list, target_id=None):
                         else:
                             session.add(
                                 GrepOutput(
-                                    target_id=target_id, transactions=[transaction_model], name=regex_name, output=match
+                                    target_id=target_id,
+                                    transactions=[transaction_model],
+                                    name=regex_name,
+                                    output=match,
                                 )
                             )
     session.commit()
@@ -337,7 +366,9 @@ def log_transactions_from_logger(transactions_dict):
     session = get_scoped_session()
     for target_id, transaction_list in list(transactions_dict.items()):
         if transaction_list:
-            log_transactions(session=session, transaction_list=transaction_list, target_id=target_id)
+            log_transactions(
+                session=session, transaction_list=transaction_list, target_id=target_id
+            )
 
 
 @target_required
@@ -351,7 +382,9 @@ def delete_transaction(session, transaction_id, target_id=None):
     :return: None
     :rtype: None
     """
-    session.query(Transaction).filter_by(target_id=target_id, id=transaction_id).delete()
+    session.query(Transaction).filter_by(
+        target_id=target_id, id=transaction_id
+    ).delete()
     session.commit()
 
 
@@ -417,9 +450,17 @@ def get_top_by_speed(session, order="Desc", num=10, target_id=None):
     :rtype: `list`
     """
     if order == "Desc":
-        results = session.query(Transaction).filter_by(target_id=target_id).order_by(desc(Transaction.time)).limit(num)
+        results = session.query(Transaction).filter_by(target_id=target_id).order_by(
+            desc(Transaction.time)
+        ).limit(
+            num
+        )
     else:
-        results = session.query(Transaction).filter_by(target_id=target_id).order_by(asc(Transaction.time)).limit(num)
+        results = session.query(Transaction).filter_by(target_id=target_id).order_by(
+            asc(Transaction.time)
+        ).limit(
+            num
+        )
     return get_transactions(results)
 
 
@@ -547,7 +588,9 @@ def search_by_regex_name(session, regex_name, stats=False, target_id=None):
     :rtype: `list`
     """
     # Get the grep outputs and only unique values
-    grep_outputs = session.query(GrepOutput.output).filter_by(name=regex_name, target_id=target_id).group_by(
+    grep_outputs = session.query(GrepOutput.output).filter_by(
+        name=regex_name, target_id=target_id
+    ).group_by(
         GrepOutput.output
     ).all()
     grep_outputs = [i[0] for i in grep_outputs]
@@ -576,15 +619,24 @@ def search_by_regex_name(session, regex_name, stats=False, target_id=None):
             )
         )
         # Calculate total number of transactions in scope
-        num_transactions_in_scope = get_count(session.query(Transaction).filter_by(scope=True, target_id=target_id))
+        num_transactions_in_scope = get_count(
+            session.query(Transaction).filter_by(scope=True, target_id=target_id)
+        )
         # Calculate matched percentage
         if int(num_transactions_in_scope):
-            match_percent = int((num_matched_transactions / float(num_transactions_in_scope)) * 100)
+            match_percent = int(
+                (num_matched_transactions / float(num_transactions_in_scope)) * 100
+            )
         else:
             match_percent = 0
     else:
         match_percent = None
-    return [regex_name, [json.loads(i) for i in grep_outputs], transaction_ids, match_percent]
+    return [
+        regex_name,
+        [json.loads(i) for i in grep_outputs],
+        transaction_ids,
+        match_percent,
+    ]
 
 
 @target_required
@@ -608,7 +660,10 @@ def search_by_regex_names(name_list, stats=False, target_id=None):
     :rtype: `list`
     """
     session = get_scoped_session()
-    results = [search_by_regex_name(session, regex_name, stats=stats, target_id=target_id) for regex_name in name_list]
+    results = [
+        search_by_regex_name(session, regex_name, stats=stats, target_id=target_id)
+        for regex_name in name_list
+    ]
     return results
 
 
@@ -642,8 +697,12 @@ def search_all_transactions(session, criteria, target_id=None, include_raw_data=
     :rtype: `dict`
     """
     total = get_count(session.query(Transaction).filter_by(target_id=target_id))
-    filtered_transaction_objs = transaction_gen_query(session, criteria, target_id).all()
-    filtered_number = get_count(transaction_gen_query(session, criteria, target_id, for_stats=True))
+    filtered_transaction_objs = transaction_gen_query(
+        session, criteria, target_id
+    ).all()
+    filtered_number = get_count(
+        transaction_gen_query(session, criteria, target_id, for_stats=True)
+    )
     results = {
         "records_total": total,
         "records_filtered": filtered_number,
@@ -653,7 +712,9 @@ def search_all_transactions(session, criteria, target_id=None, include_raw_data=
 
 
 @target_required
-def get_all_transactions_dicts(session, criteria, target_id=None, include_raw_data=False):
+def get_all_transactions_dicts(
+    session, criteria, target_id=None, include_raw_data=False
+):
     """Assemble ALL transactions that match the criteria from DB.
 
     :param criteria: Filter criteria
@@ -681,9 +742,13 @@ def get_by_id_as_dict(session, trans_id, target_id=None):
     :return: transaction object as dict
     :rtype: `dict`
     """
-    transaction_obj = session.query(Transaction).filter_by(target_id=target_id, id=trans_id).first()
+    transaction_obj = session.query(Transaction).filter_by(
+        target_id=target_id, id=trans_id
+    ).first()
     if not transaction_obj:
-        raise InvalidTransactionReference("No transaction with {!s} exists".format(trans_id))
+        raise InvalidTransactionReference(
+            "No transaction with {!s} exists".format(trans_id)
+        )
     return transaction_obj.to_dict(include_raw_data=True)
 
 
@@ -700,7 +765,9 @@ def get_hrt_response(session, filter_data, trans_id, target_id=None):
     :return: Converted code
     :rtype: `string`
     """
-    transaction_obj = session.query(Transaction).filter_by(target_id=target_id, id=trans_id).first()
+    transaction_obj = session.query(Transaction).filter_by(
+        target_id=target_id, id=trans_id
+    ).first()
 
     # Data validation
     languages = ["bash"]  # Default script language is set to bash.
@@ -718,11 +785,17 @@ def get_hrt_response(session, filter_data, trans_id, target_id=None):
         data = filter_data["data"][0]
     # If target not found. Raise error.
     if not transaction_obj:
-        raise InvalidTransactionReference("No transaction with {!s} exists".format(trans_id))
+        raise InvalidTransactionReference(
+            "No transaction with {!s} exists".format(trans_id)
+        )
     raw_request = transaction_obj.raw_request
     try:
         hrt_obj = HttpRequestTranslator(
-            request=raw_request, languages=languages, proxy=proxy, search_string=search_string, data=data
+            request=raw_request,
+            languages=languages,
+            proxy=proxy,
+            search_string=search_string,
+            data=data,
         )
         codes = hrt_obj.generate_code()
         return "".join(v for v in list(codes.values()))

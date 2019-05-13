@@ -50,9 +50,15 @@ class Scanner(object):
 
         if scantype == "arp":
             logging.info("Performing ARP host discovery")
-            self.shell.shell_exec("nmap -n -v -sP -PR {!s} -oA {!s}".format(target, PING_SWEEP_FILE))
+            self.shell.shell_exec(
+                "nmap -n -v -sP -PR {!s} -oA {!s}".format(target, PING_SWEEP_FILE)
+            )
 
-        self.shell.shell_exec('grep Up {!s}.gnmap | cut -f2 -d" " > {!s}.ips'.format(PING_SWEEP_FILE, PING_SWEEP_FILE))
+        self.shell.shell_exec(
+            'grep Up {!s}.gnmap | cut -f2 -d" " > {!s}.ips'.format(
+                PING_SWEEP_FILE, PING_SWEEP_FILE
+            )
+        )
 
     def dns_sweep(self, file_with_ips, file_prefix):
         """Do a DNS sweep
@@ -64,12 +70,20 @@ class Scanner(object):
         :return: None
         :rtype: None
         """
-        logging.info("Finding misconfigured DNS servers that might allow zone transfers among live ips ..")
-        self.shell.shell_exec("nmap -PN -n -sS -p 53 -iL {!s} -oA {!s}".format(file_with_ips, file_prefix))
+        logging.info(
+            "Finding misconfigured DNS servers that might allow zone transfers among live ips .."
+        )
+        self.shell.shell_exec(
+            "nmap -PN -n -sS -p 53 -iL {!s} -oA {!s}".format(file_with_ips, file_prefix)
+        )
 
         # Step 2 - Extract IPs
         dns_servers = "{!s}.dns_server.ips".format(file_prefix)
-        self.shell.shell_exec('grep "53/open/tcp" {!s}.gnmap | cut -f 2 -d " " > {!s}'.format(file_prefix, dns_servers))
+        self.shell.shell_exec(
+            'grep "53/open/tcp" {!s}.gnmap | cut -f 2 -d " " > {!s}'.format(
+                file_prefix, dns_servers
+            )
+        )
         file = FileOperations.open(dns_servers)
         domain_names = "{!s}.domain_names".format(file_prefix)
         self.shell.shell_exec("rm -f {!s}".format(domain_names))
@@ -90,10 +104,20 @@ class Scanner(object):
         for line in file:
             domain = line.strip("\n")
             raw_axfr = "{!s}.{!s}.{!s}.axfr.raw".format(file_prefix, dns_server, domain)
-            self.shell.shell_exec("host -l {!s} {!s} | grep {!s} > {!s}".format(domain, dns_server, domain, raw_axfr))
-            success = self.shell.shell_exec("wc -l {!s} | cut -f 1  -d ' '".format(raw_axfr))
+            self.shell.shell_exec(
+                "host -l {!s} {!s} | grep {!s} > {!s}".format(
+                    domain, dns_server, domain, raw_axfr
+                )
+            )
+            success = self.shell.shell_exec(
+                "wc -l {!s} | cut -f 1  -d ' '".format(raw_axfr)
+            )
             if success > 3:
-                logging.info("Attempting zone transfer on $dns_server using domain {!s}.. Success!".format(domain))
+                logging.info(
+                    "Attempting zone transfer on $dns_server using domain {!s}.. Success!".format(
+                        domain
+                    )
+                )
                 axfr = "{!s}.{!s}.{!s}.axfr".format(file_prefix, dns_server, domain)
                 self.shell.shell_exec("rm -f {!s}".format(axfr))
                 logging.info(
@@ -103,12 +127,17 @@ class Scanner(object):
                     )
                 )
             else:
-                logging.info("Attempting zone transfer on $dns_server using domain %s.. Success!", domain)
+                logging.info(
+                    "Attempting zone transfer on $dns_server using domain %s.. Success!",
+                    domain,
+                )
                 self.shell.shell_exec("rm -f {!s}".format(raw_axfr))
         if num_dns_servers == 0:
             return
 
-    def scan_and_grab_banners(self, file_with_ips, file_prefix, scan_type, nmap_options):
+    def scan_and_grab_banners(
+        self, file_with_ips, file_prefix, scan_type, nmap_options
+    ):
         """Scan targets and grab service banners
 
         :param file_with_ips: Path to file with IPs
@@ -123,24 +152,34 @@ class Scanner(object):
         :rtype: None
         """
         if scan_type == "tcp":
-            logging.info("Performing TCP portscan, OS detection, Service detection, banner grabbing, etc")
+            logging.info(
+                "Performing TCP portscan, OS detection, Service detection, banner grabbing, etc"
+            )
             self.shell.shell_exec(
                 "nmap -PN -n -v --min-parallelism=10 -iL {!s} -sS -sV -O  -oA {!s}.tcp {!s}".format(
                     file_with_ips, file_prefix, nmap_options
                 )
             )
             self.shell.shell_exec(
-                "amap -1 -i {!s}.tcp.gnmap -Abq -m -o {!s}.tcp.amap -t 90 -T 90 -c 64".format(file_prefix, file_prefix)
+                "amap -1 -i {!s}.tcp.gnmap -Abq -m -o {!s}.tcp.amap -t 90 -T 90 -c 64".format(
+                    file_prefix, file_prefix
+                )
             )
 
         if scan_type == "udp":
-            logging.info("Performing UDP portscan, Service detection, banner grabbing, etc")
+            logging.info(
+                "Performing UDP portscan, Service detection, banner grabbing, etc"
+            )
             self.shell.shell_exec(
                 "nmap -PN -n -v --min-parallelism=10 -iL {!s} -sU -sV -O -oA {!s}.udp {!s}".format(
                     file_with_ips, file_prefix, nmap_options
                 )
             )
-            self.shell.shell_exec("amap -1 -i {}.udp.gnmap -Abq -m -o {}.udp.amap".format(file_prefix, file_prefix))
+            self.shell.shell_exec(
+                "amap -1 -i {}.udp.gnmap -Abq -m -o {}.udp.amap".format(
+                    file_prefix, file_prefix
+                )
+            )
 
     @staticmethod
     def get_nmap_services_file():
@@ -234,20 +273,31 @@ class Scanner(object):
         for service in services:
             if plugin_list.count(service) > 0:
                 continue
-            tasks_for_service = len(self.target_service(nmap_file, service).split("##")) - 1
+            tasks_for_service = len(
+                self.target_service(nmap_file, service).split("##")
+            ) - 1
             total_tasks += tasks_for_service
-            tasklist = "{!s} [ {!s} - {!s} tasks ]".format(tasklist, service, str(tasks_for_service))
+            tasklist = "{!s} [ {!s} - {!s} tasks ]".format(
+                tasklist, service, str(tasks_for_service)
+            )
             for line in self.target_service(nmap_file, service).split("##"):
                 if line.strip("\n"):
                     ip = line.split(":")[0]
                     port = line.split(":")[1]
                     plugin_to_invoke = service
                     service1 = plugin_to_invoke
-                    config_handler.set("{!s}_PORT_NUMBER".format(service1.upper()), port)
+                    config_handler.set(
+                        "{!s}_PORT_NUMBER".format(service1.upper()), port
+                    )
                     if service != "http":
                         plugin_list.append(plugin_to_invoke)
                         http.append(port)
-                    logging.info("We have to probe %s:%s for service %s", str(ip), str(port), plugin_to_invoke)
+                    logging.info(
+                        "We have to probe %s:%s for service %s",
+                        str(ip),
+                        str(port),
+                        plugin_to_invoke,
+                    )
         return http
 
     def scan_network(self, target):
@@ -273,5 +323,12 @@ class Scanner(object):
         :return: List of services running
         :rtype: list
         """
-        self.scan_and_grab_banners("{0}.ips".format(PING_SWEEP_FILE), FAST_SCAN_FILE, protocol, "-p" + str(port))
-        return self.probe_service_for_hosts("{0}.{1}.gnmap".format(FAST_SCAN_FILE, protocol), target.split("//")[1])
+        self.scan_and_grab_banners(
+            "{0}.ips".format(PING_SWEEP_FILE),
+            FAST_SCAN_FILE,
+            protocol,
+            "-p" + str(port),
+        )
+        return self.probe_service_for_hosts(
+            "{0}.{1}.gnmap".format(FAST_SCAN_FILE, protocol), target.split("//")[1]
+        )

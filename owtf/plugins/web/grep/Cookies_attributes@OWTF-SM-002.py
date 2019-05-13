@@ -10,6 +10,8 @@ DESCRIPTION = "Searches transaction DB for Cookie attributes"
 def run(PluginInfo):
     title = "This plugin looks for cookie setting headers (TODO: Check vuln scanners' output!)<br />"
     Content = plugin_helper.HtmlString(title)
-    Content += plugin_helper.FindResponseHeaderMatchesForRegexpName("HEADERS_FOR_COOKIES")
+    Content += plugin_helper.FindResponseHeaderMatchesForRegexpName(
+        "HEADERS_FOR_COOKIES"
+    )
     # TODO: Fix up
     return Content

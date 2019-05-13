@@ -53,7 +53,9 @@ class ProxyProcess(OWTFProcess):
         :rtype: None
         """
         # The tornado application, which is used to pass variables to request handler
-        self.application = tornado.web.Application(handlers=[(r".*", ProxyHandler)], debug=False, gzip=True)
+        self.application = tornado.web.Application(
+            handlers=[(r".*", ProxyHandler)], debug=False, gzip=True
+        )
         # All required variables in request handler
         # Required variables are added as attributes to application, so that request handler can access these
         self.application.inbound_ip = INBOUND_PROXY_IP
@@ -87,7 +89,9 @@ class ProxyProcess(OWTFProcess):
             assert os.path.exists(self.application.ca_cert)
             assert os.path.exists(self.application.ca_key)
         except AssertionError:
-            abort_framework("Files required for SSL MiTM are missing.Please run the install script")
+            abort_framework(
+                "Files required for SSL MiTM are missing.Please run the install script"
+            )
 
         try:  # If certs folder missing, create that.
             assert os.path.exists(self.application.certs_folder)
@@ -125,7 +129,9 @@ class ProxyProcess(OWTFProcess):
             self.application.outbound_port = None
             self.application.outbound_proxy_type = None
         if outbound_auth:
-            self.application.outbound_username, self.application.outbound_password = outbound_auth.split(":")
+            self.application.outbound_username, self.application.outbound_password = outbound_auth.split(
+                ":"
+            )
         else:
             self.application.outbound_username = None
             self.application.outbound_password = None
@@ -160,11 +166,17 @@ class ProxyProcess(OWTFProcess):
         try:
             # Disable console logging
             self.logger.disable_console_logging()
-            self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
+            self.server.bind(
+                self.application.inbound_port, address=self.application.inbound_ip
+            )
             # Useful for using custom loggers because of relative paths in secure requests
             # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
             tornado.options.parse_command_line(
-                args=["dummy_arg", "--log_file_prefix={}".format(PROXY_LOG), "--logging=info"]
+                args=[
+                    "dummy_arg",
+                    "--log_file_prefix={}".format(PROXY_LOG),
+                    "--logging=info",
+                ]
             )
             # To run any number of instances
             # "0" equals the number of cores present in a machine
@@ -203,7 +215,11 @@ def start_proxy():
             abort_framework("Inbound proxy address already in use")
         # If everything is fine.
         proxy_process = ProxyProcess()
-        logging.warn("Starting HTTP(s) proxy server at %s:%d", INBOUND_PROXY_IP, INBOUND_PROXY_PORT)
+        logging.warn(
+            "Starting HTTP(s) proxy server at %s:%d",
+            INBOUND_PROXY_IP,
+            INBOUND_PROXY_PORT,
+        )
         proxy_process.initialize(USE_OUTBOUND_PROXY, OUTBOUND_PROXY_AUTH)
         proxy_process.start()
         logging.debug("Proxy transaction's log file at %s", PROXY_LOG)

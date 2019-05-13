@@ -5,6 +5,8 @@ services:
     image: postgres:alpine
     ports:
       - 5432:5432
+    volumes:
+      - ${HOME}/.owtf/data:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=owtf_db_user
       - POSTGRES_PASSWORD=jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=

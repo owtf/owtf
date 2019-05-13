@@ -35,12 +35,24 @@ def get_test_groups_config(file_path):
         try:
             code, priority, descrip, hint, url = line.strip().split(" | ")
         except ValueError:
-            abort_framework("Problem in Test Groups file: '{!s}' -> Cannot parse line: {!s}".format(file_path, line))
+            abort_framework(
+                "Problem in Test Groups file: '{!s}' -> Cannot parse line: {!s}".format(
+                    file_path, line
+                )
+            )
         if len(descrip) < 2:
             descrip = hint
         if len(hint) < 2:
             hint = ""
-        test_groups.append({"code": code, "priority": priority, "descrip": descrip, "hint": hint, "url": url})
+        test_groups.append(
+            {
+                "code": code,
+                "priority": priority,
+                "descrip": descrip,
+                "hint": hint,
+                "url": url,
+            }
+        )
     return test_groups
 
 
@@ -98,7 +110,13 @@ def load_plugins(session):
     # 'PLUGIN_DIR'.
     plugins = []
     for root, _, files in os.walk(PLUGINS_DIR):
-        plugins.extend([os.path.join(root, filename) for filename in files if filename.endswith("py")])
+        plugins.extend(
+            [
+                os.path.join(root, filename)
+                for filename in files
+                if filename.endswith("py")
+            ]
+        )
     plugins = sorted(plugins)
     # Retrieve the information of the plugin.
     for plugin_path in plugins:
@@ -120,9 +138,12 @@ def load_plugins(session):
             continue
         # Load the plugin as a module.
         filename, pathname, desc = imp.find_module(
-            os.path.splitext(os.path.basename(plugin_path))[0], [os.path.dirname(plugin_path)]
+            os.path.splitext(os.path.basename(plugin_path))[0],
+            [os.path.dirname(plugin_path)],
         )
-        plugin_module = imp.load_module(os.path.splitext(file)[0], filename, pathname, desc)
+        plugin_module = imp.load_module(
+            os.path.splitext(file)[0], filename, pathname, desc
+        )
         # Try te retrieve the `attr` dictionary from the module and convert
         # it to json in order to save it into the database.
         attr = None
@@ -155,7 +176,9 @@ def get_types_for_plugin_group(session, plugin_group):
     :return: List of available plugin types
     :rtype: `list`
     """
-    plugin_types = session.query(Plugin.type).filter_by(group=plugin_group).distinct().all()
+    plugin_types = session.query(Plugin.type).filter_by(
+        group=plugin_group
+    ).distinct().all()
     plugin_types = [i[0] for i in plugin_types]
     return plugin_types
 

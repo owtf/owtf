@@ -34,7 +34,9 @@ def prepare_curl_callback(curl):
 class ProxyHandler(tornado.web.RequestHandler):
     """This RequestHandler processes all the requests that the application received."""
 
-    SUPPORTED_METHODS = ["GET", "POST", "CONNECT", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE"]
+    SUPPORTED_METHODS = [
+        "GET", "POST", "CONNECT", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE"
+    ]
     server = None
     restricted_request_headers = None
     restricted_response_headers = None
@@ -123,16 +125,23 @@ class ProxyHandler(tornado.web.RequestHandler):
 
         # The requests that come through ssl streams are relative requests, so transparent proxying is required. The
         # following snippet decides the url that should be passed to the async client
-        if self.request.uri.startswith(self.request.protocol, 0):  # Normal Proxy Request.
+        if self.request.uri.startswith(
+            self.request.protocol, 0
+        ):  # Normal Proxy Request.
             self.request.url = self.request.uri
         else:  # Transparent Proxy Request.
-            self.request.url = "{!s}://{!s}".format(self.request.protocol, self.request.host)
+            self.request.url = "{!s}://{!s}".format(
+                self.request.protocol, self.request.host
+            )
             if self.request.uri != "/":  # Add uri only if needed.
                 self.request.url += self.request.uri
 
         # This block here checks for already cached response and if present returns one
         self.cache_handler = CacheHandler(
-            self.application.cache_dir, self.request, self.application.cookie_regex, self.application.cookie_blacklist
+            self.application.cache_dir,
+            self.request,
+            self.application.cookie_regex,
+            self.application.cookie_blacklist,
         )
         yield tornado.gen.Task(self.cache_handler.calculate_hash)
         self.cached_response = self.cache_handler.load()
@@ -158,7 +167,9 @@ class ProxyHandler(tornado.web.RequestHandler):
                 if ":" not in self.request.host:
                     default_ports = {"http": "80", "https": "443"}
                     if self.request.protocol in default_ports:
-                        host = "{!s}:{!s}".format(self.request.host, default_ports[self.request.protocol])
+                        host = "{!s}:{!s}".format(
+                            self.request.host, default_ports[self.request.protocol]
+                        )
                 # Check if auth is provided for that host
                 try:
                     index = self.application.http_auth_hosts.index(host)
@@ -249,7 +260,9 @@ class ProxyHandler(tornado.web.RequestHandler):
             :rtype:
             """
             try:
-                self.request.connection.stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
+                self.request.connection.stream.write(
+                    b"HTTP/1.1 200 Connection established\r\n\r\n"
+                )
                 starttls(
                     self.request.connection.stream.socket,
                     host,
@@ -282,10 +295,14 @@ class ProxyHandler(tornado.web.RequestHandler):
             :rtype: None
             """
             try:
-                self.request.connection.stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
+                self.request.connection.stream.write(
+                    b"HTTP/1.1 200 Connection established\r\n\r\n"
+                )
             except tornado.iostream.StreamClosedError:
                 pass
-            self.server.handle_stream(self.request.connection.stream, self.application.inbound_ip)
+            self.server.handle_stream(
+                self.request.connection.stream, self.application.inbound_ip
+            )
 
         # Hacking to be done here, so as to check for ssl using proxy and auth
         try:
@@ -327,11 +344,15 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             io_loop = tornado.ioloop.IOLoop.current()
 
         # During secure communication, we get relative URI, so make them absolute
-        if self.request.uri.startswith(self.request.protocol, 0):  # Normal Proxy Request.
+        if self.request.uri.startswith(
+            self.request.protocol, 0
+        ):  # Normal Proxy Request.
             self.request.url = self.request.uri
         # Transparent Proxy Request
         else:
-            self.request.url = "{!s}://{!s}{!s}".format(self.request.protocol, self.request.host, self.request.uri)
+            self.request.url = "{!s}://{!s}{!s}".format(
+                self.request.protocol, self.request.host, self.request.uri
+            )
         self.request.url = self.request.url.replace("http", "ws", 1)
 
         # Have to add cookies and stuff
@@ -379,7 +400,9 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             # XXX: I dont know why a None is coming
             self.handshake_request.body = self.handshake_request.body or ""
             # The regular procedures are to be done
-            tornado.websocket.WebSocketHandler._execute(self, transforms, *args, **kwargs)
+            tornado.websocket.WebSocketHandler._execute(
+                self, transforms, *args, **kwargs
+            )
 
         # We try to connect to provided URL & then we proceed with connection on client side.
         self.upstream = self.upstream_connect(callback=start_tunnel)
@@ -420,7 +443,9 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         :return: None
         :rtype: None
         """
-        self.upstream.write_message(message)  # The obtained message is written to upstream.
+        self.upstream.write_message(
+            message
+        )  # The obtained message is written to upstream.
         self.store_upstream_data(message)
         # The following check ensures that if a callback is added for reading message from upstream, another one is not
         # added.
@@ -442,7 +467,9 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             self.upstream.read_message(callback=self.on_response)
         if self.ws_connection:  # Check if connection still exists.
             if message.result():  # Check if it is not NULL (indirect checking of upstream connection).
-                self.write_message(message.result())  # Write obtained message to client.
+                self.write_message(
+                    message.result()
+                )  # Write obtained message to client.
                 self.store_downstream_data(message.result())
             else:
                 self.close()

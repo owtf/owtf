@@ -10,7 +10,7 @@ import { Navbar, NavItem, Nav, NavDropdown, MenuItem } from 'react-bootstrap';
 export default class NavigationBar extends Component {
   render() {
     return (
-      <Navbar inverse collapseOnSelect>
+      <Navbar inverse collapseOnSelect data-test="navbarTest">
         <Navbar.Header>
           <Navbar.Brand>
             <Link to={this.props.brand.linkTo}>{this.props.brand.text}</Link>

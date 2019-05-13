@@ -13,6 +13,7 @@ from owtf import __version__
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 
+
 def strip_comments(l):
     return l.split("#", 1)[0].strip()
 
@@ -26,10 +27,13 @@ def _pip_requirement(req):
 
 def _reqs(*f):
     return [
-        _pip_requirement(r) for r in (
-            strip_comments(l) for l in open(
-                os.path.join(os.getcwd(), "requirements", *f)).readlines()
-        ) if r]
+        _pip_requirement(r)
+        for r in (
+            strip_comments(l)
+            for l in open(os.path.join(os.getcwd(), "requirements", *f)).readlines()
+        )
+        if r
+    ]
 
 
 def reqs(*f):

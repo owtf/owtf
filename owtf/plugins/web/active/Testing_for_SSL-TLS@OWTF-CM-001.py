@@ -9,5 +9,7 @@ DESCRIPTION = "Active probing for SSL configuration"
 
 def run(PluginInfo):
     resource = get_resources("ActiveSSLCmds")
-    Content = plugin_helper.CommandDump("Test Command", "Output", resource, PluginInfo, [])  # No previous output
+    Content = plugin_helper.CommandDump(
+        "Test Command", "Output", resource, PluginInfo, []
+    )  # No previous output
     return Content

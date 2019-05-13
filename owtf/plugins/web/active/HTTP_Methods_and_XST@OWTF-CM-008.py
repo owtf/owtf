@@ -13,6 +13,10 @@ def run(PluginInfo):
     # TODO: PUT not working right yet
     Content = plugin_helper.TransactionTableForURL(True, URL, Method="TRACE")
     Content += plugin_helper.CommandDump(
-        "Test Command", "Output", get_resources("ActiveHTTPMethods"), PluginInfo, Content
+        "Test Command",
+        "Output",
+        get_resources("ActiveHTTPMethods"),
+        PluginInfo,
+        Content,
     )
     return Content

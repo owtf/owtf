@@ -11,6 +11,8 @@ ATTR = {"INTERNET_RESOURCES": True}
 def run(PluginInfo):
     resource = get_resources("PassiveSearchEngineDiscoveryCmd")
     resource_online = get_resources("PassiveSearchEngineDiscoveryLnk")
-    Content = plugin_helper.CommandDump("Test Command", "Output", resource, PluginInfo, [])
+    Content = plugin_helper.CommandDump(
+        "Test Command", "Output", resource, PluginInfo, []
+    )
     Content += plugin_helper.resource_linklist("Online Resources", resource_online)
     return Content

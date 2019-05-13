@@ -66,8 +66,12 @@ class PExpectShell(BaseShell):
         :return: Formatted command string
         :rtype: `str`
         """
-        if "RHOST" in self.options and "RPORT" in self.options:  # Interactive shell on remote connection
-            return "{!s}:{!s}-{!s}".format(self.options["RHOST"], self.options["RPORT"], command)
+        if (
+            "RHOST" in self.options and "RPORT" in self.options
+        ):  # Interactive shell on remote connection
+            return "{!s}:{!s}-{!s}".format(
+                self.options["RHOST"], self.options["RPORT"], command
+            )
         else:
             return "Interactive - {!s}".format(command)
 
@@ -121,7 +125,9 @@ class PExpectShell(BaseShell):
         except pexpect.EOF:
             logging.warn("ERROR: Expect - The Communication Channel is down!")
         except pexpect.TIMEOUT:
-            logging.warn("ERROR: Expect timeout threshold exceeded for pattern %s!", pattern)
+            logging.warn(
+                "ERROR: Expect timeout threshold exceeded for pattern %s!", pattern
+            )
             logging.info("Before:")
             logging.info(self.connection.after)
             logging.info("After:")
@@ -210,7 +216,10 @@ class PExpectShell(BaseShell):
         if "CommandsBeforeExit" in self.options and self.options["CommandsBeforeExit"]:
             logging.info("Running commands before closing Communication Channel..")
             self.run_cmd_list(
-                self.options["CommandsBeforeExit"].split(self.options["CommandsBeforeExitDelim"]), plugin_info
+                self.options["CommandsBeforeExit"].split(
+                    self.options["CommandsBeforeExitDelim"]
+                ),
+                plugin_info,
             )
         logging.info("Trying to close Communication Channel..")
         self.run("exit", plugin_info)

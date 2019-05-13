@@ -28,7 +28,11 @@ def plugin_output_exists(session, plugin_key, target_id):
     :return: True if count > 0
     :rtype: `bool`
     """
-    count = get_count(session.query(PluginOutput).filter_by(target_id=target_id, plugin_key=plugin_key))
+    count = get_count(
+        session.query(PluginOutput).filter_by(
+            target_id=target_id, plugin_key=plugin_key
+        )
+    )
     return count > 0
 
 
@@ -71,17 +75,23 @@ def poutput_gen_query(session, filter_data, target_id, for_delete=False):
         if isinstance(filter_data.get("plugin_type"), str):
             query = query.filter_by(plugin_type=filter_data["plugin_type"])
         if isinstance(filter_data.get("plugin_type"), list):
-            query = query.filter(PluginOutput.plugin_type.in_(filter_data["plugin_type"]))
+            query = query.filter(
+                PluginOutput.plugin_type.in_(filter_data["plugin_type"])
+            )
     if filter_data.get("plugin_group", None):
         if isinstance(filter_data.get("plugin_group"), str):
             query = query.filter_by(plugin_group=filter_data["plugin_group"])
         if isinstance(filter_data.get("plugin_group"), list):
-            query = query.filter(PluginOutput.plugin_group.in_(filter_data["plugin_group"]))
+            query = query.filter(
+                PluginOutput.plugin_group.in_(filter_data["plugin_group"])
+            )
     if filter_data.get("plugin_code", None):
         if isinstance(filter_data.get("plugin_code"), str):
             query = query.filter_by(plugin_code=filter_data["plugin_code"])
         if isinstance(filter_data.get("plugin_code"), list):
-            query = query.filter(PluginOutput.plugin_code.in_(filter_data["plugin_code"]))
+            query = query.filter(
+                PluginOutput.plugin_code.in_(filter_data["plugin_code"])
+            )
     if filter_data.get("status", None):
         if isinstance(filter_data.get("status"), str):
             query = query.filter_by(status=filter_data["status"])
@@ -147,17 +157,34 @@ def get_unique_dicts(session, target_id=None):
     """
     unique_data = {
         "plugin_type": [
-            i[0] for i in session.query(PluginOutput.plugin_type).filter_by(target_id=target_id).distinct().all()
+            i[0]
+            for i in session.query(PluginOutput.plugin_type).filter_by(
+                target_id=target_id
+            ).distinct().all()
         ],
         "plugin_group": [
-            i[0] for i in session.query(PluginOutput.plugin_group).filter_by(target_id=target_id).distinct().all()
+            i[0]
+            for i in session.query(PluginOutput.plugin_group).filter_by(
+                target_id=target_id
+            ).distinct().all()
         ],
-        "status": [i[0] for i in session.query(PluginOutput.status).filter_by(target_id=target_id).distinct().all()],
+        "status": [
+            i[0]
+            for i in session.query(PluginOutput.status).filter_by(
+                target_id=target_id
+            ).distinct().all()
+        ],
         "user_rank": [
-            i[0] for i in session.query(PluginOutput.user_rank).filter_by(target_id=target_id).distinct().all()
+            i[0]
+            for i in session.query(PluginOutput.user_rank).filter_by(
+                target_id=target_id
+            ).distinct().all()
         ],
         "owtf_rank": [
-            i[0] for i in session.query(PluginOutput.owtf_rank).filter_by(target_id=target_id).distinct().all()
+            i[0]
+            for i in session.query(PluginOutput.owtf_rank).filter_by(
+                target_id=target_id
+            ).distinct().all()
         ],
     }
     return unique_data
@@ -192,7 +219,9 @@ def delete_all_poutput(session, filter_data, target_id=None):
 
 
 @target_required
-def update_poutput(session, plugin_group, plugin_type, plugin_code, patch_data, target_id=None):
+def update_poutput(
+    session, plugin_group, plugin_type, plugin_code, patch_data, target_id=None
+):
     """Update output in DB
 
     :param plugin_group: Plugin group
@@ -208,7 +237,11 @@ def update_poutput(session, plugin_group, plugin_type, plugin_code, patch_data, 
     :return: None
     :rtype: None
     """
-    plugin_dict = {"plugin_group": plugin_group, "plugin_type": plugin_type, "plugin_code": plugin_code}
+    plugin_dict = {
+        "plugin_group": plugin_group,
+        "plugin_type": plugin_type,
+        "plugin_code": plugin_code,
+    }
     query = poutput_gen_query(session, plugin_dict, target_id)
     obj = query.first()
     if obj:
@@ -275,7 +308,11 @@ def save_plugin_output(session, plugin, output, target_id=None):
             status=plugin["status"],
             target_id=target_id,
             # Save path only if path exists i.e if some files were to be stored it will be there
-            output_path=(plugin["output_path"] if os.path.exists(runner.get_plugin_output_dir(plugin)) else None),
+            output_path=(
+                plugin["output_path"]
+                if os.path.exists(runner.get_plugin_output_dir(plugin))
+                else None
+            ),
             owtf_rank=plugin["owtf_rank"],
         )
     )
@@ -312,7 +349,11 @@ def save_partial_output(session, plugin, output, message, target_id=None):
             status=plugin["status"],
             target_id=target_id,
             # Save path only if path exists i.e if some files were to be stored it will be there
-            output_path=(plugin["output_path"] if os.path.exists(runner.get_plugin_output_dir(plugin)) else None),
+            output_path=(
+                plugin["output_path"]
+                if os.path.exists(runner.get_plugin_output_dir(plugin))
+                else None
+            ),
             owtf_rank=plugin["owtf_rank"],
         )
     )
@@ -338,7 +379,9 @@ def get_severity_freq(session, session_id=None):
     ]
 
     targets = []
-    target_objs = session.query(Target.id).filter(Target.sessions.any(id=session_id)).all()
+    target_objs = session.query(Target.id).filter(
+        Target.sessions.any(id=session_id)
+    ).all()
     for target_obj in target_objs:
         targets.append(target_obj.id)
 

@@ -10,7 +10,11 @@ DESCRIPTION = "Normal request for HTTP methods analysis"
 
 def run(PluginInfo):
     resource = get_resources("SemiPassiveHTTPMethods")
-    Content = plugin_helper.TransactionTableForURLList(True, get_targets_as_list(["target_url", "top_url"]), "OPTIONS")
+    Content = plugin_helper.TransactionTableForURLList(
+        True, get_targets_as_list(["target_url", "top_url"]), "OPTIONS"
+    )
     # No previous output
-    Content += plugin_helper.CommandDump("Test Command", "Output", resource, PluginInfo, [])
+    Content += plugin_helper.CommandDump(
+        "Test Command", "Output", resource, PluginInfo, []
+    )
     return Content

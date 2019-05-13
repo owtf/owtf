@@ -90,7 +90,11 @@ class WorkerManager(object):
         :return: None
         :rtype: None
         """
-        w = LocalWorker(input_q=multiprocessing.Queue(), output_q=multiprocessing.Queue(), index=index)
+        w = LocalWorker(
+            input_q=multiprocessing.Queue(),
+            output_q=multiprocessing.Queue(),
+            index=index,
+        )
         worker_dict = {"worker": w, "work": (), "busy": False, "paused": False}
 
         if index is not None:
@@ -120,7 +124,10 @@ class WorkerManager(object):
         """
         # Loop while there is some work in worklist
         for k in range(0, len(self.workers)):
-            if not self.workers[k]["worker"].output_q.empty() or not check_pid(self.workers[k]["worker"].pid):
+            if (
+                not self.workers[k]["worker"].output_q.empty()
+                or not check_pid(self.workers[k]["worker"].pid)
+            ):
                 if check_pid(self.workers[k]["worker"].pid):
                     # Assign target, plugin from tuple work and empty the tuple
                     self.workers[k]["work"] = ()
@@ -136,7 +143,9 @@ class WorkerManager(object):
                 work_to_assign = self.get_task()
                 if work_to_assign:
                     logging.info(
-                        "Work assigned to %s with pid %d", self.workers[k]["worker"].name, self.workers[k]["worker"].pid
+                        "Work assigned to %s with pid %d",
+                        self.workers[k]["worker"].name,
+                        self.workers[k]["worker"].pid,
                     )
                     trash_can = self.workers[k]["worker"].output_q.get()
                     # Assign work ,set target to used,and process to busy
@@ -218,14 +227,18 @@ class WorkerManager(object):
         """
 
         def on_terminate(proc):
-            logging.debug("Process %s terminated with exit code %d", proc, proc.returncode)
+            logging.debug(
+                "Process %s terminated with exit code %d", proc, proc.returncode
+            )
 
         parent = psutil.Process(parent_pid)
         children = parent.children(recursive=True)
         for child in children:
             child.send_signal(psignal)
 
-        gone, alive = psutil.wait_procs(children, timeout=TIMEOUT, callback=on_terminate)
+        gone, alive = psutil.wait_procs(
+            children, timeout=TIMEOUT, callback=on_terminate
+        )
         if not alive:
             # send SIGKILL
             for pid in alive:
@@ -255,7 +268,9 @@ class WorkerManager(object):
                 temp_dict["id"] = pseudo_index
                 return temp_dict
             except IndexError:
-                raise InvalidWorkerReference("No worker process with id: {!s}".format(pseudo_index))
+                raise InvalidWorkerReference(
+                    "No worker process with id: {!s}".format(pseudo_index)
+                )
         else:
             worker_temp_list = []
             for i, obj in enumerate(self.workers):
@@ -291,7 +306,9 @@ class WorkerManager(object):
         try:
             return self.workers[pseudo_index - 1]
         except IndexError:
-            raise InvalidWorkerReference("No worker process with id: {!s}".format(pseudo_index))
+            raise InvalidWorkerReference(
+                "No worker process with id: {!s}".format(pseudo_index)
+            )
 
     def create_worker(self):
         """Create new worker
@@ -314,7 +331,9 @@ class WorkerManager(object):
             _signal_process(worker_dict["worker"].pid, signal.SIGINT)
             del self.workers[pseudo_index - 1]
         else:
-            raise InvalidWorkerReference("Worker with id {!s} is busy".format(pseudo_index))
+            raise InvalidWorkerReference(
+                "Worker with id {!s} is busy".format(pseudo_index)
+            )
 
     def pause_worker(self, pseudo_index):
         """Pause worker by sending SIGSTOP after verifying the process is running

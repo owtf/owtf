@@ -33,7 +33,12 @@ def clean_owtf_review():
     shutil.rmtree(os.path.join(pwd, DIR_OWTF_REVIEW), ignore_errors=True)
 
 
-def load_log(name, dir_owtf_review=DIR_OWTF_REVIEW, dir_owtf_logs=DIR_OWTF_LOGS, absolute_path=False):
+def load_log(
+    name,
+    dir_owtf_review=DIR_OWTF_REVIEW,
+    dir_owtf_logs=DIR_OWTF_LOGS,
+    absolute_path=False,
+):
     """Read the file 'name' and returns its content."""
     if not name.endswith(".log"):
         name += ".log"
