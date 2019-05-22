@@ -1,90 +1,52 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import BootstrapTable from 'react-bootstrap-table-next';
-import paginationFactory from 'react-bootstrap-table2-paginator';
-import filterFactory, { textFilter, Comparator } from 'react-bootstrap-table2-filter';
 import {connect} from "react-redux";
-import { ClipLoader } from 'react-spinners';
-import { Button, Glyphicon } from 'react-bootstrap';
-
 import {changeSession, deleteSession} from "./actions";
+import { Pane, Table, Spinner, IconButton, Radio } from 'evergreen-ui';
+import { filter } from 'fuzzaldrin-plus';
 
-
-const RemotePagination = ({ data, columns, options, onTableChange, selectRow }) => (
-    <BootstrapTable
-      remote={ { pagination: true, filter: true } }
-      keyField="id"
-      data={ data }
-      columns={ columns }
-      filter={ filterFactory() }
-      pagination={ paginationFactory(options) }
-      onTableChange={ onTableChange }
-      selectRow={selectRow}
-      striped = {true}
-    />
-);
 
 class SessionsTable extends React.Component {
   constructor(props) {
     super(props);
 
-    this.handleTableChange = this.handleTableChange.bind(this);
-    
     this.state = {
-      page: 1,
-      data: this.props.sessions.slice(0, 10),
-      sizePerPage: 10
+      searchQuery: "",
     };
   }
 
-  handleTableChange = (type, { page, sizePerPage, filters }) => {
-    const currentIndex = (page - 1) * sizePerPage;
-    setTimeout(() => {
-      const result = this.props.sessions.filter((row) => {
-        let valid = true;
-        for (const dataField in filters) {
-          const { filterVal, filterType, comparator } = filters[dataField];
+  // Filter the profiles based on the name property.
+  handleTableFilter = sessions => {
+    const searchQuery = this.state.searchQuery.trim();
 
-          if (filterType === 'TEXT') {
-            if (comparator === Comparator.LIKE) {
-              valid = row[dataField].toString().indexOf(filterVal) > -1;
-            } else {
-              valid = row[dataField] === filterVal;
-            }
-          }
-          if (!valid) break;
-        }
-        return valid;
-      });
-      this.setState(() => ({
-        page,
-        data: result.slice(currentIndex, currentIndex + sizePerPage),
-        totalSize: result.length,
-        sizePerPage
-      }));
-    }, 1000);
+    // If the searchQuery is empty, return the profiles as is.
+    if (searchQuery.length === 0) return sessions;
+
+    return sessions.filter(session => {
+      // Use the filter from fuzzaldrin-plus to filter by name.
+      const result = filter([session.name], searchQuery)
+      return result.length === 1;
+    })
   }
 
-  handleOnSelect = (row, isSelect) => {
-    if (isSelect !== false) {
-      this.props.onChangeSession({id: row.id, name:row.name});
+  handleFilterChange = value => {
+    this.setState({ searchQuery: value })
+  }
+
+  handleRadioChange = (e, session) => {
+    if (e.target.checked) {
+      this.props.onChangeSession({id: session.id, name:session.name});
     }
   };
 
-  buttonFormatter = (cell, row) => {
-    return (
-      <Button bsStyle="danger" bsSize="xsmall" type="submit" title="Delete session" onClick={() => this.props.onDeleteSession({id: row.id, name:row.name})}>
-        <Glyphicon glyph="remove" />
-      </Button>
-    );
-  }
-
   render() {
     const { loading, error, sessions, currentSession} = this.props;
-    const { data, sizePerPage, page } = this.state;    
+
     if (loading) {
       return (
-        <ClipLoader color={'#000000'} loading={loading} />
+        <Pane display="flex" alignItems="center" justifyContent="center" height={400}>
+          <Spinner size={32}/>
+        </Pane>
       );
     }
 
@@ -93,62 +55,45 @@ class SessionsTable extends React.Component {
     }
 
     if (sessions !== false) {
-      const columns = [{
-        dataField: 'name',
-        text: 'Session Name',
-        filter: textFilter()
-      },{
-        dataField: 'button',
-        text: 'Delete Session',
-        formatter: this.buttonFormatter
-      }];
-
-      const selectRow = {
-        mode: 'radio',
-        clickToSelect: true,
-        selected: [currentSession.id],
-        onSelect: this.handleOnSelect,
-      };
-
-      const options = {
-        page: page,
-        sizePerPage: sizePerPage,
-        totalSize: sessions.length,
-        paginationSize: 10,
-        pageStartIndex: 1,
-        alwaysShowAllBtns: true, // Always show next and previous button
-        withFirstAndLast: false, // Hide the going to First and Last page button
-        // hideSizePerPage: true, // Hide the sizePerPage dropdown always
-        // hidePageListOnlyOnePage: true, // Hide the pagination list when only one page
-        firstPageText: 'First',
-        prePageText: 'Previous',
-        nextPageText: 'Next',
-        lastPageText: 'Last',
-        nextPageTitle: 'First page',
-        prePageTitle: 'Pre page',
-        firstPageTitle: 'Next page',
-        lastPageTitle: 'Last page',
-        showTotal: true,
-        paginationPosition: 'top',
-        sizePerPageList: [{
-          text: '10', value: 10
-        }, {
-          text: '25', value: 25
-        }, {
-          text: '50', value: 50
-        }, {
-          text: '100', value: 100
-        }] // A numeric array is also available. the purpose of above example is custom the text
-      };
+      const items = this.handleTableFilter(this.props.sessions);
 
       return (
-          <RemotePagination
-            data={ data }
-            columns = {columns}
-            options = {options}
-            onTableChange={ this.handleTableChange }
-            selectRow = { selectRow }
-          />
+        <Table border>
+          <Table.Head>
+            <Table.HeaderCell flex={-1}></Table.HeaderCell>
+            <Table.SearchHeaderCell
+              flex="none"
+              width={200}
+              onChange={this.handleFilterChange}
+              value={this.state.searchQuery}
+              placeholder='Session name'
+            />
+            <Table.TextHeaderCell flex="none" width={200}>
+              Delete Session
+            </Table.TextHeaderCell>
+          </Table.Head>
+          <Table.Body height={240}>
+            {items.map(session => (
+              <Table.Row key={session.id} isSelectable>
+                <Table.Cell flex={-1}>
+                  <Radio
+                    size={16}
+                    checked={session.active}
+                    onChange={e => this.handleRadioChange(e, session)}
+                  />
+                </Table.Cell>
+                <Table.TextCell flex="none" width={200}>{session.name}</Table.TextCell>
+                <Table.Cell flex="none" width={200}>
+                  <IconButton
+                    icon="trash"
+                    intent="danger"
+                    onClick={() => this.props.onDeleteSession({id: session.id, name:session.name})}
+                  />
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table>
       );
     }
   }
@@ -169,7 +114,7 @@ SessionsTable.propTypes = {
 export function mapDispatchToProps(dispatch) {
   return {
     onChangeSession: (session) => dispatch(changeSession(session)),
-    onDeleteSession: (session) => dispatch(deleteSession(session)), 
+    onDeleteSession: (session) => dispatch(deleteSession(session)),
   };
 }
 

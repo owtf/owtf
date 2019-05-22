@@ -2,22 +2,10 @@
  * Target Page
  */
 import React from "react";
+import { Pane, Heading, Button, Textarea, Icon, Alert, Spinner } from 'evergreen-ui';
 import Sessions from "containers/Sessions";
 import Plugins from "containers/Plugins";
 import TargetsTable from "./TargetsTable";
-import {
-  Grid,
-  Row,
-  Col,
-  Button,
-  ButtonGroup,
-  Glyphicon,
-  Alert
-} from "react-bootstrap";
-import { Breadcrumb } from "react-bootstrap";
-import InputGroup from "react-bootstrap/es/InputGroup";
-import FormControl from "react-bootstrap/es/FormControl";
-import "../../style.scss";
 import "./style.scss";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
@@ -47,23 +35,31 @@ class TargetsPage extends React.Component {
     this.handlePluginClose = this.handlePluginClose.bind(this);
     this.getCurrentSession = this.getCurrentSession.bind(this);
     this.updateSelectedTargets = this.updateSelectedTargets.bind(this);
+		this.resetTargetState = this.resetTargetState.bind(this);
 
     this.state = {
       newTargetUrls: "",//URLs of new targets to be added
       show: false, //handles visibility of alert box
-      alertStyle: null, 
-      alertMsg: "", 
+      alertStyle: null,
+      alertMsg: "",
       disabled: false, //for target URL textbox
       pluginShow: false, //handles plugin component
       selectedTargets: [],
     };
   }
 
-  handleDismiss() {
+  //function re-initializing the state after plugin launch
+	resetTargetState() {
+		this.setState({
+			selectedTargets:[]
+		});
+  }
+
+  handleDismiss = () => {
     this.setState({ show: false });
   }
 
-  handleShow() {
+  handleShow = () => {
     this.setState({ show: true });
   }
 
@@ -79,7 +75,7 @@ class TargetsPage extends React.Component {
       case "warning":
         msgHeader = 'Hey!'
         break;
-      case "info":
+      case "none":
         msgHeader = 'BTW!'
         break;
       default:
@@ -87,8 +83,14 @@ class TargetsPage extends React.Component {
     }
     if (this.state.show) {
       return (
-        <Alert bsStyle={this.state.alertStyle} onDismiss={this.handleDismiss}>
-          <strong>{msgHeader}</strong> {this.state.alertMsg}
+        <Alert
+          appearance="card"
+          intent={this.state.alertStyle}
+          title={msgHeader}
+          isRemoveable={true}
+          onRemove={this.handleDismiss}
+        >
+          {this.state.alertMsg}
         </Alert>
       );
     }
@@ -119,7 +121,7 @@ class TargetsPage extends React.Component {
   }
 
   // Add new targets using API
-  addNewTargets(targetUrlsString, button) {
+  addNewTargets() {
     this.setState({ disabled: true });
     const lines = this.state.newTargetUrls.split("\n");
     const targetUrls = [];
@@ -149,7 +151,7 @@ class TargetsPage extends React.Component {
           }
         }, 200);
       });
-      this.handleAlertMsg("info", "Targets are being added in the background, and will appear in the table soon");       
+      this.handleAlertMsg("none", "Targets are being added in the background, and will appear in the table soon");
     }
     this.setState({ disabled: false });
   }
@@ -199,75 +201,67 @@ class TargetsPage extends React.Component {
       handleAlertMsg: this.handleAlertMsg,
       getCurrentSession: this.getCurrentSession,
       updateSelectedTargets: this.updateSelectedTargets,
+      handlePluginShow: this.handlePluginShow,
     }
     const PluginProps = {
-      handlePluginShow: this.handlePluginShow,
       handlePluginClose: this.handlePluginClose,
       pluginShow: this.state.pluginShow,
       selectedTargets: this.state.selectedTargets,
-      handleAlertMsg: this.handleAlertMsg,      
+      handleAlertMsg: this.handleAlertMsg,
+      resetTargetState: this.resetTargetState,
     }
     return (
-      <Grid>
-        <Row>
-          <Col>{this.renderAlert()}</Col>
-        </Row>
-        <Row>
-          <Breadcrumb>
-            <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-            <Breadcrumb.Item active>Targets</Breadcrumb.Item>
-          </Breadcrumb>
-        </Row>
-        <Row>
-          <Col xs={12} sm={12} md={6} lg={6}>
-            <Row>
-              <h3>Add Targets</h3>
-            </Row>
-            <Row>
-              <FormControl
-                componentClass="textarea"
-                name="newTargetUrls"
-                placeholder="Targets seperated by new line"
-                onChange={this.handleTargetUrlsChange}
-                value={this.state.newTargetUrls}
-              />
-            </Row>
-            <Row className="add-target-btn">
-              <Button bsStyle="primary" disabled={this.state.disabled} onClick={this.addNewTargets}>
-                Add Targets
+      <Pane clearfix display="flex" flexDirection="row" flexWrap= "wrap" justifyContent="center" marginTop={-20} overflow="hidden">
+        <Pane id="add_targets" background="tint2" width={270} height={1000}>
+          <Pane margin={20} flexDirection="column">
+            <Heading size={800}>Add Targets</Heading>
+            <Textarea
+              name="newTargetUrls"
+              placeholder="Input targets seperated by new line"
+              marginTop={10}
+              onChange={this.handleTargetUrlsChange}
+              value={this.state.newTargetUrls}
+            />
+            <Button
+              appearance="primary"
+              marginTop={10}
+              disabled={this.state.disabled}
+              onClick={this.addNewTargets}
+            >
+              Add Targets
+            </Button>
+            <Plugins {...PluginProps} />
+          </Pane>
+        </Pane>
+        <Pane margin={40} flex={1}>
+          {this.renderAlert()}
+          <Pane display="flex" padding={16}>
+            <Pane flex={1} alignItems="center" display="flex">
+              <Heading size={900}>TARGETS</Heading>
+            </Pane>
+            <Pane marginRight={16}>
+              <Sessions />
+            </Pane>
+            <Pane>
+              <Button onClick={this.exportTargets}>
+                <Icon icon="import" marginRight={10} />Export
               </Button>
-              <Plugins {...PluginProps} />
-            </Row>
-          </Col>
-          <Col xs={12} sm={12} md={6} lg={6}>
-            <Row>
-              <Col xs={6} md={6}>
-                <Sessions />
-              </Col>
-              <Col xs={6} md={6}>
-                <ButtonGroup>
-                  <Button onClick={this.exportTargets}>
-                    <Glyphicon glyph="list" /> Export
-                  </Button>
-                  <Button bsStyle="success" onClick={this.handlePluginShow}>
-                    <Glyphicon glyph="flash" /> Run
-                  </Button>
-                </ButtonGroup>
-              </Col>
-            </Row>
-            <br />
-            <Row>
-              <Col xs={12} md={12}>
-                {fetchError !== false ? <p>Something went wrong, please try again!</p> : null}
-                {fetchLoading ? <div className="spinner" /> : null}
-                {targets !== false 
-                  ?<TargetsTable {...TargetsTableProps} />
-                  : null}
-              </Col>
-            </Row>
-          </Col>
-        </Row>
-      </Grid>
+              <Button appearance="primary" intent="success" onClick={this.handlePluginShow}>
+                <Icon icon="build" marginRight={10} />Run
+              </Button>
+            </Pane>
+          </Pane>
+          {fetchError !== false ? <p>Something went wrong, please try again!</p> : null}
+          {fetchLoading !== false
+            ?<Pane display="flex" alignItems="center" justifyContent="center" height={400}>
+              <Spinner size={64}/>
+              </Pane>
+            : null}
+          {targets !== false
+            ?<TargetsTable {...TargetsTableProps} />
+            : null}
+        </Pane>
+      </Pane>
     );
   }
 }
