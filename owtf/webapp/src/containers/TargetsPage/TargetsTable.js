@@ -1,3 +1,8 @@
+/* Targets Table component
+ *
+ * Shows the list of all the targets added along with actions that can be applied on them
+ *
+ */
 import React from 'react';
 import { filter } from 'fuzzaldrin-plus';
 import {
@@ -20,6 +25,7 @@ import { createStructuredSelector } from 'reselect';
 import { changeTarget, deleteTarget, removeTargetFromSession } from './actions';
 import { makeSelectDeleteError, makeSelectRemoveError } from "./selectors";
 
+// Severity object to be used while rendering the severity of the listed targets
 const Severity = {
   NONE: -1,
   PASSING: 0,
@@ -36,14 +42,17 @@ class TargetsTable extends React.Component {
     super(props)
 
     this.state = {
-      searchQuery: '',
-      filterColumn: 1,
-      filterSeverity: Severity.NONE,
+      searchQuery: '', //filter for target URL
+      filterColumn: 1, //column on which filter is to be applied
+      filterSeverity: Severity.NONE, //filter for target severity
       selectedRows: [], //array of checked targets IDs
     }
   }
 
-  //function handling the deletion of targets(both single target and bulk targets)
+  /**
+   * Function handling the deletion of targets(both single target and bulk targets)
+   * @param {string} target_ids IDs of the target to be deleted
+   */
   handleDeleteTargets(target_ids) {
     const target_count = target_ids.length;
     const status = {
@@ -74,7 +83,10 @@ class TargetsTable extends React.Component {
     }
   }
 
-  //function handling the removing of targets(both single target and bulk targets)
+  /**
+   * Function handling the removing of targets from session(both single target and bulk targets)
+   * @param {string} target_ids IDs of the target to be removed
+   */
   handleRemoveTargetsFromSession(target_ids) {
     const target_count = target_ids.length;
     const status = {
@@ -105,6 +117,10 @@ class TargetsTable extends React.Component {
     }
   }
 
+  /**
+   * Function handles the plugin launch for individual targets
+   * @param {object} target target for the plugins will be launched
+   */
   runTargetFromMenu = (target) => {
     this.setState({ selectedRows: [target.id] }, () => {
       this.props.updateSelectedTargets(this.state.selectedRows);
@@ -112,6 +128,11 @@ class TargetsTable extends React.Component {
     this.props.handlePluginShow();
   }
 
+  /**
+   * Function updating the selected targets after checking a checkbox
+   * @param {object} e checkbox onchange event
+   * @param {object} target target corresponding to that checkbox
+   */
   handleCheckbox = (e, target) => {
     if(e.target.checked){
       this.setState({ selectedRows: [...this.state.selectedRows, target.id] }, () => {
@@ -124,6 +145,10 @@ class TargetsTable extends React.Component {
     }
   }
 
+  /**
+   * Function filtering the targets based on severity
+   * @param {array} targets array of targets on which the filter is applied
+   */
   filterBySeverity = targets => {
     const { filterSeverity, filterColumn } = this.state
     // Return if there's no ordering.
@@ -138,7 +163,10 @@ class TargetsTable extends React.Component {
     })
   }
 
-  // Filter the targets based on the name property.
+  /**
+   * Function filtering the targets based on URL
+   * @param {array} targets array of targets on which the filter is applied
+   */
   filterByURL = targets => {
     const searchQuery = this.state.searchQuery.trim()
 
@@ -152,10 +180,17 @@ class TargetsTable extends React.Component {
     })
   }
 
+  /**
+   * Function updating the URL filter query
+   * @param {string} value URL filter query
+   */
   handleFilterChange = value => {
     this.setState({ searchQuery: value })
   }
 
+  /**
+   * Function rendering the severity header
+   */
   renderSeverityHeaderCell = () => {
     return (
       <Table.TextHeaderCell>
@@ -199,6 +234,10 @@ class TargetsTable extends React.Component {
     )
   }
 
+  /**
+   * Function rendering the action menu for each target
+   * @param {object} target target corresponding to the row
+   */
   renderRowMenu = (target) => {
     return (
       <Menu>
@@ -214,6 +253,10 @@ class TargetsTable extends React.Component {
     )
   }
 
+  /**
+   * Function rendering row-wise target severity
+   * @param {object} target target corresponding to the row
+   */
   renderSeverity = (target) => {
     let rank = target.max_user_rank;
     if(target.max_user_rank <= target.max_owtf_rank){
@@ -253,6 +296,10 @@ class TargetsTable extends React.Component {
     }
   }
 
+  /**
+   * Function rendering content of each row
+   * @param {object} object target corresponding to the row
+   */
   renderRow = ({ target }) => {
     return (
       <Table.Row key={target.id} height={75}>
@@ -283,6 +330,9 @@ class TargetsTable extends React.Component {
     )
   }
 
+  /**
+   * Function handles the tables content when no targets are added
+   */
   renderEmptyTableBody = (items) => {
     if(items.length == 0){
       return (

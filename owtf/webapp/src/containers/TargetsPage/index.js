@@ -1,6 +1,10 @@
 /*
- * Target Page
+ * Targets Page
+ * Handles adding & deleting targest
+ * Handles running plugins on different targets
+ * Shows the list of targets along with actions to apply on the targets
  */
+
 import React from "react";
 import { Pane, Heading, Button, Textarea, Icon, Alert, Spinner } from 'evergreen-ui';
 import Sessions from "containers/Sessions";
@@ -48,21 +52,32 @@ class TargetsPage extends React.Component {
     };
   }
 
-  //function re-initializing the state after plugin launch
+  /**
+   * Function re-initializing the state after plugin launch
+   */
 	resetTargetState() {
 		this.setState({
 			selectedTargets:[]
 		});
   }
 
+  /**
+   * Function handles the closing of Alert box
+   */
   handleDismiss = () => {
     this.setState({ show: false });
   }
 
+  /**
+   * Function handles the opening of Alert box
+   */
   handleShow = () => {
     this.setState({ show: true });
   }
 
+  /**
+   * Function rendering the Alert box after plugins launch or targets adding
+   */
   renderAlert() {
     let msgHeader = '';
     switch (this.state.alertStyle){
@@ -96,7 +111,11 @@ class TargetsPage extends React.Component {
     }
   }
 
-  //invoke an alert box based on given params
+  /**
+   * Function invoking the Alert box using given params
+   * @param {string} alertStyle Intent of the alert box
+   * @param {string} alertMsg Message shown by the alert box
+   */
   handleAlertMsg(alertStyle, alertMsg){
     this.setState({
       show: true,
@@ -108,19 +127,29 @@ class TargetsPage extends React.Component {
     }, 5000);
   }
 
+  /**
+   * Function updating the input targets url
+   * @param {Object} event Event containing the name and value of the Textbox
+   */
   handleTargetUrlsChange({ target }) {
     this.setState({
       [target.name]: target.value
     });
   }
 
+  /**
+   * Function validating a string to be a proper URL
+   * @param {string} str String to be validated
+   */
   isUrl(str) {
     // TODO: Add all url protocols to support network plugins
     const urlPattern = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?/;
     return urlPattern.test(str);
   }
 
-  // Add new targets using API
+  /**
+   * Function for adding new targets using the onCreateTarget function
+   */
   addNewTargets() {
     this.setState({ disabled: true });
     const lines = this.state.newTargetUrls.split("\n");
@@ -161,6 +190,9 @@ class TargetsPage extends React.Component {
     this.props.onFetchSession();
   }
 
+  /**
+   * Function returns the current session
+   */
   getCurrentSession() {
     const sessions = this.props.sessions;
     if (sessions === false) return false;
@@ -169,7 +201,9 @@ class TargetsPage extends React.Component {
     }
   }
 
-  //download list of targets as txt file
+  /**
+   * Function to download list of targets as txt file
+   */
   exportTargets() {
     const targetsArray = [];
     this.props.targets.map((target) => {
@@ -182,14 +216,24 @@ class TargetsPage extends React.Component {
     element.click();
   }
 
+  /**
+   * Handles the closing of the plugin component
+   */
   handlePluginClose() {
     this.setState({ pluginShow: false });
   }
 
+  /**
+   * Handles the opening of the plugin component
+   */
   handlePluginShow() {
     this.setState({ pluginShow: true });
   }
 
+  /**
+   * Function updating the targest IDs to be run
+   * @param {Array} selectedTargets List of IDs of the targets to be run
+   */
   updateSelectedTargets(selectedTargets) {
     this.setState({ selectedTargets: selectedTargets});
   }

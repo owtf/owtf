@@ -1,3 +1,8 @@
+/*
+  * Plugins table component
+  * This component manages all the plugins data and renders it in the form of a table
+  *
+  */
 import React from 'react';
 import PropTypes from 'prop-types';
 import { filter } from 'fuzzaldrin-plus';
@@ -9,15 +14,18 @@ export default class PluginsTable extends React.Component {
 
 		this.state = {
       selectedRows: [], //array of checked plugins IDs
-      codeSearch: '',
-      nameSearch: '',
-      typeSearch: '',
-      groupSearch: '',
-      helpSearch: '',
+      codeSearch: '', //plugin code filter query
+      nameSearch: '', //plugin name filter query
+      typeSearch: '', //plugin type filter query
+      groupSearch: '', //plugin group filter query
+      helpSearch: '', //plugin description filter query
 		};
 	}
 
-	// Filter the plugins based on the url, method and status property.
+  /**
+   * Filter the plugins based on the code, name, type, group and description property
+   * @param {array} plugins list of all plugins
+   */
   handleTableFilter = (plugins) => {
     const codeSearch = this.state.codeSearch.trim()
     const nameSearch = this.state.nameSearch.trim()
@@ -60,27 +68,51 @@ export default class PluginsTable extends React.Component {
     })
   }
 
+  /**
+   * Function updating the code filter qurey
+   * @param {string} value code filter query
+   */
   handleCodeFilterChange = (value) => {
     this.setState({ codeSearch: value })
   }
 
+  /**
+   * Function updating the name filter qurey
+   * @param {string} value name filter query
+   */
   handleNameFilterChange = (value) => {
     this.setState({ nameSearch: value })
   }
 
+  /**
+   * Function updating the type filter qurey
+   * @param {string} value type filter query
+   */
   handleTypeFilterChange = (value) => {
     this.setState({ typeSearch: value })
   }
 
+  /**
+   * Function updating the group filter qurey
+   * @param {string} value group filter query
+   */
   handleGroupFilterChange = (value) => {
     this.setState({ groupSearch: value })
   }
 
+  /**
+   * Function updating the description filter qurey
+   * @param {string} value description filter query
+   */
   handleHelpFilterChange = (value) => {
     this.setState({ helpSearch: value })
   }
 
-	//update selected plugins on all rows selection
+  /**
+   * Function updating the selected plugins after checking the select-all checkbox
+   * @param {object} e checkbox onchange event
+   * @param {array} plugins list of all plugins
+   */
 	handleSelectAllCheckBox = (e, plugins) => {
 		const all_plugins = plugins.map(r => this.getPluginDetails(r));
 		if (e.target.checked) {
@@ -94,7 +126,11 @@ export default class PluginsTable extends React.Component {
     }
 	}
 
-  //update selected plugins on clicking checkbox
+  /**
+   * Function updating the selected plugins after checking a row checkbox
+   * @param {object} e checkbox onchange event
+   * @param {object} plugin plugin corresponding to that checkbox
+   */
   handleCheckBox = (e, plugin) => {
     const pluginDetails = this.getPluginDetails(plugin);
     if(e.target.checked){
@@ -108,7 +144,10 @@ export default class PluginsTable extends React.Component {
     }
   }
 
-	// Get details of plugin from the row element
+  /**
+   * Function to fetch details of plugin from a row
+   * @param {object} plugin plugin corresponding to that row
+   */
 	getPluginDetails = (plugin) => {
 		return ({ "key": plugin.key, "group": plugin.group, 'type': plugin.type, 'code': plugin.code })
   }

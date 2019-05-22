@@ -1,5 +1,5 @@
-/*
- * This components manages Plugins
+/* Plugin component
+ * This components manages Plugins and handles the plugin launch on selected targets
  */
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -23,10 +23,10 @@ class Plugins extends React.Component {
 		this.resetState = this.resetState.bind(this);
 
 		this.state = {
-      selectedIndex: 1,
-			selectedPlugins: [],
-			groupSelectedPlugins: {},
-			force_overwrite: false,
+      selectedIndex: 1, //handles individual and group-wise plugins
+			selectedPlugins: [], //list of plugins to be launched
+			groupSelectedPlugins: {}, //list of group-wise selected pugins
+			force_overwrite: false, //handles force-overwrite checkbox
 		};
 	}
 
@@ -34,7 +34,9 @@ class Plugins extends React.Component {
 		this.props.onFetchPlugins();
 	}
 
-	//function re-initializing the state after plugin launch
+  /**
+   * Function re-initializing the state after plugin launch
+   */
 	resetState() {
 		this.setState({
 			selectedPlugins: [],
@@ -43,12 +45,17 @@ class Plugins extends React.Component {
 		});
 	}
 
-	//updates the checked plugins in the plugin table
+  /**
+   * Function updates the checked plugins in the plugin table
+   * @param {array} selectedPlugins list of checked plugins
+   */
 	updateSelectedPlugins(selectedPlugins) {
 		this.setState({ selectedPlugins: selectedPlugins });
 	}
 
-	//launches the plugins in group based on group and type
+  /**
+   * Function launches the plugins group-wise based on group and type
+   */
 	handleGroupLaunch() {
 		const pluginGroups = [];
 		const pluginTypes = [];
@@ -61,7 +68,12 @@ class Plugins extends React.Component {
 		return [pluginGroups, pluginTypes];
 	}
 
-	// Get the selected groups/types
+  /**
+   * Function handles the list of group-wise checked plugins
+   * @param {object} e checkbox onchange event
+   * @param {string} collection_type type of plugin group from ['group', 'type']
+   * @param {string} collection_name name of plugin group or type
+   */
 	handleCheckboxChange(e, collection_type, collection_name) {
     const newArray = this.state.groupSelectedPlugins;
     if(e.target.checked){
@@ -77,12 +89,17 @@ class Plugins extends React.Component {
     this.setState({ groupSelectedPlugins: newArray});
 	}
 
-	//get the checked value of force_overwrite checkbox
+  /**
+   * Function updating the state of force_overwrite checkbox
+   * @param {object} event checkbox onchange event
+   */
 	forceOverwriteChange({ target }) {
 		this.setState({ force_overwrite: target.checked });
 	}
 
-	// To launch individual plugins & group select plugins
+  /**
+   * Function handles the launch of selected individual and group-wise plugins
+   */
 	launchPlugins() {
 		// First fire off individual plugins
 		this.state.selectedPlugins.map(pluginDetails => {
@@ -97,7 +114,10 @@ class Plugins extends React.Component {
     this.props.resetTargetState();
 	}
 
-	// Main function that posts using API to launch plugins
+  /**
+   * Function that posts targets to worklist using API call
+   * @param {object} selectedPluginData array containing the target and plugin launch data
+   */
 	handlePostToWorklist(selectedPluginData){
 		selectedPluginData["id"] = this.props.selectedTargets;
 		selectedPluginData["force_overwrite"] = this.state.force_overwrite;

@@ -1,7 +1,8 @@
 /*
- * Sessions
+ * Sessions component
  *
  * This components manages session.
+ * Handles creating, changing, deleting a session
  */
 
 import React from 'react';
@@ -24,19 +25,28 @@ export class Sessions extends React.Component {
     this.handleAddSession = this.handleAddSession.bind(this);
 
     this.state = {
-      show: false,
-      newSessionName: "",
+      show: false, //handles the apperance of session dialog box
+      newSessionName: "", //name of the session to be added
     };
   }
 
+  /**
+   * Function handles the closing of session dialog box
+   */
   handleClose() {
     this.setState({ show: false });
   }
 
+  /**
+   * Function handles the opening of session dialog box
+   */
   handleShow() {
     this.setState({ show: true });
   }
 
+  /**
+   * Function returns currently active session
+   */
   getCurrentSession() {
     const sessions = this.props.sessions;
     if (sessions === false) return false;
@@ -45,12 +55,19 @@ export class Sessions extends React.Component {
     }
   }
 
+  /**
+   * Function updates the name of the session to be added
+   * @param {object} e Inputbox onchange event
+   */
   handleNewSessionName(e) {
     this.setState({
       [e.target.name]: e.target.value
     });
   }
 
+  /**
+   * Function handles a session creation
+   */
   handleAddSession() {
     this.props.onCreateSession(this.state.newSessionName);
     this.setState({ newSessionName: ""});
@@ -67,9 +84,7 @@ export class Sessions extends React.Component {
       loading,
       error,
       sessions,
-      currentSession,
     };
-    console.log(this.props.sessions);
 
     return (
       <Pane>

@@ -1,3 +1,8 @@
+/*
+  * This component manages the session table
+  * Handles the session changing and deletion functionality
+  * Renders the list of session in the form of a table
+  */
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from "react-redux";
@@ -11,11 +16,14 @@ class SessionsTable extends React.Component {
     super(props);
 
     this.state = {
-      searchQuery: "",
+      searchQuery: "", //Filter for session name
     };
   }
 
-  // Filter the profiles based on the name property.
+  /**
+   * Function filter the sessions based on their name data field
+   * @param {array} sessions List of all sessions
+   */
   handleTableFilter = sessions => {
     const searchQuery = this.state.searchQuery.trim();
 
@@ -29,10 +37,20 @@ class SessionsTable extends React.Component {
     })
   }
 
-  handleFilterChange = value => {
+
+  /**
+   * Function updates the name filter query
+   * @param {string} value name filter query
+   */
+  handleFilterChange = (value) => {
     this.setState({ searchQuery: value })
   }
 
+  /**
+   * Function handles the changing of sessions
+   * @param {object} e radio onchange event
+   * @param {object} session session corresponding the radio box
+  */
   handleRadioChange = (e, session) => {
     if (e.target.checked) {
       this.props.onChangeSession({id: session.id, name:session.name});
@@ -40,7 +58,7 @@ class SessionsTable extends React.Component {
   };
 
   render() {
-    const { loading, error, sessions, currentSession} = this.props;
+    const { loading, error, sessions} = this.props;
 
     if (loading) {
       return (
@@ -103,10 +121,6 @@ SessionsTable.propTypes = {
   loading: PropTypes.bool,
   error: PropTypes.any,
   sessions: PropTypes.any,
-  currentSession: PropTypes.oneOfType([
-    PropTypes.object,
-    PropTypes.bool,
-  ]),
   onChangeSession: PropTypes.func,
   onDeleteSession: PropTypes.func,
 };
