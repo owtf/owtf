@@ -78,30 +78,30 @@ class SessionsTable extends React.Component {
       return (
         <Table border>
           <Table.Head>
-            <Table.HeaderCell flex={-1}></Table.HeaderCell>
+            <Table.HeaderCell flex="none" width={50}></Table.HeaderCell>
             <Table.SearchHeaderCell
               flex="none"
-              width={200}
+              width={300}
               onChange={this.handleFilterChange}
               value={this.state.searchQuery}
               placeholder='Session name'
             />
-            <Table.TextHeaderCell flex="none" width={200}>
+            <Table.TextHeaderCell flex="none" width={120}>
               Delete Session
             </Table.TextHeaderCell>
           </Table.Head>
           <Table.Body height={240}>
             {items.map(session => (
               <Table.Row key={session.id} isSelectable>
-                <Table.Cell flex={-1}>
+                <Table.Cell flex="none" width={50}>
                   <Radio
                     size={16}
                     checked={session.active}
                     onChange={e => this.handleRadioChange(e, session)}
                   />
                 </Table.Cell>
-                <Table.TextCell flex="none" width={200}>{session.name}</Table.TextCell>
-                <Table.Cell flex="none" width={200}>
+                <Table.TextCell flex="none" width={300}>{session.name}</Table.TextCell>
+                <Table.Cell flex="none" width={120}>
                   <IconButton
                     icon="trash"
                     intent="danger"
