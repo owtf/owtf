@@ -5,14 +5,9 @@
   "scripts": {
     "build": "NODE_ENV=production webpack --config webpack/prod.config.js --color -p --progress --hide-modules --display-optimization-bailout",
     "start": "NODE_ENV=development node server",
-    "precommit": "pretty-quick --staged && npm test",
+    "precommit": "pretty-quick --staged",
     "test": "jest",
     "test:watch": "npm test -- --watch"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "CI=true npm test"
-    }
   },
   "repository": {
     "type": "git",
