@@ -9,6 +9,11 @@
     "test": "jest",
     "test:watch": "npm test -- --watch"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "CI=true npm test"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/owtf/owtf"
