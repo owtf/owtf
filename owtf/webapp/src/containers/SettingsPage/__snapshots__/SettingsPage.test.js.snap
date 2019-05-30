@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Settings Page componemt Testing dumb component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="settingsPageComponent"
+  display="flex"
+  flexDirection="column"
+  margin={20}
+>
+  <withTheme(Pane) />
+  <withTheme(Pane)
+    margin={20}
+  >
+    <withTheme(Button)
+      appearance="primary"
+      className="pull-right"
+      data-test="changeBtn"
+      disabled={true}
+      onClick={[Function]}
+    >
+      Update Configuration!
+    </withTheme(Button)>
+  </withTheme(Pane)>
+  <withTheme(Pane)
+    display="flex"
+    margin={20}
+  >
+    <ConfigurationTabsNav
+      configurations={Object {}}
+      handleTabSelect={[Function]}
+      selectedIndex={-1}
+    />
+    <withTheme(Pane)
+      flex="1"
+      padding={16}
+    >
+      <ConfigurationTabsContent
+        configurations={Object {}}
+        handleConfigurationChange={[Function]}
+        selectedIndex={-1}
+      />
+    </withTheme(Pane)>
+  </withTheme(Pane)>
+</withTheme(Pane)>
+`;

@@ -2,18 +2,16 @@
  * SettingsPage
  */
 import React from 'react';
-import {Pane, Button, Alert} from 'evergreen-ui';
-
+import {Pane, Button, Alert, Spinner} from 'evergreen-ui';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchConfigurations, makeSelectChangeError } from './selectors';
 import { loadConfigurations, changeConfigurations } from './actions';
-import '../../style.scss';
-import ConfigurationTabsContent from 'components/ConfigurationTabsContent';
-import ConfigurationTabsNav from 'components/ConfigurationTabsNav';
+import ConfigurationTabsContent from '../../components/ConfigurationTabsContent';
+import ConfigurationTabsNav from '../../components/ConfigurationTabsNav';
 
-class SettingsPage extends React.Component {
+export class SettingsPage extends React.Component {
   constructor(props, context) {
     super(props, context);
 
@@ -93,7 +91,9 @@ class SettingsPage extends React.Component {
     } = this.props;
     if (loading) {
       return (
-        <div className="spinner" />
+        <Pane display="flex" alignItems="center" justifyContent="center" height={400}>
+          <Spinner />
+        </Pane>
       );
     }
 
@@ -105,7 +105,7 @@ class SettingsPage extends React.Component {
 
     if (configurations !== false) {
       return (
-        <Pane display="flex" flexDirection="column" margin={20}>
+        <Pane display="flex" flexDirection="column" margin={20} data-test="settingsPageComponent">
           <Pane>
             {this.renderAlert(changeError)}
           </Pane>
@@ -114,7 +114,8 @@ class SettingsPage extends React.Component {
               appearance="primary"
               className="pull-right"
               disabled={this.state.updateDisabled}
-              onClick={this.onUpdateConfiguration}>
+              onClick={this.onUpdateConfiguration}
+              data-test="changeBtn">
               Update Configuration!
             </Button>
           </Pane>

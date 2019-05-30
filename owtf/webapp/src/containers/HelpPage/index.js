@@ -56,13 +56,14 @@ export default class Help extends React.Component {
     ];
 
     return (
-      <Pane clearfix display="flex" flexDirection="row" flexWrap= "wrap" justifyContent="center">
+      <Pane clearfix display="flex" flexDirection="row" flexWrap= "wrap" justifyContent="center" data-test="helpComponent">
         <Pane
           elevation={1}
           width={350}
           margin={20}
           display="flex"
           flexDirection="column"
+          data-test="helpBox"
         >
           <Heading height={40} background="#e1eaea">
             <Pane margin={10}><Icon icon="search"/> Exploitation </Pane>
@@ -79,6 +80,7 @@ export default class Help extends React.Component {
           margin={20}
           display="flex"
           flexDirection="column"
+          data-test="helpBox"
         >
           <Heading height={40} background="#e1eaea">
             <Pane margin={10}><Icon icon="horizontal-bar-chart-desc"/> Methodology </Pane>
@@ -95,6 +97,7 @@ export default class Help extends React.Component {
           margin={20}
           display="flex"
           flexDirection="column"
+          data-test="helpBox"
         >
           <Heading height={40} background="#e1eaea">
             <Pane margin={10}><Icon icon="calculator"/> Calculators </Pane>
@@ -111,6 +114,7 @@ export default class Help extends React.Component {
           margin={20}
           display="flex"
           flexDirection="column"
+          data-test="helpBox"
         >
           <Heading height={40} background="#e1eaea">
             <Pane margin={10}><Icon icon="book"/> Test/Learn </Pane>
@@ -127,6 +131,7 @@ export default class Help extends React.Component {
           margin={20}
           display="flex"
           flexDirection="column"
+          data-test="helpBox"
         >
           <Heading height={40} background="#e1eaea">
             <Pane margin={10}><Icon icon="help"/> OWTF Help Links </Pane>
