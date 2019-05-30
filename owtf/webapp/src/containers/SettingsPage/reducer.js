@@ -18,7 +18,7 @@ const initialConfigurationState = fromJS({
   configurations: false,
 });
 
-function configurationsLoadReducer(state = initialConfigurationState, action) {
+export function configurationsLoadReducer(state = initialConfigurationState, action) {
   switch (action.type) {
     case LOAD_CONFIGURATIONS:
       return state
@@ -27,12 +27,14 @@ function configurationsLoadReducer(state = initialConfigurationState, action) {
         .set('configurations', false);
     case LOAD_CONFIGURATIONS_SUCCESS:
       return state
+        .set('error', false)
         .set('loading', false)
         .set('configurations', action.configurations);
     case LOAD_CONFIGURATIONS_ERROR:
       return state
         .set('loading', false)
-        .set('error', action.error);
+        .set('error', action.error)
+        .set('configurations', false);
     default:
       return state;
   }
@@ -44,7 +46,7 @@ const initialChangeState = fromJS({
   error: false,
 });
 
-function configurationsChangeReducer(state = initialChangeState, action) {
+export function configurationsChangeReducer(state = initialChangeState, action) {
   switch (action.type) {
     case CHANGE_CONFIGURATIONS:
       return state
@@ -52,11 +54,12 @@ function configurationsChangeReducer(state = initialChangeState, action) {
         .set('error', false);
     case CHANGE_CONFIGURATIONS_SUCCESS:
       return state
-        .set('loading', false);
+        .set('loading', false)
+        .set('error', false);
     case CHANGE_CONFIGURATIONS_ERROR:
       return state
-        .set('error', action.error)
-        .set('loading', false);
+        .set('loading', false)
+        .set('error', action.error);
     default:
       return state;
   }
