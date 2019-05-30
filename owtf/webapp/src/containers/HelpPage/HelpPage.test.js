@@ -25,7 +25,7 @@ describe('HelpPage component', () => {
 
     it('Should successfully render sub-components', () => {
         const component = findByTestAtrr(wrapper, "helpBox");
-        expect(component.length).toBe(4);
+        expect(component.length).toBe(5);
     })
 
 });
