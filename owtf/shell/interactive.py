@@ -66,8 +66,12 @@ class InteractiveShell(BaseShell):
         :return: Formatted command string
         :rtype: `str`
         """
-        if "RHOST" in self.options and "RPORT" in self.options:  # Interactive shell on remote connection
-            return "{!s}:{!s}-{!s}".format(self.options["RHOST"], self.options["RPORT"], command)
+        if (
+            "RHOST" in self.options and "RPORT" in self.options
+        ):  # Interactive shell on remote connection
+            return "{!s}:{!s}-{!s}".format(
+                self.options["RHOST"], self.options["RPORT"], command
+            )
         else:
             return "Interactive - {!s}".format(command)
 
@@ -133,7 +137,12 @@ class InteractiveShell(BaseShell):
         if not self.connection:
             name, command = options["ConnectVia"][0]
             self.connection = AsyncPopen(
-                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE, bufsize=1
+                command,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                stdin=subprocess.PIPE,
+                bufsize=1,
             )
             self.options = options  # Store Options for Closing processing and if initial Commands are given
             if options["InitialCommands"]:
@@ -154,7 +163,10 @@ class InteractiveShell(BaseShell):
         if self.options["CommandsBeforeExit"]:
             logging.info("Running commands before closing Communication Channel..")
             self.run_cmd_list(
-                self.options["CommandsBeforeExit"].split(self.options["CommandsBeforeExitDelim"]), plugin_info
+                self.options["CommandsBeforeExit"].split(
+                    self.options["CommandsBeforeExitDelim"]
+                ),
+                plugin_info,
             )
         logging.info("Trying to close Communication Channel..")
         self.run("exit", plugin_info)

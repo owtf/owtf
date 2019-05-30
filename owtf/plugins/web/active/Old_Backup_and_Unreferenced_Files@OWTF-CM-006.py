@@ -13,11 +13,17 @@ def run(PluginInfo):
     # Define DirBuster Commands to use depending on Interaction Setting:
     # DirBuster allows much more control when interactive
     # DirBuster can also be run non-interactively for scripting
-    DirBusterInteraction = {"True": "DirBusterInteractive", "False": "DirBusterNotInteractive"}
+    DirBusterInteraction = {
+        "True": "DirBusterInteractive", "False": "DirBusterNotInteractive"
+    }
 
     # Get settings from the config DB
     resource = get_resources(DirBusterInteraction["{}".format(INTERACTIVE)])
-    Content = plugin_helper.CommandDump("Test Command", "Output", resource, PluginInfo, [])
+    Content = plugin_helper.CommandDump(
+        "Test Command", "Output", resource, PluginInfo, []
+    )
     extractURL_resource = get_resources("DirBuster_Extract_URLs")
-    Content += plugin_helper.CommandDump("Test Command", "Output", extractURL_resource, PluginInfo, [])
+    Content += plugin_helper.CommandDump(
+        "Test Command", "Output", extractURL_resource, PluginInfo, []
+    )
     return Content

@@ -67,6 +67,8 @@ Run `make startdb` to create and start the PostgreSQL server in a Docker contain
 
 #### Manual setup (painful and error-prone)
 
+> You can also use a script to this for you - find it in `scripts/db_setup.sh`. You'll need to modify any hardcoded variables if you change the corresponding ones in `owtf/settings.py`.
+
 Start the postgreSQL server,
 
 * macOS: `brew install postgresql` and `pg_ctl -D /usr/local/var/postgres start`

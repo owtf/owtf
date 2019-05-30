@@ -9,7 +9,8 @@ import sys
 import logging
 
 from sqlalchemy import create_engine, exc, func
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import Session as _Session
+from sqlalchemy.orm import sessionmaker
 
 from owtf.db.model_base import Model
 from owtf.settings import DATABASE_IP, DATABASE_NAME, DATABASE_PASS, DATABASE_USER, DATABASE_PORT
@@ -56,7 +57,20 @@ def get_db_engine():
 
 
 def get_scoped_session():
-    return scoped_session(Session)
+    Session.configure(bind=get_db_engine())
+    return Session()
 
 
-Session = sessionmaker(bind=get_db_engine())
+class Session(_Session):
+    """ Custom session meant to utilize add on the model.
+        This Session overrides the add/add_all methods to prevent them
+        from being used. This is to for using the add methods on the
+        models themselves where overriding is available.
+    """
+
+    _add = _Session.add
+    _add_all = _Session.add_all
+    _delete = _Session.delete
+
+
+Session = sessionmaker(class_=Session)

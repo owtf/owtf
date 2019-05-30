@@ -15,12 +15,21 @@ from tests.suite import SUITES
 
 def create_parser():
     """Create the different options for running the functional testing framework."""
-    parser = argparse.ArgumentParser(description="""OWASP OWTF - Functional Testing Framework.""")
+    parser = argparse.ArgumentParser(
+        description="""OWASP OWTF - Functional Testing Framework."""
+    )
 
     parser.add_argument(
-        "-l", "--list", dest="list_suites", default=False, action="store_true", help="List the available test suites."
+        "-l",
+        "--list",
+        dest="list_suites",
+        default=False,
+        action="store_true",
+        help="List the available test suites.",
     )
-    parser.add_argument("-s", "--suite", dest="suite", default="all", help="Name of the suite to test.")
+    parser.add_argument(
+        "-s", "--suite", dest="suite", default="all", help="Name of the suite to test."
+    )
     return parser
 
 

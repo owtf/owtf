@@ -21,7 +21,11 @@ from owtf.files.main import start_file_server
 from owtf.lib import exceptions
 from owtf.lib.cli_options import parse_options, usage
 from owtf.managers.config import load_framework_config, load_general_config
-from owtf.managers.plugin import get_types_for_plugin_group, load_plugins, load_test_groups
+from owtf.managers.plugin import (
+    get_types_for_plugin_group,
+    load_plugins,
+    load_test_groups,
+)
 from owtf.managers.resource import load_resources_from_file
 from owtf.managers.session import _ensure_default_session
 from owtf.managers.target import load_targets
@@ -74,7 +78,7 @@ def print_banner():
         http://owtf.org
         Version: {0}
         \033[0m""".format(
-            __version__,
+            __version__
         )
     )
 
@@ -90,7 +94,11 @@ def get_plugins_from_arg(arg):
     plugins = arg.split(",")
     plugin_groups = Plugin.get_groups_for_plugins(db, plugins)
     if len(plugin_groups) > 1:
-        usage("The plugins specified belong to several plugin groups: '%s'".format(str(plugin_groups)))
+        usage(
+            "The plugins specified belong to several plugin groups: '%s'".format(
+                str(plugin_groups)
+            )
+        )
     return [plugins, plugin_groups]
 
 
@@ -125,7 +133,10 @@ def process_options(user_args):
                 plugin_group = plugin_groups[0]
             except IndexError:
                 usage("Please use either OWASP/OWTF codes or Plugin names")
-            logging.info("Defaulting plugin group to '%s' based on list of plugins supplied", plugin_group)
+            logging.info(
+                "Defaulting plugin group to '%s' based on list of plugins supplied",
+                plugin_group,
+            )
 
         if arg.except_plugins:
             arg.except_plugins, plugin_groups = get_plugins_from_arg(arg.except_plugins)
@@ -152,12 +163,16 @@ def process_options(user_args):
                     outbound_proxy_port = "9050"  # default TOR port
                 else:
                     outbound_proxy_port = arg.tor_mode[1]
-                arg.outbound_proxy = "socks://{0}:{1}".format(outbound_proxy_ip, outbound_proxy_port)
+                arg.outbound_proxy = "socks://{0}:{1}".format(
+                    outbound_proxy_ip, outbound_proxy_port
+                )
 
         if arg.outbound_proxy:
             arg.outbound_proxy = arg.outbound_proxy.split("://")
             if len(arg.outbound_proxy) == 2:
-                arg.outbound_proxy = arg.outbound_proxy + arg.outbound_proxy.pop().split(":")
+                arg.outbound_proxy = arg.outbound_proxy + arg.outbound_proxy.pop().split(
+                    ":"
+                )
                 if arg.outbound_proxy[0] not in ["socks", "http"]:
                     usage("Invalid argument for outbound proxy")
             else:
@@ -308,9 +323,13 @@ def main():
     create_temp_storage_dirs(owtf_pid)
     try:
         _ensure_default_session(db)
-        load_framework_config(DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, root_dir, owtf_pid)
+        load_framework_config(
+            DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, root_dir, owtf_pid
+        )
         load_general_config(db, DEFAULT_GENERAL_PROFILE, FALLBACK_GENERAL_PROFILE)
-        load_resources_from_file(db, DEFAULT_RESOURCES_PROFILE, FALLBACK_RESOURCES_PROFILE)
+        load_resources_from_file(
+            db, DEFAULT_RESOURCES_PROFILE, FALLBACK_RESOURCES_PROFILE
+        )
         load_test_groups(db, WEB_TEST_GROUPS, FALLBACK_WEB_TEST_GROUPS, "web")
         load_test_groups(db, NET_TEST_GROUPS, FALLBACK_NET_TEST_GROUPS, "net")
         load_test_groups(db, AUX_TEST_GROUPS, FALLBACK_AUX_TEST_GROUPS, "aux")

@@ -5,6 +5,8 @@ mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 VENV_PATH=$$HOME/.virtualenvs/${PROJ}
 
+.PHONY: venv setup web docs lint clean bump build release
+
 check-root:
 ifeq ($(USER), root)
 	@echo "WARNING: Installing as root should be avoided at all costs. Use a virtualenv."
@@ -162,15 +164,24 @@ distclean-js:
 distclean: distclean-py distclean-js
 
 ## MAINTAINERS
+rollback:
+	git reset --hard HEAD~1
+	git tag -d `git describe --tags --abbrev=0`
 
 bump:
-	bumpversion patch
+	bumpversion patch && \
+	echo -n "Now on version: " && \
+	git describe --tags
 
 bump-minor:
-	bumpversion minor
+	bumpversion minor && \
+	echo -n "Now on version: " && \
+	git describe --tags
 
 bump-major:
-	bumpversion major
+	bumpversion major && \
+	echo -n "Now on version: " && \
+	git describe --tags
 
 release:
 	python setup.py register sdist bdist_wheel upload

@@ -10,5 +10,7 @@ DESCRIPTION = "Active Probing for fingerprint analysis"
 def run(PluginInfo):
     # No previous output
     resource = get_resources("ActiveInfrastructureConfigurationManagement")
-    Content = plugin_helper.CommandDump("Test Command", "Output", resource, PluginInfo, [])
+    Content = plugin_helper.CommandDump(
+        "Test Command", "Output", resource, PluginInfo, []
+    )
     return Content

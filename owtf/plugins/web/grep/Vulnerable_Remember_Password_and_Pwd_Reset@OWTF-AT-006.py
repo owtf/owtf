@@ -10,5 +10,7 @@ DESCRIPTION = "Searches transaction DB for autocomplete protections"
 def run(PluginInfo):
     title = "This plugin looks for password and form tags to review the autocomplete attribute<br />"
     Content = plugin_helper.HtmlString(title)
-    Content += plugin_helper.FindResponseBodyMatchesForRegexpName("RESPONSE_REGEXP_FOR_AUTOCOMPLETE")
+    Content += plugin_helper.FindResponseBodyMatchesForRegexpName(
+        "RESPONSE_REGEXP_FOR_AUTOCOMPLETE"
+    )
     return Content

@@ -21,7 +21,9 @@ def get_raw_resources(session, resource_type):
     :return: List of raw resources
     :rtype: `list`
     """
-    filter_query = session.query(Resource.resource_name, Resource.resource).filter_by(resource_type=resource_type)
+    filter_query = session.query(Resource.resource_name, Resource.resource).filter_by(
+        resource_type=resource_type
+    )
     # Sorting is necessary for working of ExtractURLs, since it must run after main command, so order is imp
     sort_query = filter_query.order_by(Resource.id)
     raw_resources = sort_query.all()
@@ -99,7 +101,9 @@ def get_resources_from_file(resource_file):
     :rtype: `set`
     """
     resources = set()
-    config_file = FileOperations.open(resource_file, "r").read().splitlines()  # To remove stupid '\n' at the end
+    config_file = FileOperations.open(
+        resource_file, "r"
+    ).read().splitlines()  # To remove stupid '\n' at the end
     for line in config_file:
         if "#" == line[0]:
             continue  # Skip comment lines
@@ -108,7 +112,8 @@ def get_resources_from_file(resource_file):
             resources.add((type, name, resource))
         except ValueError:
             logging.info(
-                "ERROR: The delimiter is incorrect in this line at Resource File: %s", str(line.split("_____"))
+                "ERROR: The delimiter is incorrect in this line at Resource File: %s",
+                str(line.split("_____")),
             )
     return resources
 

@@ -46,7 +46,9 @@ class WebServerProcess(object):
         """
         # Create the web application
         self.application = DummyWebApplication([(r"/", DummyGetHandler)])
-        self.process = Process(target=start_application, args=(self.application, self.ip, self.port))
+        self.process = Process(
+            target=start_application, args=(self.application, self.ip, self.port)
+        )
         self.process.start()
         self.wait_until_server_is_ready()
 

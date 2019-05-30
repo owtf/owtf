@@ -33,8 +33,12 @@ def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
     :return: Key and cert path
     :rtype: `str`
     """
-    key_path = os.path.join(certs_folder, re.sub("[^-0-9a-zA-Z_]", "_", domain) + ".key")
-    cert_path = os.path.join(certs_folder, re.sub("[^-0-9a-zA-Z_]", "_", domain) + ".crt")
+    key_path = os.path.join(
+        certs_folder, re.sub("[^-0-9a-zA-Z_]", "_", domain) + ".key"
+    )
+    cert_path = os.path.join(
+        certs_folder, re.sub("[^-0-9a-zA-Z_]", "_", domain) + ".crt"
+    )
 
     # The first conditions checks if file exists, and does nothing if true
     # If file doesn't exist lock is obtained for writing (Other processes in race must wait)
@@ -54,10 +58,14 @@ def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
                 serial = int(md5_hash.hexdigest(), 36)
 
                 # The CA stuff is loaded from the same folder as this script
-                ca_cert = crypto.load_certificate(crypto.FILETYPE_PEM, open(ca_crt, "rb").read())
+                ca_cert = crypto.load_certificate(
+                    crypto.FILETYPE_PEM, open(ca_crt, "rb").read()
+                )
                 # The last parameter is the password for your CA key file
                 ca_key = crypto.load_privatekey(
-                    crypto.FILETYPE_PEM, open(ca_key, "rb").read(), passphrase=utf8(ca_pass)
+                    crypto.FILETYPE_PEM,
+                    open(ca_key, "rb").read(),
+                    passphrase=utf8(ca_pass),
                 )
 
                 key = crypto.PKey()
@@ -82,5 +90,7 @@ def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
                     domain_key.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key))
 
                 with open(cert_path, "wb") as domain_cert:
-                    domain_cert.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
+                    domain_cert.write(
+                        crypto.dump_certificate(crypto.FILETYPE_PEM, cert)
+                    )
     return key_path, cert_path

@@ -37,7 +37,8 @@ def run(PluginInfo):
     args = {
         "Description": DESCRIPTION,
         "Mandatory": {
-            "RHOST": config_handler.get_val("RHOST_DESCRIP"), "RPORT": config_handler.get_val("RPORT_DESCRIP")
+            "RHOST": config_handler.get_val("RHOST_DESCRIP"),
+            "RPORT": config_handler.get_val("RPORT_DESCRIP"),
         },
         "Optional": {
             "CATEGORY": "Category to use (i.e. " + ", ".join(sorted(CATEGORIES)) + ")",
@@ -47,5 +48,7 @@ def run(PluginInfo):
     for args in plugin_params.get_args(args, PluginInfo):
         plugin_params.set_config(args)
         resource = config_handler.get_resources("DoS_" + args["CATEGORY"])
-        Content += plugin_helper.CommandDump("Test Command", "Output", resource, PluginInfo, "")  # No previous output
+        Content += plugin_helper.CommandDump(
+            "Test Command", "Output", resource, PluginInfo, ""
+        )  # No previous output
     return Content

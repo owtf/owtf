@@ -39,7 +39,9 @@ class BaseShell(object):
         :return: None
         :rtype: None
         """
-        self.dynamic_replacements["###plugin_output_dir###"] = target_manager.get_path("plugin_output_dir")
+        self.dynamic_replacements["###plugin_output_dir###"] = target_manager.get_path(
+            "plugin_output_dir"
+        )
 
     def start_cmd(self, original_cmd, modified_cmd):
         """Start the timer and return the list of commands to run
@@ -79,7 +81,9 @@ class BaseShell(object):
         if was_cancelled:
             success = False
         cmd_info["Success"] = success
-        cmd_info["RunTime"] = self.timer.get_elapsed_time_as_str(self.command_time_offset)
+        cmd_info["RunTime"] = self.timer.get_elapsed_time_as_str(
+            self.command_time_offset
+        )
         cmd_info["Target"] = target_manager.get_target_id
         cmd_info["PluginKey"] = plugin_info["key"]
         Command.add_cmd(session=session, command=cmd_info)
@@ -106,7 +110,8 @@ class BaseShell(object):
         """
         self.refresh_replacements()
         new_cmd = "cd {};{}".format(
-            self.escape_shell_path(plugin_output_dir), multi_replace_dict(command, self.dynamic_replacements)
+            self.escape_shell_path(plugin_output_dir),
+            multi_replace_dict(command, self.dynamic_replacements),
         )
         new_cmd = multi_replace_dict(
             new_cmd,
@@ -127,7 +132,9 @@ class BaseShell(object):
         :return: List of return values
         :rtype: `list`
         """
-        target = command_already_registered(session=session, original_command=command["OriginalCommand"])
+        target = command_already_registered(
+            session=session, original_command=command["OriginalCommand"]
+        )
         if target:  # target_config will be None for a not found match
             return [target, False]
         return [None, True]
@@ -171,7 +178,10 @@ class BaseShell(object):
             return message
         logging.info("")
         logging.info("Executing :\n\n%s\n\n", command)
-        logging.info("------> Execution Start Date/Time: %s", self.timer.get_start_date_time_as_str("Command"))
+        logging.info(
+            "------> Execution Start Date/Time: %s",
+            self.timer.get_start_date_time_as_str("Command"),
+        )
         logging.info("")
         output = ""
         cancelled = False
@@ -182,24 +192,38 @@ class BaseShell(object):
                 line = proc.stdout.readline()
                 if not line:
                     break
-                logging.info(line.decode("utf-8").strip())  # Show progress on the screen too!
-                output += line.decode("utf-8")  # Save as much output as possible before a tool crashes! :)
+                logging.info(
+                    line.decode("utf-8").strip()
+                )  # Show progress on the screen too!
+                output += line.decode(
+                    "utf-8"
+                )  # Save as much output as possible before a tool crashes! :)
         except KeyboardInterrupt:
             os.killpg(proc.pid, signal.SIGINT)
             out, err = proc.communicate()
             logging.warn(out.decode("utf-8"))
             output += out.decode("utf-8")
             try:
-                os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # Plugin KIA (Killed in Action)
+                os.killpg(
+                    os.getpgid(proc.pid), signal.SIGTERM
+                )  # Plugin KIA (Killed in Action)
             except OSError:
                 pass  # Plugin RIP (Rested In Peace)
             cancelled = True
             output += user_abort("Command", output)  # Identify as Command Level abort
         finally:
             try:
-                self.finish_cmd(session=session, cmd_info=cmd_info, was_cancelled=cancelled, plugin_info=plugin_info)
+                self.finish_cmd(
+                    session=session,
+                    cmd_info=cmd_info,
+                    was_cancelled=cancelled,
+                    plugin_info=plugin_info,
+                )
             except SQLAlchemyError as e:
-                logging.error("Exception occurred while during database transaction : \n%s", str(e))
+                logging.error(
+                    "Exception occurred while during database transaction : \n%s",
+                    str(e),
+                )
                 output += str(e)
         return scrub_output(output)
 

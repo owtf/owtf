@@ -15,7 +15,13 @@ import unittest
 import mock
 from hamcrest import *
 
-from tests.utils import load_log, db_setup, clean_owtf_review, DIR_OWTF_REVIEW, DIR_OWTF_LOGS
+from tests.utils import (
+    load_log,
+    db_setup,
+    clean_owtf_review,
+    DIR_OWTF_REVIEW,
+    DIR_OWTF_LOGS,
+)
 from tests.server import WebServerProcess
 
 
@@ -60,7 +66,9 @@ class OWTFCliTestCase(unittest.TestCase):
         abs_path = os.path.join(os.getcwd(), DIR_OWTF_REVIEW, DIR_OWTF_LOGS)
         self.logs_main_process = []
         for main_process_log in glob.glob(os.path.join(abs_path, "MainProcess*.log")):
-            self.logs_main_process.extend(load_log(main_process_log, absolute_path=True))
+            self.logs_main_process.extend(
+                load_log(main_process_log, absolute_path=True)
+            )
         self.logs_worker = []
         for worker_log in glob.glob(os.path.join(abs_path, "Worker*.log")):
             self.logs_worker.extend(load_log(worker_log, absolute_path=True))

@@ -10,5 +10,7 @@ ATTR = {"INTERNET_RESOURCES": True}
 
 def run(PluginInfo):
     resource = get_resources("SemiPassiveSearchEngineDiscoveryCmd")
-    Content = plugin_helper.CommandDump("Test Command", "Output", resource, PluginInfo, [])  # No previous output
+    Content = plugin_helper.CommandDump(
+        "Test Command", "Output", resource, PluginInfo, []
+    )  # No previous output
     return Content

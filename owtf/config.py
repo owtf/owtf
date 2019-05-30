@@ -31,7 +31,9 @@ class Config(object):
         self.root_dir = ROOT_DIR
         self.config = defaultdict(list)  # General configuration information.
         for type in CONFIG_TYPES:
-            self.config[type] = {}  # key can consist alphabets, numbers, hyphen & underscore.
+            self.config[
+                type
+            ] = {}  # key can consist alphabets, numbers, hyphen & underscore.
         self.cli_options = {}
 
     def is_set(self, key):
@@ -187,7 +189,9 @@ class Config(object):
         :return: Comma-separate string of tcp ports
         :rtype: `str`
         """
-        return ",".join(self.get_val("TCP_PORTS").split(",")[int(start_port):int(end_port)])
+        return ",".join(
+            self.get_val("TCP_PORTS").split(",")[int(start_port):int(end_port)]
+        )
 
     def get_udp_ports(self, start_port, end_port):
         """Get UDP ports from the config file
@@ -199,7 +203,9 @@ class Config(object):
         :return: Comma-separate string of udp ports
         :rtype: `str`
         """
-        return ",".join(self.get_val("UDP_PORTS").split(",")[int(start_port):int(end_port)])
+        return ",".join(
+            self.get_val("UDP_PORTS").split(",")[int(start_port):int(end_port)]
+        )
 
 
 config_handler = Config()

@@ -31,7 +31,9 @@ def load_works(session, target_urls, options):
     """
     for target_url in target_urls:
         if target_url:
-            target = get_target_config_dicts(session=session, filter_data={"target_url": target_url})
+            target = get_target_config_dicts(
+                session=session, filter_data={"target_url": target_url}
+            )
             group = options["plugin_group"]
             if options["only_plugins"] is None:
                 # If the plugin group option is the default one (not specified by the user).
@@ -42,7 +44,10 @@ def load_works(session, target_urls, options):
                         group = "network"
                 filter_data = {"type": options["plugin_type"], "group": group}
             else:
-                filter_data = {"code": options.get("only_plugins"), "type": options.get("plugin_type")}
+                filter_data = {
+                    "code": options.get("only_plugins"),
+                    "type": options.get("plugin_type"),
+                }
             plugins = get_all_plugin_dicts(session=session, criteria=filter_data)
             if not plugins:
                 logging.error(
@@ -52,7 +57,10 @@ def load_works(session, target_urls, options):
                     target[0]["target_url"],
                 )
             add_work(
-                session=session, target_list=target, plugin_list=plugins, force_overwrite=options["force_overwrite"]
+                session=session,
+                target_list=target,
+                plugin_list=plugins,
+                force_overwrite=options["force_overwrite"],
             )
 
 
@@ -73,7 +81,9 @@ def worklist_generate_query(session, criteria=None, for_stats=False):
         if criteria.get("target_url", None):
             if isinstance(criteria.get("target_url"), list):
                 criteria["target_url"] = criteria["target_url"][0]
-            query = query.filter(Target.target_url.like("%%{!s}%%".format(criteria["target_url"])))
+            query = query.filter(
+                Target.target_url.like("%%{!s}%%".format(criteria["target_url"]))
+            )
         if criteria.get("type", None):
             if isinstance(criteria.get("type"), list):
                 criteria["type"] = criteria["type"][0]
@@ -81,7 +91,9 @@ def worklist_generate_query(session, criteria=None, for_stats=False):
         if criteria.get("group", None):
             if isinstance(criteria.get("group"), list):
                 criteria["group"] = criteria["group"][0]
-            query = query.filter(Plugin.group.like("%%{!s}%%".format(criteria["group"])))
+            query = query.filter(
+                Plugin.group.like("%%{!s}%%".format(criteria["group"]))
+            )
         if criteria.get("name", None):
             if isinstance(criteria.get("name"), list):
                 criteria["name"] = criteria["name"][0]
@@ -102,7 +114,9 @@ def worklist_generate_query(session, criteria=None, for_stats=False):
                     criteria["limit"] = criteria["limit"][0]
                 query = query.limit(int(criteria["limit"]))
     except ValueError:
-        raise exceptions.InvalidParameterType("Invalid parameter type for transaction db")
+        raise exceptions.InvalidParameterType(
+            "Invalid parameter type for transaction db"
+        )
     return query
 
 
@@ -181,7 +195,9 @@ def get_work(session, work_id):
     """
     work = session.query(Work).get(work_id)
     if work is None:
-        raise exceptions.InvalidWorkReference("No work with id {!s}".format(str(work_id)))
+        raise exceptions.InvalidWorkReference(
+            "No work with id {!s}".format(str(work_id))
+        )
     return _derive_work_dict(work)
 
 
@@ -199,9 +215,18 @@ def group_sort_order(plugin_list):
     :return: Sorted list of plugin list
     :rtype: `list`
     """
-    priority = {"grep": -1, "bruteforce": 0, "active": 1, "semi_passive": 2, "passive": 3, "external": 4}
+    priority = {
+        "grep": -1,
+        "bruteforce": 0,
+        "active": 1,
+        "semi_passive": 2,
+        "passive": 3,
+        "external": 4,
+    }
     # reverse = True so that descending order is maintained
-    sorted_plugin_list = sorted(plugin_list, key=lambda k: priority[k["type"]], reverse=True)
+    sorted_plugin_list = sorted(
+        plugin_list, key=lambda k: priority[k["type"]], reverse=True
+    )
     return sorted_plugin_list
 
 
@@ -225,15 +250,29 @@ def add_work(session, target_list, plugin_list, force_overwrite=False):
     for target in target_list:
         for plugin in sorted_plugin_list:
             # Check if it already in worklist
-            if get_count(session.query(Work).filter_by(target_id=target["id"], plugin_key=plugin["key"])) == 0:
+            if (
+                get_count(
+                    session.query(Work).filter_by(
+                        target_id=target["id"], plugin_key=plugin["key"]
+                    )
+                )
+                == 0
+            ):
                 # Check if it is already run ;) before adding
-                is_run = plugin_already_run(session=session, plugin_info=plugin, target_id=target["id"])
-                if (force_overwrite is True) or (force_overwrite is False and is_run is False):
+                is_run = plugin_already_run(
+                    session=session, plugin_info=plugin, target_id=target["id"]
+                )
+                if (
+                    (force_overwrite is True)
+                    or (force_overwrite is False and is_run is False)
+                ):
                     # If force overwrite is true then plugin output has
                     # to be deleted first
                     if force_overwrite is True:
                         delete_all_poutput(
-                            session=session, filter_data={"plugin_key": plugin["key"]}, target_id=target["id"]
+                            session=session,
+                            filter_data={"plugin_key": plugin["key"]},
+                            target_id=target["id"],
                         )
                     work_model = Work(target_id=target["id"], plugin_key=plugin["key"])
                     session.add(work_model)
@@ -250,7 +289,9 @@ def remove_work(session, work_id):
     """
     work_obj = session.query(Work).get(work_id)
     if work_obj is None:
-        raise exceptions.InvalidWorkReference("No work with id {!s}".format(str(work_id)))
+        raise exceptions.InvalidWorkReference(
+            "No work with id {!s}".format(str(work_id))
+        )
     session.delete(work_obj)
     session.commit()
 
@@ -279,7 +320,9 @@ def patch_work(session, work_id, active=True):
     """
     work_obj = session.query(Work).get(work_id)
     if work_obj is None:
-        raise exceptions.InvalidWorkReference("No work with id {!s}".format(str(work_id)))
+        raise exceptions.InvalidWorkReference(
+            "No work with id {!s}".format(str(work_id))
+        )
     if active != work_obj.active:
         work_obj.active = active
         session.merge(work_obj)
@@ -354,6 +397,8 @@ def search_all_work(session, criteria):
     filtered_work_objs = worklist_generate_query(session, criteria).all()
     filtered_number = worklist_generate_query(session, criteria, for_stats=True).count()
     results = {
-        "records_total": total, "records_filtered": filtered_number, "data": _derive_work_dicts(filtered_work_objs)
+        "records_total": total,
+        "records_filtered": filtered_number,
+        "data": _derive_work_dicts(filtered_work_objs),
     }
     return results

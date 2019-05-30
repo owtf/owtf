@@ -8,11 +8,14 @@
     "precommit": "pretty-quick --staged",
     "test": "jest",
     "test:watch": "npm test -- --watch"
+<<<<<<< HEAD
   },
   "husky": {
     "hooks": {
       "pre-push": "CI=true npm test"
     }
+=======
+>>>>>>> aba0eb71fdcc1e2acaea9b5d46e13e88f44ef8d0
   },
   "repository": {
     "type": "git",

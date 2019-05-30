@@ -19,5 +19,7 @@ class OWTFCliNoWebUITest(OWTFCliTestCase):
             msg="The web UI should not have been run!",
         )
         self.assert_is_in_logs(
-            "MainProcess: caught signal SIGINT, exiting", name="MainProcess", msg="OWTF did not finish properly!"
+            "MainProcess: caught signal SIGINT, exiting",
+            name="MainProcess",
+            msg="OWTF did not finish properly!",
         )

@@ -21,7 +21,10 @@ def session_required(func):
 
     def wrapped_function(*args, **kwargs):
         # True if target_id doesnt exist
-        if kwargs.get("session_id", "None") == "None" or kwargs.get("session_id", True) is None:
+        if (
+            kwargs.get("session_id", "None") == "None"
+            or kwargs.get("session_id", True) is None
+        ):
             kwargs["session_id"] = Session.get_active(get_scoped_session())
         return func(*args, **kwargs)
 
@@ -53,7 +56,9 @@ def add_session(session, session_name):
         session.commit()
         Session.set_by_id(session, session_obj.id)
     else:
-        raise exceptions.DBIntegrityException("Session already exists with session name: {!s}".format(session_name))
+        raise exceptions.DBIntegrityException(
+            "Session already exists with session name: {!s}".format(session_name)
+        )
 
 
 @session_required
@@ -70,9 +75,13 @@ def add_target_to_session(session, target_id, session_id=None):
     session_obj = session.query(Session).get(session_id)
     target_obj = session.query(Target).get(target_id)
     if session_obj is None:
-        raise exceptions.InvalidSessionReference("No session with id: {!s}".format(session_id))
+        raise exceptions.InvalidSessionReference(
+            "No session with id: {!s}".format(session_id)
+        )
     if target_obj is None:
-        raise exceptions.InvalidTargetReference("No target with id: {!s}".format(target_id))
+        raise exceptions.InvalidTargetReference(
+            "No target with id: {!s}".format(target_id)
+        )
     if session_obj not in target_obj.sessions:
         session_obj.targets.append(target_obj)
     session.commit()
@@ -92,9 +101,13 @@ def remove_target_from_session(session, target_id, session_id=None):
     session_obj = session.query(Session).get(session_id)
     target_obj = session.query(Target).get(target_id)
     if session_obj is None:
-        raise exceptions.InvalidSessionReference("No session with id: {!s}".format(session_id))
+        raise exceptions.InvalidSessionReference(
+            "No session with id: {!s}".format(session_id)
+        )
     if target_obj is None:
-        raise exceptions.InvalidTargetReference("No target with id: {!s}".format(target_id))
+        raise exceptions.InvalidTargetReference(
+            "No target with id: {!s}".format(target_id)
+        )
     session_obj.targets.remove(target_obj)
     # Delete target whole together if present in this session alone
     if len(target_obj.sessions) == 0:
@@ -114,7 +127,9 @@ def delete_session(session, session_id):
     """
     session_obj = session.query(Session).get(session_id)
     if session_obj is None:
-        raise exceptions.InvalidSessionReference("No session with id: {!s}".format(session_id))
+        raise exceptions.InvalidSessionReference(
+            "No session with id: {!s}".format(session_id)
+        )
     for target in session_obj.targets:
         # Means attached to only this session obj
         if len(target.sessions) == 1:
