@@ -255,55 +255,57 @@ class TargetsPage extends React.Component {
       resetTargetState: this.resetTargetState,
     }
     return (
-      <Pane clearfix display="flex" flexDirection="row" flexWrap= "wrap" justifyContent="center" marginTop={-20} overflow="hidden">
-        <Pane id="add_targets" background="tint2" width={270} height={1000}>
-          <Pane margin={20} flexDirection="column">
-            <Heading size={800}>Add Targets</Heading>
-            <Textarea
-              name="newTargetUrls"
-              placeholder="Input targets seperated by new line"
-              marginTop={10}
-              onChange={this.handleTargetUrlsChange}
-              value={this.state.newTargetUrls}
-            />
-            <Button
-              appearance="primary"
-              marginTop={10}
-              disabled={this.state.disabled}
-              onClick={this.addNewTargets}
-            >
-              Add Targets
-            </Button>
-            <Plugins {...PluginProps} />
-          </Pane>
-        </Pane>
-        <Pane margin={40} flex={1}>
-          {this.renderAlert()}
-          <Pane display="flex" padding={16}>
-            <Pane flex={1} alignItems="center" display="flex">
-              <Heading size={900}>TARGETS</Heading>
-            </Pane>
-            <Pane marginRight={16}>
-              <Sessions />
-            </Pane>
-            <Pane>
-              <Button onClick={this.exportTargets}>
-                <Icon icon="import" marginRight={10} />Export
+      <Pane  margin={20}>
+        {this.renderAlert()}
+        <Pane clearfix display="flex" flexDirection="row" flexWrap= "wrap" justifyContent="center" overflow="hidden">
+          <Pane id="add_targets" width="40%" margin={20}>
+            <Pane flexDirection="column">
+              <Heading size={700} color="#0788DE">Add Targets</Heading>
+              <Textarea
+                name="newTargetUrls"
+                placeholder="Input targets seperated by new line"
+                marginTop={10}
+                onChange={this.handleTargetUrlsChange}
+                value={this.state.newTargetUrls}
+              />
+              <Button
+                appearance="primary"
+                marginTop={10}
+                disabled={this.state.disabled}
+                onClick={this.addNewTargets}
+              >
+                Add Targets
               </Button>
-              <Button appearance="primary" intent="success" onClick={this.handlePluginShow}>
-                <Icon icon="build" marginRight={10} />Run
-              </Button>
+              <Plugins {...PluginProps} />
             </Pane>
           </Pane>
-          {fetchError !== false ? <p>Something went wrong, please try again!</p> : null}
-          {fetchLoading !== false
-            ?<Pane display="flex" alignItems="center" justifyContent="center" height={400}>
-              <Spinner size={64}/>
+          <Pane margin={40} flex={1}>
+            <Pane display="flex" padding={16}>
+              <Pane flex={1} alignItems="center" display="flex">
+                <Heading size={800}>TARGETS</Heading>
               </Pane>
-            : null}
-          {targets !== false
-            ?<TargetsTable {...TargetsTableProps} />
-            : null}
+              <Pane marginRight={16}>
+                <Sessions />
+              </Pane>
+              <Pane>
+                <Button onClick={this.exportTargets}>
+                  <Icon icon="import" marginRight={10} />Export
+                </Button>
+                <Button appearance="primary" intent="success" onClick={this.handlePluginShow}>
+                  <Icon icon="build" marginRight={10} />Run
+                </Button>
+              </Pane>
+            </Pane>
+            {fetchError !== false ? <p>Something went wrong, please try again!</p> : null}
+            {fetchLoading !== false
+              ?<Pane display="flex" alignItems="center" justifyContent="center" height={400}>
+                <Spinner size={64}/>
+                </Pane>
+              : null}
+            {targets !== false
+              ?<TargetsTable {...TargetsTableProps} />
+              : null}
+          </Pane>
         </Pane>
       </Pane>
     );

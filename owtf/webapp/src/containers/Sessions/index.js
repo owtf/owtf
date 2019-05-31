@@ -92,6 +92,7 @@ export class Sessions extends React.Component {
           name="currentSession"
           placeholder={currentSession !== undefined ? currentSession.name : "No session selected!"}
           disabled
+          width={200}
         />
         <Button appearance="primary" onClick={this.handleShow}>Session</Button>
         <Dialog

@@ -336,7 +336,16 @@ class TargetsTable extends React.Component {
   renderEmptyTableBody = (items) => {
     if(items.length == 0){
       return (
-        <Strong size={500}>No targets to show!!!</Strong>
+        <Pane 
+          alignItems="center"
+          display="flex"
+          justifyContent="center"
+          width="100%"
+          height={40}
+          background="tint1"
+        >
+          <Strong size={500}>No targets to show!!!</Strong>
+        </Pane>
       )
     }
   }
@@ -357,7 +366,7 @@ class TargetsTable extends React.Component {
           {this.renderSeverityHeaderCell()}
           <Table.TextHeaderCell>Actions</Table.TextHeaderCell>
         </Table.Head>
-        <Table.VirtualBody height={700}>
+        <Table.VirtualBody height={500}>
           <Pane>
             {this.renderEmptyTableBody(items)}
             {items.map(item => this.renderRow({ target: item }))}
