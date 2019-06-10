@@ -4,12 +4,12 @@
 
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { LOAD_PLUGINS, POST_TO_WORKLIST } from './constants';
-import { loadPlugins, pluginsLoaded, pluginsLoadingError, targetPosted, targetPostingError } from './actions';
+import { pluginsLoaded, pluginsLoadingError, targetPosted, targetPostingError } from './actions';
 import { loadTargets } from '../TargetsPage/actions';
 import Request from 'utils/request';
 import { API_BASE_URL } from 'utils/constants';
 
-/** 
+/**
  * Fetch Plugin request/response handler
  */
 export function* getPlugins() {
@@ -40,7 +40,7 @@ export function* postToWorklist(action) {
       yield put(targetPosted());
       yield put(loadTargets());
     } catch (error) {
-      yield put(targetPostingError(error));  
+      yield put(targetPostingError(error));
     }
   }
 
