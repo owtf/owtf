@@ -20,7 +20,7 @@ import WorkersPage from "containers/WorkersPage/Loadable";
 import WorklistPage from "containers/WorklistPage/Loadable";
 import NotFoundPage from "components/NotFoundPage";
 import TransactionsPage from "containers/Transactions/Loadable";
-import Report from "containers/Report1/Loadable";
+import Report from "containers/Report/Loadable";
 
 export default function App() {
   const navbar = {};

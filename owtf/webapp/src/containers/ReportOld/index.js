@@ -2,7 +2,7 @@
  * Main target report page.
  */
 import React from "react";
-import { Pane } from "evergreen-ui";
+import { Grid, Row, Col } from "react-bootstrap";
 import Header from "./Header";
 import SideFilters from "./SideFilters";
 import Toolbar from "./Toolbar";
@@ -97,36 +97,32 @@ class Report extends React.Component {
     const SideFiltersProps = {
       selectedGroup: this.state.selectedGroup,
       selectedType: this.state.selectedType,
-      updateFilter: this.updateFilter,
-      clearFilters: this.clearFilters
+      updateFilter: this.updateFilter
     };
     const ToolbarProps = {
       selectedRank: this.state.selectedRank,
-      updateFilter: this.updateFilter
+      updateFilter: this.updateFilter,
+      clearFilters: this.clearFilters
     };
     const AccordiansProps = {
       targetData: this.props.target
     };
     return (
-      <Pane display="flex" flexDirection="row" marginTop={-20}>
-        <Pane
-          width={220}
-          background="tint2"
-          padding={20}
-          flex="none"
-          min-height={900}
-        >
-          <SideFilters {...SideFiltersProps} />
-        </Pane>
-        <Pane flex={1} padding={30}>
-          {this.props.target !== false ? <Header {...HeaderProps} /> : null}
-          <Toolbar {...ToolbarProps} />
-          <br />
-          {this.props.target !== false ? (
-            <Accordians {...AccordiansProps} {...this.state} />
-          ) : null}
-        </Pane>
-      </Pane>
+      <Grid fluid={true}>
+        {this.props.target !== false ? <Header {...HeaderProps} /> : null}
+        <Row>
+          <Col xs={2} sm={2} md={2} lg={2}>
+            <SideFilters {...SideFiltersProps} />
+          </Col>
+          <Col xs={10} sm={10} md={10} lg={10}>
+            <Toolbar {...ToolbarProps} />
+            <br />
+            {this.props.target !== false ? (
+              <Accordians {...AccordiansProps} {...this.state} />
+            ) : null}
+          </Col>
+        </Row>
+      </Grid>
     );
   }
 }

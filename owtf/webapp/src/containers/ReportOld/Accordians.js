@@ -22,7 +22,8 @@ import { makeSelectPostToWorklistError } from "../Plugins/selectors";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
-import { Paragraph, Pane, Spinner } from "evergreen-ui";
+import "../../style.scss";
+import { PanelGroup, Panel } from "react-bootstrap";
 
 class Accordians extends React.Component {
   constructor(props, context) {
@@ -51,37 +52,16 @@ class Accordians extends React.Component {
       deleteError: this.props.deleteError
     };
     if (loading) {
-      return (
-        <Pane
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          height={400}
-        >
-          <Spinner />
-        </Pane>
-      );
+      return <div className="spinner" />;
     }
 
     if (error !== false) {
-      return (
-        <Pane
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          height={400}
-        >
-          <Paragraph size={500}>
-            {" "}
-            Something went wrong, please try again!
-          </Paragraph>
-        </Pane>
-      );
+      return <p>Something went wrong, please try again!</p>;
     }
 
     if (pluginOutput !== false) {
       return (
-        <Pane id="pluginOutputs">
+        <PanelGroup accordion id="pluginOutputs">
           {Object.keys(pluginOutput).map(function(key) {
             return (
               <Accordian
@@ -92,7 +72,7 @@ class Accordians extends React.Component {
               />
             );
           })}
-        </Pane>
+        </PanelGroup>
       );
     }
   }

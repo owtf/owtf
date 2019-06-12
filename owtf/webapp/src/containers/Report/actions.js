@@ -1,104 +1,150 @@
 import {
-    LOAD_TARGET,
-    LOAD_TARGET_SUCCESS,
-    LOAD_TARGET_ERROR,
-    LOAD_PLUGIN_OUTPUT,
-    LOAD_PLUGIN_OUTPUT_SUCCESS,
-    LOAD_PLUGIN_OUTPUT_ERROR,
-    CHANGE_USER_RANK,
-    CHANGE_USER_RANK_SUCCESS,
-    CHANGE_USER_RANK_ERROR,
-    DELETE_PLUGIN_OUTPUT,
-    DELETE_PLUGIN_OUTPUT_SUCCESS,
-    DELETE_PLUGIN_OUTPUT_ERROR,
-    CHANGE_USER_NOTES,
-    CHANGE_USER_NOTES_SUCCESS,
-    CHANGE_USER_NOTES_ERROR,
-  } from './constants';
-  
-  /**
-   * Load target, this action starts the request saga GET
-   *
-   * @param {number} target_id Target Id for which target is to be loaded
-   * 
-   * @return {object} An action object with a type of LOAD_TARGET
-   */
-  export function loadTarget(target_id) {
-    return {
-      type: LOAD_TARGET,
-      target_id,
-    };
-  }
-  
-  /**
-   * Dispatched when the target is loaded by the request saga
-   *
-   * @param  {array} target The target data
-   *
-   * @return {object} An action object with a type of LOAD_TARGET_SUCCESS passing the target
-   */
-  export function targetLoaded(target) {
-    return {
-      type: LOAD_TARGET_SUCCESS,
-      target,
-    };
-  }
-  
-  /**
-   * Dispatched when loading the target fails
-   *
-   * @param  {object} error The error
-   *
-   * @return {object} An action object with a type of LOAD_TARGET_ERROR passing the error
-   */
-  export function targetLoadingError(error) {
-    return {
-      type: LOAD_TARGET_ERROR,
-      error,
-    };
-  }
+  LOAD_TARGET,
+  LOAD_TARGET_SUCCESS,
+  LOAD_TARGET_ERROR,
+  LOAD_PLUGIN_OUTPUT_NAMES,
+  LOAD_PLUGIN_OUTPUT_NAMES_SUCCESS,
+  LOAD_PLUGIN_OUTPUT_NAMES_ERROR,
+  LOAD_PLUGIN_OUTPUT,
+  LOAD_PLUGIN_OUTPUT_SUCCESS,
+  LOAD_PLUGIN_OUTPUT_ERROR,
+  CHANGE_USER_RANK,
+  CHANGE_USER_RANK_SUCCESS,
+  CHANGE_USER_RANK_ERROR,
+  DELETE_PLUGIN_OUTPUT,
+  DELETE_PLUGIN_OUTPUT_SUCCESS,
+  DELETE_PLUGIN_OUTPUT_ERROR,
+  CHANGE_USER_NOTES,
+  CHANGE_USER_NOTES_SUCCESS,
+  CHANGE_USER_NOTES_ERROR
+} from "./constants";
 
-  /**
-   * Load the plugin output for the selected target, this action starts the request saga GET
-   * 
-   * @param {number} target_id Target Id for which plugin output is to be loaded
-   *
-   * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT
-   */
-  export function loadPluginOutput(target_id) {
-    return {
-      type: LOAD_PLUGIN_OUTPUT,
-      target_id,
-    };
-  }
-  
-  /**
-   * Dispatched when the plugins output are loaded by the request saga
-   *
-   * @param  {array} pluginOutputData The plugin output data
-   *
-   * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT_SUCCESS passing the plugins
-   */
-  export function pluginOutputLoaded(pluginOutputData) {
-    return {
-      type: LOAD_PLUGIN_OUTPUT_SUCCESS,
-      pluginOutputData,
-    };
-  }
-  
-  /**
-   * Dispatched when loading the plugin output fails
-   *
-   * @param  {object} error The error
-   *
-   * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT_ERROR passing the error
-   */
-  export function pluginOutputLoadingError(error) {
-    return {
-      type: LOAD_PLUGIN_OUTPUT_ERROR,
-      error,
-    };
-  }
+/**
+ * Load target, this action starts the request saga GET
+ *
+ * @param {number} target_id Target Id for which target is to be loaded
+ *
+ * @return {object} An action object with a type of LOAD_TARGET
+ */
+export function loadTarget(target_id) {
+  return {
+    type: LOAD_TARGET,
+    target_id
+  };
+}
+
+/**
+ * Dispatched when the target is loaded by the request saga
+ *
+ * @param  {array} target The target data
+ *
+ * @return {object} An action object with a type of LOAD_TARGET_SUCCESS passing the target
+ */
+export function targetLoaded(target) {
+  return {
+    type: LOAD_TARGET_SUCCESS,
+    target
+  };
+}
+
+/**
+ * Dispatched when loading the target fails
+ *
+ * @param  {object} error The error
+ *
+ * @return {object} An action object with a type of LOAD_TARGET_ERROR passing the error
+ */
+export function targetLoadingError(error) {
+  return {
+    type: LOAD_TARGET_ERROR,
+    error
+  };
+}
+
+/**
+ * Load the plugin output for the selected target, this action starts the request saga GET
+ *
+ * @param {number} target_id Target Id for which plugin output is to be loaded
+ *
+ * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT
+ */
+export function loadPluginOutputNames(target_id) {
+  return {
+    type: LOAD_PLUGIN_OUTPUT_NAMES,
+    target_id
+  };
+}
+
+/**
+ * Dispatched when the plugins output are loaded by the request saga
+ *
+ * @param  {array} pluginOutputData The plugin output data
+ *
+ * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT_SUCCESS passing the plugins
+ */
+export function pluginOutputNamesLoaded(pluginOutputData) {
+  return {
+    type: LOAD_PLUGIN_OUTPUT_NAMES_SUCCESS,
+    pluginOutputData
+  };
+}
+
+/**
+ * Dispatched when loading the plugin output fails
+ *
+ * @param  {object} error The error
+ *
+ * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT_ERROR passing the error
+ */
+export function pluginOutputNamesLoadingError(error) {
+  return {
+    type: LOAD_PLUGIN_OUTPUT_NAMES_ERROR,
+    error
+  };
+}
+
+/**
+ * Load the plugin output for the selected target, this action starts the request saga GET
+ *
+ * @param {number} target_id Target Id for which plugin output is to be loaded
+ *
+ * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT
+ */
+export function loadPluginOutput(target_id, plugin_code) {
+  return {
+    type: LOAD_PLUGIN_OUTPUT,
+    target_id,
+    plugin_code
+  };
+}
+
+/**
+ * Dispatched when the plugins output are loaded by the request saga
+ *
+ * @param  {array} pluginOutputData The plugin output data
+ *
+ * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT_SUCCESS passing the plugins
+ */
+export function pluginOutputLoaded(pluginOutputData) {
+  return {
+    type: LOAD_PLUGIN_OUTPUT_SUCCESS,
+    pluginOutputData
+  };
+}
+
+/**
+ * Dispatched when loading the plugin output fails
+ *
+ * @param  {object} error The error
+ *
+ * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT_ERROR passing the error
+ */
+export function pluginOutputLoadingError(error) {
+  return {
+    type: LOAD_PLUGIN_OUTPUT_ERROR,
+    error
+  };
+}
 
 /**
  * Changes the user rank, this action starts the request saga PATCH.
@@ -110,7 +156,7 @@ import {
 export function changeUserRank(plugin_data) {
   return {
     type: CHANGE_USER_RANK,
-    plugin_data,
+    plugin_data
   };
 }
 
@@ -121,7 +167,7 @@ export function changeUserRank(plugin_data) {
  */
 export function userRankChanged() {
   return {
-    type: CHANGE_USER_RANK_SUCCESS,
+    type: CHANGE_USER_RANK_SUCCESS
   };
 }
 
@@ -135,7 +181,7 @@ export function userRankChanged() {
 export function userRankChangingError(error) {
   return {
     type: CHANGE_USER_RANK_ERROR,
-    error,
+    error
   };
 }
 
@@ -149,7 +195,7 @@ export function userRankChangingError(error) {
 export function deletePluginOutput(plugin_data) {
   return {
     type: DELETE_PLUGIN_OUTPUT,
-    plugin_data,
+    plugin_data
   };
 }
 
@@ -160,7 +206,7 @@ export function deletePluginOutput(plugin_data) {
  */
 export function pluginOutputDeleted() {
   return {
-    type: DELETE_PLUGIN_OUTPUT_SUCCESS,
+    type: DELETE_PLUGIN_OUTPUT_SUCCESS
   };
 }
 
@@ -174,7 +220,7 @@ export function pluginOutputDeleted() {
 export function pluginOutputDeletingError(error) {
   return {
     type: DELETE_PLUGIN_OUTPUT_ERROR,
-    error,
+    error
   };
 }
 
@@ -188,7 +234,7 @@ export function pluginOutputDeletingError(error) {
 export function changeUserNotes(plugin_data) {
   return {
     type: CHANGE_USER_NOTES,
-    plugin_data,
+    plugin_data
   };
 }
 
@@ -199,7 +245,7 @@ export function changeUserNotes(plugin_data) {
  */
 export function userNotesChanged() {
   return {
-    type: CHANGE_USER_NOTES_SUCCESS,
+    type: CHANGE_USER_NOTES_SUCCESS
   };
 }
 
@@ -213,6 +259,6 @@ export function userNotesChanged() {
 export function userNotesChangingError(error) {
   return {
     type: CHANGE_USER_NOTES_ERROR,
-    error,
+    error
   };
 }

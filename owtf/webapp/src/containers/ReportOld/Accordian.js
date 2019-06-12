@@ -12,10 +12,10 @@ import {
   Row,
   Col,
   ButtonGroup,
+  Button,
   ControlLabel,
   Alert
 } from "react-bootstrap";
-import { Pane, Heading, Button, Small, Badge } from "evergreen-ui";
 import { Notification } from "react-notification";
 import "./style.scss";
 import Collapse from "./Collapse";
@@ -35,8 +35,6 @@ export default class Accordian extends React.Component {
     this.handleSnackBarRequestClose = this.handleSnackBarRequestClose.bind(
       this
     );
-    this.handleSideSheetShow = this.handleSideSheetShow.bind(this);
-    this.handleSideSheetClose = this.handleSideSheetClose.bind(this);
 
     this.state = {
       pactive: {}, // Tells which plugin_type is active on Accordian
@@ -45,17 +43,8 @@ export default class Accordian extends React.Component {
       pluginData: [],
       isClicked: false, // Contents is alredy loaded or not.(To Prevant unneccesaary request)
       snackbarOpen: false,
-      alertMessage: "",
-      sideSheetOpen: true
+      alertMessage: ""
     };
-  }
-
-  handleSideSheetClose() {
-    this.setState({ sideSheetOpen: false });
-  }
-
-  handleSideSheetShow() {
-    this.setState({ sideSheetOpen: true });
   }
 
   /**
@@ -245,75 +234,99 @@ export default class Accordian extends React.Component {
     switch (testCaseMax) {
       case 0:
         return "success";
+        break;
       case 1:
         return "success";
+        break;
       case 2:
-        return "warning";
+        return "info";
+        break;
       case 3:
         return "warning";
+        break;
       case 4:
         return "danger";
+        break;
       case 5:
         return "danger";
+        break;
       default:
-        return "none";
+        return "default";
     }
   }
 
   renderSeverity(testCaseMax) {
     if (testCaseMax == 0)
       return (
-        <Badge
-          color="neutral"
-          marginRight={8}
-          width={80}
-          height={40}
-          padding={12}
-        >
-          Passing
-        </Badge>
+        <i>
+          <small>
+            <ControlLabel>
+              <Alert bsStyle="success" className="rank-alert">
+                Passing
+              </Alert>
+            </ControlLabel>
+          </small>
+        </i>
       );
     else if (testCaseMax == 1)
       return (
-        <Badge color="teal" marginRight={8} width={80} height={40} padding={12}>
-          Info
-        </Badge>
+        <i>
+          <small>
+            <ControlLabel>
+              <Alert bsStyle="success" className="rank-alert">
+                Info
+              </Alert>
+            </ControlLabel>
+          </small>
+        </i>
       );
     else if (testCaseMax == 2)
       return (
-        <Badge color="blue" marginRight={8} width={80} height={40} padding={12}>
-          Low
-        </Badge>
+        <i>
+          <small>
+            <ControlLabel>
+              <Alert bsStyle="info" className="rank-alert">
+                Low
+              </Alert>
+            </ControlLabel>
+          </small>
+        </i>
       );
     else if (testCaseMax == 3)
       return (
-        <Badge
-          color="orange"
-          marginRight={8}
-          width={80}
-          height={40}
-          padding={12}
-        >
-          Medium
-        </Badge>
+        <i>
+          <small>
+            <ControlLabel>
+              <Alert bsStyle="warning" className="rank-alert">
+                Medium
+              </Alert>
+            </ControlLabel>
+          </small>
+        </i>
       );
     else if (testCaseMax == 4)
       return (
-        <Badge color="red" marginRight={8} width={80} height={40} padding={12}>
-          High
-        </Badge>
+        <i>
+          <small>
+            <ControlLabel>
+              <Alert bsStyle="danger" className="rank-alert">
+                High
+              </Alert>
+            </ControlLabel>
+          </small>
+        </i>
       );
     else if (testCaseMax == 5)
       return (
-        <Badge
-          color="purple"
-          marginRight={8}
-          width={80}
-          height={40}
-          padding={12}
-        >
-          Critical
-        </Badge>
+        <i>
+          <small>
+            <ControlLabel>
+              <Alert bsStyle="danger" className="rank-alert">
+                Critical
+              </Alert>
+            </ControlLabel>
+          </small>
+        </i>
       );
     return null;
   }
@@ -367,89 +380,75 @@ export default class Accordian extends React.Component {
       selectedOwtfRank: selectedOwtfRank,
       patchUserRank: this.patchUserRank,
       deletePluginOutput: this.deletePluginOutput,
-      postToWorklist: this.postToWorklist,
-      sideSheetOpen: this.state.sideSheetOpen,
-      handleSideSheetClose: this.handleSideSheetClose
+      postToWorklist: this.postToWorklist
     };
     if (count > 0) {
       return (
-        <Pane key={code}>
-          <Pane
-            elevation={1}
-            display="flex"
-            flexDirection="row"
-            marginBottom={10}
-            height={100}
-            alignItems="center"
-            cursor="pointer"
-            onClick={this.handleSideSheetShow}
-          >
-            <Pane width={100}>
-              {pluginData.map((obj, index) => {
-                if (
-                  (selectedType.length === 0 ||
-                    selectedType.indexOf(obj["plugin_type"]) !== -1) &&
-                  (selectedGroup.length === 0 ||
-                    selectedGroup.indexOf(obj["plugin_group"]) !== -1) &&
-                  (selectedRank.length === 0 ||
-                    selectedRank.indexOf(obj["user_rank"]) !== -1) &&
-                  (selectedOwtfRank.length === 0 ||
-                    selectedOwtfRank.indexOf(obj["owtf_rank"]) !== -1) &&
-                  (selectedStatus.length === 0 ||
-                    selectedStatus.indexOf(obj["status"]) !== -1)
-                ) {
-                  return (
-                    <Button
-                      height={20}
-                      appearance="primary"
-                      intent={style}
-                      key={index}
-                    >
-                      {obj["plugin_type"]
-                        .split("_")
-                        .join(" ")
-                        .charAt(0)
-                        .toUpperCase() +
-                        obj["plugin_type"]
-                          .split("_")
-                          .join(" ")
-                          .slice(1)}
-                    </Button>
-                  );
-                }
-              })}
-            </Pane>
-            <Pane
-              flex={1}
-              display="flex"
-              flexDirection="row"
-              alignItems="center"
-            >
-              <Heading size={700}>
-                {(() => {
-                  if (
-                    mapping === "" ||
-                    details["mappings"][mapping] === undefined
-                  ) {
-                    return details["code"] + " " + details["descrip"];
-                  } else {
-                    return (
-                      details["mappings"][mapping][0] +
-                      " " +
-                      details["mappings"][mapping][1]
-                    );
-                  }
-                })()}
-              </Heading>
-              <Small marginLeft={5} marginTop={5}>
-                {details["hint"].split("_").join(" ")}
-              </Small>
-            </Pane>
-            <Pane marginRight={20}>
-              {/* {this.renderSeverity(testCaseMax)} */}
-            </Pane>
-          </Pane>
-          {/* <Collapse {...CollapseProps} /> */}
+        <Panel bsStyle={style} eventKey={code} key={code}>
+          <Panel.Heading className="panel-heading">
+            <Row>
+              <Col md={2}>
+                <ButtonGroup role="group">
+                  {pluginData.map(function(obj, index) {
+                    if (
+                      (selectedType.length === 0 ||
+                        selectedType.indexOf(obj["plugin_type"]) !== -1) &&
+                      (selectedGroup.length === 0 ||
+                        selectedGroup.indexOf(obj["plugin_group"]) !== -1) &&
+                      (selectedRank.length === 0 ||
+                        selectedRank.indexOf(obj["user_rank"]) !== -1) &&
+                      (selectedOwtfRank.length === 0 ||
+                        selectedOwtfRank.indexOf(obj["owtf_rank"]) !== -1) &&
+                      (selectedStatus.length === 0 ||
+                        selectedStatus.indexOf(obj["status"]) !== -1)
+                    ) {
+                      return (
+                        <Button
+                          key={index}
+                          bsStyle={style}
+                          bsSize="xsmall"
+                          className="panel-button"
+                        >
+                          {obj["plugin_type"]
+                            .split("_")
+                            .join(" ")
+                            .charAt(0)
+                            .toUpperCase() +
+                            obj["plugin_type"]
+                              .split("_")
+                              .join(" ")
+                              .slice(1)}
+                        </Button>
+                      );
+                    }
+                  })}
+                </ButtonGroup>
+              </Col>
+              <Col md={8} className="panel-title">
+                <Panel.Title toggle componentClass="h4">
+                  {(() => {
+                    if (
+                      mapping === "" ||
+                      details["mappings"][mapping] === undefined
+                    ) {
+                      return details["code"] + " " + details["descrip"];
+                    } else {
+                      return (
+                        details["mappings"][mapping][0] +
+                        " " +
+                        details["mappings"][mapping][1]
+                      );
+                    }
+                  })()}
+                  <small>{" " + details["hint"].split("_").join(" ")}</small>
+                </Panel.Title>
+              </Col>
+              <Col md={2} className="panel-label">
+                <h4>{this.renderSeverity(testCaseMax)}</h4>
+              </Col>
+            </Row>
+          </Panel.Heading>
+          <Collapse {...CollapseProps} />
           <Notification
             isActive={this.state.snackbarOpen}
             message={this.state.alertMessage}
@@ -458,7 +457,7 @@ export default class Accordian extends React.Component {
             onDismiss={this.handleSnackBarRequestClose}
             onClick={this.handleSnackBarRequestClose}
           />
-        </Pane>
+        </Panel>
       );
     } else {
       return <div />;
