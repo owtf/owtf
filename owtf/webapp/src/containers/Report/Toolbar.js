@@ -1,8 +1,12 @@
-/*
- * Toolbar component
+/**
+ * React Component for Toolbar. It is child component used by Report Component.
+ * Uses props or say Report function updateFilter to update the filter arrays selectedRank etc.
+ * Aim here to prevant Toolbar's re-rendering on props/state updates other than selectedRank array.
  */
+
 import React from "react";
 import { Pane, Tab, Tablist, Text } from "evergreen-ui";
+import PropTypes from "prop-types";
 
 export default class Toolbar extends React.Component {
   constructor(props, context) {
@@ -11,6 +15,10 @@ export default class Toolbar extends React.Component {
     this.handleSeveritySelect = this.handleSeveritySelect.bind(this);
   }
 
+  /**
+   * Function handles the plugin rank filter
+   * @param {string} selectedKey Rank filter key
+   */
   handleSeveritySelect(selectedKey) {
     this.props.updateFilter("user_rank", selectedKey);
   }
@@ -46,3 +54,8 @@ export default class Toolbar extends React.Component {
     );
   }
 }
+
+Toolbar.propTypes = {
+  selectedRank: PropTypes.array,
+  updateFilter: PropTypes.func
+};

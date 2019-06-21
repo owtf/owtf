@@ -36,6 +36,11 @@ const makeSelectUserNotes = createSelector(
   reportState => reportState.get("changeUserNotes")
 );
 
+const makeSelectTargetExport = createSelector(
+  selectReport,
+  reportState => reportState.get("loadTargetExport")
+);
+
 const makeSelectTargetLoading = createSelector(
   makeSelectTarget,
   fetchState => fetchState.get("loading")
@@ -111,6 +116,21 @@ const makeSelectChangeNotesError = createSelector(
   changeState => changeState.get("error")
 );
 
+const makeSelectTargetExportLoading = createSelector(
+  makeSelectTargetExport,
+  fetchState => fetchState.get("loading")
+);
+
+const makeSelectTargetExportError = createSelector(
+  makeSelectTargetExport,
+  fetchState => fetchState.get("error")
+);
+
+const makeSelectFetchTargetExport = createSelector(
+  makeSelectTargetExport,
+  fetchState => fetchState.get("exportData")
+);
+
 export {
   makeSelectTargetLoading,
   makeSelectTargetError,
@@ -126,5 +146,8 @@ export {
   makeSelectDeletePluginError,
   makeSelectDeletePluginLoading,
   makeSelectChangeNotesError,
-  makeSelectChangeNotesLoading
+  makeSelectChangeNotesLoading,
+  makeSelectTargetExportLoading,
+  makeSelectTargetExportError,
+  makeSelectFetchTargetExport
 };

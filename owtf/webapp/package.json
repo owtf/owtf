@@ -16,12 +16,16 @@
   "author": "Viyat Bhalodia <viyat.bhalodia@owasp.org>",
   "license": "BSD 3-Clause",
   "dependencies": {
+    "@ckeditor/ckeditor5-build-classic": "^12.2.0",
+    "@ckeditor/ckeditor5-react": "^1.1.3",
     "chalk": "^2.3.2",
     "classnames": "^2.2.5",
+    "docxtemplater": "^3.11.3",
     "evergreen-ui": "^4.11.3",
     "history": "^4.7.2",
     "immutability-helper": "^3.0.0",
     "immutable": "^3.8.2",
+    "jszip": "^3.2.1",
     "prop-types": "^15.6.1",
     "react": "^16.2.0",
     "react-bootstrap": "^0.32.1",
@@ -42,6 +46,7 @@
     "redux-immutable": "^4.0.0",
     "redux-saga": "^0.16.0",
     "reselect": "^3.0.1",
+    "save-as": "^0.1.8",
     "whatwg-fetch": "^2.0.3"
   },
   "devDependencies": {

@@ -1,6 +1,13 @@
-/*
- * WorkersPage
+/**
+ * React Component for group of Accordian. It is child component used by Report Component.
+ * Uses REST API - /api/targets/<target_id>/poutput/names/
+ * JSON output will contain a JS object having key as Plugin Code and value is another JS object having data and details keys.
+ * data gives all details about that plugin result other than output.
+ * details gives information of plugin like desciption, url etc.
+ * Idea behind using the /api/targets/<target_id>/poutput/names/ thing to load only the things that are visible to user.
+ * Output is not visible to user which can be a huge data to request initially. Hence, this optimises the Report a lot.
  */
+
 import React from "react";
 import Accordian from "./Accordian";
 import { loadPluginOutputNames } from "./actions";
@@ -19,6 +26,10 @@ class Accordians extends React.Component {
     super(props, context);
   }
 
+  /**
+   * Lifecycle method gets invoked after accordians component gets mounted.
+   * Calls the onFetchPluginOutputNames action to render the list of all plugins.
+   */
   componentDidMount() {
     this.props.onFetchPluginOutputNames(this.props.targetData.id);
   }
@@ -82,6 +93,7 @@ class Accordians extends React.Component {
 }
 
 Accordians.propTypes = {
+  targetData: PropTypes.object,
   loadingNames: PropTypes.bool,
   errorNames: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   pluginOutputNames: PropTypes.oneOfType([

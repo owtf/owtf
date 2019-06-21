@@ -3,7 +3,8 @@
  */
 
 import React from "react";
-import { ButtonGroup, Button, Glyphicon } from "react-bootstrap";
+import { Pane, IconButton } from "evergreen-ui";
+import PropTypes from "prop-types";
 
 export default class RankButtons extends React.Component {
   render() {
@@ -15,98 +16,115 @@ export default class RankButtons extends React.Component {
     const code = obj["plugin_code"];
     if (user_rank in [0, 1, 2, 3, 4, 5]) {
       return (
-        <ButtonGroup>
-          <Button
-            bsStyle={owtf_rank === 0 ? "success" : "default"}
-            active={user_rank === 0 ? true : false}
+        <Pane display="flex" flexDirection="row">
+          <IconButton
+            appearance={user_rank === 0 ? "primary" : "default"}
+            intent={user_rank === 0 ? "success" : "none"}
+            isActive={user_rank === 0 ? true : false}
+            icon="thumbs-up"
             onClick={() => patchUserRank(group, type, code, 0)}
-          >
-            <Glyphicon glyph="thumbs-up" />
-          </Button>
-          <Button
-            bsStyle={user_rank === 1 ? "success" : "default"}
-            active={user_rank === 1 ? true : false}
+            borderRadius={0}
+          />
+          <IconButton
+            appearance={user_rank === 1 ? "primary" : "default"}
+            intent={user_rank === 1 ? "success" : "none"}
+            isActive={user_rank === 1 ? true : false}
+            icon="info-sign"
             onClick={() => patchUserRank(group, type, code, 1)}
-          >
-            <Glyphicon glyph="info-sign" />
-          </Button>
-          <Button
-            bsStyle={user_rank === 2 ? "info" : "default"}
-            active={user_rank === 2 ? true : false}
+            borderRadius={0}
+          />
+          <IconButton
+            appearance={user_rank === 2 ? "primary" : "default"}
+            intent={user_rank === 2 ? "warning" : "none"}
+            isActive={user_rank === 2 ? true : false}
+            icon="warning-sign"
             onClick={() => patchUserRank(group, type, code, 2)}
-          >
-            <Glyphicon glyph="exclamation-sign" />
-          </Button>
-          <Button
-            bsStyle={user_rank === 3 ? "warning" : "default"}
-            active={user_rank === 3 ? true : false}
+            borderRadius={0}
+          />
+          <IconButton
+            appearance={user_rank === 3 ? "primary" : "default"}
+            intent={user_rank === 3 ? "warning" : "none"}
+            isActive={user_rank === 3 ? true : false}
+            icon="ban-circle"
             onClick={() => patchUserRank(group, type, code, 3)}
-          >
-            <Glyphicon glyph="thumbs-up" />
-          </Button>
-          <Button
-            bsStyle={user_rank === 4 ? "danger" : "default"}
-            active={user_rank === 4 ? true : false}
+            borderRadius={0}
+          />
+          <IconButton
+            appearance={user_rank === 4 ? "primary" : "default"}
+            intent={user_rank === 4 ? "danger" : "none"}
+            isActive={user_rank === 4 ? true : false}
+            icon="flame"
             onClick={() => patchUserRank(group, type, code, 4)}
-          >
-            <Glyphicon glyph="bell" />
-          </Button>
-          <Button
-            bsStyle={user_rank === 5 ? "danger" : "default"}
-            active={user_rank === 5 ? true : false}
+            borderRadius={0}
+          />
+          <IconButton
+            appearance={user_rank === 5 ? "primary" : "default"}
+            intent={user_rank === 5 ? "danger" : "none"}
+            isActive={user_rank === 5 ? true : false}
+            icon="error"
             onClick={() => patchUserRank(group, type, code, 5)}
-          >
-            <Glyphicon glyph="warning-sign" />
-          </Button>
-        </ButtonGroup>
+            borderRadius={0}
+          />
+        </Pane>
       );
     } else {
       return (
-        <ButtonGroup>
-          <Button
-            bsStyle={owtf_rank === 0 ? "success" : "default"}
-            active={user_rank === 0 ? true : false}
+        <Pane display="flex" flexDirection="row">
+          <IconButton
+            appearance={owtf_rank === 0 ? "primary" : "default"}
+            intent={owtf_rank === 0 ? "success" : "none"}
+            isActive={owtf_rank === 0 ? true : false}
+            icon="thumbs-up"
             onClick={() => patchUserRank(group, type, code, 0)}
-          >
-            <Glyphicon glyph="thumbs-up" />
-          </Button>
-          <Button
-            bsStyle={owtf_rank === 1 ? "success" : "default"}
-            active={owtf_rank === 1 ? true : false}
+            borderRadius={0}
+          />
+          <IconButton
+            appearance={owtf_rank === 1 ? "primary" : "default"}
+            intent={owtf_rank === 1 ? "success" : "none"}
+            isActive={owtf_rank === 1 ? true : false}
+            icon="info-sign"
             onClick={() => patchUserRank(group, type, code, 1)}
-          >
-            <Glyphicon glyph="info-sign" />
-          </Button>
-          <Button
-            bsStyle={owtf_rank === 2 ? "info" : "default"}
-            active={owtf_rank === 2 ? true : false}
+            borderRadius={0}
+          />
+          <IconButton
+            appearance={owtf_rank === 2 ? "primary" : "default"}
+            intent={owtf_rank === 2 ? "warning" : "none"}
+            isActive={owtf_rank === 2 ? true : false}
+            icon="warning-sign"
             onClick={() => patchUserRank(group, type, code, 2)}
-          >
-            <Glyphicon glyph="exclamation-sign" />
-          </Button>
-          <Button
-            bsStyle={owtf_rank === 3 ? "warning" : "default"}
-            active={owtf_rank === 3 ? true : false}
+            borderRadius={0}
+          />
+          <IconButton
+            appearance={owtf_rank === 3 ? "primary" : "default"}
+            intent={owtf_rank === 3 ? "warning" : "none"}
+            isActive={owtf_rank === 3 ? true : false}
+            icon="ban-circle"
             onClick={() => patchUserRank(group, type, code, 3)}
-          >
-            <Glyphicon glyph="thumbs-up" />
-          </Button>
-          <Button
-            bsStyle={owtf_rank === 4 ? "danger" : "default"}
-            active={owtf_rank === 4 ? true : false}
+            borderRadius={0}
+          />
+          <IconButton
+            appearance={owtf_rank === 4 ? "primary" : "default"}
+            intent={owtf_rank === 4 ? "danger" : "none"}
+            isActive={owtf_rank === 4 ? true : false}
+            icon="flame"
             onClick={() => patchUserRank(group, type, code, 4)}
-          >
-            <Glyphicon glyph="bell" />
-          </Button>
-          <Button
-            bsStyle={user_rank === 5 ? "danger" : "default"}
-            active={user_rank === 5 ? true : false}
+            borderRadius={0}
+          />
+          <IconButton
+            appearance={owtf_rank === 5 ? "primary" : "default"}
+            intent={owtf_rank === 5 ? "danger" : "none"}
+            isActive={owtf_rank === 5 ? true : false}
+            icon="error"
             onClick={() => patchUserRank(group, type, code, 5)}
-          >
-            <Glyphicon glyph="warning-sign" />
-          </Button>
-        </ButtonGroup>
+            borderRadius={0}
+          />
+        </Pane>
       );
     }
   }
 }
+
+RankButtons.propTypes = {
+  obj: PropTypes.object,
+  patchUserRank: PropTypes.func
+};

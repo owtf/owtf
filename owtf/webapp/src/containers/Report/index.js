@@ -1,6 +1,15 @@
-/*
- * Main target report page.
+/**
+ * React Component for Report.
+ * This is main component which renders the plugin details of individual targets.
+ * - Renders on (URL)  - /ui/targets/<target_id>
+ * - Child Components:
+ *    - Header (Header.js) - React Component for header(includes - breadcrumb, Target details)
+ *    - SideFilter (SideFilter.js) - React component for Filtering tool and a list of Actions to apply on the target(Basically which changes the state selectedGroup, selectedType etc.)
+ *    - Toolbar (Toolbar.js) - React Component for Toolbar thing below Header.
+ *    - Accordians (Accordians.js) - React Component for Accordians(Plugins)
+ *
  */
+
 import React from "react";
 import { Pane } from "evergreen-ui";
 import Header from "./Header";
@@ -25,6 +34,7 @@ class Report extends React.Component {
 
     this.updateFilter = this.updateFilter.bind(this);
     this.clearFilters = this.clearFilters.bind(this);
+    this.updateReport = this.updateReport.bind(this);
 
     this.state = {
       selectedGroup: [],
@@ -35,7 +45,9 @@ class Report extends React.Component {
       selectedStatus: []
     };
   }
-
+  /**
+   * Function gets called right after the page mount.
+   */
   componentDidMount() {
     const { id } = this.props.match.params;
     this.props.onFetchTarget(id);
@@ -78,6 +90,14 @@ class Report extends React.Component {
     }
   }
 
+  /**
+   * Function responsible for refreshing the Report.(Refresh button in Toolbar)
+   */
+
+  updateReport() {
+    location.reload();
+  }
+
   clearFilters() {
     // $(".filterCheckbox").attr("checked", false);
     this.setState({
@@ -95,10 +115,12 @@ class Report extends React.Component {
       targetData: this.props.target
     };
     const SideFiltersProps = {
+      targetData: [this.props.target.id],
       selectedGroup: this.state.selectedGroup,
       selectedType: this.state.selectedType,
       updateFilter: this.updateFilter,
-      clearFilters: this.clearFilters
+      clearFilters: this.clearFilters,
+      updateReport: this.updateReport
     };
     const ToolbarProps = {
       selectedRank: this.state.selectedRank,

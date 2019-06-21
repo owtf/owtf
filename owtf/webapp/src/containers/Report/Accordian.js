@@ -24,8 +24,7 @@ import { makeSelectPostToWorklistError } from "../Plugins/selectors";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
-import { Pane, Heading, Button, Small, Badge } from "evergreen-ui";
-import { Notification } from "react-notification";
+import { Pane, Heading, Button, Small, Badge, toaster } from "evergreen-ui";
 import "./style.scss";
 import Collapse from "./Collapse";
 import update from "immutability-helper";
@@ -40,10 +39,6 @@ class Accordian extends React.Component {
     this.deletePluginOutput = this.deletePluginOutput.bind(this);
     this.panelStyle = this.panelStyle.bind(this);
     this.renderSeverity = this.renderSeverity.bind(this);
-    this.alert = this.alert.bind(this);
-    this.handleSnackBarRequestClose = this.handleSnackBarRequestClose.bind(
-      this
-    );
     this.handlePluginBtnOnAccordian = this.handlePluginBtnOnAccordian.bind(
       this
     );
@@ -52,21 +47,25 @@ class Accordian extends React.Component {
     this.handleSideSheetClose = this.handleSideSheetClose.bind(this);
 
     this.state = {
-      pactive: {}, // Tells which plugin_type is active on Accordian
+      pactive: "", // Tells which plugin_type is active on Accordian
       details: {},
       pluginData: [],
-      pluginCollapseData: [],
+      pluginCollapseData: [], //Plugin data to be passed over to the collapse component as props
       isClicked: false, // Contents is alredy loaded or not.(To Prevant unneccesaary request)
-      snackbarOpen: false,
-      alertMessage: "",
       sideSheetOpen: false
     };
   }
 
+  /**
+   * Handles the closing of the plugin details sidesheet
+   */
   handleSideSheetClose() {
     this.setState({ sideSheetOpen: false });
   }
 
+  /**
+   * Handles the opening of the plugin details sidesheet
+   */
   handleSideSheetShow() {
     this.setState({ sideSheetOpen: true });
   }
@@ -129,32 +128,30 @@ class Accordian extends React.Component {
    * @param {plugin_type} values plugin_type: Plugin type which is been clicked
    */
 
-  // handlePluginBtnOnAccordian(plugin_type) {
-  //   if (!this.state.isClicked) {
-  //     this.fetchData(plugin_type);
-  //   } else {
-  //     this.setState(
-  //       {
-  //         pactive: plugin_type
-  //       },
-  //       this.handleSideSheetShow()
-  //     );
-  //   }
-  // }
-
   handlePluginBtnOnAccordian(plugin_type) {
-    this.setState(
-      {
-        pactive: plugin_type
-      },
-      this.handleSideSheetShow()
-    );
+    if (this.state.isClicked === false) {
+      var target_id = this.props.targetData.id;
+      this.props.onFetchPluginOutput(target_id, this.state.code);
+      setTimeout(() => {
+        if (this.props.error !== false) {
+          toaster.danger("Server replied: " + this.props.error);
+        } else {
+          this.setState({
+            pluginCollapseData: this.props.pluginOutput,
+            isClicked: true,
+            pactive: plugin_type
+          });
+        }
+      }, 500);
+    } else {
+      this.setState({ pactive: plugin_type });
+    }
+    this.handleSideSheetShow();
   }
 
   /**
    * Function responsible for fetching the plugin data from server.
    * Uses REST API - /api/targets/<target_id>/poutput/
-   * @param {plugin_type} values plugin_type: Plugin type which is been clicked
    */
 
   fetchData() {
@@ -163,12 +160,11 @@ class Accordian extends React.Component {
       this.props.onFetchPluginOutput(target_id, this.state.code);
       setTimeout(() => {
         if (this.props.error !== false) {
-          this.alert("Server replied: " + this.props.error);
+          toaster.danger("Server replied: " + this.props.error);
         } else {
           this.setState({
             pluginCollapseData: this.props.pluginOutput,
             isClicked: true
-            // pactive: plugin_type
           });
         }
       }, 500);
@@ -180,7 +176,7 @@ class Accordian extends React.Component {
    * Function responsible for changing/ranking the plugins.
    * Uses REST API - /api/targets/<target_id>/poutput/<group>/<type>/<code>/
    * @param {group, type, code, user_rank} values group:group of plugin clicked, type: type of plugin clicked, code: code of plugin clicked, user_rank: rank changed to.
-   * Re-Renders the **single** Accordian, closed the Accordia if is the last plugin_type, move to next plugin_type if not.
+   * Re-renders the whole plugin list after successful completion, else throws an error
    */
 
   patchUserRank(group, type, code, user_rank) {
@@ -189,7 +185,7 @@ class Accordian extends React.Component {
     this.props.onChangeUserRank({ target_id, group, type, code, user_rank });
     setTimeout(() => {
       if (this.props.changeError !== false) {
-        this.alert("Server replied: " + this.props.changeError);
+        toaster.danger("Server replied: " + this.props.changeError);
       } else {
         let index = -1;
         let pactive = this.state.pactive;
@@ -203,7 +199,6 @@ class Accordian extends React.Component {
           }
         }
         if (index === presentState.length - 1) {
-          // $('#' + code).collapse('hide');
           this.handleSideSheetClose();
         } else {
           pactive = presentState[index + 1]["plugin_type"];
@@ -217,6 +212,8 @@ class Accordian extends React.Component {
    * Function responsible for re-scanning of one plugin.
    * Uses REST API - /api/worklist/
    * It adds the plugins(work) to worklist.
+   * @param {object} selectedPluginData plugin data to be used during the post API call
+   * @param {bool} force_overwrite tells if the force_overwrite checkbox is checked or not
    */
 
   postToWorklist(selectedPluginData, force_overwrite) {
@@ -236,9 +233,9 @@ class Accordian extends React.Component {
     this.props.onPostToWorklist(data);
     setTimeout(() => {
       if (this.props.postToWorklistError !== false) {
-        this.alert("Server replied: " + this.props.changeError);
+        toaster.danger("Server replied: " + this.props.changeError);
       } else {
-        this.alert(
+        toaster.success(
           "Selected plugins launched, please check worklist to manage :D"
         );
       }
@@ -249,7 +246,7 @@ class Accordian extends React.Component {
    * Function responsible for deleting a instance of plugin.
    * Uses REST API - /api/targets/<target_id>/poutput/<group>/<type>/<code>/
    * @param {group, type, code} values group:group of plugin clicked, type: type of plugin clicked, code: code of plugin clicked.
-   * Re-Renders the **single** Accordian, move to previous/next plugin_type
+   * Re-renders the whole plugin list after successful completion, else throws an error
    */
 
   deletePluginOutput(group, type, code) {
@@ -258,9 +255,9 @@ class Accordian extends React.Component {
     this.props.onDeletePluginOutput({ target_id, group, type, code });
     setTimeout(() => {
       if (this.props.deleteError !== false) {
-        this.alert("Server replied: " + this.props.deleteError);
+        toaster.danger("Server replied: " + this.props.deleteError);
       } else {
-        this.alert("Deleted plugin output for " + type + "@" + code);
+        toaster.success("Deleted plugin output for " + type + "@" + code);
         for (let i = 0; i < pluginData.length; i++) {
           if (
             pluginData[i]["plugin_type"] === type &&
@@ -287,6 +284,10 @@ class Accordian extends React.Component {
     }, 500);
   }
 
+  /**
+   * Function handles the accordian panel background based on the plugin severity.
+   * @param {number} testCaseMax plugin severity ranking
+   */
   panelStyle(testCaseMax) {
     switch (testCaseMax) {
       case 0:
@@ -306,6 +307,10 @@ class Accordian extends React.Component {
     }
   }
 
+  /**
+   * Function handles the style of the accordian button based on the plugin severity.
+   * @param {number} testCaseMax plugin severity ranking
+   */
   panelButtonStyle(testCaseMax) {
     switch (testCaseMax) {
       case 0:
@@ -325,6 +330,10 @@ class Accordian extends React.Component {
     }
   }
 
+  /**
+   * Function renders the plugin severity on top of the accordian panel based on plugin ranking
+   * @param {number} testCaseMax plugin severity ranking
+   */
   renderSeverity(testCaseMax) {
     if (testCaseMax == 0)
       return (
@@ -383,14 +392,10 @@ class Accordian extends React.Component {
     return null;
   }
 
-  alert(message) {
-    this.setState({ snackbarOpen: true, alertMessage: message });
-  }
-
-  handleSnackBarRequestClose() {
-    this.setState({ snackbarOpen: false, alertMessage: "" });
-  }
-
+  /**
+   * Lifecycle method gets invoked before accordian component gets mounted.
+   * Uses the props from the parent component to initialize the plugin details.
+   */
   componentWillMount() {
     const details = this.props.data["details"];
     const pluginData = this.props.data["data"];
@@ -404,7 +409,6 @@ class Accordian extends React.Component {
   }
 
   render() {
-    console.log(this.state.pluginCollapseData);
     const rankAndCount = this.getRankAndTypeCount(this.state.pluginData);
     const pactive = this.state.pactive;
     const code = this.props.code;
@@ -437,7 +441,8 @@ class Accordian extends React.Component {
       deletePluginOutput: this.deletePluginOutput,
       postToWorklist: this.postToWorklist,
       sideSheetOpen: this.state.sideSheetOpen,
-      handleSideSheetClose: this.handleSideSheetClose
+      handleSideSheetClose: this.handleSideSheetClose,
+      handlePluginBtnOnAccordian: this.handlePluginBtnOnAccordian
     };
     if (count > 0) {
       return (
@@ -523,23 +528,22 @@ class Accordian extends React.Component {
             <Pane marginRight={20}>{this.renderSeverity(testCaseMax)}</Pane>
           </Pane>
           <Collapse {...CollapseProps} />
-          <Notification
-            isActive={this.state.snackbarOpen}
-            message={this.state.alertMessage}
-            action="close"
-            dismissAfter={5000}
-            onDismiss={this.handleSnackBarRequestClose}
-            onClick={this.handleSnackBarRequestClose}
-          />
         </Pane>
       );
     } else {
-      return <Pane>vvdsvdcsmlvdc</Pane>;
+      return <Pane />;
     }
   }
 }
 
 Accordian.propTypes = {
+  targetData: PropTypes.object,
+  selectedGroup: PropTypes.array,
+  selectedType: PropTypes.array,
+  selectedRank: PropTypes.array,
+  selectedOwtfRank: PropTypes.array,
+  selectedMapping: PropTypes.string,
+  selectedStatus: PropTypes.array,
   loading: PropTypes.bool,
   error: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   pluginOutput: PropTypes.oneOfType([

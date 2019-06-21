@@ -1,6 +1,7 @@
 /**
  * React Component for Accordian's collapse. It is child component used by Accordian Component.
  * This is collapse that opens on either clicking plugin_type buttons or Accordian heading.
+ * Renders a collapsible side sheet containing all the plugin details.
  */
 
 import React from "react";
@@ -13,16 +14,15 @@ import {
   Paragraph,
   Heading,
   SideSheet,
-  Small
+  Small,
+  Icon,
+  Link
 } from "evergreen-ui";
+import PropTypes from "prop-types";
 
 export default class Collapse extends React.Component {
   constructor(props, context) {
     super(props, context);
-
-    this.state = {
-      selectedTabIndex: 0
-    };
   }
 
   render() {
@@ -38,13 +38,15 @@ export default class Collapse extends React.Component {
       selectedMapping,
       patchUserRank,
       handleSideSheetClose,
-      sideSheetOpen
+      sideSheetOpen,
+      handlePluginBtnOnAccordian
     } = this.props;
     const DataTableProps = {
       targetData: this.props.targetData,
       deletePluginOutput: this.props.deletePluginOutput,
       postToWorklist: this.props.postToWorklist
     };
+
     if (pluginCollapseData.length > 0) {
       return (
         <SideSheet
@@ -112,9 +114,9 @@ export default class Collapse extends React.Component {
                           obj["plugin_code"]
                         }
                         onSelect={() =>
-                          this.setState({ selectedTabIndex: index })
+                          handlePluginBtnOnAccordian(obj["plugin_type"])
                         }
-                        isSelected={index === this.state.selectedTabIndex}
+                        isSelected={obj["plugin_type"] === pactive}
                         aria-controls={`panel-${index}`}
                       >
                         {obj["plugin_type"].split("_").join(" ")}
@@ -122,6 +124,11 @@ export default class Collapse extends React.Component {
                     );
                   }
                 })}
+                <Tab key="more-info">
+                  <Link href={plugin["url"]} title="More information">
+                    <Icon icon="lightbulb" />
+                  </Link>
+                </Tab>
               </Tablist>
             </Pane>
           </Pane>
@@ -142,10 +149,8 @@ export default class Collapse extends React.Component {
                     id={`panel-${index}`}
                     role="tabpanel"
                     aria-labelledby={index}
-                    aria-hidden={index !== this.state.selectedTabIndex}
-                    display={
-                      index === this.state.selectedTabIndex ? "block" : "none"
-                    }
+                    aria-hidden={obj["plugin_type"] !== pactive}
+                    display={obj["plugin_type"] === pactive ? "block" : "none"}
                   >
                     <Pane display="flex" flexDirection="column">
                       <Pane marginBottom={20}>
@@ -192,3 +197,22 @@ export default class Collapse extends React.Component {
     }
   }
 }
+
+Collapse.propTypes = {
+  targetData: PropTypes.object,
+  plugin: PropTypes.object,
+  pluginCollapseData: PropTypes.array,
+  pactive: PropTypes.string,
+  selectedType: PropTypes.array,
+  selectedRank: PropTypes.array,
+  selectedGroup: PropTypes.array,
+  selectedStatus: PropTypes.array,
+  selectedOwtfRank: PropTypes.array,
+  selectedMapping: PropTypes.string,
+  patchUserRank: PropTypes.func,
+  deletePluginOutput: PropTypes.func,
+  postToWorklist: PropTypes.func,
+  sideSheetOpen: PropTypes.bool,
+  handleSideSheetClose: PropTypes.func,
+  handlePluginBtnOnAccordian: PropTypes.func
+};

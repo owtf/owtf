@@ -16,7 +16,10 @@ import {
   DELETE_PLUGIN_OUTPUT_ERROR,
   CHANGE_USER_NOTES,
   CHANGE_USER_NOTES_SUCCESS,
-  CHANGE_USER_NOTES_ERROR
+  CHANGE_USER_NOTES_ERROR,
+  LOAD_TARGET_EXPORT,
+  LOAD_TARGET_EXPORT_SUCCESS,
+  LOAD_TARGET_EXPORT_ERROR
 } from "./constants";
 
 /**
@@ -259,6 +262,48 @@ export function userNotesChanged() {
 export function userNotesChangingError(error) {
   return {
     type: CHANGE_USER_NOTES_ERROR,
+    error
+  };
+}
+
+/**
+ * Load target export, this action starts the request saga GET
+ *
+ * @param {number} target_id Target Id for which export is to be loaded
+ *
+ * @return {object} An action object with a type of LOAD_TARGET_EXPORT
+ */
+export function loadTargetExport(target_id) {
+  return {
+    type: LOAD_TARGET_EXPORT,
+    target_id
+  };
+}
+
+/**
+ * Dispatched when the target export is loaded by the request saga
+ *
+ * @param  {array} target The target data
+ *
+ * @return {object} An action object with a type of LOAD_TARGET_EXPORT_SUCCESS passing the target and the export data
+ */
+export function targetExportLoaded(exportData) {
+  return {
+    type: LOAD_TARGET_EXPORT_SUCCESS,
+    exportData
+  };
+}
+
+/**
+ * Dispatched when loading the target export fails
+ *
+ * @param  {object} error The error
+ *
+ * @return {object} An action object with a type of LOAD_TARGET_EXPORT_ERROR passing the error
+ */
+export function targetExportLoadingError(error) {
+  return {
+    type: LOAD_TARGET_EXPORT_ERROR,
     error
   };
 }

@@ -1,12 +1,17 @@
-/*
- * Main target report page.
+/**
+ * React Component for Header. It is child component used by Report Component.
+ * Renders the target name(with IP) and the overeall severity.
+ * Aim here to prevant Header's re-rendering unless any pluginData is updated.
+ * PluginData is only updated initially or when some plugin is deleted or after a rank change.
  */
+
 import React from "react";
 import { Pane, Heading, IconButton, Small, Badge } from "evergreen-ui";
 import { Breadcrumb } from "react-bootstrap";
 import "./style.scss";
+import PropTypes from "prop-types";
 
-export default class Report extends React.Component {
+export default class Header extends React.Component {
   constructor(props, context) {
     super(props, context);
 
@@ -19,6 +24,9 @@ export default class Report extends React.Component {
     };
   }
 
+  /**
+   * Funtion to keep track of the page scroll.
+   */
   scrollStep() {
     if (window.pageYOffset === 0) {
       clearInterval(this.state.intervalId);
@@ -26,11 +34,17 @@ export default class Report extends React.Component {
     window.scroll(0, window.pageYOffset - this.props.scrollStepInPx);
   }
 
+  /**
+   * Function handles scroll to top of the page.
+   */
   scrollToTop() {
     let intervalId = setInterval(this.scrollStep, this.props.delayInMs);
     this.setState({ intervalId: intervalId });
   }
 
+  /**
+   * Renders the overall severity component based on the plugin ranks.
+   */
   renderSeverity() {
     const localMax =
       this.props.targetData.max_user_rank > this.props.targetData.max_owtf_rank
@@ -104,13 +118,16 @@ export default class Report extends React.Component {
           </Breadcrumb.Item>
         </Breadcrumb>
 
+        {/* Scroll to top */}
         <IconButton
           icon="arrow-up"
           appearance="primary"
           intent="danger"
           className="scroll"
           onClick={this.scrollToTop}
+          title="Move to top"
         />
+        {/* End of scroll to top */}
 
         <Pane
           display="flex"
@@ -138,3 +155,7 @@ export default class Report extends React.Component {
     );
   }
 }
+
+Header.propTypes = {
+  targetData: PropTypes.object
+};

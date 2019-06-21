@@ -19,7 +19,10 @@ import {
   DELETE_PLUGIN_OUTPUT_ERROR,
   CHANGE_USER_NOTES,
   CHANGE_USER_NOTES_SUCCESS,
-  CHANGE_USER_NOTES_ERROR
+  CHANGE_USER_NOTES_ERROR,
+  LOAD_TARGET_EXPORT,
+  LOAD_TARGET_EXPORT_SUCCESS,
+  LOAD_TARGET_EXPORT_ERROR
 } from "./constants";
 
 // The initial state of the target.
@@ -155,11 +158,35 @@ function userNotesChangeReducer(state = initialNotesChangeState, action) {
   }
 }
 
+// The initial state of the target export.
+const initialTargetExportState = fromJS({
+  loading: false,
+  error: false,
+  exportData: false
+});
+
+function targetExportLoadReducer(state = initialTargetExportState, action) {
+  switch (action.type) {
+    case LOAD_TARGET_EXPORT:
+      return state
+        .set("loading", true)
+        .set("error", false)
+        .set("target", false);
+    case LOAD_TARGET_EXPORT_SUCCESS:
+      return state.set("loading", false).set("target", action.exportData);
+    case LOAD_TARGET_EXPORT_ERROR:
+      return state.set("loading", false).set("error", action.error);
+    default:
+      return state;
+  }
+}
+
 export default combineReducers({
   loadTarget: targetLoadReducer,
   loadPluginOutputNames: pluginOutputNamesLoadReducer,
   loadPluginOutput: pluginOutputLoadReducer,
   changeUserRank: userRankChangeReducer,
   deletePluginOutput: pluginOutputDeleteReducer,
-  changeUserNotes: userNotesChangeReducer
+  changeUserNotes: userNotesChangeReducer,
+  loadTargetExport: targetExportLoadReducer
 });

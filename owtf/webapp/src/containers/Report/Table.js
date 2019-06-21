@@ -1,11 +1,20 @@
 /**
  * React Component for Table in collapse. It is child component used by Collapse Component.
+ * Renders the plugin details table inside the plugin side sheet.
  */
 
 import React from "react";
-import { Button, Pane, Table, IconButton, Icon, Heading } from "evergreen-ui";
-import InputGroup from "react-bootstrap/es/InputGroup";
-import FormControl from "react-bootstrap/es/FormControl";
+import {
+  Button,
+  Pane,
+  Table,
+  IconButton,
+  Heading,
+  toaster,
+  Link
+} from "evergreen-ui";
+import CKEditor from "@ckeditor/ckeditor5-react";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import "./style.scss";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
@@ -21,6 +30,21 @@ class DataTable extends React.Component {
     super(props, context);
 
     this.handleEditor = this.handleEditor.bind(this);
+    this.handleEditorData = this.handleEditorData.bind(this);
+
+    this.state = {
+      editorData: "",
+      editorShow: false
+    };
+  }
+
+  /**
+   * Lifecycle method gets invoked before table component gets mounted.
+   * Uses the props from the parent component to initialize the editor value.
+   */
+
+  componentWillMount() {
+    this.setState({ editorData: this.props.obj["user_notes"] });
   }
 
   /**
@@ -32,11 +56,53 @@ class DataTable extends React.Component {
 
   handleEditor(group, type, code) {
     // Same function called both to create or close editor
-    // To be written
+    if (this.state.editorShow) {
+      const target_id = this.props.targetData.id;
+      const user_notes = this.state.editorData;
+      this.props.onChangeUserNotes({
+        target_id,
+        group,
+        type,
+        code,
+        user_notes
+      });
+      setTimeout(() => {
+        if (this.props.changeNotesError !== false) {
+          toaster.danger("Server replied: " + this.props.changeNotesError);
+        } else {
+          toaster.success("Notes saved successfully :)");
+        }
+      }, 500);
+    } else {
+      this.handleEditorShow();
+    }
+  }
+
+  /**
+   * Function handles the opening of the user notes text editor.
+   */
+  handleEditorShow() {
+    this.setState({ editorShow: true });
+  }
+
+  /**
+   * Function handles the closing of the user notes text editor.
+   */
+  handleEditorClose() {
+    this.setState({ editorShow: false });
+  }
+
+  /**
+   * Function updates the text editor value in a controlled fashion
+   * @param {event} event Text editor onchange event
+   * @param {ClassicEditor} editor CKEditor instance
+   */
+  handleEditorData(event, editor) {
+    this.setState({ editorData: editor.getData() });
   }
 
   render() {
-    const { obj, targetData, deletePluginOutput, postToWorklist } = this.props;
+    const { obj, deletePluginOutput, postToWorklist } = this.props;
     const output_path = encodeURIComponent(obj["output_path"]) + "/";
     const status = obj["status"];
     const run_time = obj["run_time"];
@@ -46,6 +112,8 @@ class DataTable extends React.Component {
     const group = obj["plugin_group"];
     const type = obj["plugin_type"];
     const code = obj["plugin_code"];
+    const user_notes = obj["user_notes"];
+    const editorShow = this.state.editorShow;
     return (
       <Pane>
         <Table border>
@@ -62,9 +130,9 @@ class DataTable extends React.Component {
             })()}
             <Table.TextHeaderCell>ACTIONS</Table.TextHeaderCell>
           </Table.Head>
-          <Table.VirtualBody height={70}>
+          <Table.VirtualBody height={60}>
             <Table.Row>
-              <Table.TextCell color="red">{run_time}</Table.TextCell>
+              <Table.TextCell>{run_time}</Table.TextCell>
               <Table.TextCell>
                 {start_time}
                 <br />
@@ -75,13 +143,14 @@ class DataTable extends React.Component {
                 if (output_path !== undefined) {
                   return (
                     <Table.Cell>
-                      <Button
-                        appearance="primary"
-                        href={"/output_files/" + output_path}
-                        disabled={output_path === null}
-                      >
-                        Browse
-                      </Button>
+                      <Link href={"/output_files/" + output_path}>
+                        <Button
+                          appearance="primary"
+                          disabled={output_path === null}
+                        >
+                          Browse
+                        </Button>
+                      </Link>
                     </Table.Cell>
                   );
                 }
@@ -113,15 +182,33 @@ class DataTable extends React.Component {
           </Table.VirtualBody>
         </Table>
         <Pane display="flex" flexDirection="column" marginTop={10}>
-          <Pane marginBottom={10}>
+          <Pane marginBottom={20}>
             <Button
               ref={"editor_" + group + "_" + type + "_" + code}
               onClick={() => this.handleEditor(group, type, code)}
               height={32}
+              intent={editorShow ? "danger" : "none"}
+              iconBefore={editorShow ? "tick" : "edit"}
+              title={
+                editorShow
+                  ? "Click to save the notes"
+                  : "Click to open the text editor"
+              }
             >
-              <Icon icon="edit" color="info" /> Notes
+              {editorShow ? "Save Notes" : "Notes"}
             </Button>
+            {editorShow ? (
+              <CKEditor
+                isShown={this.state.editorShow}
+                editor={ClassicEditor}
+                data={user_notes}
+                onChange={(event, editor) =>
+                  this.handleEditorData(event, editor)
+                }
+              />
+            ) : null}
           </Pane>
+
           <Pane border padding={10}>
             <Heading>MORE DETAILS</Heading>
             {/* {output} */}
@@ -133,6 +220,9 @@ class DataTable extends React.Component {
 }
 
 DataTable.propTypes = {
+  targetData: PropTypes.object,
+  deletePluginOutput: PropTypes.func,
+  postToWorklist: PropTypes.func,
   changeNotesLoading: PropTypes.bool,
   changeNotesError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   onChangeUserNotes: PropTypes.func
