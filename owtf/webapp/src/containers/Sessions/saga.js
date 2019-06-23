@@ -4,7 +4,17 @@
 
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { CHANGE_SESSION, LOAD_SESSIONS, CREATE_SESSION, DELETE_SESSION } from './constants';
-import {loadSessions, sessionsChanged, sessionsChangingError, sessionsLoaded, sessionsLoadingError, sessionsCreated, sessionsCreatingError, sessionsDeleted, sessionsDeletingError} from './actions';
+import {
+  loadSessions,
+  sessionsChanged,
+  sessionsChangingError,
+  sessionsLoaded,
+  sessionsLoadingError,
+  sessionsCreated,
+  sessionsCreatingError,
+  sessionsDeleted,
+  sessionsDeletingError
+} from './actions';
 import Request from 'utils/request';
 import { API_BASE_URL } from 'utils/constants';
 
@@ -63,7 +73,7 @@ export function* postSession(action) {
     yield put(sessionsChanged(session));
     yield put(loadSessions());
   } catch (error) {
-    yield put(sessionsCreatingError(error));  
+    yield put(sessionsCreatingError(error));
   }
 }
 
@@ -71,7 +81,7 @@ export function* postSession(action) {
  * Delete Session request/response handler
  */
 export function* deleteSession(action) {
-  const session = action.session;  
+  const session = action.session;
   const requestURL = `${API_BASE_URL}sessions/${session.id.toString()}/`;
 
   try {
@@ -81,7 +91,7 @@ export function* deleteSession(action) {
     yield put(sessionsChanged(null));
     yield put(loadSessions());
   } catch (error) {
-    yield put(sessionsDeletingError(error));  
+    yield put(sessionsDeletingError(error));
   }
 }
 
