@@ -2,25 +2,44 @@
  * Fetch, Create and Change the targets from API
  */
 
-import { call, put, takeLatest } from 'redux-saga/effects';
-import { LOAD_TARGETS, CREATE_TARGET, CHANGE_TARGET, DELETE_TARGET, REMOVE_TARGET_FROM_SESSION } from './constants';
-import { loadTargets, targetsLoaded, targetsLoadingError,
-        targetCreated, targetCreatingError,
-        targetChanged, targetChangingError,
-        targetDeleted, targetDeletingError,
-        targetFromSessionRemoved, targetFromSessionRemovingError } from './actions';
-import Request from 'utils/request';
-import { API_BASE_URL } from 'utils/constants';
+import { call, put, takeLatest } from "redux-saga/effects";
+import {
+  LOAD_TARGETS,
+  CREATE_TARGET,
+  CHANGE_TARGET,
+  DELETE_TARGET,
+  REMOVE_TARGET_FROM_SESSION
+} from "./constants";
+import {
+  loadTargets,
+  targetsLoaded,
+  targetsLoadingError,
+  targetCreated,
+  targetCreatingError,
+  targetChanged,
+  targetChangingError,
+  targetDeleted,
+  targetDeletingError,
+  targetFromSessionRemoved,
+  targetFromSessionRemovingError
+} from "./actions";
+import {
+  getTargetsAPI,
+  postTargetAPI,
+  patchTargetAPI,
+  deleteTargetAPI,
+  removeTargetFromSessionAPI
+} from "./api";
+import "@babel/polyfill";
 
-/** 
+/**
  * Fetch Target request/response handler
  */
 export function* getTargets() {
-  const requestURL = `${API_BASE_URL}targets/`;
+  const fetchAPI = getTargetsAPI();
   try {
     // Call our request helper (see 'utils/request')
-    const request = new Request(requestURL);
-    const targets = yield call(request.get.bind(request));
+    const targets = yield call(fetchAPI);
     yield put(targetsLoaded(targets.data));
   } catch (error) {
     yield put(targetsLoadingError(error));
@@ -31,19 +50,13 @@ export function* getTargets() {
  * Post Target request/response handler
  */
 export function* postTarget(action) {
-  const requestURL = `${API_BASE_URL}targets/`;
+  const postAPI = postTargetAPI();
   try {
-    const options = {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-      },
-    };
-    const request = new Request(requestURL, options);
-    yield call(request.post.bind(request), {target_url: action.target_url});
+    yield call(postAPI, { target_url: action.target_url });
     yield put(targetCreated());
     yield put(loadTargets());
   } catch (error) {
-    yield put(targetCreatingError(error));  
+    yield put(targetCreatingError(error));
   }
 }
 
@@ -51,17 +64,9 @@ export function* postTarget(action) {
  * Patch Target request/response handler
  */
 export function* patchTarget(action) {
-  const target = action.target;
-  const requestURL = `${API_BASE_URL}targets/${target.id.toString()}/`;
-
+  const patchAPI = patchTargetAPI(action);
   try {
-    const options = {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-      },
-    };
-    const request = new Request(requestURL, options);
-    yield call(request.patch.bind(request), {patch_data: action.patch_data});
+    yield call(patchAPI, { patch_data: action.patch_data });
     yield put(targetChanged());
     yield put(loadTargets());
   } catch (error) {
@@ -73,16 +78,13 @@ export function* patchTarget(action) {
  * Delete Target request/response handler
  */
 export function* deleteTarget(action) {
-  const target_id = action.target_id;  
-  const requestURL = `${API_BASE_URL}targets/${target_id.toString()}/`;
-
+  const deleteAPI = deleteTargetAPI(action);
   try {
-    const request = new Request(requestURL);
-    yield call(request.delete.bind(request));
+    yield call(deleteAPI);
     yield put(targetDeleted());
     yield put(loadTargets());
   } catch (error) {
-    yield put(targetDeletingError(error));  
+    yield put(targetDeletingError(error));
   }
 }
 
@@ -90,18 +92,10 @@ export function* deleteTarget(action) {
  * Remove Target From Session request/response handler
  */
 export function* removeTargetFromSession(action) {
-  const session = action.session;
   const target_id = action.target_id;
-  const requestURL = `${API_BASE_URL}sessions/${session.id.toString()}/remove/`;
-
+  const removeAPI = removeTargetFromSessionAPI(action);
   try {
-    const options = {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-      },
-    };
-    const request = new Request(requestURL, options);
-    yield call(request.patch.bind(request), {target_id: target_id});
+    yield call(removeAPI, { target_id: target_id });
     yield put(targetFromSessionRemoved());
     yield put(loadTargets());
   } catch (error) {
