@@ -1,19 +1,18 @@
 /*
- * Sessions
+ * Sessions component
  *
  * This components manages session.
+ * Handles creating, changing, deleting a session
  */
 
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
-import { Modal, Button, FormGroup } from 'react-bootstrap';
+import { Pane, Dialog, TextInput, Button } from 'evergreen-ui';
 import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchSessions } from './selectors';
-import { loadSessions, createSession, changeSession } from "./actions";
+import { loadSessions, createSession } from "./actions";
 import SessionsTable from './SessionTable';
-import InputGroup from 'react-bootstrap/es/InputGroup';
-import FormControl from 'react-bootstrap/es/FormControl';
 
 export class Sessions extends React.Component {
   constructor(props, context) {
@@ -22,22 +21,32 @@ export class Sessions extends React.Component {
     this.handleShow = this.handleShow.bind(this);
     this.handleClose = this.handleClose.bind(this);
     this.getCurrentSession = this.getCurrentSession.bind(this);
+    this.handleNewSessionName = this.handleNewSessionName.bind(this);
     this.handleAddSession = this.handleAddSession.bind(this);
 
     this.state = {
-      show: false,
-      newSessionName: null
+      show: false, //handles the apperance of session dialog box
+      newSessionName: "", //name of the session to be added
     };
   }
 
+  /**
+   * Function handles the closing of session dialog box
+   */
   handleClose() {
     this.setState({ show: false });
   }
 
+  /**
+   * Function handles the opening of session dialog box
+   */
   handleShow() {
     this.setState({ show: true });
   }
 
+  /**
+   * Function returns currently active session
+   */
   getCurrentSession() {
     const sessions = this.props.sessions;
     if (sessions === false) return false;
@@ -46,10 +55,22 @@ export class Sessions extends React.Component {
     }
   }
 
-  handleAddSession({ target }) {
+  /**
+   * Function updates the name of the session to be added
+   * @param {object} e Inputbox onchange event
+   */
+  handleNewSessionName(e) {
     this.setState({
-      [target.name]: target.value
+      [e.target.name]: e.target.value
     });
+  }
+
+  /**
+   * Function handles a session creation
+   */
+  handleAddSession() {
+    this.props.onCreateSession(this.state.newSessionName);
+    this.setState({ newSessionName: ""});
   }
 
   componentDidMount() {
@@ -59,44 +80,45 @@ export class Sessions extends React.Component {
   render() {
     const { loading, error, sessions } = this.props;
     const currentSession = this.getCurrentSession();
-    const sessionsListProps = {
+    const sessionsTableProps = {
       loading,
       error,
       sessions,
-      currentSession,
     };
 
     return (
-      <article>
-        <FormGroup>
-          <InputGroup>
-            <FormControl type="text" placeholder={currentSession.name} readOnly />
-            <InputGroup.Button>
-              <Button bsStyle="primary" onClick={this.handleShow}>Session</Button>
-            </InputGroup.Button>
-          </InputGroup>
-        </FormGroup>
-        <Modal show={this.state.show} onHide={this.handleClose}>
-          <Modal.Header closeButton>
-            <Modal.Title>Sessions</Modal.Title>
-            <br />
-            <FormGroup>
-              <InputGroup>
-                <FormControl name="newSessionName" type="text" placeholder= "New Session" onChange={ this.handleAddSession }  />
-                <InputGroup.Button>
-                  <Button bsStyle="primary" onClick={() => this.props.onCreateSession(this.state.newSessionName)}>Add!</Button>
-                </InputGroup.Button>
-              </InputGroup>
-            </FormGroup>
-          </Modal.Header>
-          <Modal.Body>
-            <SessionsTable {...sessionsListProps} />
-          </Modal.Body>
-          <Modal.Footer>
-            <Button onClick={this.handleClose}>Close</Button>
-          </Modal.Footer>
-        </Modal>
-      </article>
+      <Pane>
+        <TextInput
+          name="currentSession"
+          placeholder={currentSession !== undefined ? currentSession.name : "No session selected!"}
+          disabled
+          width={200}
+        />
+        <Button appearance="primary" onClick={this.handleShow}>Session</Button>
+        <Dialog
+          isShown={this.state.show}
+          title="Sessions"
+          onCloseComplete={this.handleClose}
+          hasFooter={false}
+        >
+          <Pane marginBottom={20}>
+            <TextInput
+              name="newSessionName"
+              placeholder="Enter new session...."
+              width="89%"
+              onChange={e => this.handleNewSessionName(e)}
+              value={this.state.newSessionName}
+            />
+            <Button
+              appearance="primary"
+              disabled={this.state.newSessionName.length === 0}
+              onClick={this.handleAddSession}>
+              Add!
+            </Button>
+          </Pane>
+          <SessionsTable {...sessionsTableProps} />
+        </Dialog>
+      </Pane>
     );
   }
 }

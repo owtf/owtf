@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { filter } from 'fuzzaldrin-plus'
+import { filter } from 'fuzzaldrin-plus';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { Pane, Table } from 'evergreen-ui'
+import { Pane, Table } from 'evergreen-ui';
 import PropTypes from 'prop-types';
 import './style.scss';
 
