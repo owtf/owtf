@@ -58,6 +58,7 @@ export default class Collapse extends React.Component {
             flexDirection: "column"
           }}
           width={700}
+          data-test="collapseComponent"
         >
           <Pane zIndex={1} flexShrink={0} elevation={0} backgroundColor="white">
             <Pane padding={16} borderBottom="muted">

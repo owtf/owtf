@@ -109,7 +109,7 @@ export default class Header extends React.Component {
 
   render() {
     return (
-      <Pane>
+      <Pane data-test="headerComponent">
         <Breadcrumb>
           <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
           <Breadcrumb.Item href="/targets/">Target</Breadcrumb.Item>

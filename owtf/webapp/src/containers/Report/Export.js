@@ -2,6 +2,7 @@ import Docxtemplater from "docxtemplater";
 import { importDirectory } from "../../utils/export";
 import JSZip from "jszip";
 import saveAs from "save-as";
+import "@babel/polyfill";
 
 const templates = importDirectory(
   require.context("./templates/", true, /\.(docx)$/)

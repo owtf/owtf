@@ -25,7 +25,7 @@ import {
   makeSelectChangeNotesError
 } from "./selectors";
 
-class DataTable extends React.Component {
+export class DataTable extends React.Component {
   constructor(props, context) {
     super(props, context);
 
@@ -115,7 +115,7 @@ class DataTable extends React.Component {
     const user_notes = obj["user_notes"];
     const editorShow = this.state.editorShow;
     return (
-      <Pane>
+      <Pane data-test="dataTableComponent">
         <Table border>
           <Table.Head>
             <Table.TextHeaderCell>RUNTIME</Table.TextHeaderCell>
@@ -223,6 +223,7 @@ DataTable.propTypes = {
   targetData: PropTypes.object,
   deletePluginOutput: PropTypes.func,
   postToWorklist: PropTypes.func,
+  obj: PropTypes.object,
   changeNotesLoading: PropTypes.bool,
   changeNotesError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   onChangeUserNotes: PropTypes.func

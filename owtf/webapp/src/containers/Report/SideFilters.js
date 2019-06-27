@@ -163,7 +163,11 @@ export class SideFilters extends React.Component {
       resetTargetState: this.resetTargetState
     };
     return (
-      <Pane display="flex" flexDirection="column">
+      <Pane
+        display="flex"
+        flexDirection="column"
+        data-test="sideFiltersComponent"
+      >
         <Strong marginBottom={10}> Actions</Strong>
         <Tablist
           display="flex"

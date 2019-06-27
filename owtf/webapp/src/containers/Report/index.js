@@ -28,7 +28,7 @@ import { createStructuredSelector } from "reselect";
 import update from "immutability-helper";
 import "style.scss";
 
-class Report extends React.Component {
+export class Report extends React.Component {
   constructor(props, context) {
     super(props, context);
 
@@ -130,7 +130,12 @@ class Report extends React.Component {
       targetData: this.props.target
     };
     return (
-      <Pane display="flex" flexDirection="row" marginTop={-20}>
+      <Pane
+        display="flex"
+        flexDirection="row"
+        marginTop={-20}
+        data-test="reportComponent"
+      >
         <Pane width={220} background="tint2" padding={20} flex="none">
           <SideFilters {...SideFiltersProps} />
         </Pane>

@@ -21,7 +21,7 @@ import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import { Paragraph, Pane, Spinner } from "evergreen-ui";
 
-class Accordians extends React.Component {
+export class Accordians extends React.Component {
   constructor(props, context) {
     super(props, context);
   }
@@ -75,7 +75,7 @@ class Accordians extends React.Component {
 
     if (pluginOutputNames !== false) {
       return (
-        <Pane id="pluginOutputs">
+        <Pane id="pluginOutputs" data-test="accordiansComponent">
           {Object.keys(pluginOutputNames).map(function(key) {
             return (
               <Accordian

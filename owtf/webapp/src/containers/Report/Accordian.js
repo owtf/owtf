@@ -29,7 +29,7 @@ import "./style.scss";
 import Collapse from "./Collapse";
 import update from "immutability-helper";
 
-class Accordian extends React.Component {
+export class Accordian extends React.Component {
   constructor(props, context) {
     super(props, context);
 
@@ -446,7 +446,7 @@ class Accordian extends React.Component {
     };
     if (count > 0) {
       return (
-        <Pane key={code}>
+        <Pane key={code} data-test="accordianComponent">
           <Pane
             elevation={1}
             display="flex"
@@ -544,6 +544,8 @@ Accordian.propTypes = {
   selectedOwtfRank: PropTypes.array,
   selectedMapping: PropTypes.string,
   selectedStatus: PropTypes.array,
+  data: PropTypes.object,
+  code: PropTypes.string,
   loading: PropTypes.bool,
   error: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   pluginOutput: PropTypes.oneOfType([

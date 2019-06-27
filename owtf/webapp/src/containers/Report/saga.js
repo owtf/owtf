@@ -30,8 +30,8 @@ import {
   targetExportLoadingError
 } from "./actions";
 
-import Request from "utils/request";
-import { API_BASE_URL } from "utils/constants";
+import Request from "../../utils/request";
+import { API_BASE_URL } from "../../utils/constants";
 
 /**
  * Fetch Target request/response handler
