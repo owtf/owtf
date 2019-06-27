@@ -30,18 +30,24 @@ import {
   targetExportLoadingError
 } from "./actions";
 
-import Request from "../../utils/request";
-import { API_BASE_URL } from "../../utils/constants";
+import {
+  getTargetAPI,
+  getPluginOutputNamesAPI,
+  getPluginOutputAPI,
+  patchUserRankAPI,
+  deletePluginOutputAPI,
+  patchUserNotesAPI,
+  getTargetExportAPI
+} from "./api";
 
 /**
  * Fetch Target request/response handler
  */
 export function* getTarget(action) {
-  const requestURL = `${API_BASE_URL}targets/${action.target_id.toString()}/`;
+  const fetchAPI = getTargetAPI(action);
   try {
     // Call our request helper (see 'utils/request')
-    const request = new Request(requestURL);
-    const target = yield call(request.get.bind(request));
+    const target = yield call(fetchAPI);
     yield put(targetLoaded(target.data));
   } catch (error) {
     yield put(targetLoadingError(error));
@@ -52,11 +58,9 @@ export function* getTarget(action) {
  * Fetch Plugin output request/response handler
  */
 export function* getPluginOutputNames(action) {
-  const requestURL = `${API_BASE_URL}targets/${action.target_id.toString()}/poutput/names/`;
+  const fetchAPI = getPluginOutputNamesAPI(action);
   try {
-    // Call our request helper (see 'utils/request')
-    const request = new Request(requestURL);
-    const pluginOutputData = yield call(request.get.bind(request));
+    const pluginOutputData = yield call(fetchAPI);
     yield put(pluginOutputNamesLoaded(pluginOutputData.data));
   } catch (error) {
     yield put(pluginOutputNamesLoadingError(error));
@@ -67,11 +71,9 @@ export function* getPluginOutputNames(action) {
  * Fetch Plugin output request/response handler
  */
 export function* getPluginOutput(action) {
-  const requestURL = `${API_BASE_URL}targets/${action.target_id.toString()}/poutput/?plugin_code=${action.plugin_code.toString()}`;
+  const fetchAPI = getPluginOutputAPI(action);
   try {
-    // Call our request helper (see 'utils/request')
-    const request = new Request(requestURL);
-    const pluginOutputData = yield call(request.get.bind(request));
+    const pluginOutputData = yield call(fetchAPI);
     yield put(pluginOutputLoaded(pluginOutputData.data));
   } catch (error) {
     yield put(pluginOutputLoadingError(error));
@@ -84,19 +86,9 @@ export function* getPluginOutput(action) {
 export function* patchUserRank(action) {
   const plugin_data = action.plugin_data;
   const target_id = plugin_data.target_id.toString();
-  const group = plugin_data.group.toString();
-  const type = plugin_data.type.toString();
-  const code = plugin_data.code.toString();
-  const requestURL = `${API_BASE_URL}targets/${target_id}/poutput/${group}/${type}/${code}/`;
-
+  const patchAPI = patchUserRankAPI(action);
   try {
-    const options = {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-      }
-    };
-    const request = new Request(requestURL, options);
-    yield call(request.patch.bind(request), {
+    yield call(patchAPI, {
       user_rank: plugin_data.user_rank
     });
     yield put(userRankChanged());
@@ -110,16 +102,9 @@ export function* patchUserRank(action) {
  * Delete Plugin output request/response handler
  */
 export function* deletePluginOutput(action) {
-  const plugin_data = action.plugin_data;
-  const target_id = plugin_data.target_id.toString();
-  const group = plugin_data.group.toString();
-  const type = plugin_data.type.toString();
-  const code = plugin_data.code.toString();
-  const requestURL = `${API_BASE_URL}targets/${target_id}/poutput/${group}/${type}/${code}/`;
-
+  const deleteAPI = deletePluginOutputAPI(action);
   try {
-    const request = new Request(requestURL);
-    yield call(request.delete.bind(request));
+    yield call(deleteAPI);
     yield put(pluginOutputDeleted());
   } catch (error) {
     yield put(pluginOutputDeletingError(error));
@@ -131,20 +116,9 @@ export function* deletePluginOutput(action) {
  */
 export function* patchUserNotes(action) {
   const plugin_data = action.plugin_data;
-  const target_id = plugin_data.target_id.toString();
-  const group = plugin_data.group.toString();
-  const type = plugin_data.type.toString();
-  const code = plugin_data.code.toString();
-  const requestURL = `${API_BASE_URL}targets/${target_id}/poutput/${group}/${type}/${code}/`;
-
+  const patchAPI = patchUserNotesAPI(action);
   try {
-    const options = {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-      }
-    };
-    const request = new Request(requestURL, options);
-    yield call(request.patch.bind(request), {
+    yield call(patchAPI, {
       user_notes: plugin_data.user_notes
     });
     yield put(userNotesChanged());
@@ -157,11 +131,10 @@ export function* patchUserNotes(action) {
  * Fetch Target request/response handler
  */
 export function* getTargetExport(action) {
-  const requestURL = `${API_BASE_URL}targets/${action.target_id.toString()}/export/`;
+  const fetchAPI = getTargetExportAPI(action);
   try {
     // Call our request helper (see 'utils/request')
-    const request = new Request(requestURL);
-    const result = yield call(request.get.bind(request));
+    const result = yield call(fetchAPI);
     yield put(targetExportLoaded(result.data));
   } catch (error) {
     yield put(targetExportLoadingError(error));

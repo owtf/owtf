@@ -32,7 +32,7 @@ const initialTargetState = fromJS({
   target: false
 });
 
-function targetLoadReducer(state = initialTargetState, action) {
+export function targetLoadReducer(state = initialTargetState, action) {
   switch (action.type) {
     case LOAD_TARGET:
       return state
@@ -40,9 +40,15 @@ function targetLoadReducer(state = initialTargetState, action) {
         .set("error", false)
         .set("target", false);
     case LOAD_TARGET_SUCCESS:
-      return state.set("loading", false).set("target", action.target);
+      return state
+        .set("loading", false)
+        .set("error", false)
+        .set("target", action.target);
     case LOAD_TARGET_ERROR:
-      return state.set("loading", false).set("error", action.error);
+      return state
+        .set("loading", false)
+        .set("error", action.error)
+        .set("target", false);
     default:
       return state;
   }
@@ -55,7 +61,7 @@ const initialPluginOutputNamesState = fromJS({
   pluginOutput: false
 });
 
-function pluginOutputNamesLoadReducer(
+export function pluginOutputNamesLoadReducer(
   state = initialPluginOutputNamesState,
   action
 ) {
@@ -68,9 +74,13 @@ function pluginOutputNamesLoadReducer(
     case LOAD_PLUGIN_OUTPUT_NAMES_SUCCESS:
       return state
         .set("loading", false)
+        .set("error", false)
         .set("pluginOutput", action.pluginOutputData);
     case LOAD_PLUGIN_OUTPUT_NAMES_ERROR:
-      return state.set("loading", false).set("error", action.error);
+      return state
+        .set("loading", false)
+        .set("error", action.error)
+        .set("pluginOutput", false);
     default:
       return state;
   }
@@ -83,7 +93,10 @@ const initialPluginOutputState = fromJS({
   pluginOutput: false
 });
 
-function pluginOutputLoadReducer(state = initialPluginOutputState, action) {
+export function pluginOutputLoadReducer(
+  state = initialPluginOutputState,
+  action
+) {
   switch (action.type) {
     case LOAD_PLUGIN_OUTPUT:
       return state
@@ -93,9 +106,13 @@ function pluginOutputLoadReducer(state = initialPluginOutputState, action) {
     case LOAD_PLUGIN_OUTPUT_SUCCESS:
       return state
         .set("loading", false)
+        .set("error", false)
         .set("pluginOutput", action.pluginOutputData);
     case LOAD_PLUGIN_OUTPUT_ERROR:
-      return state.set("loading", false).set("error", action.error);
+      return state
+        .set("loading", false)
+        .set("error", action.error)
+        .set("pluginOutput", false);
     default:
       return state;
   }
@@ -107,12 +124,12 @@ const initialRankChangeState = fromJS({
   error: false
 });
 
-function userRankChangeReducer(state = initialRankChangeState, action) {
+export function userRankChangeReducer(state = initialRankChangeState, action) {
   switch (action.type) {
     case CHANGE_USER_RANK:
       return state.set("loading", true).set("error", false);
     case CHANGE_USER_RANK_SUCCESS:
-      return state.set("loading", false);
+      return state.set("loading", false).set("error", false);
     case CHANGE_USER_RANK_ERROR:
       return state.set("error", action.error).set("loading", false);
     default:
@@ -126,12 +143,12 @@ const initialDeleteState = fromJS({
   error: false
 });
 
-function pluginOutputDeleteReducer(state = initialDeleteState, action) {
+export function pluginOutputDeleteReducer(state = initialDeleteState, action) {
   switch (action.type) {
     case DELETE_PLUGIN_OUTPUT:
       return state.set("loading", true).set("error", false);
     case DELETE_PLUGIN_OUTPUT_SUCCESS:
-      return state.set("loading", false);
+      return state.set("loading", false).set("error", false);
     case DELETE_PLUGIN_OUTPUT_ERROR:
       return state.set("error", action.error).set("loading", false);
     default:
@@ -145,12 +162,15 @@ const initialNotesChangeState = fromJS({
   error: false
 });
 
-function userNotesChangeReducer(state = initialNotesChangeState, action) {
+export function userNotesChangeReducer(
+  state = initialNotesChangeState,
+  action
+) {
   switch (action.type) {
     case CHANGE_USER_NOTES:
       return state.set("loading", true).set("error", false);
     case CHANGE_USER_NOTES_SUCCESS:
-      return state.set("loading", false);
+      return state.set("loading", false).set("error", false);
     case CHANGE_USER_NOTES_ERROR:
       return state.set("error", action.error).set("loading", false);
     default:
@@ -165,17 +185,26 @@ const initialTargetExportState = fromJS({
   exportData: false
 });
 
-function targetExportLoadReducer(state = initialTargetExportState, action) {
+export function targetExportLoadReducer(
+  state = initialTargetExportState,
+  action
+) {
   switch (action.type) {
     case LOAD_TARGET_EXPORT:
       return state
         .set("loading", true)
         .set("error", false)
-        .set("target", false);
+        .set("exportData", false);
     case LOAD_TARGET_EXPORT_SUCCESS:
-      return state.set("loading", false).set("target", action.exportData);
+      return state
+        .set("loading", false)
+        .set("error", false)
+        .set("exportData", action.exportData);
     case LOAD_TARGET_EXPORT_ERROR:
-      return state.set("loading", false).set("error", action.error);
+      return state
+        .set("loading", false)
+        .set("error", action.error)
+        .set("exportData", false);
     default:
       return state;
   }

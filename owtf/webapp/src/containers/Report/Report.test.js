@@ -9,7 +9,6 @@ import ConnectedSideFilters, { SideFilters } from "./SideFilters";
 import ConnectedAccordians, { Accordians } from "./Accordians";
 import ConnectedAccordian, { Accordian } from "./Accordian";
 import ConnectedDataTable, { DataTable } from "./Table";
-import Toolbar from "./Toolbar";
 import Header from "./Header";
 import Collapse from "./Collapse";
 import { fromJS } from "immutable";
@@ -870,6 +869,871 @@ describe("Report page component", () => {
       expect(ip.props().children).toEqual(
         " (" + props.targetData.host_ip + ")"
       );
+    });
+  });
+
+  describe("Testing the sagas", () => {
+    describe("Testing getTarget saga", () => {
+      it("Should load and return target in case of success", async () => {
+        // we push all dispatched actions to make assertions easier
+        // and our tests less brittle
+        const dispatchedActions = [];
+
+        // we don't want to perform an actual api call in our tests
+        // so we will mock the fetchAPI api with jest
+        // this will mutate the dependency which we may reset if other tests
+        // are dependent on it
+        const mockedTarget = {
+          status: "success",
+          data: {
+            top_url: "http://fb.com:80",
+            top_domain: "com",
+            target_url: "http://fb.com",
+            max_user_rank: -1,
+            url_scheme: "http",
+            host_path: "fb.com",
+            ip_url: "http://157.240.16.35",
+            host_ip: "157.240.16.35"
+          }
+        };
+        api.getTargetAPI = jest.fn(() =>
+          jest.fn(() => Promise.resolve(mockedTarget))
+        );
+
+        const fakeStore = {
+          getState: () => ({ state: "test" }),
+          dispatch: action => dispatchedActions.push(action)
+        };
+
+        // wait for saga to complete
+        await runSaga(fakeStore, getTarget).done;
+
+        expect(api.getTargetAPI.mock.calls.length).toBe(1);
+        expect(dispatchedActions).toContainEqual(
+          targetLoaded(mockedTarget.data)
+        );
+      });
+
+      it("Should handle target load error in case of failure", async () => {
+        const dispatchedActions = [];
+
+        // we simulate an error by rejecting the promise
+        // then we assert if our saga dispatched the action(s) correctly
+        const error = "API server is down";
+        api.getTargetAPI = jest.fn(() => jest.fn(() => Promise.reject(error)));
+
+        const fakeStore = {
+          getState: () => ({ state: "test" }),
+          dispatch: action => dispatchedActions.push(action)
+        };
+
+        await runSaga(fakeStore, getTarget).done;
+
+        expect(api.getTargetAPI.mock.calls.length).toBe(1);
+        expect(dispatchedActions).toContainEqual(targetLoadingError(error));
+      });
+    });
+
+    describe("Testing getPluginOutputNames saga", () => {
+      it("Should load and return names of plugin output in case of success", async () => {
+        const dispatchedActions = [];
+        const mockedPluginOutputNames = {
+          status: "success",
+          data: {
+            "OWTF-ABrF-001": {
+              data: [
+                {
+                  status: "",
+                  plugin_group: "auxiliary",
+                  user_rank: -1,
+                  plugin_key: "bruteforce@OWTF-ABrF-001",
+                  id: 63,
+                  plugin_code: "OWTF-ABrF-001",
+                  owtf_rank: -1,
+                  plugin_type: "bruteforce"
+                }
+              ],
+              details: {
+                code: "OWTF-ABrF-001",
+                group: "aux",
+                mappings: {},
+                hint: "Password_Bruteforce ",
+                url: " https://www.owasp.org/index.php/",
+                priority: 99,
+                descrip: "Password Bruteforce Testing plugin"
+              }
+            }
+          }
+        };
+        api.getPluginOutputNamesAPI = jest.fn(() =>
+          jest.fn(() => Promise.resolve(mockedPluginOutputNames))
+        );
+
+        const fakeStore = {
+          getState: () => ({ state: "test" }),
+          dispatch: action => dispatchedActions.push(action)
+        };
+        await runSaga(fakeStore, getPluginOutputNames).done;
+
+        expect(api.getPluginOutputNamesAPI.mock.calls.length).toBe(1);
+        expect(dispatchedActions).toContainEqual(
+          pluginOutputNamesLoaded(mockedPluginOutputNames.data)
+        );
+      });
+
+      it("Should handle pluginOutputNames load error in case of failure", async () => {
+        const dispatchedActions = [];
+        const error = "API server is down";
+        api.getPluginOutputNamesAPI = jest.fn(() =>
+          jest.fn(() => Promise.reject(error))
+        );
+
+        const fakeStore = {
+          getState: () => ({ state: "test" }),
+          dispatch: action => dispatchedActions.push(action)
+        };
+
+        await runSaga(fakeStore, getPluginOutputNames).done;
+
+        expect(api.getPluginOutputNamesAPI.mock.calls.length).toBe(1);
+        expect(dispatchedActions).toContainEqual(
+          pluginOutputNamesLoadingError(error)
+        );
+      });
+    });
+
+    describe("Testing getPluginOutput saga", () => {
+      it("Should load and return plugin output in case of success", async () => {
+        const dispatchedActions = [];
+        const mockedPluginOutput = {
+          status: "success",
+          data: [
+            {
+              status: "",
+              plugin_group: "auxiliary",
+              user_rank: -1,
+              plugin_key: "bruteforce@OWTF-ABrF-001",
+              id: 63,
+              plugin_code: "OWTF-ABrF-001",
+              owtf_rank: -1,
+              plugin_type: "bruteforce"
+            }
+          ]
+        };
+        api.getPluginOutputAPI = jest.fn(() =>
+          jest.fn(() => Promise.resolve(mockedPluginOutput))
+        );
+
+        const fakeStore = {
+          getState: () => ({ state: "test" }),
+          dispatch: action => dispatchedActions.push(action)
+        };
+        await runSaga(fakeStore, getPluginOutput).done;
+
+        expect(api.getPluginOutputAPI.mock.calls.length).toBe(1);
+        expect(dispatchedActions).toContainEqual(
+          pluginOutputLoaded(mockedPluginOutput.data)
+        );
+      });
+
+      it("Should handle pluginOutput load error in case of failure", async () => {
+        const dispatchedActions = [];
+        const error = "API server is down";
+        api.getPluginOutputAPI = jest.fn(() =>
+          jest.fn(() => Promise.reject(error))
+        );
+
+        const fakeStore = {
+          getState: () => ({ state: "test" }),
+          dispatch: action => dispatchedActions.push(action)
+        };
+
+        await runSaga(fakeStore, getPluginOutput).done;
+
+        expect(api.getPluginOutputAPI.mock.calls.length).toBe(1);
+        expect(dispatchedActions).toContainEqual(
+          pluginOutputLoadingError(error)
+        );
+      });
+    });
+
+    describe("Testing patchUserRank saga", () => {
+      let fakeAction;
+      beforeEach(() => {
+        fakeAction = {
+          type: CHANGE_USER_RANK,
+          plugin_data: {
+            target_id: 1,
+            group: "test group",
+            type: "test type",
+            code: "test code"
+          }
+        };
+      });
+
+      it("Should change plugin rank and load targets in case of success", async () => {
+        const dispatchedActions = [];
+
+        api.patchUserRankAPI = jest.fn(() => jest.fn(() => Promise.resolve()));
+
+        const fakeStore = {
+          getState: () => ({ state: "test" }),
+          dispatch: action => dispatchedActions.push(action)
+        };
+        await runSaga(fakeStore, patchUserRank, fakeAction).done;
+
+        expect(api.patchUserRankAPI.mock.calls.length).toBe(1);
+        expect(dispatchedActions).toContainEqual(userRankChanged());
+        expect(dispatchedActions).toContainEqual(
+          loadTarget(fakeAction.plugin_data.target_id.toString())
+        );
+      });
+
+      it("Should handle plugin rank changing error in case of failure", async () => {
+        const dispatchedActions = [];
+        const error = "API server is down";
+        api.patchUserRankAPI = jest.fn(() =>
+          jest.fn(() => Promise.reject(error))
+        );
+
+        const fakeStore = {
+          getState: () => ({ state: "test" }),
+          dispatch: action => dispatchedActions.push(action)
+        };
+
+        await runSaga(fakeStore, patchUserRank, fakeAction).done;
+
+        expect(api.patchUserRankAPI.mock.calls.length).toBe(1);
+        expect(dispatchedActions).toContainEqual(userRankChangingError(error));
+      });
+    });
+
+    describe("Testing deletePluginOutput saga", () => {
+      let fakeAction;
+      beforeEach(() => {
+        fakeAction = {
+          type: DELETE_PLUGIN_OUTPUT,
+          plugin_data: {
+            target_id: 1,
+            group: "test group",
+            type: "test type",
+            code: "test code"
+          }
+        };
+      });
+
+      it("Should delete plugin in case of success", async () => {
+        const dispatchedActions = [];
+
+        api.deletePluginOutputAPI = jest.fn(() =>
+          jest.fn(() => Promise.resolve())
+        );
+
+        const fakeStore = {
+          getState: () => ({ state: "test" }),
+          dispatch: action => dispatchedActions.push(action)
+        };
+        await runSaga(fakeStore, deletePluginOutput, fakeAction).done;
+
+        expect(api.deletePluginOutputAPI.mock.calls.length).toBe(1);
+        expect(dispatchedActions).toContainEqual(pluginOutputDeleted());
+      });
+
+      it("Should handle plugin delete error in case of failure", async () => {
+        const dispatchedActions = [];
+        const error = "API server is down";
+        api.deletePluginOutputAPI = jest.fn(() =>
+          jest.fn(() => Promise.reject(error))
+        );
+
+        const fakeStore = {
+          getState: () => ({ state: "test" }),
+          dispatch: action => dispatchedActions.push(action)
+        };
+
+        await runSaga(fakeStore, deletePluginOutput, fakeAction).done;
+
+        expect(api.deletePluginOutputAPI.mock.calls.length).toBe(1);
+        expect(dispatchedActions).toContainEqual(
+          pluginOutputDeletingError(error)
+        );
+      });
+    });
+
+    describe("Testing patchUserNotes saga", () => {
+      let fakeAction;
+      beforeEach(() => {
+        fakeAction = {
+          type: CHANGE_USER_NOTES,
+          plugin_data: {
+            target_id: 1,
+            group: "test group",
+            type: "test type",
+            code: "test code"
+          }
+        };
+      });
+
+      it("Should change plugin notes in case of success", async () => {
+        const dispatchedActions = [];
+
+        api.patchUserNotesAPI = jest.fn(() => jest.fn(() => Promise.resolve()));
+
+        const fakeStore = {
+          getState: () => ({ state: "test" }),
+          dispatch: action => dispatchedActions.push(action)
+        };
+        await runSaga(fakeStore, patchUserNotes, fakeAction).done;
+
+        expect(api.patchUserNotesAPI.mock.calls.length).toBe(1);
+        expect(dispatchedActions).toContainEqual(userNotesChanged());
+      });
+
+      it("Should handle plugin notes change error in case of failure", async () => {
+        const dispatchedActions = [];
+        const error = "API server is down";
+        api.patchUserNotesAPI = jest.fn(() =>
+          jest.fn(() => Promise.reject(error))
+        );
+
+        const fakeStore = {
+          getState: () => ({ state: "test" }),
+          dispatch: action => dispatchedActions.push(action)
+        };
+
+        await runSaga(fakeStore, patchUserNotes, fakeAction).done;
+
+        expect(api.patchUserNotesAPI.mock.calls.length).toBe(1);
+        expect(dispatchedActions).toContainEqual(userNotesChangingError(error));
+      });
+    });
+
+    describe("Testing getTargetExport saga", () => {
+      it("Should load and return target export in case of success", async () => {
+        const dispatchedActions = [];
+        const mockedTargetExport = {
+          status: "success",
+          data: {
+            top_url: "http://fb.com:80",
+            top_domain: "com",
+            target_url: "http://fb.com",
+            max_user_rank: -1,
+            url_scheme: "http",
+            host_path: "fb.com",
+            ip_url: "http://157.240.16.35",
+            host_ip: "157.240.16.35"
+          }
+        };
+        api.getTargetExportAPI = jest.fn(() =>
+          jest.fn(() => Promise.resolve(mockedTargetExport))
+        );
+
+        const fakeStore = {
+          getState: () => ({ state: "test" }),
+          dispatch: action => dispatchedActions.push(action)
+        };
+        await runSaga(fakeStore, getTargetExport).done;
+
+        expect(api.getTargetExportAPI.mock.calls.length).toBe(1);
+        expect(dispatchedActions).toContainEqual(
+          targetExportLoaded(mockedTargetExport.data)
+        );
+      });
+
+      it("Should handle target export load error in case of failure", async () => {
+        const dispatchedActions = [];
+        const error = "API server is down";
+        api.getTargetExportAPI = jest.fn(() =>
+          jest.fn(() => Promise.reject(error))
+        );
+
+        const fakeStore = {
+          getState: () => ({ state: "test" }),
+          dispatch: action => dispatchedActions.push(action)
+        };
+
+        await runSaga(fakeStore, getTargetExport).done;
+
+        expect(api.getTargetExportAPI.mock.calls.length).toBe(1);
+        expect(dispatchedActions).toContainEqual(
+          targetExportLoadingError(error)
+        );
+      });
+    });
+  });
+
+  describe("Testing reducers", () => {
+    describe("Testing targetLoadReducer", () => {
+      let initialState;
+      beforeEach(() => {
+        initialState = {
+          loading: false,
+          error: false,
+          target: false
+        };
+      });
+
+      it("Should return the initial state", () => {
+        const newState = targetLoadReducer(undefined, {});
+        expect(newState.toJS()).toEqual(initialState);
+      });
+
+      it("Should handle LOAD_TARGET", () => {
+        const newState = targetLoadReducer(undefined, {
+          type: LOAD_TARGET,
+          target_id: 1
+        });
+        expect(newState.toJS()).toEqual({
+          loading: true,
+          error: false,
+          target: false
+        });
+      });
+
+      it("Should handle LOAD_TARGET_SUCCESS", () => {
+        const target = {
+          top_url: "http://fb.com:80",
+          top_domain: "com",
+          target_url: "http://fb.com",
+          max_user_rank: -1,
+          url_scheme: "http",
+          host_path: "fb.com",
+          ip_url: "http://157.240.16.35",
+          host_ip: "157.240.16.35"
+        };
+        const newState = targetLoadReducer(
+          fromJS({
+            loading: true,
+            error: true,
+            target: false
+          }),
+          {
+            type: LOAD_TARGET_SUCCESS,
+            target
+          }
+        );
+        expect(newState.toJS()).toEqual({
+          loading: false,
+          error: false,
+          target: target
+        });
+      });
+
+      it("Should handle LOAD_TARGET_ERROR", () => {
+        const newState = targetLoadReducer(
+          fromJS({
+            loading: true,
+            error: true,
+            target: false
+          }),
+          {
+            type: LOAD_TARGET_ERROR,
+            error: "Test target loading error"
+          }
+        );
+        expect(newState.toJS()).toEqual({
+          loading: false,
+          error: "Test target loading error",
+          target: false
+        });
+      });
+    });
+
+    describe("Testing pluginOutputNamesLoadReducer", () => {
+      let initialState;
+      beforeEach(() => {
+        initialState = {
+          loading: true,
+          error: false,
+          pluginOutput: false
+        };
+      });
+
+      it("Should return the initial state", () => {
+        const newState = pluginOutputNamesLoadReducer(undefined, {});
+        expect(newState.toJS()).toEqual(initialState);
+      });
+
+      it("Should handle LOAD_PLUGIN_OUTPUT_NAMES", () => {
+        const newState = pluginOutputNamesLoadReducer(undefined, {
+          type: LOAD_PLUGIN_OUTPUT_NAMES,
+          target_id: 1
+        });
+        expect(newState.toJS()).toEqual({
+          loading: true,
+          error: false,
+          pluginOutput: false
+        });
+      });
+
+      it("Should handle LOAD_PLUGIN_OUTPUT_NAMES_SUCCESS", () => {
+        const pluginOutputNames = {
+          "OWTF-ABrF-001": {
+            data: [
+              {
+                status: "",
+                plugin_group: "auxiliary"
+              }
+            ],
+            details: {
+              code: "OWTF-ABrF-001",
+              group: "aux",
+              mappings: {}
+            }
+          }
+        };
+        const newState = pluginOutputNamesLoadReducer(
+          fromJS({
+            loading: true,
+            error: true,
+            pluginOutput: false
+          }),
+          {
+            type: LOAD_PLUGIN_OUTPUT_NAMES_SUCCESS,
+            pluginOutputData: pluginOutputNames
+          }
+        );
+        expect(newState.toJS()).toEqual({
+          loading: false,
+          error: false,
+          pluginOutput: pluginOutputNames
+        });
+      });
+
+      it("Should handle LOAD_PLUGIN_OUTPUT_NAMES_ERROR", () => {
+        const newState = pluginOutputNamesLoadReducer(
+          fromJS({
+            loading: true,
+            error: true,
+            pluginOutput: false
+          }),
+          {
+            type: LOAD_PLUGIN_OUTPUT_NAMES_ERROR,
+            error: "Test plugin output names loading error"
+          }
+        );
+        expect(newState.toJS()).toEqual({
+          loading: false,
+          error: "Test plugin output names loading error",
+          pluginOutput: false
+        });
+      });
+    });
+
+    describe("Testing pluginOutputLoadReducer", () => {
+      let initialState;
+      beforeEach(() => {
+        initialState = {
+          loading: true,
+          error: false,
+          pluginOutput: false
+        };
+      });
+
+      it("Should return the initial state", () => {
+        const newState = pluginOutputLoadReducer(undefined, {});
+        expect(newState.toJS()).toEqual(initialState);
+      });
+
+      it("Should handle LOAD_PLUGIN_OUTPUT", () => {
+        const newState = pluginOutputLoadReducer(undefined, {
+          type: LOAD_PLUGIN_OUTPUT,
+          target_id: 1,
+          plugin_code: "test code"
+        });
+        expect(newState.toJS()).toEqual({
+          loading: true,
+          error: false,
+          pluginOutput: false
+        });
+      });
+
+      it("Should handle LOAD_PLUGIN_OUTPUT_SUCCESS", () => {
+        const pluginOutput = [
+          {
+            status: "",
+            plugin_group: "auxiliary",
+            user_rank: -1,
+            plugin_key: "bruteforce@OWTF-ABrF-001"
+          }
+        ];
+        const newState = pluginOutputLoadReducer(
+          fromJS({
+            loading: true,
+            error: true,
+            pluginOutput: false
+          }),
+          {
+            type: LOAD_PLUGIN_OUTPUT_SUCCESS,
+            pluginOutputData: pluginOutput
+          }
+        );
+        expect(newState.toJS()).toEqual({
+          loading: false,
+          error: false,
+          pluginOutput: pluginOutput
+        });
+      });
+
+      it("Should handle LOAD_PLUGIN_OUTPUT_ERROR", () => {
+        const newState = pluginOutputLoadReducer(
+          fromJS({
+            loading: true,
+            error: true,
+            pluginOutput: false
+          }),
+          {
+            type: LOAD_PLUGIN_OUTPUT_ERROR,
+            error: "Test plugin output loading error"
+          }
+        );
+        expect(newState.toJS()).toEqual({
+          loading: false,
+          error: "Test plugin output loading error",
+          pluginOutput: false
+        });
+      });
+    });
+
+    describe("Testing userRankChangeReducer", () => {
+      let initialState;
+      beforeEach(() => {
+        initialState = {
+          loading: false,
+          error: false
+        };
+      });
+
+      it("Should return the initial state", () => {
+        const newState = userRankChangeReducer(undefined, {});
+        expect(newState.toJS()).toEqual(initialState);
+      });
+
+      it("Should handle CHANGE_USER_RANK", () => {
+        const newState = userRankChangeReducer(undefined, {
+          type: CHANGE_USER_RANK,
+          plugin_data: {}
+        });
+        expect(newState.toJS()).toEqual({ loading: true, error: false });
+      });
+
+      it("Should handle CHANGE_USER_RANK_SUCCESS", () => {
+        const newState = userRankChangeReducer(
+          fromJS({
+            loading: true,
+            error: true
+          }),
+          {
+            type: CHANGE_USER_RANK_SUCCESS
+          }
+        );
+        expect(newState.toJS()).toEqual({
+          loading: false,
+          error: false
+        });
+      });
+
+      it("Should handle CHANGE_USER_RANK_ERROR", () => {
+        const newState = userRankChangeReducer(
+          fromJS({
+            loading: true,
+            error: true
+          }),
+          {
+            type: CHANGE_USER_RANK_ERROR,
+            error: "Test rank changing error"
+          }
+        );
+        expect(newState.toJS()).toEqual({
+          loading: false,
+          error: "Test rank changing error"
+        });
+      });
+    });
+
+    describe("Testing pluginOutputDeleteReducer", () => {
+      let initialState;
+      beforeEach(() => {
+        initialState = {
+          loading: false,
+          error: false
+        };
+      });
+
+      it("Should return the initial state", () => {
+        const newState = pluginOutputDeleteReducer(undefined, {});
+        expect(newState.toJS()).toEqual(initialState);
+      });
+
+      it("Should handle DELETE_PLUGIN_OUTPUT", () => {
+        const newState = pluginOutputDeleteReducer(undefined, {
+          type: DELETE_PLUGIN_OUTPUT,
+          plugin_data: {}
+        });
+        expect(newState.toJS()).toEqual({ loading: true, error: false });
+      });
+
+      it("Should handle DELETE_PLUGIN_OUTPUT_SUCCESS", () => {
+        const newState = pluginOutputDeleteReducer(
+          fromJS({
+            loading: true,
+            error: true
+          }),
+          {
+            type: DELETE_PLUGIN_OUTPUT_SUCCESS
+          }
+        );
+        expect(newState.toJS()).toEqual({
+          loading: false,
+          error: false
+        });
+      });
+
+      it("Should handle DELETE_PLUGIN_OUTPUT_ERROR", () => {
+        const newState = pluginOutputDeleteReducer(
+          fromJS({
+            loading: true,
+            error: true
+          }),
+          {
+            type: DELETE_PLUGIN_OUTPUT_ERROR,
+            error: "Test plugin deleting error"
+          }
+        );
+        expect(newState.toJS()).toEqual({
+          loading: false,
+          error: "Test plugin deleting error"
+        });
+      });
+    });
+
+    describe("Testing userNotesChangeReducer", () => {
+      let initialState;
+      beforeEach(() => {
+        initialState = {
+          loading: false,
+          error: false
+        };
+      });
+
+      it("Should return the initial state", () => {
+        const newState = userNotesChangeReducer(undefined, {});
+        expect(newState.toJS()).toEqual(initialState);
+      });
+
+      it("Should handle CHANGE_USER_NOTES", () => {
+        const newState = userNotesChangeReducer(undefined, {
+          type: CHANGE_USER_NOTES,
+          plugin_data: {}
+        });
+        expect(newState.toJS()).toEqual({ loading: true, error: false });
+      });
+
+      it("Should handle CHANGE_USER_NOTES_SUCCESS", () => {
+        const newState = userNotesChangeReducer(
+          fromJS({
+            loading: true,
+            error: true
+          }),
+          {
+            type: CHANGE_USER_NOTES_SUCCESS
+          }
+        );
+        expect(newState.toJS()).toEqual({
+          loading: false,
+          error: false
+        });
+      });
+
+      it("Should handle CHANGE_USER_NOTES_ERROR", () => {
+        const newState = userNotesChangeReducer(
+          fromJS({
+            loading: true,
+            error: true
+          }),
+          {
+            type: CHANGE_USER_NOTES_ERROR,
+            error: "Test notes changing error"
+          }
+        );
+        expect(newState.toJS()).toEqual({
+          loading: false,
+          error: "Test notes changing error"
+        });
+      });
+    });
+
+    describe("Testing targetExportLoadReducer", () => {
+      let initialState;
+      beforeEach(() => {
+        initialState = {
+          loading: false,
+          error: false,
+          exportData: false
+        };
+      });
+
+      it("Should return the initial state", () => {
+        const newState = targetExportLoadReducer(undefined, {});
+        expect(newState.toJS()).toEqual(initialState);
+      });
+
+      it("Should handle LOAD_TARGET_EXPORT", () => {
+        const newState = targetExportLoadReducer(undefined, {
+          type: LOAD_TARGET_EXPORT,
+          target_id: 1
+        });
+        expect(newState.toJS()).toEqual({
+          loading: true,
+          error: false,
+          exportData: false
+        });
+      });
+
+      it("Should handle LOAD_TARGET_EXPORT_SUCCESS", () => {
+        const targetExport = {
+          top_url: "http://fb.com:80",
+          top_domain: "com",
+          target_url: "http://fb.com",
+          max_user_rank: -1,
+          url_scheme: "http"
+        };
+        const newState = targetExportLoadReducer(
+          fromJS({
+            loading: true,
+            error: true,
+            exportData: false
+          }),
+          {
+            type: LOAD_TARGET_EXPORT_SUCCESS,
+            exportData: targetExport
+          }
+        );
+        expect(newState.toJS()).toEqual({
+          loading: false,
+          error: false,
+          exportData: targetExport
+        });
+      });
+
+      it("Should handle LOAD_TARGET_EXPORT_ERROR", () => {
+        const newState = targetExportLoadReducer(
+          fromJS({
+            loading: true,
+            error: true,
+            exportData: false
+          }),
+          {
+            type: LOAD_TARGET_EXPORT_ERROR,
+            error: "Test target export loading error"
+          }
+        );
+        expect(newState.toJS()).toEqual({
+          loading: false,
+          error: "Test target export loading error",
+          exportData: false
+        });
+      });
     });
   });
 });
