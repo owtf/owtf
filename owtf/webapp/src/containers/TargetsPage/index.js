@@ -6,11 +6,19 @@
  */
 
 import React from "react";
-import { Pane, Heading, Button, Textarea, Icon, Alert, Spinner } from 'evergreen-ui';
-import Sessions from "containers/Sessions";
-import Plugins from "containers/Plugins";
+import {
+  Pane,
+  Heading,
+  Button,
+  Textarea,
+  Icon,
+  Alert,
+  Spinner
+} from "evergreen-ui";
+import Sessions from "../Sessions/index";
+import Plugins from "../Plugins/index";
 import TargetsTable from "./TargetsTable";
-import "./style.scss";
+// import "./style.scss";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
@@ -19,13 +27,13 @@ import {
   makeSelectFetchLoading,
   makeSelectFetchTargets,
   makeSelectCreateLoading,
-  makeSelectCreateError,
+  makeSelectCreateError
 } from "./selectors";
 import { makeSelectFetchSessions } from "../Sessions/selectors";
 import { loadTargets, createTarget } from "./actions";
 import { loadSessions } from "../Sessions/actions";
 
-class TargetsPage extends React.Component {
+export class TargetsPage extends React.Component {
   constructor(props, context) {
     super(props, context);
 
@@ -39,26 +47,26 @@ class TargetsPage extends React.Component {
     this.handlePluginClose = this.handlePluginClose.bind(this);
     this.getCurrentSession = this.getCurrentSession.bind(this);
     this.updateSelectedTargets = this.updateSelectedTargets.bind(this);
-		this.resetTargetState = this.resetTargetState.bind(this);
+    this.resetTargetState = this.resetTargetState.bind(this);
 
     this.state = {
-      newTargetUrls: "",//URLs of new targets to be added
+      newTargetUrls: "", //URLs of new targets to be added
       show: false, //handles visibility of alert box
       alertStyle: null,
       alertMsg: "",
       disabled: false, //for target URL textbox
       pluginShow: false, //handles plugin component
-      selectedTargets: [],
+      selectedTargets: []
     };
   }
 
   /**
    * Function re-initializing the state after plugin launch
    */
-	resetTargetState() {
-		this.setState({
-			selectedTargets:[]
-		});
+  resetTargetState() {
+    this.setState({
+      selectedTargets: []
+    });
   }
 
   /**
@@ -66,35 +74,35 @@ class TargetsPage extends React.Component {
    */
   handleDismiss = () => {
     this.setState({ show: false });
-  }
+  };
 
   /**
    * Function handles the opening of Alert box
    */
   handleShow = () => {
     this.setState({ show: true });
-  }
+  };
 
   /**
    * Function rendering the Alert box after plugins launch or targets adding
    */
   renderAlert() {
-    let msgHeader = '';
-    switch (this.state.alertStyle){
+    let msgHeader = "";
+    switch (this.state.alertStyle) {
       case "danger":
-        msgHeader = 'Oops!'
+        msgHeader = "Oops!";
         break;
       case "success":
-        msgHeader = 'Yup!'
+        msgHeader = "Yup!";
         break;
       case "warning":
-        msgHeader = 'Hey!'
+        msgHeader = "Hey!";
         break;
       case "none":
-        msgHeader = 'BTW!'
+        msgHeader = "BTW!";
         break;
       default:
-        msgHeader = ''
+        msgHeader = "";
     }
     if (this.state.show) {
       return (
@@ -116,7 +124,7 @@ class TargetsPage extends React.Component {
    * @param {string} alertStyle Intent of the alert box
    * @param {string} alertMsg Message shown by the alert box
    */
-  handleAlertMsg(alertStyle, alertMsg){
+  handleAlertMsg(alertStyle, alertMsg) {
     this.setState({
       show: true,
       alertStyle: alertStyle,
@@ -174,13 +182,19 @@ class TargetsPage extends React.Component {
     if (targetUrls.length > 0) {
       targetUrls.map(target_url => {
         this.props.onCreateTarget(target_url);
-        setTimeout(()=> {
-          if(this.props.createError !== false){
-            this.handleAlertMsg("danger", "Unable to add " + unescape(target_url.split("//")[1]));
+        setTimeout(() => {
+          if (this.props.createError !== false) {
+            this.handleAlertMsg(
+              "danger",
+              "Unable to add " + unescape(target_url.split("//")[1])
+            );
           }
         }, 200);
       });
-      this.handleAlertMsg("none", "Targets are being added in the background, and will appear in the table soon");
+      this.handleAlertMsg(
+        "none",
+        "Targets are being added in the background, and will appear in the table soon"
+      );
     }
     this.setState({ disabled: false });
   }
@@ -206,11 +220,11 @@ class TargetsPage extends React.Component {
    */
   exportTargets() {
     const targetsArray = [];
-    this.props.targets.map((target) => {
-      targetsArray.push(target.target_url+'\n');
+    this.props.targets.map(target => {
+      targetsArray.push(target.target_url + "\n");
     });
     const element = document.createElement("a");
-    const file = new Blob(targetsArray, {type: 'text/plain;charset=utf-8'});
+    const file = new Blob(targetsArray, { type: "text/plain;charset=utf-8" });
     element.href = URL.createObjectURL(file);
     element.download = "targets.txt";
     element.click();
@@ -235,7 +249,7 @@ class TargetsPage extends React.Component {
    * @param {Array} selectedTargets List of IDs of the targets to be run
    */
   updateSelectedTargets(selectedTargets) {
-    this.setState({ selectedTargets: selectedTargets});
+    this.setState({ selectedTargets: selectedTargets });
   }
 
   render() {
@@ -245,22 +259,31 @@ class TargetsPage extends React.Component {
       handleAlertMsg: this.handleAlertMsg,
       getCurrentSession: this.getCurrentSession,
       updateSelectedTargets: this.updateSelectedTargets,
-      handlePluginShow: this.handlePluginShow,
-    }
+      handlePluginShow: this.handlePluginShow
+    };
     const PluginProps = {
       handlePluginClose: this.handlePluginClose,
       pluginShow: this.state.pluginShow,
       selectedTargets: this.state.selectedTargets,
       handleAlertMsg: this.handleAlertMsg,
-      resetTargetState: this.resetTargetState,
-    }
+      resetTargetState: this.resetTargetState
+    };
     return (
-      <Pane  margin={20}>
+      <Pane margin={20} data-test="targetsPageComponent">
         {this.renderAlert()}
-        <Pane clearfix display="flex" flexDirection="row" flexWrap= "wrap" justifyContent="center" overflow="hidden">
+        <Pane
+          clearfix
+          display="flex"
+          flexDirection="row"
+          flexWrap="wrap"
+          justifyContent="center"
+          overflow="hidden"
+        >
           <Pane id="add_targets" width="40%" margin={20}>
             <Pane flexDirection="column">
-              <Heading size={700} color="#0788DE">Add Targets</Heading>
+              <Heading size={700} color="#0788DE">
+                Add Targets
+              </Heading>
               <Textarea
                 name="newTargetUrls"
                 placeholder="Input targets seperated by new line"
@@ -273,6 +296,7 @@ class TargetsPage extends React.Component {
                 marginTop={10}
                 disabled={this.state.disabled}
                 onClick={this.addNewTargets}
+                data-test="addTargetButton"
               >
                 Add Targets
               </Button>
@@ -289,22 +313,34 @@ class TargetsPage extends React.Component {
               </Pane>
               <Pane>
                 <Button onClick={this.exportTargets}>
-                  <Icon icon="import" marginRight={10} />Export
+                  <Icon icon="import" marginRight={10} />
+                  Export
                 </Button>
-                <Button appearance="primary" intent="success" onClick={this.handlePluginShow}>
-                  <Icon icon="build" marginRight={10} />Run
+                <Button
+                  appearance="primary"
+                  intent="success"
+                  onClick={this.handlePluginShow}
+                  data-test="pluginButton"
+                >
+                  <Icon icon="build" marginRight={10} />
+                  Run
                 </Button>
               </Pane>
             </Pane>
-            {fetchError !== false ? <p>Something went wrong, please try again!</p> : null}
-            {fetchLoading !== false
-              ?<Pane display="flex" alignItems="center" justifyContent="center" height={400}>
-                <Spinner size={64}/>
-                </Pane>
-              : null}
-            {targets !== false
-              ?<TargetsTable {...TargetsTableProps} />
-              : null}
+            {fetchError !== false ? (
+              <p>Something went wrong, please try again!</p>
+            ) : null}
+            {fetchLoading !== false ? (
+              <Pane
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                height={400}
+              >
+                <Spinner size={64} />
+              </Pane>
+            ) : null}
+            {targets !== false ? <TargetsTable {...TargetsTableProps} /> : null}
           </Pane>
         </Pane>
       </Pane>
@@ -329,14 +365,14 @@ const mapStateToProps = createStructuredSelector({
   fetchLoading: makeSelectFetchLoading,
   fetchError: makeSelectFetchError,
   createLoading: makeSelectCreateLoading,
-  createError: makeSelectCreateError,
+  createError: makeSelectCreateError
 });
 
 const mapDispatchToProps = dispatch => {
   return {
     onFetchSession: () => dispatch(loadSessions()),
     onFetchTarget: () => dispatch(loadTargets()),
-    onCreateTarget: (target_url) => dispatch(createTarget(target_url))
+    onCreateTarget: target_url => dispatch(createTarget(target_url))
   };
 };
 
