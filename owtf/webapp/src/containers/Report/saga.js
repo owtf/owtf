@@ -2,41 +2,78 @@
  * Fetch, Create and Change the targets from API
  */
 
-import { call, put, takeLatest } from 'redux-saga/effects';
-import { LOAD_TARGET, LOAD_PLUGIN_OUTPUT, CHANGE_USER_RANK, DELETE_PLUGIN_OUTPUT, CHANGE_USER_NOTES } from './constants';
-import { loadTarget, targetLoaded, targetLoadingError,
-  pluginOutputLoaded, pluginOutputLoadingError,
-  userRankChanged, userRankChangingError,
-  pluginOutputDeleted, pluginOutputDeletingError,
-  userNotesChanged, userNotesChangingError } from './actions';
+import { call, put, takeLatest } from "redux-saga/effects";
+import {
+  LOAD_TARGET,
+  LOAD_PLUGIN_OUTPUT_NAMES,
+  LOAD_PLUGIN_OUTPUT,
+  CHANGE_USER_RANK,
+  DELETE_PLUGIN_OUTPUT,
+  CHANGE_USER_NOTES,
+  LOAD_TARGET_EXPORT
+} from "./constants";
+import {
+  loadTarget,
+  targetLoaded,
+  targetLoadingError,
+  pluginOutputNamesLoaded,
+  pluginOutputNamesLoadingError,
+  pluginOutputLoaded,
+  pluginOutputLoadingError,
+  userRankChanged,
+  userRankChangingError,
+  pluginOutputDeleted,
+  pluginOutputDeletingError,
+  userNotesChanged,
+  userNotesChangingError,
+  targetExportLoaded,
+  targetExportLoadingError
+} from "./actions";
 
-import Request from 'utils/request';
-import { API_BASE_URL } from 'utils/constants';
+import {
+  getTargetAPI,
+  getPluginOutputNamesAPI,
+  getPluginOutputAPI,
+  patchUserRankAPI,
+  deletePluginOutputAPI,
+  patchUserNotesAPI,
+  getTargetExportAPI
+} from "./api";
 
 /**
  * Fetch Target request/response handler
  */
 export function* getTarget(action) {
-    const requestURL = `${API_BASE_URL}targets/${action.target_id.toString()}/`;
+  const fetchAPI = getTargetAPI(action);
   try {
     // Call our request helper (see 'utils/request')
-    const request = new Request(requestURL);
-    const target = yield call(request.get.bind(request));
+    const target = yield call(fetchAPI);
     yield put(targetLoaded(target.data));
   } catch (error) {
     yield put(targetLoadingError(error));
   }
 }
 
-/** 
+/**
+ * Fetch Plugin output request/response handler
+ */
+export function* getPluginOutputNames(action) {
+  const fetchAPI = getPluginOutputNamesAPI(action);
+  try {
+    const pluginOutputData = yield call(fetchAPI);
+    yield put(pluginOutputNamesLoaded(pluginOutputData.data));
+  } catch (error) {
+    yield put(pluginOutputNamesLoadingError(error));
+  }
+}
+
+/**
  * Fetch Plugin output request/response handler
  */
 export function* getPluginOutput(action) {
-  const requestURL = `${API_BASE_URL}targets/${action.target_id.toString()}/poutput/names/`;
+  const fetchAPI = getPluginOutputAPI(action);
   try {
-    // Call our request helper (see 'utils/request')
-    const request = new Request(requestURL);
-    const pluginOutputData = yield call(request.get.bind(request));
+    const pluginOutputData = yield call(fetchAPI);
     yield put(pluginOutputLoaded(pluginOutputData.data));
   } catch (error) {
     yield put(pluginOutputLoadingError(error));
@@ -49,19 +86,11 @@ export function* getPluginOutput(action) {
 export function* patchUserRank(action) {
   const plugin_data = action.plugin_data;
   const target_id = plugin_data.target_id.toString();
-  const group = plugin_data.group.toString();
-  const type = plugin_data.type.toString();
-  const code = plugin_data.code.toString();
-  const requestURL = `${API_BASE_URL}targets/${target_id}/poutput/${group}/${type}/${code}/`;
-
+  const patchAPI = patchUserRankAPI(action);
   try {
-    const options = {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-      },
-    };
-    const request = new Request(requestURL, options);
-    yield call(request.patch.bind(request), {user_rank: plugin_data.user_rank});
+    yield call(patchAPI, {
+      user_rank: plugin_data.user_rank
+    });
     yield put(userRankChanged());
     yield put(loadTarget(target_id));
   } catch (error) {
@@ -73,19 +102,12 @@ export function* patchUserRank(action) {
  * Delete Plugin output request/response handler
  */
 export function* deletePluginOutput(action) {
-  const plugin_data = action.plugin_data;
-  const target_id = plugin_data.target_id.toString();
-  const group = plugin_data.group.toString();
-  const type = plugin_data.type.toString();
-  const code = plugin_data.code.toString();
-  const requestURL = `${API_BASE_URL}targets/${target_id}/poutput/${group}/${type}/${code}/`;
-
+  const deleteAPI = deletePluginOutputAPI(action);
   try {
-    const request = new Request(requestURL);
-    yield call(request.delete.bind(request));
+    yield call(deleteAPI);
     yield put(pluginOutputDeleted());
   } catch (error) {
-    yield put(pluginOutputDeletingError(error));  
+    yield put(pluginOutputDeletingError(error));
   }
 }
 
@@ -94,23 +116,28 @@ export function* deletePluginOutput(action) {
  */
 export function* patchUserNotes(action) {
   const plugin_data = action.plugin_data;
-  const target_id = plugin_data.target_id.toString();
-  const group = plugin_data.group.toString();
-  const type = plugin_data.type.toString();
-  const code = plugin_data.code.toString();
-  const requestURL = `${API_BASE_URL}targets/${target_id}/poutput/${group}/${type}/${code}/`;
-
+  const patchAPI = patchUserNotesAPI(action);
   try {
-    const options = {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-      },
-    };
-    const request = new Request(requestURL, options);
-    yield call(request.patch.bind(request), {user_notes: plugin_data.user_notes});
+    yield call(patchAPI, {
+      user_notes: plugin_data.user_notes
+    });
     yield put(userNotesChanged());
   } catch (error) {
     yield put(userNotesChangingError(error));
+  }
+}
+
+/**
+ * Fetch Target request/response handler
+ */
+export function* getTargetExport(action) {
+  const fetchAPI = getTargetExportAPI(action);
+  try {
+    // Call our request helper (see 'utils/request')
+    const result = yield call(fetchAPI);
+    yield put(targetExportLoaded(result.data));
+  } catch (error) {
+    yield put(targetExportLoadingError(error));
   }
 }
 
@@ -120,8 +147,10 @@ export default function* reportSaga() {
   // It returns task descriptor (just like fork) so we can continue execution
   // It will be cancelled automatically on component unmount
   yield takeLatest(LOAD_TARGET, getTarget);
+  yield takeLatest(LOAD_PLUGIN_OUTPUT_NAMES, getPluginOutputNames);
   yield takeLatest(LOAD_PLUGIN_OUTPUT, getPluginOutput);
   yield takeLatest(CHANGE_USER_RANK, patchUserRank);
   yield takeLatest(DELETE_PLUGIN_OUTPUT, deletePluginOutput);
-  yield takeLatest(CHANGE_USER_NOTES, patchUserNotes);  
+  yield takeLatest(CHANGE_USER_NOTES, patchUserNotes);
+  yield takeLatest(LOAD_TARGET_EXPORT, getTargetExport);
 }
