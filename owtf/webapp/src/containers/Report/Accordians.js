@@ -1,115 +1,122 @@
-/*
- * WorkersPage
+/**
+ * React Component for group of Accordian. It is child component used by Report Component.
+ * Uses REST API - /api/targets/<target_id>/poutput/names/
+ * JSON output will contain a JS object having key as Plugin Code and value is another JS object having data and details keys.
+ * data gives all details about that plugin result other than output.
+ * details gives information of plugin like desciption, url etc.
+ * Idea behind using the /api/targets/<target_id>/poutput/names/ thing to load only the things that are visible to user.
+ * Output is not visible to user which can be a huge data to request initially. Hence, this optimises the Report a lot.
  */
-import React from 'react';
-import Accordian from './Accordian';
-import { loadPluginOutput, changeUserRank, deletePluginOutput } from './actions';
-import { postToWorklist } from '../Plugins/actions';
+
+import React from "react";
+import Accordian from "./Accordian";
+import { loadPluginOutputNames } from "./actions";
 import {
-	makeSelectFetchPluginOutput,
-	makeSelectPluginOutputError,
-	makeSelectPluginOutputLoading,
-	makeSelectChangeRankError,
-	makeSelectChangeRankLoading,
-	makeSelectDeletePluginError,
-	makeSelectDeletePluginLoading,
-} from './selectors';
-import { makeSelectPostToWorklistError } from '../Plugins/selectors';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { createStructuredSelector } from 'reselect';
-import '../../style.scss';
-import { PanelGroup, Panel } from 'react-bootstrap';
+  makeSelectFetchPluginOutputNames,
+  makeSelectPluginOutputNamesLoading,
+  makeSelectPluginOutputNamesError
+} from "./selectors";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
+import { createStructuredSelector } from "reselect";
+import { Paragraph, Pane, Spinner } from "evergreen-ui";
 
-class Accordians extends React.Component {
+export class Accordians extends React.Component {
+  constructor(props, context) {
+    super(props, context);
+  }
 
-	constructor(props, context) {
-		super(props, context);
+  /**
+   * Lifecycle method gets invoked after accordians component gets mounted.
+   * Calls the onFetchPluginOutputNames action to render the list of all plugins.
+   */
+  componentDidMount() {
+    this.props.onFetchPluginOutputNames(this.props.targetData.id);
+  }
 
-	}
+  render() {
+    const { pluginOutputNames, loadingNames, errorNames } = this.props;
+    const AccordianProps = {
+      targetData: this.props.targetData,
+      selectedGroup: this.props.selectedGroup,
+      selectedType: this.props.selectedType,
+      selectedRank: this.props.selectedRank,
+      selectedOwtfRank: this.props.selectedOwtfRank,
+      selectedMapping: this.props.selectedMapping,
+      selectedStatus: this.props.selectedStatus
+    };
+    if (loadingNames) {
+      return (
+        <Pane
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          height={400}
+        >
+          <Spinner />
+        </Pane>
+      );
+    }
 
-	componentDidMount() {
-		this.props.onFetchPluginOutput(this.props.targetData.id);
-	};
+    if (errorNames !== false) {
+      return (
+        <Pane
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          height={400}
+        >
+          <Paragraph size={500}>
+            Something went wrong, please try again!
+          </Paragraph>
+        </Pane>
+      );
+    }
 
-	render() {
-		const { pluginOutput, loading, error } = this.props;
-		const AccordianProps = {
-			targetData: this.props.targetData,
-			selectedGroup: this.props.selectedGroup,
-			selectedType: this.props.selectedType,
-			selectedRank: this.props.selectedRank,
-			selectedOwtfRank: this.props.selectedOwtfRank,
-			selectedMapping: this.props.selectedMapping,
-			selectedStatus: this.props.selectedStatus,
-			onChangeUserRank: this.props.onChangeUserRank,
-			changeError: this.props.changeError,
-			onPostToWorklist: this.props.onPostToWorklist,
-			postToWorklistError: this.props.postToWorklistError,
-			onDeletePluginOutput: this.props.onDeletePluginOutput,
-			deleteError: this.props.deleteError,
-		}
-		if (loading) {
-			return (
-				<div className="spinner" />
-			);
-		}
-
-		if (error !== false) {
-			return <p>Something went wrong, please try again!</p>;
-		}
-
-		if (pluginOutput !== false) {
-			return (
-				<PanelGroup
-					accordion
-					id="pluginOutputs"
-				>
-					{Object.keys(pluginOutput).map(function (key) {
-						return (<Accordian {...AccordianProps} key={key} data={pluginOutput[key]} code={key} />);
-					})}
-				</PanelGroup>
-			);
-		}
-	}
+    if (pluginOutputNames !== false) {
+      return (
+        <Pane id="pluginOutputs" data-test="accordiansComponent">
+          {Object.keys(pluginOutputNames).map(function(key) {
+            return (
+              <Accordian
+                {...AccordianProps}
+                key={key}
+                data={pluginOutputNames[key]}
+                code={key}
+              />
+            );
+          })}
+        </Pane>
+      );
+    }
+  }
 }
 
 Accordians.propTypes = {
-	loading: PropTypes.bool,
-	error: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-	pluginOutput: PropTypes.oneOfType([
-		PropTypes.object.isRequired,
-		PropTypes.bool.isRequired,
-	]),
-	changeLoading: PropTypes.bool,
-	changeError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-	deleteLoading: PropTypes.bool,
-	deleteError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-	postToWorklistError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-	onFetchPluginOutput: PropTypes.func,
-	onChangeUserRank: PropTypes.func,
-	onPostToWorklist: PropTypes.func,
-	onDeletePluginOutput: PropTypes.func,
+  targetData: PropTypes.object,
+  loadingNames: PropTypes.bool,
+  errorNames: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
+  pluginOutputNames: PropTypes.oneOfType([
+    PropTypes.object.isRequired,
+    PropTypes.bool.isRequired
+  ]),
+  onFetchPluginOutputNames: PropTypes.func
 };
 
 const mapStateToProps = createStructuredSelector({
-	pluginOutput: makeSelectFetchPluginOutput,
-	loading: makeSelectPluginOutputLoading,
-	error: makeSelectPluginOutputError,
-	changeLoading: makeSelectChangeRankLoading,
-	changeError: makeSelectChangeRankError,
-	postToWorklistError: makeSelectPostToWorklistError,
-	deleteError: makeSelectDeletePluginError,
-	deleteLoading: makeSelectDeletePluginLoading,
+  pluginOutputNames: makeSelectFetchPluginOutputNames,
+  loadingNames: makeSelectPluginOutputNamesLoading,
+  errorNames: makeSelectPluginOutputNamesError
 });
 
 const mapDispatchToProps = dispatch => {
-	return {
-		onFetchPluginOutput: (target_id) => dispatch(loadPluginOutput(target_id)),
-		onChangeUserRank: (plugin_data) => dispatch(changeUserRank(plugin_data)),
-		onPostToWorklist: (plugin_data) => dispatch(postToWorklist(plugin_data)),
-		onDeletePluginOutput: (plugin_data) => dispatch(deletePluginOutput(plugin_data)),
-	};
+  return {
+    onFetchPluginOutputNames: target_id =>
+      dispatch(loadPluginOutputNames(target_id))
+  };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Accordians);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Accordians);

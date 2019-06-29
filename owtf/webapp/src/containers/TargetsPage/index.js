@@ -1,24 +1,24 @@
 /*
- * Target Page
+ * Targets Page
+ * Handles adding & deleting targest
+ * Handles running plugins on different targets
+ * Shows the list of targets along with actions to apply on the targets
  */
+
 import React from "react";
-import Sessions from "containers/Sessions";
-import Plugins from "containers/Plugins";
-import TargetsTable from "./TargetsTable";
 import {
-  Grid,
-  Row,
-  Col,
+  Pane,
+  Heading,
   Button,
-  ButtonGroup,
-  Glyphicon,
-  Alert
-} from "react-bootstrap";
-import { Breadcrumb } from "react-bootstrap";
-import InputGroup from "react-bootstrap/es/InputGroup";
-import FormControl from "react-bootstrap/es/FormControl";
-import "../../style.scss";
-import "./style.scss";
+  Textarea,
+  Icon,
+  Alert,
+  Spinner
+} from "evergreen-ui";
+import Sessions from "../Sessions/index";
+import Plugins from "../Plugins/index";
+import TargetsTable from "./TargetsTable";
+// import "./style.scss";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
@@ -27,13 +27,13 @@ import {
   makeSelectFetchLoading,
   makeSelectFetchTargets,
   makeSelectCreateLoading,
-  makeSelectCreateError,
+  makeSelectCreateError
 } from "./selectors";
 import { makeSelectFetchSessions } from "../Sessions/selectors";
 import { loadTargets, createTarget } from "./actions";
 import { loadSessions } from "../Sessions/actions";
 
-class TargetsPage extends React.Component {
+export class TargetsPage extends React.Component {
   constructor(props, context) {
     super(props, context);
 
@@ -47,55 +47,84 @@ class TargetsPage extends React.Component {
     this.handlePluginClose = this.handlePluginClose.bind(this);
     this.getCurrentSession = this.getCurrentSession.bind(this);
     this.updateSelectedTargets = this.updateSelectedTargets.bind(this);
+    this.resetTargetState = this.resetTargetState.bind(this);
 
     this.state = {
-      newTargetUrls: "",//URLs of new targets to be added
+      newTargetUrls: "", //URLs of new targets to be added
       show: false, //handles visibility of alert box
-      alertStyle: null, 
-      alertMsg: "", 
+      alertStyle: null,
+      alertMsg: "",
       disabled: false, //for target URL textbox
       pluginShow: false, //handles plugin component
-      selectedTargets: [],
+      selectedTargets: []
     };
   }
 
-  handleDismiss() {
+  /**
+   * Function re-initializing the state after plugin launch
+   */
+  resetTargetState() {
+    this.setState({
+      selectedTargets: []
+    });
+  }
+
+  /**
+   * Function handles the closing of Alert box
+   */
+  handleDismiss = () => {
     this.setState({ show: false });
-  }
+  };
 
-  handleShow() {
+  /**
+   * Function handles the opening of Alert box
+   */
+  handleShow = () => {
     this.setState({ show: true });
-  }
+  };
 
+  /**
+   * Function rendering the Alert box after plugins launch or targets adding
+   */
   renderAlert() {
-    let msgHeader = '';
-    switch (this.state.alertStyle){
+    let msgHeader = "";
+    switch (this.state.alertStyle) {
       case "danger":
-        msgHeader = 'Oops!'
+        msgHeader = "Oops!";
         break;
       case "success":
-        msgHeader = 'Yup!'
+        msgHeader = "Yup!";
         break;
       case "warning":
-        msgHeader = 'Hey!'
+        msgHeader = "Hey!";
         break;
-      case "info":
-        msgHeader = 'BTW!'
+      case "none":
+        msgHeader = "BTW!";
         break;
       default:
-        msgHeader = ''
+        msgHeader = "";
     }
     if (this.state.show) {
       return (
-        <Alert bsStyle={this.state.alertStyle} onDismiss={this.handleDismiss}>
-          <strong>{msgHeader}</strong> {this.state.alertMsg}
+        <Alert
+          appearance="card"
+          intent={this.state.alertStyle}
+          title={msgHeader}
+          isRemoveable={true}
+          onRemove={this.handleDismiss}
+        >
+          {this.state.alertMsg}
         </Alert>
       );
     }
   }
 
-  //invoke an alert box based on given params
-  handleAlertMsg(alertStyle, alertMsg){
+  /**
+   * Function invoking the Alert box using given params
+   * @param {string} alertStyle Intent of the alert box
+   * @param {string} alertMsg Message shown by the alert box
+   */
+  handleAlertMsg(alertStyle, alertMsg) {
     this.setState({
       show: true,
       alertStyle: alertStyle,
@@ -106,20 +135,30 @@ class TargetsPage extends React.Component {
     }, 5000);
   }
 
+  /**
+   * Function updating the input targets url
+   * @param {Object} event Event containing the name and value of the Textbox
+   */
   handleTargetUrlsChange({ target }) {
     this.setState({
       [target.name]: target.value
     });
   }
 
+  /**
+   * Function validating a string to be a proper URL
+   * @param {string} str String to be validated
+   */
   isUrl(str) {
     // TODO: Add all url protocols to support network plugins
     const urlPattern = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?/;
     return urlPattern.test(str);
   }
 
-  // Add new targets using API
-  addNewTargets(targetUrlsString, button) {
+  /**
+   * Function for adding new targets using the onCreateTarget function
+   */
+  addNewTargets() {
     this.setState({ disabled: true });
     const lines = this.state.newTargetUrls.split("\n");
     const targetUrls = [];
@@ -143,13 +182,19 @@ class TargetsPage extends React.Component {
     if (targetUrls.length > 0) {
       targetUrls.map(target_url => {
         this.props.onCreateTarget(target_url);
-        setTimeout(()=> {
-          if(this.props.createError !== false){
-            this.handleAlertMsg("danger", "Unable to add " + unescape(target_url.split("//")[1]));
+        setTimeout(() => {
+          if (this.props.createError !== false) {
+            this.handleAlertMsg(
+              "danger",
+              "Unable to add " + unescape(target_url.split("//")[1])
+            );
           }
         }, 200);
       });
-      this.handleAlertMsg("info", "Targets are being added in the background, and will appear in the table soon");       
+      this.handleAlertMsg(
+        "none",
+        "Targets are being added in the background, and will appear in the table soon"
+      );
     }
     this.setState({ disabled: false });
   }
@@ -159,6 +204,9 @@ class TargetsPage extends React.Component {
     this.props.onFetchSession();
   }
 
+  /**
+   * Function returns the current session
+   */
   getCurrentSession() {
     const sessions = this.props.sessions;
     if (sessions === false) return false;
@@ -167,29 +215,41 @@ class TargetsPage extends React.Component {
     }
   }
 
-  //download list of targets as txt file
+  /**
+   * Function to download list of targets as txt file
+   */
   exportTargets() {
     const targetsArray = [];
-    this.props.targets.map((target) => {
-      targetsArray.push(target.target_url+'\n');
+    this.props.targets.map(target => {
+      targetsArray.push(target.target_url + "\n");
     });
     const element = document.createElement("a");
-    const file = new Blob(targetsArray, {type: 'text/plain;charset=utf-8'});
+    const file = new Blob(targetsArray, { type: "text/plain;charset=utf-8" });
     element.href = URL.createObjectURL(file);
     element.download = "targets.txt";
     element.click();
   }
 
+  /**
+   * Handles the closing of the plugin component
+   */
   handlePluginClose() {
     this.setState({ pluginShow: false });
   }
 
+  /**
+   * Handles the opening of the plugin component
+   */
   handlePluginShow() {
     this.setState({ pluginShow: true });
   }
 
+  /**
+   * Function updating the targest IDs to be run
+   * @param {Array} selectedTargets List of IDs of the targets to be run
+   */
   updateSelectedTargets(selectedTargets) {
-    this.setState({ selectedTargets: selectedTargets});
+    this.setState({ selectedTargets: selectedTargets });
   }
 
   render() {
@@ -199,75 +259,91 @@ class TargetsPage extends React.Component {
       handleAlertMsg: this.handleAlertMsg,
       getCurrentSession: this.getCurrentSession,
       updateSelectedTargets: this.updateSelectedTargets,
-    }
+      handlePluginShow: this.handlePluginShow
+    };
     const PluginProps = {
-      handlePluginShow: this.handlePluginShow,
       handlePluginClose: this.handlePluginClose,
       pluginShow: this.state.pluginShow,
       selectedTargets: this.state.selectedTargets,
-      handleAlertMsg: this.handleAlertMsg,      
-    }
+      handleAlertMsg: this.handleAlertMsg,
+      resetTargetState: this.resetTargetState
+    };
     return (
-      <Grid>
-        <Row>
-          <Col>{this.renderAlert()}</Col>
-        </Row>
-        <Row>
-          <Breadcrumb>
-            <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-            <Breadcrumb.Item active>Targets</Breadcrumb.Item>
-          </Breadcrumb>
-        </Row>
-        <Row>
-          <Col xs={12} sm={12} md={6} lg={6}>
-            <Row>
-              <h3>Add Targets</h3>
-            </Row>
-            <Row>
-              <FormControl
-                componentClass="textarea"
+      <Pane margin={20} data-test="targetsPageComponent">
+        {this.renderAlert()}
+        <Pane
+          clearfix
+          display="flex"
+          flexDirection="row"
+          flexWrap="wrap"
+          justifyContent="center"
+          overflow="hidden"
+        >
+          <Pane id="add_targets" width="40%" margin={20}>
+            <Pane flexDirection="column">
+              <Heading size={700} color="#0788DE">
+                Add Targets
+              </Heading>
+              <Textarea
                 name="newTargetUrls"
-                placeholder="Targets seperated by new line"
+                placeholder="Input targets seperated by new line"
+                marginTop={10}
                 onChange={this.handleTargetUrlsChange}
                 value={this.state.newTargetUrls}
               />
-            </Row>
-            <Row className="add-target-btn">
-              <Button bsStyle="primary" disabled={this.state.disabled} onClick={this.addNewTargets}>
+              <Button
+                appearance="primary"
+                marginTop={10}
+                disabled={this.state.disabled}
+                onClick={this.addNewTargets}
+                data-test="addTargetButton"
+              >
                 Add Targets
               </Button>
               <Plugins {...PluginProps} />
-            </Row>
-          </Col>
-          <Col xs={12} sm={12} md={6} lg={6}>
-            <Row>
-              <Col xs={6} md={6}>
+            </Pane>
+          </Pane>
+          <Pane margin={40} flex={1}>
+            <Pane display="flex" padding={16}>
+              <Pane flex={1} alignItems="center" display="flex">
+                <Heading size={800}>TARGETS</Heading>
+              </Pane>
+              <Pane marginRight={16}>
                 <Sessions />
-              </Col>
-              <Col xs={6} md={6}>
-                <ButtonGroup>
-                  <Button onClick={this.exportTargets}>
-                    <Glyphicon glyph="list" /> Export
-                  </Button>
-                  <Button bsStyle="success" onClick={this.handlePluginShow}>
-                    <Glyphicon glyph="flash" /> Run
-                  </Button>
-                </ButtonGroup>
-              </Col>
-            </Row>
-            <br />
-            <Row>
-              <Col xs={12} md={12}>
-                {fetchError !== false ? <p>Something went wrong, please try again!</p> : null}
-                {fetchLoading ? <div className="spinner" /> : null}
-                {targets !== false 
-                  ?<TargetsTable {...TargetsTableProps} />
-                  : null}
-              </Col>
-            </Row>
-          </Col>
-        </Row>
-      </Grid>
+              </Pane>
+              <Pane>
+                <Button onClick={this.exportTargets}>
+                  <Icon icon="import" marginRight={10} />
+                  Export
+                </Button>
+                <Button
+                  appearance="primary"
+                  intent="success"
+                  onClick={this.handlePluginShow}
+                  data-test="pluginButton"
+                >
+                  <Icon icon="build" marginRight={10} />
+                  Run
+                </Button>
+              </Pane>
+            </Pane>
+            {fetchError !== false ? (
+              <p>Something went wrong, please try again!</p>
+            ) : null}
+            {fetchLoading !== false ? (
+              <Pane
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                height={400}
+              >
+                <Spinner size={64} />
+              </Pane>
+            ) : null}
+            {targets !== false ? <TargetsTable {...TargetsTableProps} /> : null}
+          </Pane>
+        </Pane>
+      </Pane>
     );
   }
 }
@@ -289,14 +365,14 @@ const mapStateToProps = createStructuredSelector({
   fetchLoading: makeSelectFetchLoading,
   fetchError: makeSelectFetchError,
   createLoading: makeSelectCreateLoading,
-  createError: makeSelectCreateError,
+  createError: makeSelectCreateError
 });
 
 const mapDispatchToProps = dispatch => {
   return {
     onFetchSession: () => dispatch(loadSessions()),
     onFetchTarget: () => dispatch(loadTargets()),
-    onCreateTarget: (target_url) => dispatch(createTarget(target_url))
+    onCreateTarget: target_url => dispatch(createTarget(target_url))
   };
 };
 
