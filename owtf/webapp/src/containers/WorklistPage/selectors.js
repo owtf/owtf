@@ -43,17 +43,22 @@ const makeSelectFetchWorklist = createSelector(
 
 const makeSelectCreateLoading = createSelector(
   makeSelectCreate,
-  fetchState => fetchState.get("loading")
+  createState => createState.get("loading")
 );
 
 const makeSelectCreateError = createSelector(
   makeSelectCreate,
-  fetchState => fetchState.get("error")
+  createState => createState.get("error")
 );
 
 const makeSelectDeleteError = createSelector(
   makeSelectDelete,
-  fetchState => fetchState.get("error")
+  deleteState => deleteState.get("error")
+);
+
+const makeSelectChangeError = createSelector(
+  makeSelectChange,
+  changeState => changeState.get("error")
 );
 
 export {
@@ -62,5 +67,6 @@ export {
   makeSelectFetchWorklist,
   makeSelectCreateLoading,
   makeSelectCreateError,
-  makeSelectDeleteError
+  makeSelectDeleteError,
+  makeSelectChangeError
 };
