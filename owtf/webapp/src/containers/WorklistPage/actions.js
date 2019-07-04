@@ -55,14 +55,14 @@ export function worklistLoadingError(error) {
 /**
  * Creates the worklist, this action starts the request saga POST.
  *
- * @param  {string} worklist_url URL of the worklist to be created.
+ * @param  {string} worklist_data data [group, type, id, force_overwrite] of the worklist to be created.
  *
  * @return {object} An action object with a type of CREATE_WORKLIST
  */
-export function createWorklist(worklist_url) {
+export function createWorklist(worklist_data) {
   return {
     type: CREATE_WORKLIST,
-    worklist_url
+    worklist_data
   };
 }
 

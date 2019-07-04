@@ -72,7 +72,7 @@ export class WorklistPage extends React.Component {
     this.props.onChangeWorklist(0, "pause");
     setTimeout(() => {
       if (this.props.changeError === false) {
-        toaster.success("All Works are successfully paused :)");
+        toaster.warning("All Works are successfully paused :)");
       } else {
         toaster.danger("Server replied: " + this.props.changeError);
       }
@@ -87,7 +87,7 @@ export class WorklistPage extends React.Component {
     this.props.onDeleteWorklist(0);
     setTimeout(() => {
       if (this.props.deleteError === false) {
-        toaster.success("All Works are successfully deleted :)");
+        toaster.notify("All Works are successfully deleted :)");
       } else {
         toaster.danger("Server replied: " + this.props.deleteError);
       }
@@ -119,7 +119,7 @@ export class WorklistPage extends React.Component {
     this.props.onChangeWorklist(work_id, "pause");
     setTimeout(() => {
       if (this.props.changeError === false) {
-        toaster.success("Work is successfully paused :)");
+        toaster.warning("Work is successfully paused :)");
       } else {
         toaster.danger("Server replied: " + this.props.changeError);
       }
@@ -135,7 +135,7 @@ export class WorklistPage extends React.Component {
     this.props.onDeleteWorklist(work_id);
     setTimeout(() => {
       if (this.props.deleteError === false) {
-        toaster.success("Work is successfully deleted :)");
+        toaster.notify("Work is successfully deleted :)");
       } else {
         toaster.danger("Server replied: " + this.props.deleteError);
       }
@@ -157,6 +157,7 @@ export class WorklistPage extends React.Component {
         paddingLeft={100}
         display="flex"
         flexDirection="column"
+        data-test="worklistComponent"
       >
         <Breadcrumb>
           <Breadcrumb.Item href="/">Home</Breadcrumb.Item>

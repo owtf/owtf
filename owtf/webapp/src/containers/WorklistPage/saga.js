@@ -48,7 +48,7 @@ export function* getWorklist() {
 export function* postWorklist(action) {
   const postAPI = postWorklistAPI();
   try {
-    yield call(postAPI, { worklist_url: action.worklist_url });
+    yield call(postAPI, action.worklist_data);
     yield put(worklistCreated());
     yield put(loadWorklist());
   } catch (error) {

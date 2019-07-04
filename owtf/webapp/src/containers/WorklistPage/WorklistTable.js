@@ -8,7 +8,7 @@ import { filter } from "fuzzaldrin-plus";
 import { Table, IconButton, Link, Tooltip } from "evergreen-ui";
 import PropTypes from "prop-types";
 
-export default class worklistTable extends React.Component {
+export default class WorklistTable extends React.Component {
   constructor(props) {
     super(props);
 
@@ -123,7 +123,7 @@ export default class worklistTable extends React.Component {
     const { worklist, resumeWork, pauseWork, deleteWork } = this.props;
     const items = this.handleTableFilter(worklist);
     return (
-      <Table>
+      <Table data-test="worklistTableComponent">
         <Table.Head height={50}>
           <Table.TextHeaderCell flex="none" width="10%">
             Est. Time (min)
@@ -220,7 +220,7 @@ export default class worklistTable extends React.Component {
   }
 }
 
-worklistTable.propTypes = {
+WorklistTable.propTypes = {
   worklist: PropTypes.array,
   globalSearch: PropTypes.string,
   resumeWork: PropTypes.func,
