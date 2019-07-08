@@ -1,0 +1,317 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Worklist Page component Testing WorklistTable component Should render without errors 1`] = `
+<Table
+  data-test="worklistTableComponent"
+>
+  <TableHead
+    accountForScrollbar={true}
+    height={50}
+  >
+    <TextTableHeaderCell
+      flex="none"
+      width="10%"
+    >
+      Est. Time (min)
+    </TextTableHeaderCell>
+    <TextTableHeaderCell
+      flex="none"
+      width="10%"
+    >
+      Actions
+    </TextTableHeaderCell>
+    <SearchTableHeaderCell
+      flex="none"
+      icon="search"
+      onChange={[Function]}
+      placeholder="Target"
+      spellCheck={true}
+      value=""
+      width="24%"
+    />
+    <SearchTableHeaderCell
+      flex="none"
+      icon="search"
+      onChange={[Function]}
+      placeholder="Plugin Group"
+      spellCheck={true}
+      value=""
+      width="15%"
+    />
+    <SearchTableHeaderCell
+      flex="none"
+      icon="search"
+      onChange={[Function]}
+      placeholder="Plugin Type"
+      spellCheck={true}
+      value=""
+      width="15%"
+    />
+    <SearchTableHeaderCell
+      flex="none"
+      icon="search"
+      onChange={[Function]}
+      placeholder="Plugin Name"
+      spellCheck={true}
+      value=""
+      width="25%"
+    />
+  </TableHead>
+  <TableVirtualBody
+    allowAutoHeight={false}
+    defaultHeight={48}
+    height={800}
+    overscanCount={5}
+    useAverageAutoHeightEstimation={true}
+  >
+    <withTheme(TableRow)
+      isSelectable={true}
+      key="1075"
+    >
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        width="10%"
+      >
+        0s, 111ms
+      </TextTableCell>
+      <withTheme(TableCell)
+        flex="none"
+        width="10%"
+      >
+        <Tooltip
+          appearance="default"
+          content="Resume work"
+          hideDelay={120}
+          position="bottom"
+        >
+          <withTheme(IconButton)
+            appearance="primary"
+            height={24}
+            icon="play"
+            intent="warning"
+            onClick={[Function]}
+          />
+        </Tooltip>
+        <Tooltip
+          appearance="default"
+          content="Delete work"
+          hideDelay={120}
+          position="bottom"
+        >
+          <withTheme(IconButton)
+            appearance="primary"
+            height={24}
+            icon="trash"
+            intent="danger"
+            onClick={[Function]}
+          />
+        </Tooltip>
+      </withTheme(TableCell)>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        title="https://dcs.com"
+        width="25%"
+      >
+        <withTheme(Link)
+          href="/targets/undefined"
+          target="_blank"
+        >
+          https://dcs.com
+        </withTheme(Link)>
+      </TextTableCell>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        width="15%"
+      >
+        web
+      </TextTableCell>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        width="15%"
+      >
+        active
+      </TextTableCell>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        title="W3AF Unauthenticated"
+        width="25%"
+      >
+        W3AF Unauthenticated
+      </TextTableCell>
+    </withTheme(TableRow)>
+    <withTheme(TableRow)
+      isSelectable={true}
+      key="1076"
+    >
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        width="10%"
+      >
+        0s, 80ms
+      </TextTableCell>
+      <withTheme(TableCell)
+        flex="none"
+        width="10%"
+      >
+        <Tooltip
+          appearance="default"
+          content="Pause work"
+          hideDelay={120}
+          position="bottom"
+        >
+          <withTheme(IconButton)
+            appearance="primary"
+            height={24}
+            icon="pause"
+            intent="success"
+            onClick={[Function]}
+          />
+        </Tooltip>
+        <Tooltip
+          appearance="default"
+          content="Delete work"
+          hideDelay={120}
+          position="bottom"
+        >
+          <withTheme(IconButton)
+            appearance="primary"
+            height={24}
+            icon="trash"
+            intent="danger"
+            onClick={[Function]}
+          />
+        </Tooltip>
+      </withTheme(TableCell)>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        title="https://dcs.com"
+        width="25%"
+      >
+        <withTheme(Link)
+          href="/targets/undefined"
+          target="_blank"
+        >
+          https://dcs.com
+        </withTheme(Link)>
+      </TextTableCell>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        width="15%"
+      >
+        network
+      </TextTableCell>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        width="15%"
+      >
+        active
+      </TextTableCell>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        title="Wapiti Unauthenticated"
+        width="25%"
+      >
+        Wapiti Unauthenticated
+      </TextTableCell>
+    </withTheme(TableRow)>
+  </TableVirtualBody>
+</Table>
+`;
+
+exports[`Worklist Page component Testing dumb WorklistPage component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="worklistComponent"
+  display="flex"
+  flexDirection="column"
+  paddingLeft={100}
+  paddingRight={100}
+>
+  <Breadcrumb
+    bsClass="breadcrumb"
+  >
+    <BreadcrumbItem
+      active={false}
+      href="/"
+    >
+      Home
+    </BreadcrumbItem>
+    <BreadcrumbItem
+      active={true}
+      href="/worklist/"
+    >
+      Worklist
+    </BreadcrumbItem>
+  </Breadcrumb>
+  <withTheme(Pane)
+    display="flex"
+    flexDirection="row"
+    marginBottom={20}
+    marginTop={20}
+  >
+    <withTheme(Pane)
+      flex={1}
+    >
+      <withTheme(SearchInput)
+        borderRadius={100}
+        className="search-box"
+        flex={1}
+        onChange={[Function]}
+        placeholder="Search"
+        value=""
+      />
+    </withTheme(Pane)>
+    <withTheme(Button)
+      appearance="primary"
+      iconBefore="pause"
+      intent="success"
+      marginRight={16}
+      onClick={[Function]}
+    >
+      Pause All
+    </withTheme(Button)>
+    <withTheme(Button)
+      appearance="primary"
+      iconBefore="play"
+      intent="warning"
+      marginRight={16}
+      onClick={[Function]}
+    >
+      Resume All
+    </withTheme(Button)>
+    <withTheme(Button)
+      appearance="primary"
+      iconBefore="trash"
+      intent="danger"
+      onClick={[Function]}
+    >
+      Delete All
+    </withTheme(Button)>
+  </withTheme(Pane)>
+  <WorklistTable
+    deleteWork={[Function]}
+    globalSearch=""
+    pauseWork={[Function]}
+    resumeWork={[Function]}
+    worklist={
+      Array [
+        Object {
+          "active": true,
+          "id": 1075,
+          "plugin": Object {},
+          "target": Object {},
+        },
+      ]
+    }
+  />
+</withTheme(Pane)>
+`;
