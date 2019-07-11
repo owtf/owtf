@@ -1,0 +1,11 @@
+.search-box {
+  width: 200px;
+  -webkit-transition: width 0.4s ease-in-out;
+  transition: width 0.4s ease-in-out;
+  border-radius: 20px;
+}
+
+/* When the input field gets focus, change its width to 100% */
+.search-box:focus {
+  width: 400px;
+}
