@@ -10,6 +10,7 @@ import targetSaga from "./containers/TargetsPage/saga";
 import pluginSaga from "./containers/Plugins/saga";
 import reportSaga from "./containers/Report/saga";
 import worklistSaga from "./containers/WorklistPage/saga";
+import workersSaga from "./containers/WorkersPage/saga";
 
 export default function* rootSaga() {
   yield all([
@@ -19,6 +20,7 @@ export default function* rootSaga() {
     targetSaga(),
     pluginSaga(),
     reportSaga(),
-    worklistSaga()
+    worklistSaga(),
+    workersSaga()
   ]);
 }
