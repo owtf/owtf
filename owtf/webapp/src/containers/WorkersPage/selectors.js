@@ -61,6 +61,11 @@ const makeSelectChangeError = createSelector(
   changeState => changeState.get("error")
 );
 
+const makeSelectChangeLoading = createSelector(
+  makeSelectChange,
+  changeState => changeState.get("loading")
+);
+
 export {
   makeSelectFetchLoading,
   makeSelectFetchError,
@@ -68,5 +73,6 @@ export {
   makeSelectCreateLoading,
   makeSelectCreateError,
   makeSelectDeleteError,
-  makeSelectChangeError
+  makeSelectChangeError,
+  makeSelectChangeLoading
 };

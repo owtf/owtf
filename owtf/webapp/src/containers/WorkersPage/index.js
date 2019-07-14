@@ -20,6 +20,7 @@ import {
   makeSelectFetchLoading,
   makeSelectFetchWorkers,
   makeSelectChangeError,
+  makeSelectChangeLoading,
   makeSelectDeleteError,
   makeSelectCreateError
 } from "./selectors";
@@ -82,13 +83,21 @@ export class WorkersPage extends React.Component {
    */
   pauseAllWorkers() {
     this.props.onChangeWorker(0, "pause");
-    setTimeout(() => {
-      if (this.props.changeError === false) {
-        toaster.warning("All Workers are successfully paused :)");
-      } else {
-        toaster.danger("Server replied: " + this.props.changeError);
-      }
-    }, 500);
+    // while(this.props.changeLoading){
+    //   continue;
+    // }
+    if (this.props.changeError === false) {
+      toaster.warning("All Workers are successfully paused :)");
+    } else {
+      toaster.danger("Server replied: " + this.props.changeError);
+    }
+    // setTimeout(() => {
+      // if (this.props.changeError === false) {
+      //   toaster.warning("All Workers are successfully paused :)");
+      // } else {
+      //   toaster.danger("Server replied: " + this.props.changeError);
+      // }
+    // }, 500);
   }
 
   /**
@@ -333,6 +342,7 @@ const mapStateToProps = createStructuredSelector({
   fetchLoading: makeSelectFetchLoading,
   fetchError: makeSelectFetchError,
   changeError: makeSelectChangeError,
+  changeLoading: makeSelectChangeLoading,
   deleteError: makeSelectDeleteError,
   createError: makeSelectCreateError
 });
