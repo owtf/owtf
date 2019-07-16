@@ -306,7 +306,7 @@ export class TargetsPage extends React.Component {
           <Pane margin={40} flex={1}>
             <Pane display="flex" padding={16}>
               <Pane flex={1} alignItems="center" display="flex">
-                <Heading size={800}>TARGETS</Heading>
+                <Heading size={700}>TARGETS</Heading>
               </Pane>
               <Pane marginRight={16}>
                 <Sessions />

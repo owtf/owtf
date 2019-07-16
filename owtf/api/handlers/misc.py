@@ -27,6 +27,19 @@ class ErrorDataHandler(APIRequestHandler):
             except exceptions.InvalidErrorReference:
                 raise tornado.web.HTTPError(400)
 
+    def post(self, error_id=None):
+        if error_id is None:
+            try:
+                filter_data = dict(self.request.arguments)
+                message = filter_data["message"][0]
+                trace = filter_data["trace"][0]
+                err_obj = Error.add_error(self.session, message, trace)
+                self.write(self.err_obj)
+            except:
+                raise tornado.web.HTTPError(400)
+        else:
+            raise tornado.web.HTTPError(400)
+
     def patch(self, error_id=None):
         if error_id is None:
             raise tornado.web.HTTPError(400)
