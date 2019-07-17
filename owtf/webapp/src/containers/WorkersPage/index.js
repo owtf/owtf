@@ -1,5 +1,7 @@
 /*
  * WorkersPage
+ *
+ * This components manages workers info and allows us to apply certain action [pause/resume/delete/abort/create] on them.
  */
 import React from "react";
 import {
@@ -44,12 +46,54 @@ export class WorkersPage extends React.Component {
     this.deleteWorker = this.deleteWorker.bind(this);
     this.addWorker = this.addWorker.bind(this);
     this.handleLogDialogShow = this.handleLogDialogShow.bind(this);
+    this.toasterSuccess = this.toasterSuccess.bind(this);
+    this.toasterError = this.toasterError.bind(this);
 
     this.state = {
       logDialogShow: false
     };
   }
 
+  /**
+   * Function handles rendering of toaster after a successful API call
+   * @param {number} worker_id  Id of the worker on which an action is applied
+   * @param {string} action type of action applied [PLAY/PAUSE/DELETE/ABORT]
+   */
+  toasterSuccess(worker_id, action) {
+    if (worker_id === 0) {
+      // If action is applied on all the workers at once
+      if (action === "pause") {
+        toaster.warning("All Workers are successfully paused :)");
+      } else if (action === "resume") {
+        toaster.success("All Workers are successfully resumed :)");
+      }
+    } else {
+      // If action is applied individually
+      if (action === "pause") {
+        toaster.warning("Worker " + worker_id + " is successfully paused :)");
+      } else if (action === "resume") {
+        toaster.success("Worker " + worker_id + " is successfully resumed :)");
+      } else if (action === "abort") {
+        toaster.notify("Worker " + worker_id + " is successfully aborted :)");
+      } else if (action === "delete") {
+        toaster.notify("Worker " + worker_id + " is successfully deleted :)");
+      } else if (action === "create") {
+        toaster.notify("Worker is successfully added :)");
+      }
+    }
+  }
+
+  /**
+   * Function handles rendering of toaster after a failed API call
+   * @param {*} error Error message
+   */
+  toasterError(error) {
+    toaster.danger("Server replied: " + error);
+  }
+
+  /**
+   * Function handles the rendering of worker log dialog box
+   */
   handleLogDialogShow() {
     this.setState({ logDialogShow: true });
   }
@@ -68,13 +112,6 @@ export class WorkersPage extends React.Component {
    */
   resumeAllWorkers() {
     this.props.onChangeWorker(0, "resume");
-    setTimeout(() => {
-      if (this.props.changeError === false) {
-        toaster.success("All Workers are successfully resumed :)");
-      } else {
-        toaster.danger("Server replied: " + this.props.changeError);
-      }
-    }, 500);
   }
 
   /**
@@ -83,21 +120,6 @@ export class WorkersPage extends React.Component {
    */
   pauseAllWorkers() {
     this.props.onChangeWorker(0, "pause");
-    // while(this.props.changeLoading){
-    //   continue;
-    // }
-    if (this.props.changeError === false) {
-      toaster.warning("All Workers are successfully paused :)");
-    } else {
-      toaster.danger("Server replied: " + this.props.changeError);
-    }
-    // setTimeout(() => {
-      // if (this.props.changeError === false) {
-      //   toaster.warning("All Workers are successfully paused :)");
-      // } else {
-      //   toaster.danger("Server replied: " + this.props.changeError);
-      // }
-    // }, 500);
   }
 
   /**
@@ -107,13 +129,6 @@ export class WorkersPage extends React.Component {
    */
   abortWorker(worker_id) {
     this.props.onChangeWorker(worker_id, "abort");
-    setTimeout(() => {
-      if (this.props.changeError === false) {
-        toaster.notify("Worker is successfully aborted :)");
-      } else {
-        toaster.danger("Server replied: " + this.props.changeError);
-      }
-    }, 500);
   }
 
   /**
@@ -123,13 +138,6 @@ export class WorkersPage extends React.Component {
    */
   resumeWorker(worker_id) {
     this.props.onChangeWorker(worker_id, "resume");
-    setTimeout(() => {
-      if (this.props.changeError === false) {
-        toaster.success("Worker is successfully resumed :)");
-      } else {
-        toaster.danger("Server replied: " + this.props.changeError);
-      }
-    }, 500);
   }
 
   /**
@@ -139,13 +147,6 @@ export class WorkersPage extends React.Component {
    */
   pauseWorker(worker_id) {
     this.props.onChangeWorker(worker_id, "pause");
-    setTimeout(() => {
-      if (this.props.changeError === false) {
-        toaster.warning("Worker is successfully paused :)");
-      } else {
-        toaster.danger("Server replied: " + this.props.changeError);
-      }
-    }, 500);
   }
 
   /**
@@ -155,13 +156,6 @@ export class WorkersPage extends React.Component {
    */
   deleteWorker(worker_id) {
     this.props.onDeleteWorker(worker_id);
-    setTimeout(() => {
-      if (this.props.deleteError === false) {
-        toaster.notify("Worker is successfully deleted :)");
-      } else {
-        toaster.danger("Server replied: " + this.props.deleteError);
-      }
-    }, 500);
   }
 
   /**
@@ -170,17 +164,9 @@ export class WorkersPage extends React.Component {
    */
   addWorker() {
     this.props.onCreateWorker();
-    setTimeout(() => {
-      if (this.props.createError === false) {
-        toaster.notify("Worker is successfully added :)");
-      } else {
-        toaster.danger("Server replied: " + this.props.deleteError);
-      }
-    }, 500);
   }
 
   render() {
-    console.log(this.props.workers);
     const { fetchError, fetchLoading, workers } = this.props;
     const WorkerPanelProps = {
       resumeWorker: this.resumeWorker,
@@ -190,54 +176,6 @@ export class WorkersPage extends React.Component {
       handleLogDialogShow: this.handleLogDialogShow,
       logDialogShow: this.state.logDialogShow
     };
-    const fakeWorker = [
-      {
-        busy: true,
-        id: 1,
-        name: "Worker-1",
-        paused: false,
-        start_time: "2019/07/12 17:26:10",
-        work: [
-          {
-            alternative_ips: "['65.61.137.117']",
-            host_ip: "65.61.137.117",
-            host_name: "demo.testfire.net",
-            host_path: "demo.testfire.net",
-            id: 6,
-            ip_url: "https://65.61.137.117",
-            max_owtf_rank: -1,
-            max_user_rank: -1,
-            port_number: "443",
-            scope: true,
-            target_url: "https://demo.testfire.net",
-            top_domain: "testfire.net",
-            top_url: "https://demo.testfire.net:443",
-            url_scheme: "https"
-          },
-          {
-            attr: null,
-            code: "PTES-003",
-            descrip: " VNC Probing ",
-            file: "vnc@PTES-003.py",
-            group: "network",
-            key: "active@PTES-003",
-            min_time: "0s,  21ms",
-            name: "vnc",
-            title: "Vnc",
-            type: "active"
-          }
-        ],
-        worker: 29687
-      },
-      {
-        busy: false,
-        id: 4,
-        name: "Worker-4",
-        paused: false,
-        work: [],
-        worker: 29693
-      }
-    ];
     return (
       <Pane
         paddingRight={50}
@@ -331,7 +269,7 @@ WorkersPage.propTypes = {
   changeError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   deleteError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   createError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  onFetchWorker: PropTypes.func,
+  onFetchWorkers: PropTypes.func,
   onChangeWorker: PropTypes.func,
   onDeleteWorker: PropTypes.func,
   onCreateWorker: PropTypes.func

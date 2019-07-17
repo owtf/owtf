@@ -24,9 +24,7 @@ export function patchWorkerAPI(action) {
   const action_type = action.action_type;
   const requestURL = `${API_BASE_URL}workers/${worker_id}/${action_type}/`;
   const options = {
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-    }
+    responseAs: "text"
   };
   const request = new Request(requestURL, options);
   return request.get.bind(request);

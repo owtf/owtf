@@ -26,7 +26,10 @@ import {
   patchWorkerAPI,
   deleteWorkerAPI
 } from "./api";
+import { WorkersPage } from "./index";
 import "@babel/polyfill";
+
+const workerspage = new WorkersPage();
 
 /**
  * Fetch Workers request/response handler
@@ -51,8 +54,10 @@ export function* postWorker() {
     yield call(postAPI);
     yield put(workerCreated());
     yield put(loadWorkers());
+    workerspage.toasterSuccess(-1, "create");
   } catch (error) {
     yield put(workerCreatingError(error));
+    workerspage.toasterError(error);
   }
 }
 
@@ -65,8 +70,10 @@ export function* patchWorker(action) {
     yield call(patchAPI);
     yield put(workerChanged());
     yield put(loadWorkers());
+    workerspage.toasterSuccess(action.worker_id, action.action_type);
   } catch (error) {
     yield put(workerChangingError(error));
+    workerspage.toasterError(error);
   }
 }
 
@@ -79,8 +86,10 @@ export function* deleteWorker(action) {
     yield call(deleteAPI);
     yield put(workerDeleted());
     yield put(loadWorkers());
+    workerspage.toasterSuccess(action.worker_id, "delete");
   } catch (error) {
     yield put(workerDeletingError(error));
+    workerspage.toasterError(error);
   }
 }
 

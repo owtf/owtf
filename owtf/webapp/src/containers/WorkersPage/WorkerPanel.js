@@ -1,6 +1,6 @@
-/* Worklist Table component
+/* Worker Panel component
  *
- * Shows the list of all the works added along with actions that can be applied on them
+ * Renders worker details individually inside a panel component
  *
  */
 import React from "react";
@@ -18,7 +18,6 @@ import {
 } from "evergreen-ui";
 import Moment from "react-moment";
 import PropTypes from "prop-types";
-import "style.scss";
 
 const panelStyle = {
   primary: "#337ab7",
@@ -41,14 +40,25 @@ export default class WorkerPanel extends React.Component {
     };
   }
 
+  /**
+   * Function handles the state of Show log button [BUTTON/MENU]
+   * Renders the show log menu
+   */
   displayLog() {
     this.setState({ showLogs: true });
   }
 
+  /**
+   * Function handles the state of Show log button [BUTTON/MENU]
+   * Renders the show log button
+   */
   hideLog() {
     this.setState({ showLogs: false });
   }
 
+  /**
+   * Function handles the background state of worker panel
+   */
   getPanelStyle() {
     const worker = this.props.worker;
     if (worker.busy && !worker.paused) {
@@ -60,6 +70,10 @@ export default class WorkerPanel extends React.Component {
     }
   }
 
+  /**
+   * Function to get control buttons based on the present state of a worker
+   * It return pause button if worker is active & vice versa
+   */
   getControlButtons() {
     const worker = this.props.worker;
     if (worker.busy) {
@@ -106,6 +120,11 @@ export default class WorkerPanel extends React.Component {
     }
   }
 
+  /**
+   * Function handling log lines
+   * @param {sring} name Worker name
+   * @param {number} lines log lines to show
+   */
   getWorkerLog(name, lines) {
     var log = " Nothing to show here!";
     if (lines === "all") {
@@ -135,6 +154,11 @@ export default class WorkerPanel extends React.Component {
     return log;
   }
 
+  /**
+   * Handles the rendering of worker log dialog box
+   * @param {string} worker worker name
+   * @param {number} lines Lines to render
+   */
   openLogModal(worker, lines) {
     this.props.handleLogDialogShow();
   }
@@ -152,6 +176,7 @@ export default class WorkerPanel extends React.Component {
         marginRight={40}
         marginBottom={20}
         elevation={3}
+        data-test="workerPanelComponent"
       >
         <Heading height={40} background={style}>
           <Pane margin={10}>

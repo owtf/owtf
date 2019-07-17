@@ -1,0 +1,169 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Workers Page component Testing WorkerPanel component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="workerPanelComponent"
+  display="flex"
+  elevation={3}
+  flexDirection="column"
+  float="left"
+  marginBottom={20}
+  marginRight={40}
+  width={500}
+>
+  <withTheme(Heading)
+    background="#ddd"
+    height={40}
+  >
+    <withTheme(Pane)
+      margin={10}
+    >
+      Worker 4
+      <withTheme(Pane)
+        className="pull-right"
+      >
+        <withTheme(IconButton)
+          appearance="primary"
+          height={24}
+          icon="cross"
+          intent="danger"
+          onClick={[Function]}
+        />
+      </withTheme(Pane)>
+    </withTheme(Pane)>
+  </withTheme(Heading)>
+  <withTheme(Pane)
+    padding={15}
+  >
+    <withTheme(Paragraph)>
+      <Strong>
+        PID: 
+      </Strong>
+      29693
+    </withTheme(Paragraph)>
+    <withTheme(Paragraph)>
+      <Strong>
+        Start Time: 
+      </Strong>
+      N/A
+    </withTheme(Paragraph)>
+    <withTheme(Button)
+      appearance="primary"
+      height={20}
+      onClick={[Function]}
+    >
+      Show logs
+    </withTheme(Button)>
+  </withTheme(Pane)>
+</withTheme(Pane)>
+`;
+
+exports[`Workers Page component Testing dumb WorkersPage component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="workerComponent"
+  display="flex"
+  flexDirection="column"
+  paddingLeft={50}
+  paddingRight={50}
+>
+  <Breadcrumb
+    bsClass="breadcrumb"
+  >
+    <BreadcrumbItem
+      active={false}
+      href="/"
+    >
+      Home
+    </BreadcrumbItem>
+    <BreadcrumbItem
+      active={true}
+      href="/workers/"
+    >
+      Workers
+    </BreadcrumbItem>
+  </Breadcrumb>
+  <withTheme(Pane)
+    display="flex"
+    flexDirection="row"
+    marginBottom={30}
+  >
+    <withTheme(Pane)
+      flex={1}
+    />
+    <withTheme(Button)
+      appearance="primary"
+      iconBefore="add"
+      intent="success"
+      marginRight={16}
+      onClick={[Function]}
+    >
+      Add worker!
+    </withTheme(Button)>
+    <withTheme(Button)
+      appearance="primary"
+      iconBefore="pause"
+      intent="warning"
+      marginRight={16}
+      onClick={[Function]}
+    >
+      Pause All
+    </withTheme(Button)>
+    <withTheme(Button)
+      appearance="primary"
+      iconBefore="play"
+      intent="none"
+      onClick={[Function]}
+    >
+      Resume All
+    </withTheme(Button)>
+  </withTheme(Pane)>
+  <withTheme(Heading)
+    title="updates in 13s"
+  >
+    Total scan progress
+  </withTheme(Heading)>
+  <ProgressBar
+    active={true}
+    bsClass="progress-bar"
+    bsStyle="success"
+    isChild={false}
+    max={100}
+    min={0}
+    now={40}
+    srOnly={false}
+    striped={true}
+  />
+  <withTheme(Pane)
+    clearfix={true}
+  >
+    <WorkerPanel
+      abortWorker={[Function]}
+      deleteWorker={[Function]}
+      handleLogDialogShow={[Function]}
+      key="4"
+      logDialogShow={false}
+      pauseWorker={[Function]}
+      resumeWorker={[Function]}
+      worker={
+        Object {
+          "busy": false,
+          "id": 4,
+          "name": "Worker-4",
+          "paused": false,
+          "work": Array [],
+          "worker": 29693,
+        }
+      }
+    />
+  </withTheme(Pane)>
+  <withTheme(Dialog)
+    hasFooter={false}
+    intent="danger"
+    isShown={false}
+    onCloseComplete={[Function]}
+    title="Worker Log"
+  >
+    Nothing to show here!
+  </withTheme(Dialog)>
+</withTheme(Pane)>
+`;

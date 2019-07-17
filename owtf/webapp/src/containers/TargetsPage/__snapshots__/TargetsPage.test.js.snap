@@ -147,12 +147,14 @@ exports[`Targets Page component Testing dumb TargetsTable component Should rende
         content={[Function]}
         minHeight={40}
         minWidth={200}
+        onBodyClick={[Function]}
         onClose={[Function]}
         onCloseComplete={[Function]}
         onOpen={[Function]}
         onOpenComplete={[Function]}
         position="bottom-left"
         shouldCloseOnExternalClick={true}
+        trigger="click"
       >
         <withTheme(TextDropdownButton)
           icon="caret-down"
@@ -221,12 +223,14 @@ exports[`Targets Page component Testing dumb TargetsTable component Should rende
             data-test="actionsPopover"
             minHeight={40}
             minWidth={200}
+            onBodyClick={[Function]}
             onClose={[Function]}
             onCloseComplete={[Function]}
             onOpen={[Function]}
             onOpenComplete={[Function]}
             position="bottom-right"
             shouldCloseOnExternalClick={true}
+            trigger="click"
           >
             <withTheme(IconButton)
               appearance="minimal"
