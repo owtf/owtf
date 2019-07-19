@@ -22,7 +22,7 @@
     "chalk": "^2.3.2",
     "classnames": "^2.2.5",
     "docxtemplater": "^3.11.3",
-    "evergreen-ui": "^4.11.3",
+    "evergreen-ui": "^4.18.1",
     "history": "^4.7.2",
     "immutability-helper": "^3.0.0",
     "immutable": "^3.8.2",

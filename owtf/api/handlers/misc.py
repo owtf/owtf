@@ -11,6 +11,17 @@ import tornado.web
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
 from owtf.models.error import Error
+from owtf.managers.poutput import get_severity_freq
+
+
+class DashboardPanelHandler(APIRequestHandler):
+    SUPPORTED_METHODS = ["GET"]
+
+    def get(self):
+        try:
+            self.write(get_severity_freq(self.session))
+        except exceptions.InvalidParameterType:
+            raise tornado.web.HTTPError(400)
 
 
 class ErrorDataHandler(APIRequestHandler):

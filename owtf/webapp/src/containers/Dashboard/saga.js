@@ -14,8 +14,10 @@ import {
   errorDeletingError
 } from "./actions";
 import { getErrorsAPI, postErrorAPI, deleteErrorAPI } from "./api";
+import { Dashboard } from "./index";
 import "@babel/polyfill";
 
+const dashboard = new Dashboard();
 /**
  * Fetch Errors request/response handler
  */
@@ -53,8 +55,10 @@ export function* deleteError(action) {
     yield call(deleteAPI);
     yield put(errorDeleted());
     yield put(loadErrors());
+    dashboard.toasterSuccess(action.error_id, "deleteError");
   } catch (error) {
     yield put(errorDeletingError(error));
+    dashboard.toasterError(error);
   }
 }
 

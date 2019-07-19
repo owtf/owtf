@@ -10,8 +10,8 @@ import {
   Label,
   Paragraph,
   SelectMenu,
-  Position,
-  Strong
+  Strong,
+  TextInputField
 } from "evergreen-ui";
 import PropTypes from "prop-types";
 import "style.scss";
@@ -21,24 +21,16 @@ export default class GithubReport extends React.Component {
   constructor(props, context) {
     super(props, context);
 
-    this.handleButtonClick = this.handleButtonClick.bind(this);
     this.openGitHubIssue = this.openGitHubIssue.bind(this);
     this.deleteIssue = this.deleteIssue.bind(this);
 
     this.state = {
-      errorData: [],
       showDialog: false,
-      selectedError: 2
+      selectedError: -1,
+      errorUser: "",
+      errorTitle: "[Auto-Generated] Bug report from OWTF",
+      errorBody: ""
     };
-  }
-
-  /**
-   * Life cycle method gets called before the component mounts
-   */
-  componentWillMount() {
-    if (this.props.errors !== false) {
-      this.setState({ errorData: this.props.errors });
-    }
   }
 
   /* Function resposible to open github issue */
@@ -63,18 +55,10 @@ export default class GithubReport extends React.Component {
     }, 500);
   }
 
-  handleButtonClick() {
-    if (this.props.errors !== false) {
-      this.setState({ errorData: this.props.errors });
-    }
-    this.setState({ showDialog: true });
-  }
-
   render() {
     // const { fetchError, fetchLoading, errors } = this.props;
     // console.log(this.props.errors);
-    const errorData = this.state.errorData;
-    const selectedError = this.state.selectedError;
+    const errorData = this.props.errors;
     return (
       <Pane>
         <Button
@@ -82,7 +66,6 @@ export default class GithubReport extends React.Component {
           appearance="primary"
           intent="danger"
           iconBefore="git-branch"
-          // onClick={this.handleButtonClick}
           onClick={() => this.setState({ showDialog: true })}
         >
           Report Errors on GitHub
@@ -96,68 +79,136 @@ export default class GithubReport extends React.Component {
           <Pane marginBottom={10}>
             <Strong marginRight={10}>Select an Error:</Strong>
             <SelectMenu
-              position={Position.TOP}
               title="Select Error"
-              options={errorData.map(error => ({
+              options={errorData.map((error, index) => ({
                 label: `Error ${error.id}`,
-                value: error.id
+                value: index.toString()
               }))}
-              selected={selectedError}
-              onSelect={item => this.setState({ selectedError: item.value })}
-              // onSelect={(item) => alert(this.state.selectedError)}
+              selected={this.state.selectedError.toString()}
+              onSelect={item =>
+                this.setState({
+                  selectedError: Number(item.value),
+                  errorBody: `#### OWTF Bug Report\n\n${
+                    errorData[Number(item.value)].traceback
+                  }`
+                })
+              }
               closeOnSelect
             >
               <Button intent="danger">
-                {selectedError ? "Error " + selectedError : "Select Error..."}
+                {this.state.selectedError < 0
+                  ? "Select Error..."
+                  : "Error " + errorData[this.state.selectedError].id}
               </Button>
             </SelectMenu>
           </Pane>
-          {selectedError && !errorData[selectedError].reported ? (
-            <Pane>
-              <Pane alignItems="center" width="100%">
-                <Paragraph color="red">
-                  Issue is reported on github with following body
-                </Paragraph>
-              </Pane>
-              <Label
-                htmlFor={"error" + errorData[selectedError].id + "-body"}
-                marginBottom={4}
-                display="block"
-              >
-                <Strong>Body*</Strong>
-              </Label>
-              <Textarea
-                height={200}
-                marginBottom={10}
-                id={"error" + errorData[selectedError].id + "-body"}
-                value={errorData[selectedError].traceback}
-                disabled
-              />
-              <Pane className="pull-right">
-                <Button
-                  iconBefore="git-branch"
-                  appearance="primary"
-                  marginRight={12}
-                  onClick={() =>
-                    this.openGitHubIssue(
-                      errorData[selectedError].github_issue_url
-                    )
+          {this.state.selectedError >= 0 ? (
+            errorData[this.state.selectedError].reported ? (
+              <Pane>
+                <Pane alignItems="center">
+                  <Paragraph color="red">
+                    Issue is reported on github with following body
+                  </Paragraph>
+                </Pane>
+                <Label
+                  htmlFor={
+                    "error" + errorData[this.state.selectedError].id + "-body"
                   }
+                  marginBottom={4}
+                  display="block"
                 >
-                  Show issue on GitHub
-                </Button>
-                <Button
-                  iconBefore="trash"
-                  appearance="primary"
-                  intent="danger"
-                  onClick={() =>
-                    this.deleteIssue(errorData[this.state.selectedError].id)
+                  <Strong>Body*</Strong>
+                </Label>
+                <Textarea
+                  height={200}
+                  marginBottom={10}
+                  id={
+                    "error" + errorData[this.state.selectedError].id + "-body"
                   }
-                >
-                  Delete error
-                </Button>
+                  value={errorData[this.state.selectedError].traceback}
+                  disabled
+                />
+                <Pane className="pull-right">
+                  <Button
+                    iconBefore="git-branch"
+                    appearance="primary"
+                    marginRight={12}
+                    onClick={() =>
+                      this.openGitHubIssue(
+                        errorData[this.state.selectedError].github_issue_url
+                      )
+                    }
+                  >
+                    Show issue on GitHub
+                  </Button>
+                  <Button
+                    iconBefore="trash"
+                    appearance="primary"
+                    intent="danger"
+                    onClick={() =>
+                      this.props.onDeleteError(
+                        errorData[this.state.selectedError].id
+                      )
+                    }
+                  >
+                    Delete error
+                  </Button>
+                </Pane>
               </Pane>
-            </Pane>
+            ) : (
+              <Pane>
+                <TextInputField
+                  label="Your Github Username"
+                  placeholder="GitHub username"
+                  required
+                  value={this.state.errorUser}
+                  onChange={e => this.setState({ errorUser: e.target.value })}
+                  validationMessage="This field is required"
+                />
+                <TextInputField
+                  label="Title"
+                  required
+                  value={this.state.errorTitle}
+                  onChange={e => this.setState({ errorTitle: e.target.value })}
+                />
+                <Pane>
+                  <Label htmlFor="textarea-2">Body *</Label>
+                  <Textarea
+                    required
+                    value={this.state.errorBody}
+                    onChange={e => this.setState({ errorBody: e.target.value })}
+                    height={150}
+                  />
+                </Pane>
+                <Pane className="pull-right">
+                  <Button
+                    iconBefore="add"
+                    appearance="primary"
+                    intent="success"
+                    marginRight={12}
+                    onClick={() =>
+                      this.openGitHubIssue(
+                        errorData[this.state.selectedError].github_issue_url
+                      )
+                    }
+                  >
+                    Create issue on GitHub
+                  </Button>
+                  <Button
+                    iconBefore="trash"
+                    appearance="primary"
+                    intent="danger"
+                    onClick={() =>
+                      this.props.onDeleteError(
+                        errorData[this.state.selectedError].id
+                      )
+                    }
+                  >
+                    Delete error
+                  </Button>
+                </Pane>
+              </Pane>
+            )
           ) : null}
           {/* <Pane display="flex" flexDirection="column" width="auto" flexWrap="nowrap">
 						<Tablist marginBottom={16} flexBasis={240} marginRight={24}>

@@ -22,7 +22,9 @@ export function postErrorAPI() {
 export function deleteErrorAPI(action) {
   const error_id = action.error_id.toString();
   const requestURL = `${API_BASE_URL}errors/${error_id}/`;
-
-  const request = new Request(requestURL);
+  const options = {
+    responseAs: "text"
+  };
+  const request = new Request(requestURL, options);
   return request.delete.bind(request);
 }

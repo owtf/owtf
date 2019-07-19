@@ -2,7 +2,7 @@
  * Dashboard
  */
 import React from "react";
-import { Pane, Heading, Small } from "evergreen-ui";
+import { Pane, Heading, Small, toaster } from "evergreen-ui";
 import { Breadcrumb } from "react-bootstrap";
 import Chart from "./Chart";
 import WorkerPanel from "./WorkPanel";
@@ -24,6 +24,9 @@ export class Dashboard extends React.Component {
   constructor(props, context) {
     super(props, context);
 
+    this.toasterSuccess = this.toasterSuccess.bind(this);
+    this.toasterError = this.toasterError.bind(this);
+
     this.state = {};
   }
 
@@ -33,6 +36,25 @@ export class Dashboard extends React.Component {
    */
   componentDidMount() {
     this.props.onFetchErrors();
+  }
+
+  /**
+   * Function handles rendering of toaster after a successful API call
+   * @param {number} error_id  Id of the worker on which an action is applied
+   * @param {string} action type of action applied [PLAY/PAUSE/DELETE/ABORT]
+   */
+  toasterSuccess(error_id, action) {
+    if (action === "deleteError") {
+      toaster.warning("Issue " + error_id + " is successfully deleted :)");
+    }
+  }
+
+  /**
+   * Function handles rendering of toaster after a failed API call
+   * @param {string} error Error message
+   */
+  toasterError(error) {
+    toaster.danger("Server replied: " + error);
   }
 
   render() {
