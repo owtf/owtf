@@ -7,7 +7,13 @@ import {
   CREATE_ERROR_ERROR,
   DELETE_ERROR,
   DELETE_ERROR_SUCCESS,
-  DELETE_ERROR_ERROR
+  DELETE_ERROR_ERROR,
+  LOAD_SEVERITY,
+  LOAD_SEVERITY_SUCCESS,
+  LOAD_SEVERITY_ERROR,
+  LOAD_TARGET_SEVERITY,
+  LOAD_TARGET_SEVERITY_SUCCESS,
+  LOAD_TARGET_SEVERITY_ERROR,
 } from "./constants";
 
 /**
@@ -121,6 +127,84 @@ export function errorDeleted() {
 export function errorDeletingError(error) {
   return {
     type: DELETE_ERROR_ERROR,
+    error
+  };
+}
+
+/**
+ * Load severity, this action starts the request saga GET
+ *
+ * @return {object} An action object with a type of LOAD_SEVERITY
+ */
+export function loadSeverity() {
+  return {
+    type: LOAD_SEVERITY,
+  };
+}
+
+/**
+ * Dispatched when the severity is loaded by the request saga
+ *
+ * @param  {array} severity The severity data
+ *
+ * @return {object} An action object with a type of LOAD_SEVERITY_SUCCESS passing the severity
+ */
+export function severityLoaded(severity) {
+  return {
+    type: LOAD_SEVERITY_SUCCESS,
+    severity
+  };
+}
+
+/**
+ * Dispatched when loading the severity fails
+ *
+ * @param  {object} error The error
+ *
+ * @return {object} An action object with a type of LOAD_SEVERITY_ERROR passing the error
+ */
+export function severityLoadingError(error) {
+  return {
+    type: LOAD_SEVERITY_ERROR,
+    error
+  };
+}
+
+/**
+ * Load last target severity, this action starts the request saga GET
+ *
+ * @return {object} An action object with a type of LOAD_TARGET_SEVERITY
+ */
+export function loadTargetSeverity() {
+  return {
+    type: LOAD_TARGET_SEVERITY,
+  };
+}
+
+/**
+ * Dispatched when the last target severity is loaded by the request saga
+ *
+ * @param  {array} targetSeverity The severity data
+ *
+ * @return {object} An action object with a type of LOAD_TARGET_SEVERITY_SUCCESS passing the severity
+ */
+export function targetSeverityLoaded(targetSeverity) {
+  return {
+    type: LOAD_TARGET_SEVERITY_SUCCESS,
+    targetSeverity
+  };
+}
+
+/**
+ * Dispatched when loading the last target severity fails
+ *
+ * @param  {object} error The error
+ *
+ * @return {object} An action object with a type of LOAD_TARGET_SEVERITY_ERROR passing the error
+ */
+export function targetSeverityLoadingError(error) {
+  return {
+    type: LOAD_TARGET_SEVERITY_ERROR,
     error
   };
 }

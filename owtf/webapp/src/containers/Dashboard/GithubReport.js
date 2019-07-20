@@ -11,18 +11,16 @@ import {
   Paragraph,
   SelectMenu,
   Strong,
-  TextInputField
+  TextInputField,
 } from "evergreen-ui";
 import PropTypes from "prop-types";
 import "style.scss";
-import { toaster } from "evergreen-ui/commonjs/toaster";
 
 export default class GithubReport extends React.Component {
   constructor(props, context) {
     super(props, context);
 
     this.openGitHubIssue = this.openGitHubIssue.bind(this);
-    this.deleteIssue = this.deleteIssue.bind(this);
 
     this.state = {
       showDialog: false,
@@ -36,24 +34,7 @@ export default class GithubReport extends React.Component {
   /* Function resposible to open github issue */
   openGitHubIssue(link) {
     window.open(link);
-  }
-
-  /**
-   * Function resposible to delete a error from OWTF database.
-   * Rest API - /api/errors/
-   * @param {id} values id: id of error to submit.
-   */
-
-  deleteIssue(id) {
-    this.props.onDeleteError(id);
-    setTimeout(() => {
-      if (this.props.deleteError === false) {
-        toaster.notify("Issue is successfully deleted :)");
-      } else {
-        toaster.danger("Server replied: " + this.props.deleteError);
-      }
-    }, 500);
-  }
+  } 
 
   render() {
     // const { fetchError, fetchLoading, errors } = this.props;
@@ -210,37 +191,6 @@ export default class GithubReport extends React.Component {
               </Pane>
             )
           ) : null}
-          {/* <Pane display="flex" flexDirection="column" width="auto" flexWrap="nowrap">
-						<Tablist marginBottom={16} flexBasis={240} marginRight={24}>
-							{errorData.map((error, index) => {
-								return (
-									<Tab
-										key={index}
-										id={`error${index}`}
-										onSelect={() => this.setState({ selectedIndex: index })}
-										isSelected={this.state.selectedIndex === index}
-										aria-controls={`panel-${index}`}
-									>
-										Error {error.id}
-									</Tab>
-								);
-							})}
-						</Tablist>
-						<Pane padding={16} background="tint1" flex="1">
-							{errorData.map((error, index) => (
-								<Pane
-									key={index}
-									id={`panel-error${index}`}
-									role="tabpanel"
-									aria-labelledby={index}
-									aria-hidden={index !== this.state.selectedIndex}
-									display={index === this.state.selectedIndex ? 'block' : 'none'}
-								>
-									<Paragraph>Panel {index}</Paragraph>
-								</Pane>
-							))}
-						</Pane>
-					</Pane> */}
         </Dialog>
       </Pane>
     );

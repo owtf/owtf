@@ -3,7 +3,7 @@
  */
 
 import { call, put, takeLatest } from "redux-saga/effects";
-import { LOAD_ERRORS, CREATE_ERROR, DELETE_ERROR } from "./constants";
+import { LOAD_ERRORS, CREATE_ERROR, DELETE_ERROR, LOAD_SEVERITY, LOAD_TARGET_SEVERITY } from "./constants";
 import {
   loadErrors,
   errorsLoaded,
@@ -11,9 +11,13 @@ import {
   errorCreated,
   errorCreatingError,
   errorDeleted,
-  errorDeletingError
+  errorDeletingError,
+  severityLoaded,
+  severityLoadingError,
+  targetSeverityLoaded,
+  targetSeverityLoadingError,
 } from "./actions";
-import { getErrorsAPI, postErrorAPI, deleteErrorAPI } from "./api";
+import { getErrorsAPI, postErrorAPI, deleteErrorAPI, getSeverityAPI, getTargetSeverityAPI } from "./api";
 import { Dashboard } from "./index";
 import "@babel/polyfill";
 
@@ -63,6 +67,34 @@ export function* deleteError(action) {
 }
 
 /**
+ * Fetch Severity request/response handler
+ */
+export function* getSeverity() {
+  const fetchAPI = getSeverityAPI();
+  try {
+    // Call our request helper (see 'utils/request')
+    const severity = yield call(fetchAPI);
+    yield put(severityLoaded(severity.data));
+  } catch (error) {
+    yield put(severityLoadingError(error));
+  }
+}
+
+/**
+ * Fetch last target severity request/response handler
+ */
+export function* getTargetSeverity() {
+  const fetchAPI = getTargetSeverityAPI();
+  try {
+    // Call our request helper (see 'utils/request')
+    const targetSeverity = yield call(fetchAPI);
+    yield put(targetSeverityLoaded(targetSeverity.data));
+  } catch (error) {
+    yield put(targetSeverityLoadingError(error));
+  }
+}
+
+/**
  * Root saga manages watcher lifecycle
  */
 export default function* errorsSaga() {
@@ -73,4 +105,6 @@ export default function* errorsSaga() {
   yield takeLatest(LOAD_ERRORS, getErrors);
   yield takeLatest(CREATE_ERROR, postError);
   yield takeLatest(DELETE_ERROR, deleteError);
+  yield takeLatest(LOAD_SEVERITY, getSeverity);
+  yield takeLatest(LOAD_TARGET_SEVERITY, getTargetSeverity);
 }

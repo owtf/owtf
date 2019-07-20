@@ -22,7 +22,13 @@ import {
   CREATE_ERROR_ERROR,
   DELETE_ERROR,
   DELETE_ERROR_SUCCESS,
-  DELETE_ERROR_ERROR
+  DELETE_ERROR_ERROR,
+  LOAD_SEVERITY,
+  LOAD_SEVERITY_SUCCESS,
+  LOAD_SEVERITY_ERROR,
+  LOAD_TARGET_SEVERITY,
+  LOAD_TARGET_SEVERITY_SUCCESS,
+  LOAD_TARGET_SEVERITY_ERROR,
 } from "./constants";
 
 // The initial state of the errors.
@@ -92,8 +98,68 @@ export function errorDeleteReducer(state = initialDeleteState, action) {
   }
 }
 
+// The initial state of the severity.
+const initialSeverityState = fromJS({
+  loading: false,
+  error: false,
+  severity: false
+});
+
+export function severityLoadReducer(state = initialSeverityState, action) {
+  switch (action.type) {
+    case LOAD_SEVERITY:
+      return state
+        .set("loading", true)
+        .set("error", false)
+        .set("severity", false);
+    case LOAD_SEVERITY_SUCCESS:
+      return state
+        .set("loading", false)
+        .set("error", false)
+        .set("severity", action.severity);
+    case LOAD_SEVERITY_ERROR:
+      return state
+        .set("loading", false)
+        .set("error", action.error)
+        .set("severity", false);
+    default:
+      return state;
+  }
+}
+
+// The initial state of the last target severity.
+const initialTargetSeverityState = fromJS({
+  loading: false,
+  error: false,
+  targetSeverity: false
+});
+
+export function targetSeverityLoadReducer(state = initialTargetSeverityState, action) {
+  switch (action.type) {
+    case LOAD_TARGET_SEVERITY:
+      return state
+        .set("loading", true)
+        .set("error", false)
+        .set("targetSeverity", false);
+    case LOAD_TARGET_SEVERITY_SUCCESS:
+      return state
+        .set("loading", false)
+        .set("error", false)
+        .set("targetSeverity", action.targetSeverity);
+    case LOAD_TARGET_SEVERITY_ERROR:
+      return state
+        .set("loading", false)
+        .set("error", action.error)
+        .set("targetSeverity", false);
+    default:
+      return state;
+  }
+}
+
 export default combineReducers({
   load: errorsLoadReducer,
   create: errorCreateReducer,
-  delete: errorDeleteReducer
+  delete: errorDeleteReducer,
+  loadSeverity: severityLoadReducer,
+  loadTargetSeverity: targetSeverityLoadReducer,
 });

@@ -2,10 +2,10 @@
  * Dashboard
  */
 import React from "react";
-import { Pane, Heading, Small, toaster } from "evergreen-ui";
+import { Pane, Heading, Small, toaster, Spinner, Paragraph } from "evergreen-ui";
 import { Breadcrumb } from "react-bootstrap";
 import Chart from "./Chart";
-import WorkerPanel from "./WorkPanel";
+import WorkerPanel from "./WorkerPanel";
 import VulnerabilityPanel from "./Panel";
 import GitHubReport from "./GithubReport";
 import PropTypes from "prop-types";
@@ -16,9 +16,15 @@ import {
   makeSelectFetchLoading,
   makeSelectFetchErrors,
   makeSelectDeleteError,
-  makeSelectCreateError
+  makeSelectCreateError,
+  makeSelectSeverityLoading,
+  makeSelectSeverityError,
+  makeSelectFetchSeverity,
+  makeSelectTargetSeverityLoading,
+  makeSelectTargetSeverityError,
+  makeSelectFetchTargetSeverity,
 } from "./selectors";
-import { loadErrors, createError, deleteError } from "./actions";
+import { loadErrors, createError, deleteError, loadSeverity, loadTargetSeverity } from "./actions";
 
 export class Dashboard extends React.Component {
   constructor(props, context) {
@@ -36,6 +42,8 @@ export class Dashboard extends React.Component {
    */
   componentDidMount() {
     this.props.onFetchErrors();
+    this.props.onFetchSeverity();
+    this.props.onFetchTargetSeverity();
   }
 
   /**
@@ -63,6 +71,7 @@ export class Dashboard extends React.Component {
       onDeleteError: this.props.onDeleteError,
       deleteError: this.props.deleteError
     };
+    console.log(this.props.targetSeverity);
     return (
       <Pane
         paddingRight={50}
@@ -86,13 +95,63 @@ export class Dashboard extends React.Component {
             ) : null}
           </Pane>
         </Pane>
-        <VulnerabilityPanel />
+        {this.props.severityError !== false ? (
+          <Pane
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            height={200}
+          >
+            <Paragraph size={500}>
+              Something went wrong, please try again!
+            </Paragraph>
+          </Pane>
+        ) : null }
+        {this.props.severityLoading ? (
+          <Pane
+           display="flex"
+           alignItems="center"
+           justifyContent="center"
+           height={200}
+         >
+           <Spinner />
+         </Pane>
+        ) : null }
+        { this.props.severity !== false ? (
+          <VulnerabilityPanel panelData={this.props.severity} />
+        ) : null}
         <Pane
           display="flex"
           flexDirection="row"
           // alignItems="center"
         >
-          <Chart />
+          {this.props.targetSeverityError !== false ? (
+            <Pane
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              height={200}
+            >
+              <Paragraph size={500}>
+                Something went wrong, please try again!
+              </Paragraph>
+            </Pane>
+          ) : null }
+          {this.props.targetSeverityLoading ? (
+            <Pane
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              height={200}
+            >
+              <Spinner />
+            </Pane>
+          ) : null }
+          {this.props.targetSeverity !== false ? (
+            <Pane width="50%">
+              <Chart chartData={this.props.targetSeverity.data} />
+            </Pane>
+          ) : null}
           <WorkerPanel />
         </Pane>
       </Pane>
@@ -106,9 +165,17 @@ Dashboard.propTypes = {
   errors: PropTypes.oneOfType([PropTypes.array, PropTypes.bool]),
   deleteError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   createError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
+  severityLoading: PropTypes.bool,
+  severityError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
+  severity: PropTypes.oneOfType([PropTypes.array, PropTypes.bool]),
+  targetSeverityLoading: PropTypes.bool,
+  targetSeverityError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
+  targetSeverity: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   onFetchError: PropTypes.func,
   onDeleteError: PropTypes.func,
-  onCreateError: PropTypes.func
+  onCreateError: PropTypes.func,
+  onFetchSeverity: PropTypes.func,
+  onFetchTargetSeverity: PropTypes.func,
 };
 
 const mapStateToProps = createStructuredSelector({
@@ -116,14 +183,22 @@ const mapStateToProps = createStructuredSelector({
   fetchLoading: makeSelectFetchLoading,
   fetchError: makeSelectFetchError,
   deleteError: makeSelectDeleteError,
-  createError: makeSelectCreateError
+  createError: makeSelectCreateError,
+  severity: makeSelectFetchSeverity,
+  severityLoading: makeSelectSeverityLoading,
+  severityError: makeSelectSeverityError,
+  targetSeverity: makeSelectFetchTargetSeverity,
+  targetSeverityLoading: makeSelectTargetSeverityLoading,
+  targetSeverityError: makeSelectTargetSeverityError,
 });
 
 const mapDispatchToProps = dispatch => {
   return {
     onFetchErrors: () => dispatch(loadErrors()),
     onDeleteError: error_id => dispatch(deleteError(error_id)),
-    onCreateError: post_data => dispatch(createError(post_data))
+    onCreateError: post_data => dispatch(createError(post_data)),
+    onFetchSeverity: () => dispatch(loadSeverity()),
+    onFetchTargetSeverity: () => dispatch(loadTargetSeverity()),
   };
 };
 
