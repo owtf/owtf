@@ -23,8 +23,13 @@ import {
   makeSelectTargetSeverityLoading,
   makeSelectTargetSeverityError,
   makeSelectFetchTargetSeverity,
+  makeSelectWorkerProgressLoading,
+  makeSelectWorkerProgressError,
+  makeSelectFetchWorkerProgress,
 } from "./selectors";
-import { loadErrors, createError, deleteError, loadSeverity, loadTargetSeverity } from "./actions";
+import { loadErrors, createError, deleteError, loadSeverity, loadTargetSeverity, loadWorkerProgress } from "./actions";
+
+const POLLINTERVAL = 13000;
 
 export class Dashboard extends React.Component {
   constructor(props, context) {
@@ -44,6 +49,7 @@ export class Dashboard extends React.Component {
     this.props.onFetchErrors();
     this.props.onFetchSeverity();
     this.props.onFetchTargetSeverity();
+    this.props.onFetchWorkerProgress();
   }
 
   /**
@@ -71,7 +77,40 @@ export class Dashboard extends React.Component {
       onDeleteError: this.props.onDeleteError,
       deleteError: this.props.deleteError
     };
-    console.log(this.props.targetSeverity);
+    const workerData = [
+      {
+        busy:	false,
+        name:	"LocalWorker-1",
+        work:	[],
+        worker:	23818,
+        paused:	false,
+        id:	1
+      },
+      {
+        busy:	false,
+        name:	"LocalWorker-2",
+        work:	[],
+        worker:	23819,
+        paused:	false,
+        id:	2
+      },
+      {
+        busy:	false,
+        name:	"LocalWorker-3",
+        work:	[],
+        worker:	23820,
+        paused:	false,
+        id:	3
+      },
+      {
+        busy:	false,
+        name:	"LocalWorker-4",
+        work:	[],
+        worker:	23821,
+        paused:	false,
+        id:	4
+      },
+    ]
     return (
       <Pane
         paddingRight={50}
@@ -95,37 +134,10 @@ export class Dashboard extends React.Component {
             ) : null}
           </Pane>
         </Pane>
-        {this.props.severityError !== false ? (
-          <Pane
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            height={200}
-          >
-            <Paragraph size={500}>
-              Something went wrong, please try again!
-            </Paragraph>
-          </Pane>
-        ) : null }
-        {this.props.severityLoading ? (
-          <Pane
-           display="flex"
-           alignItems="center"
-           justifyContent="center"
-           height={200}
-         >
-           <Spinner />
-         </Pane>
-        ) : null }
-        { this.props.severity !== false ? (
-          <VulnerabilityPanel panelData={this.props.severity} />
-        ) : null}
-        <Pane
-          display="flex"
-          flexDirection="row"
-          // alignItems="center"
-        >
-          {this.props.targetSeverityError !== false ? (
+        <Pane marginTop={20} padding={20}>
+          <Heading size={700}>Current Vulnerabilities</Heading>
+          <hr />
+          {this.props.severityError !== false ? (
             <Pane
               display="flex"
               alignItems="center"
@@ -137,22 +149,81 @@ export class Dashboard extends React.Component {
               </Paragraph>
             </Pane>
           ) : null }
-          {this.props.targetSeverityLoading ? (
+          {this.props.severityLoading ? (
             <Pane
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              height={200}
-            >
-              <Spinner />
-            </Pane>
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            height={200}
+          >
+            <Spinner />
+          </Pane>
           ) : null }
-          {this.props.targetSeverity !== false ? (
-            <Pane width="50%">
-              <Chart chartData={this.props.targetSeverity.data} />
-            </Pane>
+          { this.props.severity !== false ? (
+            <VulnerabilityPanel panelData={this.props.severity} />
           ) : null}
-          <WorkerPanel />
+        </Pane>
+        <Pane
+          display="flex"
+          flexDirection="row"
+          height={220}
+        >
+          <Pane marginTop={20} paddingLeft={20} width="50%">
+            <Heading size={700}>Previous Targets Analytics</Heading>
+            <hr />
+            {this.props.targetSeverityError !== false ? (
+              <Pane
+                display="flex"
+                alignItems="center"
+                height={200}
+              >
+                <Paragraph size={500}>
+                  Something went wrong, please try again!
+                </Paragraph>
+              </Pane>
+            ) : null }
+            {this.props.targetSeverityLoading ? (
+              <Pane
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                height={200}
+              >
+                <Spinner />
+              </Pane>
+            ) : null }
+            {this.props.targetSeverity !== false ? (
+              <Chart chartData={this.props.targetSeverity.data} />
+            ) : null}
+          </Pane>
+          <Pane marginTop={20} paddingRight={20} width="50%">
+            <Heading size={700}>Worker Panel</Heading>
+            <hr />
+            {this.props.workerProgressError !== false ? (
+              <Pane
+                display="flex"
+                alignItems="center"
+                height={200}
+              >
+                <Paragraph size={500}>
+                  Something went wrong, please try again!
+                </Paragraph>
+              </Pane>
+            ) : null }
+            {this.props.workerProgressLoading ? (
+              <Pane
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                height={200}
+              >
+                <Spinner />
+              </Pane>
+            ) : null }
+            {this.props.workerProgress !== false ? (
+              <WorkerPanel progressData={this.props.workerProgress} workerData={workerData} pollInterval={POLLINTERVAL} />
+            ) : null}
+          </Pane>
         </Pane>
       </Pane>
     );
@@ -171,6 +242,9 @@ Dashboard.propTypes = {
   targetSeverityLoading: PropTypes.bool,
   targetSeverityError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   targetSeverity: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
+  workerProgressLoading: PropTypes.bool,
+  workerProgressError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
+  workerProgress: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   onFetchError: PropTypes.func,
   onDeleteError: PropTypes.func,
   onCreateError: PropTypes.func,
@@ -190,6 +264,9 @@ const mapStateToProps = createStructuredSelector({
   targetSeverity: makeSelectFetchTargetSeverity,
   targetSeverityLoading: makeSelectTargetSeverityLoading,
   targetSeverityError: makeSelectTargetSeverityError,
+  workerProgress: makeSelectFetchWorkerProgress,
+  workerProgressLoading: makeSelectWorkerProgressLoading,
+  workerProgressError: makeSelectWorkerProgressError,
 });
 
 const mapDispatchToProps = dispatch => {
@@ -199,6 +276,7 @@ const mapDispatchToProps = dispatch => {
     onCreateError: post_data => dispatch(createError(post_data)),
     onFetchSeverity: () => dispatch(loadSeverity()),
     onFetchTargetSeverity: () => dispatch(loadTargetSeverity()),
+    onFetchWorkerProgress: () => dispatch(loadWorkerProgress()),
   };
 };
 

@@ -42,3 +42,10 @@ export function getTargetSeverityAPI() {
   const request = new Request(requestURL);
   return request.get.bind(request);
 }
+
+export function getWorkerProgressAPI() {
+  const requestURL = `${API_BASE_URL}plugins/progress/`;
+  // Call our request helper (see 'utils/request')
+  const request = new Request(requestURL);
+  return request.get.bind(request);
+}

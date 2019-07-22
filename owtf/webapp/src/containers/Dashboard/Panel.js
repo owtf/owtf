@@ -2,8 +2,7 @@
  * Component to show if page not found.
  */
 import React from "react";
-import { Pane, Heading } from "evergreen-ui";
-import {Bar, Line, Pie, Doughnut, Bubble} from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 
 export default class VulnerabilityPanel extends React.Component {
   render() {
@@ -13,40 +12,34 @@ export default class VulnerabilityPanel extends React.Component {
           { 
             label:'Severity',
             data: this.props.panelData.map(severity => severity.value),
-            // data: [1,1,1,2,1,2],
             backgroundColor:[
-              '#732673',
-              '#ac2925',
-              '#d58512',
+              '#800080',
+              '#c12e2a',
+              '#fc0',
               '#337ab7',
-              '#269abc',
-              '#398439',
+              '#b1d9f4',
+              '#32cd32',
             ]
           }
         ]
       }
     return (
-      <Pane marginTop={20} padding={20}>
-        <Heading size={700}>Current Vulnerabilities</Heading>
-        <hr />
-        <Bar
-          data={chartData}
-          width={100}
-          height={400}
-          options={{
-            title:{
-              display:false,
-              text:"Current Vulnerabilities",
-              fontSize:30
-            },
-            legend:{
-              display:false,
-              position:"right"
-            },
-            maintainAspectRatio: false
-          }}
-        />
-    </Pane>
+      <Bar
+        data={chartData}
+        height={150}
+        options={{
+          title:{
+            display:false,
+            text:"Current Vulnerabilities",
+            fontSize:30
+          },
+          legend:{
+            display:false,
+            position:"right"
+          },
+          maintainAspectRatio: false
+        }}
+      />
     );
   }
 }

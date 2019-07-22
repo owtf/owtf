@@ -29,6 +29,9 @@ import {
   LOAD_TARGET_SEVERITY,
   LOAD_TARGET_SEVERITY_SUCCESS,
   LOAD_TARGET_SEVERITY_ERROR,
+  LOAD_WORKER_PROGRESS,
+  LOAD_WORKER_PROGRESS_SUCCESS,
+  LOAD_WORKER_PROGRESS_ERROR,
 } from "./constants";
 
 // The initial state of the errors.
@@ -156,10 +159,40 @@ export function targetSeverityLoadReducer(state = initialTargetSeverityState, ac
   }
 }
 
+// The initial state of the worker progress.
+const initialWorkerProgressState = fromJS({
+  loading: false,
+  error: false,
+  workerProgress: false
+});
+
+export function workerProgressLoadReducer(state = initialWorkerProgressState, action) {
+  switch (action.type) {
+    case LOAD_WORKER_PROGRESS:
+      return state
+        .set("loading", true)
+        .set("error", false)
+        .set("workerProgress", false);
+    case LOAD_WORKER_PROGRESS_SUCCESS:
+      return state
+        .set("loading", false)
+        .set("error", false)
+        .set("workerProgress", action.workerProgress);
+    case LOAD_WORKER_PROGRESS_ERROR:
+      return state
+        .set("loading", false)
+        .set("error", action.error)
+        .set("workerProgress", false);
+    default:
+      return state;
+  }
+}
+
 export default combineReducers({
   load: errorsLoadReducer,
   create: errorCreateReducer,
   delete: errorDeleteReducer,
   loadSeverity: severityLoadReducer,
   loadTargetSeverity: targetSeverityLoadReducer,
+  loadWorkerProgress: workerProgressLoadReducer,
 });

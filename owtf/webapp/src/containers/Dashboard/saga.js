@@ -3,7 +3,7 @@
  */
 
 import { call, put, takeLatest } from "redux-saga/effects";
-import { LOAD_ERRORS, CREATE_ERROR, DELETE_ERROR, LOAD_SEVERITY, LOAD_TARGET_SEVERITY } from "./constants";
+import { LOAD_ERRORS, CREATE_ERROR, DELETE_ERROR, LOAD_SEVERITY, LOAD_TARGET_SEVERITY, LOAD_WORKER_PROGRESS } from "./constants";
 import {
   loadErrors,
   errorsLoaded,
@@ -16,8 +16,10 @@ import {
   severityLoadingError,
   targetSeverityLoaded,
   targetSeverityLoadingError,
+  workerProgressLoaded,
+  workerProgressLoadingError,
 } from "./actions";
-import { getErrorsAPI, postErrorAPI, deleteErrorAPI, getSeverityAPI, getTargetSeverityAPI } from "./api";
+import { getErrorsAPI, postErrorAPI, deleteErrorAPI, getSeverityAPI, getTargetSeverityAPI, getWorkerProgressAPI } from "./api";
 import { Dashboard } from "./index";
 import "@babel/polyfill";
 
@@ -95,6 +97,20 @@ export function* getTargetSeverity() {
 }
 
 /**
+ * Fetch worker progress request/response handler
+ */
+export function* getWorkerProgress() {
+  const fetchAPI = getWorkerProgressAPI();
+  try {
+    // Call our request helper (see 'utils/request')
+    const workerProgress = yield call(fetchAPI);
+    yield put(workerProgressLoaded(workerProgress));
+  } catch (error) {
+    yield put(workerProgressLoadingError(error));
+  }
+}
+
+/**
  * Root saga manages watcher lifecycle
  */
 export default function* errorsSaga() {
@@ -107,4 +123,5 @@ export default function* errorsSaga() {
   yield takeLatest(DELETE_ERROR, deleteError);
   yield takeLatest(LOAD_SEVERITY, getSeverity);
   yield takeLatest(LOAD_TARGET_SEVERITY, getTargetSeverity);
+  yield takeLatest(LOAD_WORKER_PROGRESS, getWorkerProgress);
 }
