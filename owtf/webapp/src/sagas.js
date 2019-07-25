@@ -11,6 +11,8 @@ import pluginSaga from "./containers/Plugins/saga";
 import reportSaga from "./containers/Report/saga";
 import worklistSaga from "./containers/WorklistPage/saga";
 import dashboardSaga from "./containers/Dashboard/saga";
+import workersSaga from "./containers/WorkersPage/saga";
+
 export default function* rootSaga() {
   yield all([
     configurationSaga(),
@@ -20,6 +22,7 @@ export default function* rootSaga() {
     pluginSaga(),
     reportSaga(),
     worklistSaga(),
-    dashboardSaga()
+    dashboardSaga(),
+    workersSaga()
   ]);
 }

@@ -608,12 +608,14 @@ exports[`Report page component Testing dumb SideFilters component Should render 
       }
       minHeight={40}
       minWidth={200}
+      onBodyClick={[Function]}
       onClose={[Function]}
       onCloseComplete={[Function]}
       onOpen={[Function]}
       onOpenComplete={[Function]}
       position="bottom-left"
       shouldCloseOnExternalClick={true}
+      trigger="click"
     >
       <withTheme(Tab)
         justifyContent="left"
