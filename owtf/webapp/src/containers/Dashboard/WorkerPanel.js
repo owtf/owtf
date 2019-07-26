@@ -195,14 +195,16 @@ class ProgressBar extends React.Component {
 
 export default class WorkerPanel extends React.Component {
   render() {
-      
     return (
-      <Pane display="flex" flexDirection="row" alignItems="center">
+      <Pane display="flex" flexDirection="row">
         <Pane>
           <ProgressBar pollInterval={this.props.pollInterval} progressData={this.props.progressData} />
         </Pane>
         <Pane marginLeft={100} justifyContent="center">
-          <WorkerLegend pollInterval={this.props.pollInterval} workerData={this.props.workerData} />
+          {this.props.workerData ? (
+            <WorkerLegend pollInterval={this.props.pollInterval} workerData={this.props.workerData} />
+          )
+          : null}
         </Pane>
       </Pane>  
     );

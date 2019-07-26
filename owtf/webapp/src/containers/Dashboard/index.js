@@ -27,7 +27,11 @@ import {
   makeSelectWorkerProgressError,
   makeSelectFetchWorkerProgress,
 } from "./selectors";
+import {
+  makeSelectFetchWorkers,
+} from "../WorkersPage/selectors";
 import { loadErrors, createError, deleteError, loadSeverity, loadTargetSeverity, loadWorkerProgress } from "./actions";
+import { loadWorkers } from "../WorkersPage/actions";
 
 const POLLINTERVAL = 13000;
 
@@ -50,6 +54,7 @@ export class Dashboard extends React.Component {
     this.props.onFetchSeverity();
     this.props.onFetchTargetSeverity();
     this.props.onFetchWorkerProgress();
+    this.props.onFetchWorkers();
   }
 
   /**
@@ -77,40 +82,6 @@ export class Dashboard extends React.Component {
       onDeleteError: this.props.onDeleteError,
       deleteError: this.props.deleteError
     };
-    const workerData = [
-      {
-        busy:	false,
-        name:	"LocalWorker-1",
-        work:	[],
-        worker:	23818,
-        paused:	false,
-        id:	1
-      },
-      {
-        busy:	false,
-        name:	"LocalWorker-2",
-        work:	[],
-        worker:	23819,
-        paused:	false,
-        id:	2
-      },
-      {
-        busy:	false,
-        name:	"LocalWorker-3",
-        work:	[],
-        worker:	23820,
-        paused:	false,
-        id:	3
-      },
-      {
-        busy:	false,
-        name:	"LocalWorker-4",
-        work:	[],
-        worker:	23821,
-        paused:	false,
-        id:	4
-      },
-    ]
     return (
       <Pane
         paddingRight={50}
@@ -221,7 +192,7 @@ export class Dashboard extends React.Component {
               </Pane>
             ) : null }
             {this.props.workerProgress !== false ? (
-              <WorkerPanel progressData={this.props.workerProgress} workerData={workerData} pollInterval={POLLINTERVAL} />
+              <WorkerPanel progressData={this.props.workerProgress} workerData={this.props.workers} pollInterval={POLLINTERVAL} />
             ) : null}
           </Pane>
         </Pane>
@@ -245,11 +216,13 @@ Dashboard.propTypes = {
   workerProgressLoading: PropTypes.bool,
   workerProgressError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   workerProgress: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
+  workers: PropTypes.oneOfType([PropTypes.array, PropTypes.bool]),
   onFetchError: PropTypes.func,
   onDeleteError: PropTypes.func,
   onCreateError: PropTypes.func,
   onFetchSeverity: PropTypes.func,
   onFetchTargetSeverity: PropTypes.func,
+  onFetchWorkers: PropTypes.func,
 };
 
 const mapStateToProps = createStructuredSelector({
@@ -267,6 +240,7 @@ const mapStateToProps = createStructuredSelector({
   workerProgress: makeSelectFetchWorkerProgress,
   workerProgressLoading: makeSelectWorkerProgressLoading,
   workerProgressError: makeSelectWorkerProgressError,
+  workers: makeSelectFetchWorkers,
 });
 
 const mapDispatchToProps = dispatch => {
@@ -277,6 +251,7 @@ const mapDispatchToProps = dispatch => {
     onFetchSeverity: () => dispatch(loadSeverity()),
     onFetchTargetSeverity: () => dispatch(loadTargetSeverity()),
     onFetchWorkerProgress: () => dispatch(loadWorkerProgress()),
+    onFetchWorkers: () => dispatch(loadWorkers()),
   };
 };
 

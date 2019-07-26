@@ -13,11 +13,8 @@ import targetsReducer from "containers/TargetsPage/reducer";
 import pluginsReducer from "containers/Plugins/reducer";
 import reportsReducer from "containers/Report/reducer";
 import worklistReducer from "containers/WorklistPage/reducer";
-<<<<<<< HEAD
 import dashboardReducer from "containers/Dashboard/reducer";
-=======
 import workersReducer from "containers/WorkersPage/reducer";
->>>>>>> fc7cabccc8e2d32b605ec560ed43a2abe7bda952
 /*
  * routeReducer
  *
@@ -59,10 +56,7 @@ export default function createReducer() {
     plugins: pluginsReducer,
     reports: reportsReducer,
     worklist: worklistReducer,
-<<<<<<< HEAD
-    dashboard: dashboardReducer
-=======
+    dashboard: dashboardReducer,
     workers: workersReducer
->>>>>>> fc7cabccc8e2d32b605ec560ed43a2abe7bda952
   });
 }
