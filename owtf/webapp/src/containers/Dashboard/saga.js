@@ -97,20 +97,6 @@ export function* getTargetSeverity() {
 }
 
 /**
- * Fetch worker progress request/response handler
- */
-export function* getWorkerProgress() {
-  const fetchAPI = getWorkerProgressAPI();
-  try {
-    // Call our request helper (see 'utils/request')
-    const workerProgress = yield call(fetchAPI);
-    yield put(workerProgressLoaded(workerProgress));
-  } catch (error) {
-    yield put(workerProgressLoadingError(error));
-  }
-}
-
-/**
  * Root saga manages watcher lifecycle
  */
 export default function* errorsSaga() {
@@ -123,5 +109,4 @@ export default function* errorsSaga() {
   yield takeLatest(DELETE_ERROR, deleteError);
   yield takeLatest(LOAD_SEVERITY, getSeverity);
   yield takeLatest(LOAD_TARGET_SEVERITY, getTargetSeverity);
-  yield takeLatest(LOAD_WORKER_PROGRESS, getWorkerProgress);
 }

@@ -26,6 +26,16 @@ const makeSelectDelete = createSelector(
   workerState => workerState.get("delete")
 );
 
+const makeSelectWorkerProgress = createSelector(
+  selectWorker,
+  workerState => workerState.get("loadWorkerProgress")
+);
+
+const makeSelectWorkerLogs = createSelector(
+  selectWorker,
+  workerState => workerState.get("loadWorkerLogs")
+);
+
 const makeSelectFetchLoading = createSelector(
   makeSelectFetch,
   fetchState => fetchState.get("loading")
@@ -66,6 +76,36 @@ const makeSelectChangeLoading = createSelector(
   changeState => changeState.get("loading")
 );
 
+const makeSelectWorkerProgressLoading = createSelector(
+  makeSelectWorkerProgress,
+  fetchState => fetchState.get("loading")
+);
+
+const makeSelectWorkerProgressError = createSelector(
+  makeSelectWorkerProgress,
+  fetchState => fetchState.get("error")
+);
+
+const makeSelectFetchWorkerProgress = createSelector(
+  makeSelectWorkerProgress,
+  fetchState => fetchState.get("workerProgress")
+);
+
+const makeSelectWorkerLogsLoading = createSelector(
+  makeSelectWorkerLogs,
+  fetchState => fetchState.get("loading")
+);
+
+const makeSelectWorkerLogsError = createSelector(
+  makeSelectWorkerLogs,
+  fetchState => fetchState.get("error")
+);
+
+const makeSelectFetchWorkerLogs = createSelector(
+  makeSelectWorkerLogs,
+  fetchState => fetchState.get("workerLogs")
+);
+
 export {
   makeSelectFetchLoading,
   makeSelectFetchError,
@@ -74,5 +114,11 @@ export {
   makeSelectCreateError,
   makeSelectDeleteError,
   makeSelectChangeError,
-  makeSelectChangeLoading
+  makeSelectChangeLoading,
+  makeSelectWorkerProgressLoading,
+  makeSelectWorkerProgressError,
+  makeSelectFetchWorkerProgress,
+  makeSelectWorkerLogsLoading,
+  makeSelectWorkerLogsError,
+  makeSelectFetchWorkerLogs,
 };

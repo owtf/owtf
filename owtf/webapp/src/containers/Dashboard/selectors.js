@@ -31,11 +31,6 @@ const makeSelectTargetSeverity = createSelector(
   dashboard => dashboard.get("loadTargetSeverity")
 );
 
-const makeSelectWorkerProgress = createSelector(
-  selectDashboard,
-  dashboard => dashboard.get("loadWorkerProgress")
-);
-
 const makeSelectFetchLoading = createSelector(
   makeSelectFetch,
   fetchState => fetchState.get("loading")
@@ -96,21 +91,6 @@ const makeSelectFetchTargetSeverity = createSelector(
   fetchState => fetchState.get("targetSeverity")
 );
 
-const makeSelectWorkerProgressLoading = createSelector(
-  makeSelectWorkerProgress,
-  fetchState => fetchState.get("loading")
-);
-
-const makeSelectWorkerProgressError = createSelector(
-  makeSelectWorkerProgress,
-  fetchState => fetchState.get("error")
-);
-
-const makeSelectFetchWorkerProgress = createSelector(
-  makeSelectWorkerProgress,
-  fetchState => fetchState.get("workerProgress")
-);
-
 export {
   makeSelectFetchLoading,
   makeSelectFetchError,
@@ -124,7 +104,4 @@ export {
   makeSelectTargetSeverityLoading,
   makeSelectTargetSeverityError,
   makeSelectFetchTargetSeverity,
-  makeSelectWorkerProgressLoading,
-  makeSelectWorkerProgressError,
-  makeSelectFetchWorkerProgress,
 };

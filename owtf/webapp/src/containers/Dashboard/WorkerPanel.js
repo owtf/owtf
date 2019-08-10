@@ -5,8 +5,6 @@ import React from "react";
 import { Pane, Dialog, Paragraph, Button } from "evergreen-ui";
 import { Circle } from 'rc-progress';
 import TimeAgo from 'react-timeago';
-import notRunning from "../../../public/img/not-running.png";
-import preLoader from "../../../public/img/Preloader.gif";
 
 /**
  *  React Component for one entry of Worker Panel legend.
@@ -34,7 +32,7 @@ class Worker extends React.Component {
           Work = (
             <Pane display="flex" flexDirection="row" alignItems="center" justifyContent="center">
               {/* Loading GIF if worker is busy */}
-              <img className="workerpanel-labelimg" src={preLoader} />
+              <img className="workerpanel-labelimg" src="/static/ea8d83b0f7a38f5dda6b45939b19bdc4.gif" />
               <Paragraph>{"Worker " + this.props.data.id + " - " + this.props.data.work[1].name + " ("}<TimeAgo date={this.props.data.start_time}/>)</Paragraph>
               <Button appearance="primary" height={20} onClick={() => this.setState({ showDialog: true })}>Log</Button> 
             </Pane>
@@ -43,7 +41,7 @@ class Worker extends React.Component {
           Work = (
             <Pane display="flex" flexDirection="row"  alignItems="center" justifyContent="center">
               {/* Constant image if worker is not busy */}
-              <img className="workerpanel-labelimg" src={notRunning} />
+              <img className="workerpanel-labelimg" src="/static/b0ac8b98e2b251549cd044fe7d5d7edd.png" />
               <Paragraph margin={10}>{"Worker " + this.props.data.id + " - " + "Not Running "}</Paragraph>
               <Button appearance="primary" height={20} onClick={() => this.setState({ showDialog: true })}>Log</Button> 
             </Pane>

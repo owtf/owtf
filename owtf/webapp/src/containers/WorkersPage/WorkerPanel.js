@@ -30,7 +30,7 @@ export default class WorkerPanel extends React.Component {
 
     this.getPanelStyle = this.getPanelStyle.bind(this);
     this.getControlButtons = this.getControlButtons.bind(this);
-    this.getWorkerLog = this.getWorkerLog.bind(this);
+    // this.getWorkerLog = this.getWorkerLog.bind(this);
     this.displayLog = this.displayLog.bind(this);
     this.hideLog = this.hideLog.bind(this);
     this.openLogModal = this.openLogModal.bind(this);
@@ -125,33 +125,18 @@ export default class WorkerPanel extends React.Component {
    * @param {sring} name Worker name
    * @param {number} lines log lines to show
    */
-  getWorkerLog(name, lines) {
-    var log = " Nothing to show here!";
-    if (lines === "all") {
-      var URL = mySpace.log_url_port + "/logs/" + name.toString() + ".log";
-    } else {
-      var URL =
-        mySpace.log_url_port +
-        "/logs/" +
-        name.toString() +
-        ".log?lines=" +
-        lines.toString();
-    }
-    $.ajax({
-      async: false,
-      url: URL,
-      success: function(data) {
-        log = data;
-        if (log) {
-          log = '<pre style="word-wrap: break-word; white-space: pre-wrap;">'
-            .concat(log.split("\n").join("<br/>"))
-            .concat("<pre>");
-        } else {
-          log = "Nothing to show here!";
-        }
+  getWorkerLog(name, lines){
+    let logs = "Nothing to show here!";
+    this.props.onFetchWorkerLogs(name, lines);
+    setTimeout(() => {
+      const workerLogs = this.props.workerLogs;
+      if(workerLogs !== false) {
+        logs = workerLogs;
       }
-    });
-    return log;
+    }, 500);
+    return (
+      <Pane> {logs} </Pane>
+    );
   }
 
   /**
@@ -264,7 +249,7 @@ export default class WorkerPanel extends React.Component {
                     Lines
                   </Button>
                 </Popover>
-                {/* {this.getWorkerLog(worker.name, 2)} */}
+                {/* {() => this.getWorkerLog(worker.name, -1)} */}
               </Paragraph>
             </Pane>
           )}

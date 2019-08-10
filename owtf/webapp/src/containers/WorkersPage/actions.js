@@ -10,7 +10,13 @@ import {
   CREATE_WORKER_ERROR,
   DELETE_WORKER,
   DELETE_WORKER_SUCCESS,
-  DELETE_WORKER_ERROR
+  DELETE_WORKER_ERROR,
+  LOAD_WORKER_PROGRESS,
+  LOAD_WORKER_PROGRESS_SUCCESS,
+  LOAD_WORKER_PROGRESS_ERROR,
+  LOAD_WORKER_LOGS,
+  LOAD_WORKER_LOGS_SUCCESS,
+  LOAD_WORKER_LOGS_ERROR,
 } from "./constants";
 
 /**
@@ -164,6 +170,89 @@ export function workerDeleted() {
 export function workerDeletingError(error) {
   return {
     type: DELETE_WORKER_ERROR,
+    error
+  };
+}
+
+/**
+ * Load worker progress, this action starts the request saga GET
+ *
+ * @return {object} An action object with a type of LOAD_WORKER_PROGRESS
+ */
+export function loadWorkerProgress() {
+  return {
+    type: LOAD_WORKER_PROGRESS,
+  };
+}
+
+/**
+ * Dispatched when the worker progress is loaded by the request saga
+ *
+ * @param  {array} workerProgress The progress data
+ *
+ * @return {object} An action object with a type of LOAD_WORKER_PROGRESS_SUCCESS passing the progress
+ */
+export function workerProgressLoaded(workerProgress) {
+  return {
+    type: LOAD_WORKER_PROGRESS_SUCCESS,
+    workerProgress
+  };
+}
+
+/**
+ * Dispatched when loading the worker progress fails
+ *
+ * @param  {object} error The error
+ *
+ * @return {object} An action object with a type of LOAD_WORKER_PROGRESS_ERROR passing the error
+ */
+export function workerProgressLoadingError(error) {
+  return {
+    type: LOAD_WORKER_PROGRESS_ERROR,
+    error
+  };
+}
+
+/**
+ * Load worker logs, this action starts the request saga GET
+ * 
+ * @param {string} name Name of the worker log
+ * @param {number} lines lines in the logs to fetch
+ * 
+ * @return {object} An action object with a type of LOAD_WORKER_LOGS
+ */
+export function loadWorkerLogs(name, lines) {
+  return {
+    type: LOAD_WORKER_LOGS,
+    name,
+    lines,
+  };
+}
+
+/**
+ * Dispatched when the worker logs is loaded by the request saga
+ *
+ * @param  {string} workerLogs The logs data
+ *
+ * @return {object} An action object with a type of LOAD_WORKER_LOGS_SUCCESS passing the logs
+ */
+export function workerLogsLoaded(workerLogs) {
+  return {
+    type: LOAD_WORKER_LOGS_SUCCESS,
+    workerLogs
+  };
+}
+
+/**
+ * Dispatched when loading the worker logs fails
+ *
+ * @param  {object} error The error
+ *
+ * @return {object} An action object with a type of LOAD_WORKER_LOGS_ERROR passing the error
+ */
+export function workerLogsLoadingError(error) {
+  return {
+    type: LOAD_WORKER_LOGS_ERROR,
     error
   };
 }

@@ -23,15 +23,15 @@ import {
   makeSelectTargetSeverityLoading,
   makeSelectTargetSeverityError,
   makeSelectFetchTargetSeverity,
-  makeSelectWorkerProgressLoading,
-  makeSelectWorkerProgressError,
-  makeSelectFetchWorkerProgress,
 } from "./selectors";
 import {
   makeSelectFetchWorkers,
+  makeSelectWorkerProgressLoading,
+  makeSelectWorkerProgressError,
+  makeSelectFetchWorkerProgress,
 } from "../WorkersPage/selectors";
-import { loadErrors, createError, deleteError, loadSeverity, loadTargetSeverity, loadWorkerProgress } from "./actions";
-import { loadWorkers } from "../WorkersPage/actions";
+import { loadErrors, createError, deleteError, loadSeverity, loadTargetSeverity } from "./actions";
+import { loadWorkers, loadWorkerProgress } from "../WorkersPage/actions";
 
 const POLLINTERVAL = 13000;
 
