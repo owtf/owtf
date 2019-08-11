@@ -11,7 +11,8 @@ import {
   toaster,
   Paragraph,
   Heading,
-  Dialog
+  Dialog,
+  Pre
 } from "evergreen-ui";
 import { Breadcrumb, ProgressBar } from "react-bootstrap";
 import PropTypes from "prop-types";
@@ -52,6 +53,7 @@ export class WorkersPage extends React.Component {
     this.deleteWorker = this.deleteWorker.bind(this);
     this.addWorker = this.addWorker.bind(this);
     this.handleLogDialogShow = this.handleLogDialogShow.bind(this);
+    this.handleLogDialogContent = this.handleLogDialogContent.bind(this);
     this.toasterSuccess = this.toasterSuccess.bind(this);
     this.toasterError = this.toasterError.bind(this);
     this.renderProgressBar = this.renderProgressBar.bind(this);
@@ -230,8 +232,8 @@ export class WorkersPage extends React.Component {
       logDialogShow: this.state.logDialogShow,
       workerLogs,
       onFetchWorkerLogs: this.props.onFetchWorkerLogs,
+      logDialogContent: this.state.logDialogContent,
     };
-    console.log(this.props.workerProgress);
     return (
       <Pane
         paddingRight={50}
@@ -313,7 +315,7 @@ export class WorkersPage extends React.Component {
           intent="danger"
           hasFooter={false}
         >
-          {this.state.logDialogContent}
+          <Pre>{this.state.logDialogContent}</Pre>
         </Dialog>
       </Pane>
     );

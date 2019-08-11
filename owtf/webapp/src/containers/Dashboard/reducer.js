@@ -100,7 +100,7 @@ export function errorDeleteReducer(state = initialDeleteState, action) {
 
 // The initial state of the severity.
 const initialSeverityState = fromJS({
-  loading: false,
+  loading: true,
   error: false,
   severity: false
 });
@@ -129,7 +129,7 @@ export function severityLoadReducer(state = initialSeverityState, action) {
 
 // The initial state of the last target severity.
 const initialTargetSeverityState = fromJS({
-  loading: false,
+  loading: true,
   error: false,
   targetSeverity: false
 });

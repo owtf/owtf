@@ -28,7 +28,7 @@ class Error(Model):
         obj = Error(owtf_message=message, traceback=trace)
         session.add(obj)
         session.commit()
-        return obj
+        return obj.to_dict()
 
     @classmethod
     def get_error(cls, session, error_id):

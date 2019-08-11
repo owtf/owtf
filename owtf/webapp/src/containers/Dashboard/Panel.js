@@ -1,6 +1,45 @@
-/*
- * Component to show if page not found.
+/**
+ * React Component for VulnerabilityPanel.
+ * It is child components which is used by Dashboard.js
+ * Uses REST API  - /api/dashboard/severitypanel/
+ * JSON output format -
+ * {
+ *    "data":[
+ *       {
+ *          "id":5,
+ *          "value":<int>,
+ *          "label":"Critical"
+ *       },
+ *       {
+ *          "id":4,
+ *          "value":<int>,
+ *          "label":"High"
+ *       },
+ *       {
+ *          "id":3,
+ *          "value":<int>,
+ *          "label":"Medium"
+ *       },
+ *       {
+ *          "id":2,
+ *          "value":<int>,
+ *          "label":"Low"
+ *       },
+ *       {
+ *          "id":1,
+ *          "value":<int>,
+ *          "label":"Info"
+ *       },
+ *       {
+ *          "id":0,
+ *          "value":<int>,
+ *          "label":"Passing"
+ *       }
+ *     ]
+ * }
+ *  Each element of data array represent one block of VulnerabilityPanel representing one severity count
  */
+
 import React from "react";
 import { Bar } from 'react-chartjs-2';
 

@@ -14,9 +14,6 @@ import {
   LOAD_TARGET_SEVERITY,
   LOAD_TARGET_SEVERITY_SUCCESS,
   LOAD_TARGET_SEVERITY_ERROR,
-  LOAD_WORKER_PROGRESS,
-  LOAD_WORKER_PROGRESS_SUCCESS,
-  LOAD_WORKER_PROGRESS_ERROR,
 } from "./constants";
 
 /**
@@ -98,7 +95,7 @@ export function errorCreatingError(error) {
 /**
  * Deletes the error, this action starts the request saga DELETE.
  *
- * @param  {string} error_id Id of the Error to be deleted.
+ * @param  {number} error_id Id of the Error to be deleted.
  *
  * @return {object} An action object with a type of DELETE_ERROR
  */

@@ -69,6 +69,10 @@ describe("Workers Page component", () => {
             worker: 29693
           }
         ],
+        workerProgressLoading: false,
+        workerProgressError: false,
+        workerProgress: { left_count: 50, complete_count: 100 },
+        workerLogs: false,
         fetchLoading: false,
         fetchError: false,
         changeError: false,
@@ -78,7 +82,9 @@ describe("Workers Page component", () => {
         onFetchWorkers: jest.fn(),
         onChangeWorker: jest.fn(),
         onDeleteWorker: jest.fn(),
-        onCreateWorker: jest.fn()
+        onCreateWorker: jest.fn(),
+        onFetchWorkerProgress: jest.fn(),
+        onFetchWorkerLogs: jest.fn(),
       };
       wrapper = shallow(<WorkersPage {...props} />);
     });
@@ -86,6 +92,10 @@ describe("Workers Page component", () => {
     it("Should have correct prop-types", () => {
       const expectedProps = {
         workers: false,
+        workerProgressLoading: false,
+        workerProgressError: false,
+        workerProgress: {},
+        workerLogs: false,
         fetchLoading: false,
         fetchError: {},
         changeError: {},
@@ -95,7 +105,9 @@ describe("Workers Page component", () => {
         onFetchWorkers: () => {},
         onChangeWorker: () => {},
         onDeleteWorker: () => {},
-        onCreateWorker: () => {}
+        onCreateWorker: () => {},
+        onFetchWorkerProgress: () => {},
+        onFetchWorkerLogs: () => {},
       };
       const propsErr = checkProps(WorkersPage, expectedProps);
       expect(propsErr).toBeUndefined();
@@ -171,11 +183,23 @@ describe("Workers Page component", () => {
         loading: true,
         error: false
       };
+      const workerProgressLoad = {
+        loading: false,
+        error: false,
+        workerProgress: { left_count: 50, complete_count: 100 }
+      }
+      const workerLogsLoad = {
+        loading: false,
+        error: false,
+        workerLogs: "Test worker logs"
+      }
       const workers = {
         load: workersLoad,
         create: workerCreate,
         change: workerChange,
-        delete: workerDelete
+        delete: workerDelete,
+        loadWorkerProgress: workerProgressLoad,
+        loadWorkerLogs: workerLogsLoad,
       };
       initialState = fromJS({
         workers
@@ -208,6 +232,14 @@ describe("Workers Page component", () => {
         .get("workers")
         .get("create")
         .get("error");
+      const workerProgressProp = initialState
+        .get("workers")
+        .get("loadWorkerProgress")
+        .get("workerProgress");
+        const workerLogsProp = initialState
+        .get("workers")
+        .get("loadWorkerLogs")
+        .get("workerLogs");
 
       expect(wrapper.props().workers).toEqual(workersProp);
       expect(wrapper.props().fetchLoading).toEqual(fetchLoadingProp);
@@ -215,6 +247,8 @@ describe("Workers Page component", () => {
       expect(wrapper.props().changeError).toEqual(changeErrorProp);
       expect(wrapper.props().deleteError).toEqual(deleteErrorProp);
       expect(wrapper.props().createError).toEqual(createErrorProp);
+      expect(wrapper.props().workerProgress).toEqual(workerProgressProp);
+      expect(wrapper.props().workerLogs).toEqual(workerLogsProp);
     });
   });
 
@@ -236,7 +270,10 @@ describe("Workers Page component", () => {
         abortWorker: jest.fn(),
         deleteWorker: jest.fn(),
         handleLogDialogShow: jest.fn(),
-        logDialogShow: false
+        logDialogShow: false,
+        onFetchWorkerLogs: jest.fn(),
+        logDialogContent: "Test content",
+        handleLogDialogContent: jest.fn(),
       };
       wrapper = shallow(<WorkerPanel {...props} />);
     });
@@ -249,7 +286,10 @@ describe("Workers Page component", () => {
         abortWorker: () => {},
         deleteWorker: () => {},
         handleLogDialogShow: () => {},
-        logDialogShow: true
+        logDialogShow: true,
+        onFetchWorkerLogs: () => {},
+        logDialogContent: "",
+        handleLogDialogContent: () => {},
       };
       const propsErr = checkProps(WorkerPanel, expectedProps);
       expect(propsErr).toBeUndefined();

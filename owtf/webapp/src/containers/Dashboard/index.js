@@ -1,6 +1,14 @@
-/*
- * Dashboard
+/**
+ * React Component for Dashboard.
+ * This is main component which renders the Dashboard page.
+ * - Renders on (URL)  - /ui/dashboard/
+ * - Child Components:
+ *    - GitHubReport (GitHubReport.js) - Top right button to report issue/bug directly to OWTF GitHub Repo.
+ *    - VulnerabilityPanel (Panel.js) - Shows total counts(plugins) of each severity of scanned targets.
+ *    - Chart (Chart.js) - Creates pie chart. Describes how many **targets** are repored as low, high, info, critical etc.
+ *    - WorkerPanel (WorkerPanel.js) - Shows progress of running targets and worker log.
  */
+
 import React from "react";
 import { Pane, Heading, Small, toaster, Spinner, Paragraph } from "evergreen-ui";
 import { Breadcrumb } from "react-bootstrap";
@@ -29,9 +37,10 @@ import {
   makeSelectWorkerProgressLoading,
   makeSelectWorkerProgressError,
   makeSelectFetchWorkerProgress,
+  makeSelectFetchWorkerLogs,
 } from "../WorkersPage/selectors";
 import { loadErrors, createError, deleteError, loadSeverity, loadTargetSeverity } from "./actions";
-import { loadWorkers, loadWorkerProgress } from "../WorkersPage/actions";
+import { loadWorkers, loadWorkerProgress, loadWorkerLogs } from "../WorkersPage/actions";
 
 const POLLINTERVAL = 13000;
 
@@ -80,7 +89,6 @@ export class Dashboard extends React.Component {
     const GitHubReportProps = {
       errors: this.props.errors,
       onDeleteError: this.props.onDeleteError,
-      deleteError: this.props.deleteError
     };
     return (
       <Pane
@@ -192,7 +200,12 @@ export class Dashboard extends React.Component {
               </Pane>
             ) : null }
             {this.props.workerProgress !== false ? (
-              <WorkerPanel progressData={this.props.workerProgress} workerData={this.props.workers} pollInterval={POLLINTERVAL} />
+              <WorkerPanel 
+                progressData={this.props.workerProgress} 
+                workerData={this.props.workers} 
+                workerLogs={this.props.workerLogs}
+                onFetchWorkerLogs={this.props.onFetchWorkerLogs}
+                pollInterval={POLLINTERVAL} />
             ) : null}
           </Pane>
         </Pane>
@@ -217,12 +230,14 @@ Dashboard.propTypes = {
   workerProgressError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   workerProgress: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   workers: PropTypes.oneOfType([PropTypes.array, PropTypes.bool]),
-  onFetchError: PropTypes.func,
+  onFetchErrors: PropTypes.func,
   onDeleteError: PropTypes.func,
   onCreateError: PropTypes.func,
   onFetchSeverity: PropTypes.func,
   onFetchTargetSeverity: PropTypes.func,
   onFetchWorkers: PropTypes.func,
+  onFetchWorkerProgress: PropTypes.func,
+  onFetchWorkerLogs: PropTypes.func,
 };
 
 const mapStateToProps = createStructuredSelector({
@@ -241,6 +256,7 @@ const mapStateToProps = createStructuredSelector({
   workerProgressLoading: makeSelectWorkerProgressLoading,
   workerProgressError: makeSelectWorkerProgressError,
   workers: makeSelectFetchWorkers,
+  workerLogs: makeSelectFetchWorkerLogs,  
 });
 
 const mapDispatchToProps = dispatch => {
@@ -252,6 +268,7 @@ const mapDispatchToProps = dispatch => {
     onFetchTargetSeverity: () => dispatch(loadTargetSeverity()),
     onFetchWorkerProgress: () => dispatch(loadWorkerProgress()),
     onFetchWorkers: () => dispatch(loadWorkers()),
+    onFetchWorkerLogs: (name, lines) => dispatch(loadWorkerLogs(name, lines)),
   };
 };
 

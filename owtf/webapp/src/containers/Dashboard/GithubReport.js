@@ -1,6 +1,9 @@
-/*
- * Component to show if page not found.
+/**
+ *  React Component for GitHubReport(Top right button).
+ *  It is child components which is used by Dashboard.js
+ *  Uses Rest API - /api/errors/ (Obtained from props)
  */
+
 import React from "react";
 import {
   Pane,
@@ -37,11 +40,9 @@ export default class GithubReport extends React.Component {
   } 
 
   render() {
-    // const { fetchError, fetchLoading, errors } = this.props;
-    // console.log(this.props.errors);
     const errorData = this.props.errors;
     return (
-      <Pane>
+      <Pane data-test="githubReportComponent">
         <Button
           className="pull-right"
           appearance="primary"
@@ -198,5 +199,6 @@ export default class GithubReport extends React.Component {
 }
 
 GithubReport.propTypes = {
-  errors: PropTypes.oneOfType([PropTypes.array, PropTypes.bool])
+  errors: PropTypes.oneOfType([PropTypes.array, PropTypes.bool]),
+  onDeleteError: PropTypes.func,
 };

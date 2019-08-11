@@ -3,7 +3,7 @@
  */
 
 import { call, put, takeLatest } from "redux-saga/effects";
-import { LOAD_ERRORS, CREATE_ERROR, DELETE_ERROR, LOAD_SEVERITY, LOAD_TARGET_SEVERITY, LOAD_WORKER_PROGRESS } from "./constants";
+import { LOAD_ERRORS, CREATE_ERROR, DELETE_ERROR, LOAD_SEVERITY, LOAD_TARGET_SEVERITY } from "./constants";
 import {
   loadErrors,
   errorsLoaded,
@@ -16,10 +16,8 @@ import {
   severityLoadingError,
   targetSeverityLoaded,
   targetSeverityLoadingError,
-  workerProgressLoaded,
-  workerProgressLoadingError,
 } from "./actions";
-import { getErrorsAPI, postErrorAPI, deleteErrorAPI, getSeverityAPI, getTargetSeverityAPI, getWorkerProgressAPI } from "./api";
+import { getErrorsAPI, postErrorAPI, deleteErrorAPI, getSeverityAPI, getTargetSeverityAPI } from "./api";
 import { Dashboard } from "./index";
 import "@babel/polyfill";
 

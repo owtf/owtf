@@ -122,26 +122,33 @@ exports[`Workers Page component Testing dumb WorkersPage component Should render
   >
     Total scan progress
   </withTheme(Heading)>
-  <ProgressBar
-    active={true}
-    bsClass="progress-bar"
-    bsStyle="success"
-    isChild={false}
-    max={100}
-    min={0}
-    now={40}
-    srOnly={false}
-    striped={true}
-  />
+  <withTheme(Pane)
+    marginBottom={20}
+  >
+    <ProgressBar
+      active={true}
+      bsClass="progress-bar"
+      bsStyle="success"
+      isChild={false}
+      max={100}
+      min={0}
+      now={66.66666666666666}
+      srOnly={false}
+      striped={true}
+    />
+  </withTheme(Pane)>
   <withTheme(Pane)
     clearfix={true}
   >
     <WorkerPanel
       abortWorker={[Function]}
       deleteWorker={[Function]}
+      handleLogDialogContent={[Function]}
       handleLogDialogShow={[Function]}
       key="4"
+      logDialogContent="Nothing to show here!"
       logDialogShow={false}
+      onFetchWorkerLogs={[MockFunction]}
       pauseWorker={[Function]}
       resumeWorker={[Function]}
       worker={
@@ -154,6 +161,7 @@ exports[`Workers Page component Testing dumb WorkersPage component Should render
           "worker": 29693,
         }
       }
+      workerLogs={false}
     />
   </withTheme(Pane)>
   <withTheme(Dialog)
@@ -163,7 +171,9 @@ exports[`Workers Page component Testing dumb WorkersPage component Should render
     onCloseComplete={[Function]}
     title="Worker Log"
   >
-    Nothing to show here!
+    <Pre>
+      Nothing to show here!
+    </Pre>
   </withTheme(Dialog)>
 </withTheme(Pane)>
 `;

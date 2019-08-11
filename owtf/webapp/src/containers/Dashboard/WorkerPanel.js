@@ -1,10 +1,8 @@
-/*
- * Component to show if page not found.
- */
 import React from "react";
 import { Pane, Dialog, Paragraph, Button } from "evergreen-ui";
 import { Circle } from 'rc-progress';
 import TimeAgo from 'react-timeago';
+import PropTypes from "prop-types";
 
 /**
  *  React Component for one entry of Worker Panel legend.
@@ -13,7 +11,7 @@ import TimeAgo from 'react-timeago';
  *  work is array which contains the work assigned to that worker
  */
 
-class Worker extends React.Component {
+export class Worker extends React.Component {
   constructor(props) {
       super(props);
       this.getWork = this.getWork.bind(this);
@@ -26,34 +24,45 @@ class Worker extends React.Component {
 
   /* Function resposible to make enteries for each worker in worker legend */
   getWork() {
-      // This put the worker id with its currently running plugin in worker legend
-      var Work;
-      if (this.props.data.work.length > 0) {
-          Work = (
-            <Pane display="flex" flexDirection="row" alignItems="center" justifyContent="center">
-              {/* Loading GIF if worker is busy */}
-              <img className="workerpanel-labelimg" src="/static/ea8d83b0f7a38f5dda6b45939b19bdc4.gif" />
-              <Paragraph>{"Worker " + this.props.data.id + " - " + this.props.data.work[1].name + " ("}<TimeAgo date={this.props.data.start_time}/>)</Paragraph>
-              <Button appearance="primary" height={20} onClick={() => this.setState({ showDialog: true })}>Log</Button> 
-            </Pane>
-          );
-      } else {
-          Work = (
-            <Pane display="flex" flexDirection="row"  alignItems="center" justifyContent="center">
-              {/* Constant image if worker is not busy */}
-              <img className="workerpanel-labelimg" src="/static/b0ac8b98e2b251549cd044fe7d5d7edd.png" />
-              <Paragraph margin={10}>{"Worker " + this.props.data.id + " - " + "Not Running "}</Paragraph>
-              <Button appearance="primary" height={20} onClick={() => this.setState({ showDialog: true })}>Log</Button> 
-            </Pane>
-          );
-      }
 
-      return Work;
+    let getLog = (name) => {
+      this.props.onFetchWorkerLogs(name,-1);
+      setTimeout(() => {
+        const workerLogs = this.props.workerLogs;
+        if(workerLogs!==false){
+          this.setState({ dialogContent: workerLogs });
+        }
+      }, 500);
+      this.setState({ showDialog: true });
+    };
+    // This put the worker id with its currently running plugin in worker legend
+    let Work;
+    if (this.props.data.work.length > 0) {
+        Work = (
+          <Pane display="flex" flexDirection="row" alignItems="center" justifyContent="center">
+            {/* Loading GIF if worker is busy */}
+            <img className="workerpanel-labelimg" src="/static/ea8d83b0f7a38f5dda6b45939b19bdc4.gif" />
+            <Paragraph>{"Worker " + this.props.data.id + " - " + this.props.data.work[1].name + " ("}<TimeAgo date={this.props.data.start_time}/>)</Paragraph>
+            <Button appearance="primary" height={20} onClick={() => this.setState({ showDialog: true })}>Log</Button> 
+          </Pane>
+        );
+    } else {
+        Work = (
+          <Pane display="flex" flexDirection="row"  alignItems="center" justifyContent="center">
+            {/* Constant image if worker is not busy */}
+            <img className="workerpanel-labelimg" src="/static/b0ac8b98e2b251549cd044fe7d5d7edd.png" />
+            <Paragraph margin={10}>{"Worker " + this.props.data.id + " - " + "Not Running "}</Paragraph>
+            <Button appearance="primary" height={20} onClick={() => getLog(this.props.data.name)}>Log</Button> 
+          </Pane>
+        );
+    }
+
+    return Work;
   };
 
   render() {
       return (
-          <Pane>
+          <Pane data-test="workerComponent">
               {this.getWork()}
               <Dialog
                 isShown={this.state.showDialog}
@@ -88,7 +97,7 @@ class Worker extends React.Component {
 *  Each element of data array represent details of what each worker is doing.
 */
 
-class WorkerLegend extends React.Component {
+export class WorkerLegend extends React.Component {
   constructor(props) {
       super(props);
 
@@ -121,9 +130,9 @@ class WorkerLegend extends React.Component {
 
   render() {
       return (
-          <Pane>
+          <Pane data-test="workerLegendComponent">
               {this.props.workerData.map(worker => {
-                  return <Worker key={worker.id} data={worker}/>;
+                  return <Worker key={worker.id} data={worker} workerLogs={this.props.workerLogs} onFetchWorkerLogs={this.props.onFetchWorkerLogs} />;
               })}
           </Pane>
       );
@@ -145,7 +154,7 @@ class WorkerLegend extends React.Component {
  *    }
  */
 
-class ProgressBar extends React.Component {
+export class ProgressBar extends React.Component {
 
   constructor(props) {
       super(props);
@@ -191,20 +200,52 @@ class ProgressBar extends React.Component {
   }
 }
 
+/**
+ *  React Component for Worker Panel.
+ *  It is child components which is used by Dashboard.js
+ */
+
 export default class WorkerPanel extends React.Component {
   render() {
+  const { progressData, workerData, workerLogs, onFetchWorkerLogs, pollInterval } = this.props;
     return (
-      <Pane display="flex" flexDirection="row">
+      <Pane display="flex" flexDirection="row" data-test="workerPanelComponent">
         <Pane>
-          <ProgressBar pollInterval={this.props.pollInterval} progressData={this.props.progressData} />
+          <ProgressBar pollInterval={pollInterval} progressData={progressData} />
         </Pane>
         <Pane marginLeft={100} justifyContent="center">
           {this.props.workerData ? (
-            <WorkerLegend pollInterval={this.props.pollInterval} workerData={this.props.workerData} />
+            <WorkerLegend pollInterval={pollInterval} workerData={workerData} workerLogs={workerLogs} onFetchWorkerLogs={onFetchWorkerLogs} />
           )
           : null}
         </Pane>
       </Pane>  
     );
   }
+}
+
+WorkerPanel.propTypes = {
+  progressData: PropTypes.object,
+  workerData: PropTypes.array, 
+  workerLogs: PropTypes.oneOfType([ PropTypes.bool, PropTypes.string ]),
+  onFetchWorkerLogs: PropTypes.func,
+  pollInterval: PropTypes.number
+};
+
+ProgressBar.propTypes = {
+  pollInterval: PropTypes.number,
+  progressData: PropTypes.object
+}
+
+WorkerLegend.propTypes = {
+  workerData: PropTypes.array, 
+  workerLogs: PropTypes.oneOfType([ PropTypes.bool, PropTypes.string ]),
+  onFetchWorkerLogs: PropTypes.func,
+  pollInterval: PropTypes.number
+}
+
+Worker.propTypes = {
+  data: PropTypes.object,
+  workerLogs: PropTypes.oneOfType([ PropTypes.bool, PropTypes.string ]),
+  onFetchWorkerLogs: PropTypes.func
 }
