@@ -1,0 +1,918 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Report page component Testing Collapse component Should render without errors 1`] = `
+<SideSheet
+  containerProps={
+    Object {
+      "display": "flex",
+      "flex": "1",
+      "flexDirection": "column",
+    }
+  }
+  data-test="collapseComponent"
+  isShown={true}
+  onCloseComplete={[MockFunction]}
+  onOpenComplete={[Function]}
+  position="right"
+  shouldCloseOnEscapePress={true}
+  shouldCloseOnOverlayClick={true}
+  width={700}
+>
+  <withTheme(Pane)
+    backgroundColor="white"
+    elevation={0}
+    flexShrink={0}
+    zIndex={1}
+  >
+    <withTheme(Pane)
+      borderBottom="muted"
+      padding={16}
+    >
+      <withTheme(Heading)
+        size={600}
+      >
+        OWTF-ABrF-001 Password Bruteforce Testing plugin
+      </withTheme(Heading)>
+      <withTheme(Paragraph)
+        color="muted"
+        size={400}
+      >
+        Password Bruteforce 
+      </withTheme(Paragraph)>
+    </withTheme(Pane)>
+    <withTheme(Pane)
+      display="flex"
+      padding={8}
+    >
+      <Tablist>
+        <withTheme(Tab)
+          disabled={true}
+          key="type"
+        >
+          Type:
+        </withTheme(Tab)>
+        <withTheme(Tab)
+          aria-controls="panel-0"
+          href="#auxiliary_bruteforce_OWTF-ABrF-001"
+          id={0}
+          is="a"
+          isSelected={false}
+          key="bruteforce_OWTF-ABrF-001"
+          onSelect={[Function]}
+        >
+          bruteforce
+        </withTheme(Tab)>
+        <withTheme(Tab)
+          aria-controls="panel-1"
+          href="#auxiliarysss_bruteforce_OWTF-ABrF-001"
+          id={1}
+          is="a"
+          isSelected={false}
+          key="bruteforce_OWTF-ABrF-001"
+          onSelect={[Function]}
+        >
+          bruteforce
+        </withTheme(Tab)>
+        <withTheme(Tab)
+          key="more-info"
+        >
+          <withTheme(Link)
+            href=" https://www.owasp.org/index.php/"
+            title="More information"
+          >
+            <withTheme(Icon)
+              icon="lightbulb"
+            />
+          </withTheme(Link)>
+        </withTheme(Tab)>
+      </Tablist>
+    </withTheme(Pane)>
+  </withTheme(Pane)>
+  <withTheme(Pane)
+    background="tint1"
+    flex="1"
+    overflowY="scroll"
+    padding={16}
+  >
+    <withTheme(Pane)
+      aria-hidden={true}
+      aria-labelledby={0}
+      display="none"
+      id="panel-0"
+      key="bruteforce_OWTF-ABrF-001"
+      role="tabpanel"
+    >
+      <withTheme(Pane)
+        display="flex"
+        flexDirection="column"
+      >
+        <withTheme(Pane)
+          marginBottom={20}
+        >
+          <blockquote
+            className="pull-left"
+          >
+            <withTheme(Heading)>
+              Bruteforce
+            </withTheme(Heading)>
+            <Small>
+              OWTF-ABrF-001
+            </Small>
+          </blockquote>
+          <RankButtons
+            obj={
+              Object {
+                "id": 63,
+                "owtf_rank": -1,
+                "plugin_code": "OWTF-ABrF-001",
+                "plugin_group": "auxiliary",
+                "plugin_key": "bruteforce@OWTF-ABrF-001",
+                "plugin_type": "bruteforce",
+                "status": "",
+                "user_rank": -1,
+              }
+            }
+            patchUserRank={[MockFunction]}
+          />
+        </withTheme(Pane)>
+        <Connect(DataTable)
+          deletePluginOutput={[MockFunction]}
+          obj={
+            Object {
+              "id": 63,
+              "owtf_rank": -1,
+              "plugin_code": "OWTF-ABrF-001",
+              "plugin_group": "auxiliary",
+              "plugin_key": "bruteforce@OWTF-ABrF-001",
+              "plugin_type": "bruteforce",
+              "status": "",
+              "user_rank": -1,
+            }
+          }
+          postToWorklist={[MockFunction]}
+          targetData={Object {}}
+        />
+      </withTheme(Pane)>
+    </withTheme(Pane)>
+    <withTheme(Pane)
+      aria-hidden={true}
+      aria-labelledby={1}
+      display="none"
+      id="panel-1"
+      key="bruteforce_OWTF-ABrF-001"
+      role="tabpanel"
+    >
+      <withTheme(Pane)
+        display="flex"
+        flexDirection="column"
+      >
+        <withTheme(Pane)
+          marginBottom={20}
+        >
+          <blockquote
+            className="pull-left"
+          >
+            <withTheme(Heading)>
+              Bruteforce
+            </withTheme(Heading)>
+            <Small>
+              OWTF-ABrF-001
+            </Small>
+          </blockquote>
+          <RankButtons
+            obj={
+              Object {
+                "id": 63,
+                "owtf_rank": -1,
+                "plugin_code": "OWTF-ABrF-001",
+                "plugin_group": "auxiliarysss",
+                "plugin_key": "bruteforce@OWTF-ABrF-001",
+                "plugin_type": "bruteforce",
+                "status": "",
+                "user_rank": -1,
+              }
+            }
+            patchUserRank={[MockFunction]}
+          />
+        </withTheme(Pane)>
+        <Connect(DataTable)
+          deletePluginOutput={[MockFunction]}
+          obj={
+            Object {
+              "id": 63,
+              "owtf_rank": -1,
+              "plugin_code": "OWTF-ABrF-001",
+              "plugin_group": "auxiliarysss",
+              "plugin_key": "bruteforce@OWTF-ABrF-001",
+              "plugin_type": "bruteforce",
+              "status": "",
+              "user_rank": -1,
+            }
+          }
+          postToWorklist={[MockFunction]}
+          targetData={Object {}}
+        />
+      </withTheme(Pane)>
+    </withTheme(Pane)>
+  </withTheme(Pane)>
+</SideSheet>
+`;
+
+exports[`Report page component Testing Header component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="headerComponent"
+>
+  <Breadcrumb
+    bsClass="breadcrumb"
+  >
+    <BreadcrumbItem
+      active={false}
+      href="/"
+    >
+      Home
+    </BreadcrumbItem>
+    <BreadcrumbItem
+      active={false}
+      href="/targets/"
+    >
+      Target
+    </BreadcrumbItem>
+    <BreadcrumbItem
+      active={true}
+    >
+      http://gg.com
+    </BreadcrumbItem>
+  </Breadcrumb>
+  <withTheme(IconButton)
+    appearance="primary"
+    className="scroll"
+    icon="arrow-up"
+    intent="danger"
+    onClick={[Function]}
+    title="Move to top"
+  />
+  <withTheme(Pane)
+    alignItems="center"
+    display="flex"
+    flexDirection="row"
+    marginTop={50}
+  >
+    <withTheme(Pane)
+      alignItems="center"
+      display="flex"
+      flexBasis={800}
+      flexDirection="row"
+    >
+      <withTheme(Heading)
+        marginLeft={10}
+        size={900}
+      >
+        http://gg.com
+      </withTheme(Heading)>
+      <Small
+        marginLeft={10}
+        marginTop={10}
+      >
+         (49.4.3.212)
+      </Small>
+    </withTheme(Pane)>
+    <withTheme(Badge)
+      color="purple"
+      height={40}
+      marginRight={8}
+      padding={12}
+      width={80}
+    >
+      Critical
+    </withTheme(Badge)>
+  </withTheme(Pane)>
+  <hr />
+</withTheme(Pane)>
+`;
+
+exports[`Report page component Testing Table component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="dataTableComponent"
+>
+  <Table
+    border={true}
+  >
+    <TableHead
+      accountForScrollbar={true}
+      height={32}
+    >
+      <TextTableHeaderCell>
+        RUNTIME
+      </TextTableHeaderCell>
+      <TextTableHeaderCell>
+        TIME INTERVAL
+      </TextTableHeaderCell>
+      <TextTableHeaderCell>
+        STATUS
+      </TextTableHeaderCell>
+      <TextTableHeaderCell>
+        OUTPUT FILES
+      </TextTableHeaderCell>
+      <TextTableHeaderCell>
+        ACTIONS
+      </TextTableHeaderCell>
+    </TableHead>
+    <TableVirtualBody
+      allowAutoHeight={false}
+      defaultHeight={48}
+      height={60}
+      overscanCount={5}
+      useAverageAutoHeightEstimation={true}
+    >
+      <withTheme(TableRow)>
+        <TextTableCell
+          isNumber={false}
+        />
+        <TextTableCell
+          isNumber={false}
+        >
+          <br />
+        </TextTableCell>
+        <TextTableCell
+          isNumber={false}
+        />
+        <withTheme(TableCell)>
+          <withTheme(Link)
+            href="/output_files/undefined/"
+          >
+            <withTheme(Button)
+              appearance="primary"
+              disabled={false}
+            >
+              Browse
+            </withTheme(Button)>
+          </withTheme(Link)>
+        </withTheme(TableCell)>
+        <withTheme(TableCell)>
+          <withTheme(IconButton)
+            icon="refresh"
+            intent="success"
+            onClick={[Function]}
+            title="Rerun plugin"
+          />
+          <withTheme(IconButton)
+            icon="cross"
+            intent="danger"
+            onClick={[Function]}
+            title="Delete plugin output"
+          />
+        </withTheme(TableCell)>
+      </withTheme(TableRow)>
+    </TableVirtualBody>
+  </Table>
+  <withTheme(Pane)
+    display="flex"
+    flexDirection="column"
+    marginTop={10}
+  >
+    <withTheme(Pane)
+      marginBottom={20}
+    >
+      <withTheme(Button)
+        height={32}
+        iconBefore="edit"
+        intent="none"
+        onClick={[Function]}
+        title="Click to open the text editor"
+      >
+        Notes
+      </withTheme(Button)>
+    </withTheme(Pane)>
+    <withTheme(Pane)
+      border={true}
+      padding={10}
+    >
+      <withTheme(Heading)>
+        MORE DETAILS
+      </withTheme(Heading)>
+    </withTheme(Pane)>
+  </withTheme(Pane)>
+</withTheme(Pane)>
+`;
+
+exports[`Report page component Testing dumb Accordian component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="accordianComponent"
+  key="Test plugin"
+>
+  <withTheme(Pane)
+    alignItems="center"
+    background="none"
+    display="flex"
+    elevation={1}
+    flexDirection="row"
+    height={100}
+    marginBottom={10}
+  >
+    <withTheme(Pane)
+      width={100}
+    >
+      <withTheme(Button)
+        appearance="primary"
+        height={20}
+        intent="none"
+        key="Test pluginbruteforce"
+        onClick={[Function]}
+      >
+        Bruteforce
+      </withTheme(Button)>
+    </withTheme(Pane)>
+    <withTheme(Pane)
+      alignItems="center"
+      display="flex"
+      flex={1}
+      flexDirection="row"
+    >
+      <withTheme(Heading)
+        className="heading"
+        cursor="pointer"
+        onClick={[Function]}
+        size={700}
+      >
+        OWTF-ABrF-001 Password Bruteforce Testing plugin
+      </withTheme(Heading)>
+      <Small
+        marginLeft={5}
+        marginTop={5}
+      >
+        Password Bruteforce 
+      </Small>
+    </withTheme(Pane)>
+    <withTheme(Pane)
+      marginRight={20}
+    />
+  </withTheme(Pane)>
+  <Collapse
+    deletePluginOutput={[Function]}
+    handlePluginBtnOnAccordian={[Function]}
+    handleSideSheetClose={[Function]}
+    pactive="bruteforce"
+    patchUserRank={[Function]}
+    plugin={
+      Object {
+        "code": "OWTF-ABrF-001",
+        "descrip": "Password Bruteforce Testing plugin",
+        "group": "aux",
+        "hint": "Password_Bruteforce ",
+        "mappings": Object {},
+        "priority": 99,
+        "url": " https://www.owasp.org/index.php/",
+      }
+    }
+    pluginCollapseData={Array []}
+    postToWorklist={[Function]}
+    selectedGroup={Array []}
+    selectedMapping=""
+    selectedOwtfRank={Array []}
+    selectedRank={Array []}
+    selectedStatus={Array []}
+    selectedType={Array []}
+    sideSheetOpen={false}
+    targetData={Object {}}
+  />
+</withTheme(Pane)>
+`;
+
+exports[`Report page component Testing dumb Accordians component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="accordiansComponent"
+  id="pluginOutputs"
+>
+  <Connect(Accordian)
+    code="OWTF-ABrF-001"
+    data={
+      Object {
+        "data": Array [
+          Object {
+            "id": 63,
+            "owtf_rank": -1,
+            "plugin_code": "OWTF-ABrF-001",
+            "plugin_group": "auxiliary",
+            "plugin_key": "bruteforce@OWTF-ABrF-001",
+            "plugin_type": "bruteforce",
+            "status": "",
+            "user_rank": -1,
+          },
+        ],
+        "details": Object {
+          "code": "OWTF-ABrF-001",
+          "descrip": "Password Bruteforce Testing plugin",
+          "group": "aux",
+          "hint": "Password_Bruteforce ",
+          "mappings": Object {},
+          "priority": 99,
+          "url": " https://www.owasp.org/index.php/",
+        },
+      }
+    }
+    key="OWTF-ABrF-001"
+    targetData={Object {}}
+  />
+</withTheme(Pane)>
+`;
+
+exports[`Report page component Testing dumb SideFilters component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="sideFiltersComponent"
+  display="flex"
+  flexDirection="column"
+>
+  <Strong
+    marginBottom={10}
+  >
+     Actions
+  </Strong>
+  <Tablist
+    display="flex"
+    flexDirection="column"
+    marginBottom={30}
+    width={200}
+  >
+    <withTheme(Tab)
+      justifyContent="left"
+      key="filter"
+      onSelect={[Function]}
+    >
+      <withTheme(Icon)
+        color="info"
+        icon="filter"
+        marginRight={10}
+      />
+      <withTheme(Text)
+        color="#337ab7"
+      >
+        Filter
+      </withTheme(Text)>
+    </withTheme(Tab)>
+    <withTheme(Tab)
+      justifyContent="left"
+      key="refresh"
+      onSelect={[MockFunction]}
+    >
+      <withTheme(Icon)
+        color="success"
+        icon="refresh"
+        marginRight={10}
+      />
+      <withTheme(Text)
+        color="#337ab7"
+      >
+        Refresh
+      </withTheme(Text)>
+    </withTheme(Tab)>
+    <withTheme(Tab)
+      justifyContent="left"
+      key="plugins"
+      onSelect={[Function]}
+    >
+      <withTheme(Icon)
+        color="danger"
+        icon="fork"
+        marginRight={10}
+      />
+      <withTheme(Text)
+        color="#337ab7"
+      >
+        Run Plugins
+      </withTheme(Text)>
+    </withTheme(Tab)>
+    <withTheme(Tab)
+      justifyContent="left"
+      key="sessions"
+    >
+      <withTheme(Icon)
+        color="warning"
+        icon="flag"
+        marginRight={10}
+      />
+      <withTheme(Text)
+        color="#337ab7"
+      >
+        User Sessions
+      </withTheme(Text)>
+    </withTheme(Tab)>
+    <Popover
+      animationDuration={300}
+      bringFocusInside={false}
+      content={
+        <Menu>
+          <MenuGroup
+            title="Select template"
+          />
+        </Menu>
+      }
+      minHeight={40}
+      minWidth={200}
+      onBodyClick={[Function]}
+      onClose={[Function]}
+      onCloseComplete={[Function]}
+      onOpen={[Function]}
+      onOpenComplete={[Function]}
+      position="bottom-left"
+      shouldCloseOnExternalClick={true}
+      trigger="click"
+    >
+      <withTheme(Tab)
+        justifyContent="left"
+        key="export"
+      >
+        <withTheme(Icon)
+          icon="export"
+          marginRight={10}
+        />
+        <withTheme(Text)
+          color="#337ab7"
+        >
+          Export Report
+        </withTheme(Text)>
+        <withTheme(Icon)
+          icon="caret-down"
+          marginLeft={5}
+        />
+      </withTheme(Tab)>
+    </Popover>
+  </Tablist>
+  <Strong
+    marginBottom={10}
+  >
+     Plugin Group
+  </Strong>
+  <Tablist
+    display="flex"
+    flexDirection="column"
+    marginBottom={30}
+    width={200}
+  >
+    <withTheme(Tab)
+      aria-controls="panel-web"
+      id={0}
+      isSelected={false}
+      justifyContent="left"
+      key="0"
+      onSelect={[Function]}
+    >
+      <withTheme(Text)
+        color="#337ab7"
+      >
+        web
+      </withTheme(Text)>
+    </withTheme(Tab)>
+    <withTheme(Tab)
+      aria-controls="panel-network"
+      id={1}
+      isSelected={false}
+      justifyContent="left"
+      key="1"
+      onSelect={[Function]}
+    >
+      <withTheme(Text)
+        color="#337ab7"
+      >
+        network
+      </withTheme(Text)>
+    </withTheme(Tab)>
+    <withTheme(Tab)
+      aria-controls="panel-auxiliary"
+      id={2}
+      isSelected={false}
+      justifyContent="left"
+      key="2"
+      onSelect={[Function]}
+    >
+      <withTheme(Text)
+        color="#337ab7"
+      >
+        auxiliary
+      </withTheme(Text)>
+    </withTheme(Tab)>
+  </Tablist>
+  <Strong
+    marginBottom={10}
+  >
+     Plugin Type
+  </Strong>
+  <Tablist
+    display="flex"
+    flexDirection="column"
+    width={200}
+  >
+    <withTheme(Tab)
+      aria-controls="panel-exploit"
+      id={0}
+      isSelected={false}
+      justifyContent="left"
+      key="0"
+      onSelect={[Function]}
+    >
+      <withTheme(Text)
+        color="#337ab7"
+      >
+        exploit
+      </withTheme(Text)>
+    </withTheme(Tab)>
+    <withTheme(Tab)
+      aria-controls="panel-semi_passive"
+      id={1}
+      isSelected={false}
+      justifyContent="left"
+      key="1"
+      onSelect={[Function]}
+    >
+      <withTheme(Text)
+        color="#337ab7"
+      >
+        semi passive
+      </withTheme(Text)>
+    </withTheme(Tab)>
+    <withTheme(Tab)
+      aria-controls="panel-dos"
+      id={2}
+      isSelected={false}
+      justifyContent="left"
+      key="2"
+      onSelect={[Function]}
+    >
+      <withTheme(Text)
+        color="#337ab7"
+      >
+        dos
+      </withTheme(Text)>
+    </withTheme(Tab)>
+    <withTheme(Tab)
+      aria-controls="panel-selenium"
+      id={3}
+      isSelected={false}
+      justifyContent="left"
+      key="3"
+      onSelect={[Function]}
+    >
+      <withTheme(Text)
+        color="#337ab7"
+      >
+        selenium
+      </withTheme(Text)>
+    </withTheme(Tab)>
+    <withTheme(Tab)
+      aria-controls="panel-smb"
+      id={4}
+      isSelected={false}
+      justifyContent="left"
+      key="4"
+      onSelect={[Function]}
+    >
+      <withTheme(Text)
+        color="#337ab7"
+      >
+        smb
+      </withTheme(Text)>
+    </withTheme(Tab)>
+    <withTheme(Tab)
+      aria-controls="panel-active"
+      id={5}
+      isSelected={false}
+      justifyContent="left"
+      key="5"
+      onSelect={[Function]}
+    >
+      <withTheme(Text)
+        color="#337ab7"
+      >
+        active
+      </withTheme(Text)>
+    </withTheme(Tab)>
+    <withTheme(Tab)
+      aria-controls="panel-bruteforce"
+      id={6}
+      isSelected={false}
+      justifyContent="left"
+      key="6"
+      onSelect={[Function]}
+    >
+      <withTheme(Text)
+        color="#337ab7"
+      >
+        bruteforce
+      </withTheme(Text)>
+    </withTheme(Tab)>
+    <withTheme(Tab)
+      aria-controls="panel-external"
+      id={7}
+      isSelected={false}
+      justifyContent="left"
+      key="7"
+      onSelect={[Function]}
+    >
+      <withTheme(Text)
+        color="#337ab7"
+      >
+        external
+      </withTheme(Text)>
+    </withTheme(Tab)>
+    <withTheme(Tab)
+      aria-controls="panel-grep"
+      id={8}
+      isSelected={false}
+      justifyContent="left"
+      key="8"
+      onSelect={[Function]}
+    >
+      <withTheme(Text)
+        color="#337ab7"
+      >
+        grep
+      </withTheme(Text)>
+    </withTheme(Tab)>
+    <withTheme(Tab)
+      aria-controls="panel-passive"
+      id={9}
+      isSelected={false}
+      justifyContent="left"
+      key="9"
+      onSelect={[Function]}
+    >
+      <withTheme(Text)
+        color="#337ab7"
+      >
+        passive
+      </withTheme(Text)>
+    </withTheme(Tab)>
+  </Tablist>
+  <withTheme(Dialog)
+    confirmLabel="Clear Filters"
+    intent="danger"
+    isShown={false}
+    onCloseComplete={[Function]}
+    onConfirm={[MockFunction]}
+    title="Advance filter"
+  >
+    Dialog content
+  </withTheme(Dialog)>
+  <Connect(Plugins)
+    handleAlertMsg={[Function]}
+    handlePluginClose={[Function]}
+    pluginShow={false}
+    resetTargetState={[Function]}
+    selectedTargets={
+      Array [
+        1,
+      ]
+    }
+  />
+</withTheme(Pane)>
+`;
+
+exports[`Report page component Testing dumb report component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="reportComponent"
+  display="flex"
+  flexDirection="row"
+  marginTop={-20}
+>
+  <withTheme(Pane)
+    background="tint2"
+    flex="none"
+    padding={20}
+    width={220}
+  >
+    <Connect(SideFilters)
+      clearFilters={[Function]}
+      selectedGroup={Array []}
+      selectedType={Array []}
+      targetData={
+        Array [
+          undefined,
+        ]
+      }
+      updateFilter={[Function]}
+      updateReport={[Function]}
+    />
+  </withTheme(Pane)>
+  <withTheme(Pane)
+    flex={1}
+    padding={30}
+  >
+    <Header
+      targetData={Object {}}
+    />
+    <Toolbar
+      selectedRank={Array []}
+      updateFilter={[Function]}
+    />
+    <br />
+    <Connect(Accordians)
+      selectedGroup={Array []}
+      selectedMapping=""
+      selectedOwtfRank={Array []}
+      selectedRank={Array []}
+      selectedStatus={Array []}
+      selectedType={Array []}
+      targetData={Object {}}
+    />
+  </withTheme(Pane)>
+</withTheme(Pane)>
+`;
