@@ -11,7 +11,8 @@ import {
   toaster,
   Paragraph,
   Heading,
-  Dialog
+  Dialog,
+  Pre
 } from "evergreen-ui";
 import { Breadcrumb, ProgressBar } from "react-bootstrap";
 import PropTypes from "prop-types";
@@ -24,13 +25,19 @@ import {
   makeSelectChangeError,
   makeSelectChangeLoading,
   makeSelectDeleteError,
-  makeSelectCreateError
+  makeSelectCreateError,
+  makeSelectFetchWorkerProgress,
+  makeSelectWorkerProgressLoading,
+  makeSelectWorkerProgressError,
+  makeSelectFetchWorkerLogs,
 } from "./selectors";
 import {
   loadWorkers,
   createWorker,
   changeWorker,
-  deleteWorker
+  deleteWorker,
+  loadWorkerProgress,
+  loadWorkerLogs,
 } from "./actions";
 import WorkerPanel from "./WorkerPanel";
 
@@ -46,11 +53,14 @@ export class WorkersPage extends React.Component {
     this.deleteWorker = this.deleteWorker.bind(this);
     this.addWorker = this.addWorker.bind(this);
     this.handleLogDialogShow = this.handleLogDialogShow.bind(this);
+    this.handleLogDialogContent = this.handleLogDialogContent.bind(this);
     this.toasterSuccess = this.toasterSuccess.bind(this);
     this.toasterError = this.toasterError.bind(this);
+    this.renderProgressBar = this.renderProgressBar.bind(this);
 
     this.state = {
-      logDialogShow: false
+      logDialogShow: false,
+      logDialogContent: "Nothing to show here!"
     };
   }
 
@@ -96,6 +106,13 @@ export class WorkersPage extends React.Component {
    */
   handleLogDialogShow() {
     this.setState({ logDialogShow: true });
+  }
+
+  /**
+   * Function handles the rendering of worker log dialog box content
+   */
+  handleLogDialogContent(logs) {
+    this.setState({ logDialogContent: logs });
   }
 
   /**
@@ -166,15 +183,56 @@ export class WorkersPage extends React.Component {
     this.props.onCreateWorker();
   }
 
+  /**
+   * Function which updates progress bar 
+   */
+  renderProgressBar() {
+    const { workerProgress, workerProgressError, workerProgressLoading } = this.props;
+    if (workerProgressError !== false) {
+      return (
+        <Paragraph>Something went wrong, please try again!</Paragraph>
+      )
+    }
+    if (workerProgressLoading) {
+      return (
+        <Spinner />
+      )
+    }
+    if(workerProgress !== false) {
+      const left_count = workerProgress.left_count;
+      const complete_count = workerProgress.complete_count;
+      if (left_count == 0 && complete_count == 0) {
+        return (
+          <Paragraph>You have not added anything to worklist yet</Paragraph>
+        )
+      } else {
+        const percentage_done = (complete_count / (left_count + complete_count)) * 100;
+        if (percentage_done == 100) {
+          return (
+            <Paragraph>Worklist is empty</Paragraph>
+          )
+        } else {
+          return (
+            <ProgressBar active striped bsStyle="success" now={percentage_done} />
+          )
+        }
+      }
+    }
+  }
+
   render() {
-    const { fetchError, fetchLoading, workers } = this.props;
+    const { fetchError, fetchLoading, workers, workerLogs } = this.props;
     const WorkerPanelProps = {
       resumeWorker: this.resumeWorker,
       pauseWorker: this.pauseWorker,
       abortWorker: this.abortWorker,
       deleteWorker: this.deleteWorker,
       handleLogDialogShow: this.handleLogDialogShow,
-      logDialogShow: this.state.logDialogShow
+      handleLogDialogContent: this.handleLogDialogContent,
+      logDialogShow: this.state.logDialogShow,
+      workerLogs,
+      onFetchWorkerLogs: this.props.onFetchWorkerLogs,
+      logDialogContent: this.state.logDialogContent,
     };
     return (
       <Pane
@@ -220,7 +278,9 @@ export class WorkersPage extends React.Component {
           </Button>
         </Pane>
         <Heading title="updates in 13s">Total scan progress</Heading>
-        <ProgressBar active striped bsStyle="success" now={40} />
+        <Pane marginBottom={20}>
+         {this.renderProgressBar()}
+        </Pane>
         {fetchError !== false ? (
           <Pane
             display="flex"
@@ -255,7 +315,7 @@ export class WorkersPage extends React.Component {
           intent="danger"
           hasFooter={false}
         >
-          Nothing to show here!
+          <Pre>{this.state.logDialogContent}</Pre>
         </Dialog>
       </Pane>
     );
@@ -269,10 +329,16 @@ WorkersPage.propTypes = {
   changeError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   deleteError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   createError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
+  workerProgressLoading: PropTypes.bool,
+  workerProgressError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
+  workerProgress: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
+  workerLogs: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
   onFetchWorkers: PropTypes.func,
   onChangeWorker: PropTypes.func,
   onDeleteWorker: PropTypes.func,
-  onCreateWorker: PropTypes.func
+  onCreateWorker: PropTypes.func,
+  onFetchWorkerProgress: PropTypes.func,
+  onFetchWorkerLogs: PropTypes.func,
 };
 
 const mapStateToProps = createStructuredSelector({
@@ -282,7 +348,11 @@ const mapStateToProps = createStructuredSelector({
   changeError: makeSelectChangeError,
   changeLoading: makeSelectChangeLoading,
   deleteError: makeSelectDeleteError,
-  createError: makeSelectCreateError
+  createError: makeSelectCreateError,
+  workerProgress: makeSelectFetchWorkerProgress,
+  workerProgressError: makeSelectWorkerProgressError,
+  workerProgressLoading: makeSelectWorkerProgressLoading,
+  workerLogs: makeSelectFetchWorkerLogs
 });
 
 const mapDispatchToProps = dispatch => {
@@ -291,7 +361,9 @@ const mapDispatchToProps = dispatch => {
     onChangeWorker: (worker_id, action_type) =>
       dispatch(changeWorker(worker_id, action_type)),
     onDeleteWorker: worker_id => dispatch(deleteWorker(worker_id)),
-    onCreateWorker: () => dispatch(createWorker())
+    onCreateWorker: () => dispatch(createWorker()),
+    onFetchWorkerProgress: () => dispatch(loadWorkerProgress()),
+    onFetchWorkerLogs: (name, lines) => dispatch(loadWorkerLogs(name, lines)),
   };
 };
 

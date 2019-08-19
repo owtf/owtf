@@ -25,7 +25,13 @@ import {
   CREATE_WORKER_ERROR,
   DELETE_WORKER,
   DELETE_WORKER_SUCCESS,
-  DELETE_WORKER_ERROR
+  DELETE_WORKER_ERROR,
+  LOAD_WORKER_PROGRESS,
+  LOAD_WORKER_PROGRESS_SUCCESS,
+  LOAD_WORKER_PROGRESS_ERROR,
+  LOAD_WORKER_LOGS,
+  LOAD_WORKER_LOGS_SUCCESS,
+  LOAD_WORKER_LOGS_ERROR,
 } from "./constants";
 
 // The initial state of the workers.
@@ -114,9 +120,69 @@ export function workerDeleteReducer(state = initialDeleteState, action) {
   }
 }
 
+// The initial state of the worker progress.
+const initialWorkerProgressState = fromJS({
+  loading: false,
+  error: false,
+  workerProgress: false
+});
+
+export function workerProgressLoadReducer(state = initialWorkerProgressState, action) {
+  switch (action.type) {
+    case LOAD_WORKER_PROGRESS:
+      return state
+        .set("loading", true)
+        .set("error", false)
+        .set("workerProgress", false);
+    case LOAD_WORKER_PROGRESS_SUCCESS:
+      return state
+        .set("loading", false)
+        .set("error", false)
+        .set("workerProgress", action.workerProgress);
+    case LOAD_WORKER_PROGRESS_ERROR:
+      return state
+        .set("loading", false)
+        .set("error", action.error)
+        .set("workerProgress", false);
+    default:
+      return state;
+  }
+}
+
+// The initial state of the worker logs.
+const initialWorkerLogsState = fromJS({
+  loading: false,
+  error: false,
+  workerLogs: false
+});
+
+export function workerLogsLoadReducer(state = initialWorkerLogsState, action) {
+  switch (action.type) {
+    case LOAD_WORKER_LOGS:
+      return state
+        .set("loading", true)
+        .set("error", false)
+        .set("workerLogs", false);
+    case LOAD_WORKER_LOGS_SUCCESS:
+      return state
+        .set("loading", false)
+        .set("error", false)
+        .set("workerLogs", action.workerLogs);
+    case LOAD_WORKER_LOGS_ERROR:
+      return state
+        .set("loading", false)
+        .set("error", action.error)
+        .set("workerLogs", false);
+    default:
+      return state;
+  }
+}
+
 export default combineReducers({
   load: workersLoadReducer,
   create: workerCreateReducer,
   change: workerChangeReducer,
-  delete: workerDeleteReducer
+  delete: workerDeleteReducer,
+  loadWorkerProgress: workerProgressLoadReducer,
+  loadWorkerLogs: workerLogsLoadReducer,
 });

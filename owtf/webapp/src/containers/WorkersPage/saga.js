@@ -7,7 +7,9 @@ import {
   LOAD_WORKERS,
   CREATE_WORKER,
   CHANGE_WORKER,
-  DELETE_WORKER
+  DELETE_WORKER,
+  LOAD_WORKER_PROGRESS,
+  LOAD_WORKER_LOGS,
 } from "./constants";
 import {
   loadWorkers,
@@ -18,13 +20,20 @@ import {
   workerChanged,
   workerChangingError,
   workerDeleted,
-  workerDeletingError
+  workerDeletingError,
+  loadWorkerProgress,
+  workerProgressLoaded,
+  workerProgressLoadingError,
+  workerLogsLoaded,
+  workerLogsLoadingError,
 } from "./actions";
 import {
   getWorkersAPI,
   postWorkerAPI,
   patchWorkerAPI,
-  deleteWorkerAPI
+  deleteWorkerAPI,
+  getWorkerProgressAPI,
+  getWorkerLogsAPI,
 } from "./api";
 import { WorkersPage } from "./index";
 import "@babel/polyfill";
@@ -40,6 +49,7 @@ export function* getWorkers() {
     // Call our request helper (see 'utils/request')
     const workers = yield call(fetchAPI);
     yield put(workersLoaded(workers.data));
+    yield put(loadWorkerProgress());
   } catch (error) {
     yield put(workersLoadingError(error));
   }
@@ -93,6 +103,35 @@ export function* deleteWorker(action) {
   }
 }
 
+
+/**
+ * Fetch worker progress request/response handler
+ */
+export function* getWorkerProgress() {
+  const fetchAPI = getWorkerProgressAPI();
+  try {
+    // Call our request helper (see 'utils/request')
+    const workerProgress = yield call(fetchAPI);
+    yield put(workerProgressLoaded(workerProgress));
+  } catch (error) {
+    yield put(workerProgressLoadingError(error));
+  }
+}
+
+/**
+ * Fetch worker logs request/response handler
+ */
+export function* getWorkerLogs(action) {
+  const fetchAPI = getWorkerLogsAPI(action);
+  try {
+    // Call our request helper (see 'utils/request')
+    const workerLogs = yield call(fetchAPI);
+    yield put(workerLogsLoaded(workerLogs));
+  } catch (error) {
+    yield put(workerLogsLoadingError(error));
+  }
+}
+
 /**
  * Root saga manages watcher lifecycle
  */
@@ -105,4 +144,6 @@ export default function* workersSaga() {
   yield takeLatest(CREATE_WORKER, postWorker);
   yield takeLatest(CHANGE_WORKER, patchWorker);
   yield takeLatest(DELETE_WORKER, deleteWorker);
+  yield takeLatest(LOAD_WORKER_PROGRESS, getWorkerProgress);
+  yield takeLatest(LOAD_WORKER_LOGS, getWorkerLogs);
 }

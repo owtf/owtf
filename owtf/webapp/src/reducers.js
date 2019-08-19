@@ -13,6 +13,7 @@ import targetsReducer from "containers/TargetsPage/reducer";
 import pluginsReducer from "containers/Plugins/reducer";
 import reportsReducer from "containers/Report/reducer";
 import worklistReducer from "containers/WorklistPage/reducer";
+import dashboardReducer from "containers/Dashboard/reducer";
 import workersReducer from "containers/WorkersPage/reducer";
 /*
  * routeReducer
@@ -55,6 +56,7 @@ export default function createReducer() {
     plugins: pluginsReducer,
     reports: reportsReducer,
     worklist: worklistReducer,
+    dashboard: dashboardReducer,
     workers: workersReducer
   });
 }

@@ -37,3 +37,19 @@ export function deleteWorkerAPI(action) {
   const request = new Request(requestURL);
   return request.delete.bind(request);
 }
+
+export function getWorkerProgressAPI() {
+  const requestURL = `${API_BASE_URL}plugins/progress/`;
+  // Call our request helper (see 'utils/request')
+  const request = new Request(requestURL);
+  return request.get.bind(request);
+}
+
+export function getWorkerLogsAPI(action) {
+  const requestURL = `/logs/${action.name}.log?lines=${action.lines.toString()}/`;
+  const options = {
+    responseAs: "text"
+  };
+  const request = new Request(requestURL, options);
+  return request.get.bind(request);
+}

@@ -14,7 +14,8 @@ import {
   Menu,
   Button,
   Popover,
-  Position
+  Position,
+  Pre
 } from "evergreen-ui";
 import Moment from "react-moment";
 import PropTypes from "prop-types";
@@ -46,6 +47,7 @@ export default class WorkerPanel extends React.Component {
    */
   displayLog() {
     this.setState({ showLogs: true });
+    this.getWorkerLog(this.props.worker.name, -1);
   }
 
   /**
@@ -125,33 +127,14 @@ export default class WorkerPanel extends React.Component {
    * @param {sring} name Worker name
    * @param {number} lines log lines to show
    */
-  getWorkerLog(name, lines) {
-    var log = " Nothing to show here!";
-    if (lines === "all") {
-      var URL = mySpace.log_url_port + "/logs/" + name.toString() + ".log";
-    } else {
-      var URL =
-        mySpace.log_url_port +
-        "/logs/" +
-        name.toString() +
-        ".log?lines=" +
-        lines.toString();
-    }
-    $.ajax({
-      async: false,
-      url: URL,
-      success: function(data) {
-        log = data;
-        if (log) {
-          log = '<pre style="word-wrap: break-word; white-space: pre-wrap;">'
-            .concat(log.split("\n").join("<br/>"))
-            .concat("<pre>");
-        } else {
-          log = "Nothing to show here!";
-        }
+  getWorkerLog(name, lines){
+    this.props.onFetchWorkerLogs(name, lines);
+    setTimeout(() => {
+      const workerLogs = this.props.workerLogs;
+      if(workerLogs!==false){
+        this.props.handleLogDialogContent(workerLogs);
       }
-    });
-    return log;
+    }, 500);
   }
 
   /**
@@ -160,11 +143,12 @@ export default class WorkerPanel extends React.Component {
    * @param {number} lines Lines to render
    */
   openLogModal(worker, lines) {
+    this.getWorkerLog(worker, lines);
     this.props.handleLogDialogShow();
   }
 
   render() {
-    const { worker } = this.props;
+    const { worker, logDialogContent } = this.props;
     const style = this.getPanelStyle();
     return (
       <Pane
@@ -264,8 +248,8 @@ export default class WorkerPanel extends React.Component {
                     Lines
                   </Button>
                 </Popover>
-                {/* {this.getWorkerLog(worker.name, 2)} */}
               </Paragraph>
+              <Pre marginTop={10}>{logDialogContent}</Pre>
             </Pane>
           )}
         </Pane>
@@ -281,5 +265,9 @@ WorkerPanel.propTypes = {
   abortWorker: PropTypes.func,
   deleteWorker: PropTypes.func,
   handleLogDialogShow: PropTypes.func,
-  logDialogShow: PropTypes.bool
+  handleLogDialogContent: PropTypes.func,
+  logDialogShow: PropTypes.bool,
+  workerLogs: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
+  onFetchWorkerLogs: PropTypes.func,
+  logDialogContent: PropTypes.string,
 };

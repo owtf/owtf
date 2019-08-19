@@ -1,0 +1,395 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Dashboard component Testing GithubReport component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="githubReportComponent"
+>
+  <withTheme(Button)
+    appearance="primary"
+    className="pull-right"
+    iconBefore="git-branch"
+    intent="danger"
+    onClick={[Function]}
+  >
+    Report Errors on GitHub
+  </withTheme(Button)>
+  <withTheme(Dialog)
+    hasFooter={false}
+    isShown={false}
+    onCloseComplete={[Function]}
+    title="Errors"
+  >
+    <withTheme(Pane)
+      marginBottom={10}
+    >
+      <Strong
+        marginRight={10}
+      >
+        Select an Error:
+      </Strong>
+      <SelectMenu
+        closeOnSelect={true}
+        filterIcon="search"
+        filterPlaceholder="Filter..."
+        height={248}
+        isMultiSelect={false}
+        onDeselect={[Function]}
+        onSelect={[Function]}
+        options={
+          Array [
+            Object {
+              "label": "Error 1",
+              "value": "0",
+            },
+          ]
+        }
+        position="bottom-left"
+        selected="-1"
+        title="Select Error"
+        width={240}
+      >
+        <withTheme(Button)
+          intent="danger"
+        >
+          Select Error...
+        </withTheme(Button)>
+      </SelectMenu>
+    </withTheme(Pane)>
+  </withTheme(Dialog)>
+</withTheme(Pane)>
+`;
+
+exports[`Dashboard component Testing Severity chart component Should render without errors 1`] = `
+<Pie
+  data={
+    Object {
+      "datasets": Array [
+        Object {
+          "backgroundColor": Array [
+            "#A9A9A9",
+          ],
+          "data": Array [
+            100,
+          ],
+        },
+      ],
+      "labels": Array [
+        "Test label",
+      ],
+    }
+  }
+  height={100}
+  options={
+    Object {
+      "legend": Object {
+        "display": true,
+        "position": "left",
+      },
+      "maintainAspectRatio": false,
+      "title": Object {
+        "display": false,
+      },
+    }
+  }
+  width={100}
+/>
+`;
+
+exports[`Dashboard component Testing Vulnerability panel component Should render without errors 1`] = `
+<Bar
+  data={
+    Object {
+      "datasets": Array [
+        Object {
+          "backgroundColor": Array [
+            "#800080",
+            "#c12e2a",
+            "#fc0",
+            "#337ab7",
+            "#b1d9f4",
+            "#32cd32",
+          ],
+          "data": Array [
+            0,
+          ],
+          "label": "Severity",
+        },
+      ],
+      "labels": Array [
+        "Test label",
+      ],
+    }
+  }
+  height={150}
+  options={
+    Object {
+      "legend": Object {
+        "display": false,
+        "position": "right",
+      },
+      "maintainAspectRatio": false,
+      "title": Object {
+        "display": false,
+        "fontSize": 30,
+        "text": "Current Vulnerabilities",
+      },
+    }
+  }
+/>
+`;
+
+exports[`Dashboard component Testing Worker panel component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="workerPanelComponent"
+  display="flex"
+  flexDirection="row"
+>
+  <withTheme(Pane)>
+    <ProgressBar
+      pollInterval={1300}
+      progressData={
+        Object {
+          "complete_count": 6,
+          "left_count": 280,
+        }
+      }
+    />
+  </withTheme(Pane)>
+  <withTheme(Pane)
+    justifyContent="center"
+    marginLeft={100}
+  >
+    <WorkerLegend
+      onFetchWorkerLogs={[MockFunction]}
+      pollInterval={1300}
+      workerData={
+        Array [
+          Object {
+            "busy": false,
+            "id": 4,
+            "name": "Worker-4",
+            "paused": false,
+            "work": Array [],
+            "worker": 29693,
+          },
+        ]
+      }
+      workerLogs={false}
+    />
+  </withTheme(Pane)>
+</withTheme(Pane)>
+`;
+
+exports[`Dashboard component Testing Worker panel component Testing progress bar component Should render without errors 1`] = `
+<Progress
+  className=""
+  gapPosition="top"
+  height={200}
+  percent={60}
+  prefixCls="rc-progress"
+  strokeColor="#FE8C6A"
+  strokeLinecap="round"
+  strokeWidth="6"
+  style={Object {}}
+  trailColor="#D9D9D9"
+  trailWidth={1}
+/>
+`;
+
+exports[`Dashboard component Testing Worker panel component Testing worker component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="workerComponent"
+>
+  <withTheme(Pane)
+    alignItems="center"
+    display="flex"
+    flexDirection="row"
+    justifyContent="center"
+  >
+    <img
+      className="workerpanel-labelimg"
+      src="/static/b0ac8b98e2b251549cd044fe7d5d7edd.png"
+    />
+    <withTheme(Paragraph)
+      margin={10}
+    >
+      Worker 4 - Not Running 
+    </withTheme(Paragraph)>
+    <withTheme(Button)
+      appearance="primary"
+      height={20}
+      onClick={[Function]}
+    >
+      Log
+    </withTheme(Button)>
+  </withTheme(Pane)>
+  <withTheme(Dialog)
+    hasFooter={false}
+    isShown={false}
+    onCloseComplete={[Function]}
+    title="Worker-Log"
+  >
+    Nothing to show here!
+  </withTheme(Dialog)>
+</withTheme(Pane)>
+`;
+
+exports[`Dashboard component Testing Worker panel component Testing worker legend component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="workerLegendComponent"
+>
+  <Worker
+    data={
+      Object {
+        "busy": false,
+        "id": 4,
+        "name": "Worker-4",
+        "paused": false,
+        "work": Array [],
+        "worker": 29693,
+      }
+    }
+    key="4"
+    onFetchWorkerLogs={[MockFunction]}
+    workerLogs={false}
+  />
+</withTheme(Pane)>
+`;
+
+exports[`Dashboard component Testing dumb Dashboard component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="dashboardComponent"
+  display="flex"
+  flexDirection="column"
+  paddingLeft={50}
+  paddingRight={50}
+>
+  <Breadcrumb
+    bsClass="breadcrumb"
+  >
+    <BreadcrumbItem
+      active={false}
+      href="/"
+    >
+      Home
+    </BreadcrumbItem>
+    <BreadcrumbItem
+      active={true}
+      href="/dashboard/"
+    >
+      Dashboard
+    </BreadcrumbItem>
+  </Breadcrumb>
+  <withTheme(Pane)
+    alignItems="center"
+    display="flex"
+    flexDirection="row"
+  >
+    <withTheme(Heading)
+      size={900}
+    >
+      Welcome to OWTF
+    </withTheme(Heading)>
+    <Small
+      marginTop={10}
+    >
+      , this is your dashboard
+    </Small>
+    <withTheme(Pane)
+      flex={1}
+    >
+      <GithubReport
+        errors={
+          Array [
+            Object {
+              "github_issue_url": null,
+              "id": 1,
+              "owtf_message": "Test message",
+              "reported": false,
+              "traceback": "Test traceback",
+              "user_message": null,
+            },
+          ]
+        }
+        onDeleteError={[MockFunction]}
+      />
+    </withTheme(Pane)>
+  </withTheme(Pane)>
+  <withTheme(Pane)
+    marginTop={20}
+    padding={20}
+  >
+    <withTheme(Heading)
+      size={700}
+    >
+      Current Vulnerabilities
+    </withTheme(Heading)>
+    <hr />
+    <VulnerabilityPanel
+      panelData={
+        Array [
+          Object {
+            "id": 5,
+            "label": "Test label",
+            "value": 0,
+          },
+        ]
+      }
+    />
+  </withTheme(Pane)>
+  <withTheme(Pane)
+    display="flex"
+    flexDirection="row"
+    height={220}
+  >
+    <withTheme(Pane)
+      marginTop={20}
+      paddingLeft={20}
+      width="50%"
+    >
+      <withTheme(Heading)
+        size={700}
+      >
+        Previous Targets Analytics
+      </withTheme(Heading)>
+      <hr />
+      <Chart
+        chartData={
+          Array [
+            Object {
+              "color": "#A9A9A9",
+              "id": 0,
+              "label": "Test label",
+              "value": 100,
+            },
+          ]
+        }
+      />
+    </withTheme(Pane)>
+    <withTheme(Pane)
+      marginTop={20}
+      paddingRight={20}
+      width="50%"
+    >
+      <withTheme(Heading)
+        size={700}
+      >
+        Worker Panel
+      </withTheme(Heading)>
+      <hr />
+      <WorkerPanel
+        onFetchWorkerLogs={[MockFunction]}
+        pollInterval={13000}
+        progressData={
+          Object {
+            "complete_count": 6,
+            "left_count": 280,
+          }
+        }
+        workerData={Array []}
+        workerLogs="Test logs"
+      />
+    </withTheme(Pane)>
+  </withTheme(Pane)>
+</withTheme(Pane)>
+`;
