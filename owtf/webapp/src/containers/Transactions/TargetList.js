@@ -42,7 +42,7 @@ export default class TargetList extends React.Component {
 
   render() {
     return (
-      <Pane display="flex" flexDirection="column">
+      <Pane display="flex" flexDirection="column" data-test="targetListComponent">
         <Pane>
           <Heading size={700}>Targets</Heading>
         </Pane>
@@ -57,6 +57,9 @@ export default class TargetList extends React.Component {
 }
 
 TargetList.propTypes = {
-  targets: PropTypes.array,
+  targets: PropTypes.oneOfType([
+    PropTypes.array.isRequired,
+    PropTypes.bool.isRequired,
+  ]),
   getTransactions: PropTypes.func
 };

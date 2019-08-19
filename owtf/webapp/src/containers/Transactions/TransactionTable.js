@@ -77,11 +77,13 @@ export default class TransactionTable extends React.Component {
   componentDidMount() {
     document.addEventListener('mousemove', this.handleMouseMove);
     document.addEventListener('mouseup', e => this.handleMouseUp(e));
-    const tablePos = ReactDOM.findDOMNode(this.refs['table'])
-      .getBoundingClientRect()
-    this.setState({
-      tableHeight: (window.innerHeight - tablePos.top) / 2
-    });
+    let tablePos;
+    if(this.refs["table"]){
+      tablePos = ReactDOM.findDOMNode(this.refs["table"]).getBoundingClientRect();
+      this.setState({
+        tableHeight: (window.innerHeight - tablePos.top) / 2
+      });
+    }
   };
 
   componentWillUnmount() {
@@ -116,7 +118,7 @@ export default class TransactionTable extends React.Component {
     const items = this.handleTableFilter(this.props.transactions);
 
     return (
-      <Pane>
+      <Pane data-test="transactionTableComponent">
         <Pane ref="table" overflow='scroll' height={this.state.tableHeight}>
           <Table>
             <Table.Head>
