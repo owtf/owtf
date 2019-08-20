@@ -35,7 +35,7 @@ const initialChangeState = fromJS({
   currentSession: fromJS({ id: 1, name: 'default session' }),
 });
 
-function sessionChangeReducer(state = initialChangeState, action) {
+export function sessionChangeReducer(state = initialChangeState, action) {
   switch (action.type) {
     case CHANGE_SESSION:
       return state
@@ -45,11 +45,13 @@ function sessionChangeReducer(state = initialChangeState, action) {
     case CHANGE_SESSION_SUCCESS:
       return state
         .set('loading', false)
+        .set('error', false)
         .set('currentSession', action.session);
     case CHANGE_SESSION_ERROR:
       return state
+        .set('loading', false)
         .set('error', action.error)
-        .set('loading', false);
+        .set('currentSession', false);
     default:
       return state;
   }
@@ -62,7 +64,7 @@ const initialSessionState = fromJS({
   sessions: false,
 });
 
-function sessionsLoadReducer(state = initialSessionState, action) {
+export function sessionsLoadReducer(state = initialSessionState, action) {
   switch (action.type) {
     case LOAD_SESSIONS:
       return state
@@ -72,11 +74,13 @@ function sessionsLoadReducer(state = initialSessionState, action) {
     case LOAD_SESSIONS_SUCCESS:
       return state
         .set('loading', false)
+        .set('error', false)
         .set('sessions', action.sessions);
     case LOAD_SESSIONS_ERROR:
       return state
         .set('loading', false)
-        .set('error', action.error);
+        .set('error', action.error)
+        .set('sessions', false);
     default:
       return state;
   }
@@ -88,19 +92,20 @@ const initialCreateState = fromJS({
   error: false,
 });
 
-function sessionCreateReducer(state = initialCreateState, action) {
+export function sessionCreateReducer(state = initialCreateState, action) {
   switch (action.type) {
     case CREATE_SESSION:
       return state
         .set('loading', true)
-        .set('error', false)
+        .set('error', false);
     case CREATE_SESSION_SUCCESS:
       return state
         .set('loading', false)
+        .set('error', false);
     case CREATE_SESSION_ERROR:
       return state
-        .set('error', action.error)
-        .set('loading', false);
+        .set('loading', false)
+        .set('error', action.error);
     default:
       return state;
   }
@@ -112,19 +117,20 @@ const initialDeleteState = fromJS({
   error: false,
 });
 
-function sessionDeleteReducer(state = initialDeleteState, action) {
+export function sessionDeleteReducer(state = initialDeleteState, action) {
   switch (action.type) {
     case DELETE_SESSION:
       return state
         .set('loading', true)
-        .set('error', false)
+        .set('error', false);
     case DELETE_SESSION_SUCCESS:
       return state
         .set('loading', false)
-    case DELETE_SESSION_ERROR:
+        .set('error', false);
+        case DELETE_SESSION_ERROR:
       return state
-        .set('error', action.error)
-        .set('loading', false);
+        .set('loading', false)
+        .set('error', action.error);
     default:
       return state;
   }

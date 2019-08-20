@@ -128,6 +128,11 @@ describe("Plugins componemt", () => {
 			const groupArray = plugins.handleGroupLaunch();
 			expect(groupArray).toEqual(expectedGroupArray);
 		})
+
+		it("Should pass correct props to its child components", () => {
+			const pluginTable = wrapper.find("PluginsTable");
+			expect(pluginTable.props().plugins).toEqual(props.plugins); 
+		});
 	});
 
 	describe("Testing connected Plugins component", () => {

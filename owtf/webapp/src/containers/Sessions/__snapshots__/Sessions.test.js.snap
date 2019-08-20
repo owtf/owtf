@@ -1,0 +1,159 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Sessions componemt Testing Session Table component Should render without errors 1`] = `
+<Table
+  border={true}
+>
+  <TableHead
+    accountForScrollbar={true}
+    height={32}
+  >
+    <TableHeaderCell
+      flex="none"
+      width={50}
+    />
+    <SearchTableHeaderCell
+      flex="none"
+      icon="search"
+      onChange={[Function]}
+      placeholder="Session name"
+      spellCheck={true}
+      value=""
+      width={300}
+    />
+    <TextTableHeaderCell
+      flex="none"
+      width={120}
+    >
+      Delete Session
+    </TextTableHeaderCell>
+  </TableHead>
+  <TableBody
+    height={240}
+  >
+    <withTheme(TableRow)
+      isSelectable={true}
+      key="1"
+    >
+      <withTheme(TableCell)
+        flex="none"
+        width={50}
+      >
+        <withTheme(Radio)
+          checked={true}
+          onChange={[Function]}
+          size={16}
+        />
+      </withTheme(TableCell)>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        width={300}
+      >
+        test session 1
+      </TextTableCell>
+      <withTheme(TableCell)
+        flex="none"
+        width={120}
+      >
+        <withTheme(IconButton)
+          icon="trash"
+          intent="danger"
+          onClick={[Function]}
+        />
+      </withTheme(TableCell)>
+    </withTheme(TableRow)>
+    <withTheme(TableRow)
+      isSelectable={true}
+      key="2"
+    >
+      <withTheme(TableCell)
+        flex="none"
+        width={50}
+      >
+        <withTheme(Radio)
+          checked={false}
+          onChange={[Function]}
+          size={16}
+        />
+      </withTheme(TableCell)>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        width={300}
+      >
+        test session 2
+      </TextTableCell>
+      <withTheme(TableCell)
+        flex="none"
+        width={120}
+      >
+        <withTheme(IconButton)
+          icon="trash"
+          intent="danger"
+          onClick={[Function]}
+        />
+      </withTheme(TableCell)>
+    </withTheme(TableRow)>
+  </TableBody>
+</Table>
+`;
+
+exports[`Sessions componemt Testing dumb sessions component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="sessionsComponent"
+>
+  <withTheme(TextInput)
+    disabled={true}
+    name="currentSession"
+    placeholder="test session"
+    width={200}
+  />
+  <withTheme(Button)
+    appearance="primary"
+    onClick={[Function]}
+  >
+    Session
+  </withTheme(Button)>
+  <withTheme(Dialog)
+    hasFooter={false}
+    isShown={false}
+    onCloseComplete={[Function]}
+    title="Sessions"
+  >
+    <withTheme(Pane)
+      marginBottom={20}
+    >
+      <withTheme(TextInput)
+        name="newSessionName"
+        onChange={[Function]}
+        placeholder="Enter new session...."
+        value=""
+        width="89%"
+      />
+      <withTheme(Button)
+        appearance="primary"
+        disabled={true}
+        onClick={[Function]}
+      >
+        Add!
+      </withTheme(Button)>
+    </withTheme(Pane)>
+    <SessionsTable
+      error={false}
+      loading={false}
+      onChangeSession={[MockFunction]}
+      onDeleteSession={[MockFunction]}
+      sessions={
+        Array [
+          Object {
+            "active": true,
+            "id": 1,
+            "name": "test session",
+          },
+        ]
+      }
+    />
+  </withTheme(Dialog)>
+</withTheme(Pane)>
+`;
