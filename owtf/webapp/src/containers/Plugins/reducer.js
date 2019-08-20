@@ -29,7 +29,7 @@ const initialPluginState = fromJS({
     plugins: false,
 });
 
-function pluginsLoadReducer(state = initialPluginState, action) {
+export function pluginsLoadReducer(state = initialPluginState, action) {
   switch (action.type) {
     case LOAD_PLUGINS:
       return state
@@ -39,22 +39,25 @@ function pluginsLoadReducer(state = initialPluginState, action) {
     case LOAD_PLUGINS_SUCCESS:
       return state
         .set('loading', false)
+        .set('error', false)
         .set('plugins', action.plugins);
     case LOAD_PLUGINS_ERROR:
       return state
         .set('loading', false)
-        .set('error', action.error);
+        .set('error', action.error)
+        .set('plugins', false);
     default:
       return state;
   }
 }
+
 // The initial state of the target create
 const initialPostToWorklistState = fromJS({
   loading: false,
   error: false,
 });
 
-function postToWorklistReducer(state = initialPostToWorklistState, action) {
+export function postToWorklistReducer(state = initialPostToWorklistState, action) {
   switch (action.type) {
     case POST_TO_WORKLIST:
       return state
@@ -63,10 +66,11 @@ function postToWorklistReducer(state = initialPostToWorklistState, action) {
     case POST_TO_WORKLIST_SUCCESS:
       return state
         .set('loading', false)
+        .set('error', false)
     case POST_TO_WORKLIST_ERROR:
       return state
-        .set('error', action.error)
-        .set('loading', false);
+        .set('loading', false)
+        .set('error', action.error);
     default:
       return state;
   }

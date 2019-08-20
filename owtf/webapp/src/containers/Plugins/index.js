@@ -10,7 +10,7 @@ import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchPlugins, m
 import { loadPlugins, postToWorklist } from './actions';
 import PluginsTable from './PluginsTable';
 
-class Plugins extends React.Component {
+export class Plugins extends React.Component {
 	constructor(props, context) {
 		super(props, context);
 
@@ -180,6 +180,7 @@ class Plugins extends React.Component {
             </Tab>
           </Tablist>
           <Checkbox
+            id="force-overwrite"
             className="pull-right"
             label="Force Overwrite"
             checked={this.state.force_overwrite}

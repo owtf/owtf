@@ -285,7 +285,7 @@ describe("Transactions Page componemt", () => {
 		});
 	});
 
-	describe("Testing TransactionTable component", () => {
+	describe("Testing Transaction Table component", () => {
     let wrapper;
     let props;
     beforeEach(() => {

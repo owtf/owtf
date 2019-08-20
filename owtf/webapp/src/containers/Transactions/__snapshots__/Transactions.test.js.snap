@@ -136,7 +136,7 @@ exports[`Transactions Page componemt Testing Transaction Header component Should
 </withTheme(Pane)>
 `;
 
-exports[`Transactions Page componemt Testing TransactionTable component Should render without errors 1`] = `
+exports[`Transactions Page componemt Testing Transaction Table component Should render without errors 1`] = `
 <withTheme(Pane)
   data-test="transactionTableComponent"
 >
