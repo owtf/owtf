@@ -11,7 +11,7 @@ import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { Pane, Dialog, TextInput, Button } from 'evergreen-ui';
 import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchSessions } from './selectors';
-import { loadSessions, createSession } from "./actions";
+import { loadSessions, createSession, changeSession, deleteSession } from "./actions";
 import SessionsTable from './SessionTable';
 
 export class Sessions extends React.Component {
@@ -78,16 +78,18 @@ export class Sessions extends React.Component {
   }
 
   render() {
-    const { loading, error, sessions } = this.props;
+    const { loading, error, sessions, onChangeSession, onDeleteSession } = this.props;
     const currentSession = this.getCurrentSession();
     const sessionsTableProps = {
       loading,
       error,
       sessions,
+      onChangeSession,
+      onDeleteSession
     };
 
     return (
-      <Pane>
+      <Pane data-test="sessionsComponent">
         <TextInput
           name="currentSession"
           placeholder={currentSession !== undefined ? currentSession.name : "No session selected!"}
@@ -135,6 +137,8 @@ Sessions.propTypes = {
   ]),
   onFetchSession: PropTypes.func,
   onCreateSession: PropTypes.func,
+  onChangeSession: PropTypes.func,
+  onDeleteSession: PropTypes.func,
 };
 
 const mapStateToProps = createStructuredSelector({
@@ -147,6 +151,8 @@ const mapDispatchToProps = (dispatch) => {
   return {
     onFetchSession: () => dispatch(loadSessions()),
     onCreateSession: (sessionName) => dispatch(createSession(sessionName)),
+    onChangeSession: (session) => dispatch(changeSession(session)),
+    onDeleteSession: (session) => dispatch(deleteSession(session))
   };
 };
 

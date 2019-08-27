@@ -26,8 +26,7 @@ export default class TransactionHeader extends React.Component {
     this.handleSnackBarRequestOpen = this.handleSnackBarRequestOpen.bind(this);
   };
 
-  handleSubmit(event) {
-    event.preventDefault();
+  handleSubmit() {
     const values = {
       'data': this.state.data,
       'language': this.state.language,
@@ -53,9 +52,9 @@ export default class TransactionHeader extends React.Component {
   };
 
   render() {
-    const { target_id, transactionHeaderData, hrtResponse, getHrtResponse, height } = this.props;
+    const { transactionHeaderData, hrtResponse, height } = this.props;
     return (
-      <Pane marginTop={20}>
+      <Pane marginTop={20} data-test="transactionHeaderComponent">
         <Tablist marginBottom={16} flexBasis={240} marginRight={24}>
           <Tab
             key={1}

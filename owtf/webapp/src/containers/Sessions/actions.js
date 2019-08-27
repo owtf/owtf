@@ -129,14 +129,11 @@ export function createSession(sessionName) {
 /**
  * Dispatched when the session is created by the request saga
  *
- * @param  {object} session Activated Session.
- *
  * @return {object} An action object with a type of CREATE_SESSION_SUCCESS
  */
-export function sessionsCreated(session) {
+export function sessionsCreated() {
   return {
     type: CREATE_SESSION_SUCCESS,
-    session,
   };
 }
 

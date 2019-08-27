@@ -1,0 +1,317 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Plugins componemt Testing Plugins Table component Should render without errors 1`] = `
+<Table
+  border={true}
+>
+  <TableHead
+    accountForScrollbar={true}
+    height={32}
+  >
+    <TableHeaderCell
+      flex={-1}
+    >
+      <withTheme(Checkbox)
+        checked={false}
+        onChange={[Function]}
+      />
+    </TableHeaderCell>
+    <SearchTableHeaderCell
+      flex="none"
+      icon="search"
+      onChange={[Function]}
+      placeholder="Code"
+      spellCheck={true}
+      value=""
+      width={150}
+    />
+    <SearchTableHeaderCell
+      flex="none"
+      icon="search"
+      onChange={[Function]}
+      placeholder="Name"
+      spellCheck={true}
+      value=""
+      width={200}
+    />
+    <SearchTableHeaderCell
+      flex="none"
+      icon="search"
+      onChange={[Function]}
+      placeholder="Type"
+      spellCheck={true}
+      value=""
+      width={150}
+    />
+    <SearchTableHeaderCell
+      flex="none"
+      icon="search"
+      onChange={[Function]}
+      placeholder="Group"
+      spellCheck={true}
+      value=""
+      width={150}
+    />
+    <SearchTableHeaderCell
+      flex="none"
+      icon="search"
+      onChange={[Function]}
+      placeholder="Help"
+      spellCheck={true}
+      value=""
+      width={200}
+    />
+  </TableHead>
+  <TableVirtualBody
+    allowAutoHeight={false}
+    defaultHeight={48}
+    height={500}
+    overscanCount={5}
+    useAverageAutoHeightEstimation={true}
+  >
+    <withTheme(TableRow)
+      height="auto"
+      isSelectable={true}
+      key="semi_passive@OWTF-IG-004"
+    >
+      <withTheme(TableCell)
+        flex={-1}
+      >
+        <withTheme(Checkbox)
+          checked={false}
+          id="semi_passive@OWTF-IG-004"
+          onChange={[Function]}
+        />
+      </withTheme(TableCell)>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        width={150}
+      >
+        OWTF-IG-004
+      </TextTableCell>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        width={200}
+      >
+        Web Application Fingerprint
+      </TextTableCell>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        width={150}
+      >
+        semi passive
+      </TextTableCell>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        width={150}
+      >
+        web
+      </TextTableCell>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        width={200}
+      >
+        <Tooltip
+          appearance="default"
+          content="Normal requests to gather fingerprint info"
+          hideDelay={120}
+          position="bottom"
+        >
+          <withTheme(Text)>
+            Normal requests to gather fingerprint info
+          </withTheme(Text)>
+        </Tooltip>
+      </TextTableCell>
+    </withTheme(TableRow)>
+    <withTheme(TableRow)
+      height="auto"
+      isSelectable={true}
+      key="dos@OWTF-ADoS-001"
+    >
+      <withTheme(TableCell)
+        flex={-1}
+      >
+        <withTheme(Checkbox)
+          checked={false}
+          id="dos@OWTF-ADoS-001"
+          onChange={[Function]}
+        />
+      </withTheme(TableCell)>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        width={150}
+      >
+        OWTF-ADoS-001
+      </TextTableCell>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        width={200}
+      >
+        Direct DoS Launcher
+      </TextTableCell>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        width={150}
+      >
+        dos
+      </TextTableCell>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        width={150}
+      >
+        auxiliary
+      </TextTableCell>
+      <TextTableCell
+        flex="none"
+        isNumber={false}
+        width={200}
+      >
+        <Tooltip
+          appearance="default"
+          content="Denial of Service (DoS) Launcher"
+          hideDelay={120}
+          position="bottom"
+        >
+          <withTheme(Text)>
+            Denial of Service (DoS) Launcher
+          </withTheme(Text)>
+        </Tooltip>
+      </TextTableCell>
+    </withTheme(TableRow)>
+  </TableVirtualBody>
+</Table>
+`;
+
+exports[`Plugins componemt Testing dumb plugins component Should render without errors 1`] = `
+<withTheme(Dialog)
+  confirmLabel="Run"
+  isShown={false}
+  onCloseComplete={[MockFunction]}
+  onConfirm={[Function]}
+  title="Plugins"
+  width={1000}
+>
+  <withTheme(Pane)
+    alignItems="center"
+    display="flex"
+    flexDirection="row"
+  >
+    <Tablist
+      flexBasis={800}
+      marginBottom={16}
+      marginRight={24}
+    >
+      <withTheme(Tab)
+        aria-controls="panel-individual"
+        id={1}
+        isSelected={true}
+        key="1"
+        onSelect={[Function]}
+      >
+        Launch Individually
+      </withTheme(Tab)>
+      <withTheme(Tab)
+        aria-controls="panel-group"
+        id={2}
+        isSelected={false}
+        key="2"
+        onSelect={[Function]}
+      >
+        Launch in groups
+      </withTheme(Tab)>
+    </Tablist>
+    <withTheme(Checkbox)
+      checked={false}
+      className="pull-right"
+      id="force-overwrite"
+      label="Force Overwrite"
+      onChange={[Function]}
+    />
+  </withTheme(Pane)>
+  <withTheme(Pane)
+    flex="1"
+    padding={16}
+  >
+    <withTheme(Pane)
+      aria-hidden={false}
+      aria-labelledby="individual"
+      display="block"
+      id="panel-individual"
+      key="1"
+      role="tabpanel"
+    >
+      <PluginsTable
+        plugins={
+          Array [
+            Object {
+              "code": "OWTF-IG-004",
+              "descrip": "Normal requests to gather fingerprint info",
+              "group": "web",
+              "key": "semi_passive@OWTF-IG-004",
+              "name": "Web_Application_Fingerprint",
+              "type": "semi_passive",
+            },
+          ]
+        }
+        updateSelectedPlugins={[Function]}
+      />
+    </withTheme(Pane)>
+    <withTheme(Pane)
+      aria-hidden={true}
+      aria-labelledby="group"
+      display="none"
+      id="panel-group"
+      key="2"
+      role="tabpanel"
+    >
+      <withTheme(Pane)
+        display="flex"
+        flexDirection="row"
+      >
+        <withTheme(Pane)
+          display="flex"
+          flexDirection="column"
+          width={600}
+        >
+          <withTheme(Heading)
+            marginTop="default"
+          >
+            Plugin Groups
+          </withTheme(Heading)>
+          <withTheme(Checkbox)
+            checked={false}
+            key="0"
+            label="web"
+            onChange={[Function]}
+          />
+        </withTheme(Pane)>
+        <withTheme(Pane)
+          display="flex"
+          flexDirection="column"
+        >
+          <withTheme(Heading)
+            marginTop="default"
+          >
+            Plugin Types
+          </withTheme(Heading)>
+          <withTheme(Checkbox)
+            checked={false}
+            key="0"
+            label="semi passive"
+            onChange={[Function]}
+          />
+        </withTheme(Pane)>
+      </withTheme(Pane)>
+    </withTheme(Pane)>
+  </withTheme(Pane)>
+</withTheme(Dialog)>
+`;

@@ -117,7 +117,7 @@ export function loadHrtResponse(target_id, transaction_id, data) {
 /**
  * Dispatched when the hrtResponse are loaded by the request saga
  *
- * @param  {array} hrtResponse The hrtResponse data
+ * @param  {string} hrtResponse The hrtResponse data
  *
  * @return {object} An action object with a type of LOAD_HRT_RESPONSE_SUCCESS passing the hrtResponse
  */

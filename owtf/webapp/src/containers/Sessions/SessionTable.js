@@ -5,13 +5,11 @@
   */
 import React from 'react';
 import PropTypes from 'prop-types';
-import {connect} from "react-redux";
-import {changeSession, deleteSession} from "./actions";
 import { Pane, Table, Spinner, IconButton, Radio } from 'evergreen-ui';
 import { filter } from 'fuzzaldrin-plus';
 
 
-class SessionsTable extends React.Component {
+export default class SessionsTable extends React.Component {
   constructor(props) {
     super(props);
 
@@ -124,12 +122,3 @@ SessionsTable.propTypes = {
   onChangeSession: PropTypes.func,
   onDeleteSession: PropTypes.func,
 };
-
-export function mapDispatchToProps(dispatch) {
-  return {
-    onChangeSession: (session) => dispatch(changeSession(session)),
-    onDeleteSession: (session) => dispatch(deleteSession(session)),
-  };
-}
-
-export default connect(null, mapDispatchToProps)(SessionsTable);

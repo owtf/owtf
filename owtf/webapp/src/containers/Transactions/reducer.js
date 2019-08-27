@@ -20,7 +20,7 @@ const initialTransactionsState = fromJS({
   transactions: false,
 });
 
-function transactionsLoadReducer(state = initialTransactionsState, action) {
+export function transactionsLoadReducer(state = initialTransactionsState, action) {
   switch (action.type) {
     case LOAD_TRANSACTIONS:
       return state
@@ -30,11 +30,13 @@ function transactionsLoadReducer(state = initialTransactionsState, action) {
     case LOAD_TRANSACTIONS_SUCCESS:
       return state
         .set('loading', false)
+        .set('error', false)
         .set('transactions', action.transactions.data);
     case LOAD_TRANSACTIONS_ERROR:
       return state
         .set('loading', false)
-        .set('error', action.error);
+        .set('error', action.error)
+        .set('transactions', false);
     default:
       return state;
   }
@@ -47,7 +49,7 @@ const initialTransactionState = fromJS({
   transaction: false,
 });
 
-function transactionLoadReducer(state = initialTransactionState, action) {
+export function transactionLoadReducer(state = initialTransactionState, action) {
   switch (action.type) {
     case LOAD_TRANSACTION:
       return state
@@ -57,11 +59,13 @@ function transactionLoadReducer(state = initialTransactionState, action) {
     case LOAD_TRANSACTION_SUCCESS:
       return state
         .set('loading', false)
+        .set('error', false)
         .set('transaction', action.transaction);
     case LOAD_TRANSACTION_ERROR:
       return state
         .set('loading', false)
-        .set('error', action.error);
+        .set('error', action.error)
+        .set('transaction', false);
     default:
       return state;
   }
@@ -74,7 +78,7 @@ const initialHrtResponseState = fromJS({
   hrtResponse: false,
 });
 
-function hrtResponseLoadReducer(state = initialHrtResponseState, action) {
+export function hrtResponseLoadReducer(state = initialHrtResponseState, action) {
   switch (action.type) {
     case LOAD_HRT_RESPONSE:
       return state
@@ -84,11 +88,13 @@ function hrtResponseLoadReducer(state = initialHrtResponseState, action) {
     case LOAD_HRT_RESPONSE_SUCCESS:
       return state
         .set('loading', false)
+        .set('error', false)
         .set('hrtResponse', action.hrtResponse);
     case LOAD_HRT_RESPONSE_ERROR:
       return state
         .set('loading', false)
-        .set('error', action.error);
+        .set('error', action.error)
+        .set('hrtResponse', false);
     default:
       return state;
   }

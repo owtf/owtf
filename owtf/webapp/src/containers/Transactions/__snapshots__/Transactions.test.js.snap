@@ -1,0 +1,271 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Transactions Page componemt Testing TargetList component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="targetListComponent"
+  display="flex"
+  flexDirection="column"
+>
+  <withTheme(Pane)>
+    <withTheme(Heading)
+      size={700}
+    >
+      Targets
+    </withTheme(Heading)>
+  </withTheme(Pane)>
+  <withTheme(Pane)
+    display="flex"
+    marginTop={30}
+  >
+    <Tablist
+      flexBasis={240}
+      marginBottom={16}
+      marginRight={24}
+      onSelect={[Function]}
+    >
+      <SidebarTab
+        aria-controls="panel-1"
+        height={32}
+        id={1}
+        isSelected={false}
+        key="1"
+        onSelect={[Function]}
+      >
+        http://fb.com
+      </SidebarTab>
+      <SidebarTab
+        aria-controls="panel-2"
+        height={32}
+        id={2}
+        isSelected={false}
+        key="2"
+        onSelect={[Function]}
+      >
+        https://fb.com
+      </SidebarTab>
+    </Tablist>
+  </withTheme(Pane)>
+</withTheme(Pane)>
+`;
+
+exports[`Transactions Page componemt Testing Transaction Header component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="transactionHeaderComponent"
+  marginTop={20}
+>
+  <Tablist
+    flexBasis={240}
+    marginBottom={16}
+    marginRight={24}
+  >
+    <withTheme(Tab)
+      aria-controls="panel-request"
+      id={1}
+      isSelected={true}
+      key="1"
+      onSelect={[Function]}
+    >
+      Request
+    </withTheme(Tab)>
+    <withTheme(Tab)
+      aria-controls="panel-response"
+      id={2}
+      isSelected={false}
+      key="2"
+      onSelect={[Function]}
+    >
+      Response
+    </withTheme(Tab)>
+  </Tablist>
+  <withTheme(Pane)
+    background="tint1"
+    flex="1"
+    padding={16}
+  >
+    <withTheme(Pane)
+      aria-hidden={false}
+      aria-labelledby="request"
+      display="block"
+      id="panel-request"
+      key="1"
+      role="tabpanel"
+    >
+      <withTheme(Paragraph)>
+        Request Header
+      </withTheme(Paragraph)>
+      <Pre
+        marginBottom={20}
+      >
+        test request
+      </Pre>
+      <withTheme(Button)
+        appearance="primary"
+        className="pull-right"
+        intent="success"
+        onClick={[Function]}
+      >
+        Copy as
+      </withTheme(Button)>
+    </withTheme(Pane)>
+    <withTheme(Pane)
+      aria-hidden={true}
+      aria-labelledby="response"
+      display="none"
+      id="panel-response"
+      key="2"
+      role="tabpanel"
+    >
+      <withTheme(Paragraph)>
+        Response Header
+      </withTheme(Paragraph)>
+      <Pre
+        marginBottom={20}
+      >
+        test request
+      </Pre>
+      <withTheme(Paragraph)>
+        Response Body
+      </withTheme(Paragraph)>
+      <Pre
+        marginBottom={20}
+      >
+        test response body
+      </Pre>
+    </withTheme(Pane)>
+  </withTheme(Pane)>
+</withTheme(Pane)>
+`;
+
+exports[`Transactions Page componemt Testing Transaction Table component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="transactionTableComponent"
+>
+  <withTheme(Pane)
+    height={0}
+    overflow="scroll"
+  >
+    <Table>
+      <TableHead
+        accountForScrollbar={true}
+        height={32}
+      >
+        <SearchTableHeaderCell
+          flexGrow={3}
+          flexShrink={0}
+          icon="search"
+          onChange={[Function]}
+          placeholder="URL"
+          spellCheck={true}
+          value=""
+        />
+        <SearchTableHeaderCell
+          icon="search"
+          onChange={[Function]}
+          placeholder="Method"
+          spellCheck={true}
+          value=""
+        />
+        <SearchTableHeaderCell
+          icon="search"
+          onChange={[Function]}
+          placeholder="Status"
+          spellCheck={true}
+          value=""
+        />
+        <TextTableHeaderCell>
+          Duration
+        </TextTableHeaderCell>
+        <TextTableHeaderCell>
+          Time
+        </TextTableHeaderCell>
+      </TableHead>
+      <TableBody>
+        <withTheme(TableRow)
+          isSelectable={true}
+          key="1"
+          onSelect={[Function]}
+        >
+          <TextTableCell
+            flexGrow={3}
+            flexShrink={0}
+            isNumber={false}
+          >
+            http://fb.com/
+          </TextTableCell>
+          <TextTableCell
+            isNumber={false}
+          >
+            GET
+          </TextTableCell>
+          <TextTableCell
+            isNumber={false}
+          >
+            test status
+          </TextTableCell>
+          <TextTableCell
+            isNumber={false}
+          >
+            0s, 273ms
+          </TextTableCell>
+          <TextTableCell
+            isNumber={false}
+          >
+            11-08 01:42:52
+          </TextTableCell>
+        </withTheme(TableRow)>
+      </TableBody>
+    </Table>
+  </withTheme(Pane)>
+  <withTheme(Pane)
+    id="drag"
+    onMouseDown={[Function]}
+    onMouseUp={[Function]}
+  />
+</withTheme(Pane)>
+`;
+
+exports[`Transactions Page componemt Testing dumb Transactions component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="transactionsComponent"
+  display="flex"
+  flexDirection="row"
+>
+  <withTheme(Pane)
+    id="left_panel"
+    style={
+      Object {
+        "width": "16.66666667%",
+      }
+    }
+  >
+    <TargetList
+      getTransactions={[Function]}
+      targets={
+        Array [
+          Object {
+            "id": 2,
+            "target_url": "https://fb.com",
+          },
+        ]
+      }
+    />
+  </withTheme(Pane)>
+  <withTheme(Pane)
+    id="drag-left"
+    onMouseDown={[Function]}
+    onMouseUp={[Function]}
+  />
+  <withTheme(Pane)
+    flexDirection="column"
+    id="right_panel"
+    style={
+      Object {
+        "width": "80%",
+      }
+    }
+  >
+    <withTheme(Pane) />
+    <withTheme(Pane) />
+  </withTheme(Pane)>
+</withTheme(Pane)>
+`;

@@ -5,7 +5,7 @@ import React from 'react';
 import {Pane} from 'evergreen-ui';
 import './style.scss';
 import TransactionTable from './TransactionTable.js';
-import TransactionHeaders from './TransactionHeader.js';
+import TransactionHeader from './TransactionHeader.js';
 import TargetList from './TargetList.js';
 
 import PropTypes from 'prop-types';
@@ -34,7 +34,7 @@ import {
 import { loadTargets } from '../TargetsPage/actions';
 import {loadTransactions, loadTransaction, loadHrtResponse } from './actions';
 
-class Transactions extends React.Component {
+export class Transactions extends React.Component {
   constructor(props, context) {
     super(props, context);
 
@@ -66,34 +66,38 @@ class Transactions extends React.Component {
   /* Function responsible for filling transaction table */
   getTransactions(target_id) {
     this.props.onFetchTransactions(target_id);
-    this.setState({
-      target_id: target_id,
-      transactionsData: this.props.transactions || [],
-      transactionHeaderData: {
-        id: '',
-        requestHeader: '',
-        responseHeader: '',
-        responseBody: '',
-      },
-      hrtResponse: '',
-    });
+    setTimeout(() => {
+      this.setState({
+        target_id: target_id,
+        transactionsData: this.props.transactions || [],
+        transactionHeaderData: {
+          id: '',
+          requestHeader: '',
+          responseHeader: '',
+          responseBody: '',
+        },
+        hrtResponse: '',
+      });
+    }, 500);
   }
 
   /* Function responsible for filling data TransactionHeaders and Body component */
   getTransactionsHeaders(target_id, transaction_id) {
     this.props.onFetchTransaction(target_id, transaction_id);
-    if (this.props.transaction) {
-      const transaction = this.props.transaction;
-      this.setState({
-        transactionHeaderData: {
-          id: transaction.id,
-          requestHeader: transaction.raw_request,
-          responseHeader: transaction.response_headers,
-          responseBody: transaction.response_body,
-        },
-        hrtResponse: '',
-      });
-    }
+    setTimeout(() => {
+      if (this.props.transaction) {
+        const transaction = this.props.transaction;
+        this.setState({
+          transactionHeaderData: {
+            id: transaction.id,
+            requestHeader: transaction.raw_request,
+            responseHeader: transaction.response_headers,
+            responseBody: transaction.response_body,
+          },
+          hrtResponse: '',
+        });
+      }
+    }, 500);
   }
 
   /* Function which is handling HRT (http request handler) for request translation.
@@ -103,9 +107,11 @@ class Transactions extends React.Component {
   */
   getHrtResponse(target_id, transaction_id, values) {
     this.props.onFetchHrtResponse(target_id, transaction_id, values);
-    if (this.props.hrtResponse) {
-      this.setState({ hrtResponse: this.props.hrtResponse })
-    }
+    setTimeout(() => {
+      if (this.props.hrtResponse) {
+        this.setState({ hrtResponse: this.props.hrtResponse })
+      }
+    }, 500);
   }
 
   componentDidMount() {
@@ -186,7 +192,7 @@ class Transactions extends React.Component {
       transactions: this.state.transactionsData,
     }
     return (
-      <Pane display="flex" flexDirection="row">
+      <Pane display="flex" flexDirection="row" data-test="transactionsComponent">
         <Pane
           id="left_panel"
           style={{
@@ -214,7 +220,7 @@ class Transactions extends React.Component {
           </Pane>
           <Pane>
             {this.state.target_id !== 0
-              ? <TransactionHeaders {...TransactionHeaderProps} />
+              ? <TransactionHeader {...TransactionHeaderProps} />
               : null}
           </Pane>
         </Pane>
@@ -245,7 +251,7 @@ Transactions.propTypes = {
   hrtResponseLoading: PropTypes.bool,
   hrtResponseError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   hrtResponse: PropTypes.any,
-  onFetchTarget: PropTypes.func,
+  onFetchTargets: PropTypes.func,
   onFetchTransactions: PropTypes.func,
   onFetchTransaction: PropTypes.func,
   onFetchHrtResponse: PropTypes.func,

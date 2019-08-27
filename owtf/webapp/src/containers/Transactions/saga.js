@@ -4,22 +4,25 @@
 
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { LOAD_TRANSACTIONS, LOAD_TRANSACTION, LOAD_HRT_RESPONSE } from './constants';
-import { transactionsLoaded, transactionsLoadingError, transactionLoaded, transactionLoadingError, hrtResponseLoaded, hrtResponseLoadingError } from './actions';
-
-import Request from 'utils/request';
-import { TRANSACTIONS_URL, TRANSACTION_HEADER_URL, TRANSACTION_HRT_URL } from './constants';
+import { 
+  transactionsLoaded,
+  transactionsLoadingError,
+  transactionLoaded,
+  transactionLoadingError,
+  hrtResponseLoaded,
+  hrtResponseLoadingError
+} from './actions';
+import { getTransactionsAPI, getTransactionAPI, getHrtResponseAPI} from "./api";
+import "@babel/polyfill";
 
 /**
  * Fetch Transactions request/response handler
  */
 export function* getTransactions(action) {
-  const target_id = action.target_id;
-  const URL = TRANSACTIONS_URL.replace("target_id", target_id.toString());
-  const requestURL = `${URL}`;
+  const fetchAPI = getTransactionsAPI(action);
   try {
     // Call our request helper (see 'utils/request')
-    const request = new Request(requestURL);
-    const transactions = yield call(request.get.bind(request));
+    const transactions = yield call(fetchAPI);
     yield put(transactionsLoaded(transactions.data));
   } catch (error) {
     yield put(transactionsLoadingError(error));
@@ -30,16 +33,11 @@ export function* getTransactions(action) {
  * Fetch Transaction request/response handler
  */
 export function* getTransaction(action) {
-  const target_id = action.target_id;
-  const transaction_id = action.transaction_id;
-  let URL = TRANSACTION_HEADER_URL.replace("target_id", target_id.toString());
-  URL = URL.replace("transaction_id", transaction_id.toString());
-  const requestURL = `${URL}`;
+  const fetchAPI = getTransactionAPI(action);
   try {
     // Call our request helper (see 'utils/request')
-    const request = new Request(requestURL);
-    const transaction = yield call(request.get.bind(request));
-    yield put(transactionLoaded(transaction));
+    const transaction = yield call(fetchAPI);
+    yield put(transactionLoaded(transaction.data));
   } catch (error) {
     yield put(transactionLoadingError(error));
   }
@@ -49,19 +47,9 @@ export function* getTransaction(action) {
  * Fetch HrtResponse request/response handler
  */
 export function* getHrtResponse(action) {
-  const target_id = action.target_id;
-  const transaction_id = action.transaction_id;
-  let URL = TRANSACTION_HRT_URL.replace("target_id", target_id.toString());
-  URL = URL.replace("transaction_id", transaction_id.toString());
-  const requestURL = `${URL}`;
+  const postAPI = getHrtResponseAPI(action);
   try {
-    const options = {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-      }
-    }
-    const request = new Request(requestURL, options);
-    const hrtResponse = yield call(request.post.bind(request), action.data);
+    const hrtResponse = yield call(postAPI, action.data);
     yield put(hrtResponseLoaded(hrtResponse));
   } catch (error) {
     yield put(hrtResponseLoadingError(error));
