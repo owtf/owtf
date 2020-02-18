@@ -32,14 +32,14 @@ matrix:
         - git config --global user.name "Tasty Test"
         - './tests/fixtures/skipfish.sh'
       script:
-        # - python -m unittest tests.functional.cli.test_empty_run
-        # #- python -m unittest tests.functional.cli.test_except
-        # - python -m unittest tests.functional.cli.test_list_plugins
-        # - python -m unittest tests.functional.cli.test_nowebui
-        # #- python -m unittest tests.functional.cli.test_only
-        # #- python -m unittest tests.functional.cli.test_scope
-        # #- python -m unittest tests.functional.cli.test_type
-        # - python -m unittest tests.functional.plugins.web
+        - python -m unittest tests.functional.cli.test_empty_run
+        #- python -m unittest tests.functional.cli.test_except
+        - python -m unittest tests.functional.cli.test_list_plugins
+        - python -m unittest tests.functional.cli.test_nowebui
+        #- python -m unittest tests.functional.cli.test_only
+        #- python -m unittest tests.functional.cli.test_scope
+        #- python -m unittest tests.functional.cli.test_type
+        - python -m unittest tests.functional.plugins.web
 
     - language: node_js
       node_js:
