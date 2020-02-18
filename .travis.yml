@@ -48,6 +48,7 @@ matrix:
       before_install:
         - cd owtf/webapp
       script:
+        - yarn upgrade
         - yarn test
 
 notifications:
