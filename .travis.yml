@@ -6,8 +6,8 @@ matrix:
         - '3.6'
       branches:
         only:
-        - master
-        - develop
+          - master
+          - develop
       services:
         - postgresql
       dist:
@@ -30,20 +30,20 @@ matrix:
         - cp -f ./tests/fixtures/profiles/plugin_aux/groups.cfg ~/.owtf/conf/profiles/plugin_aux/groups.cfg
         - git config --global user.email "tasty@mac.test"
         - git config --global user.name "Tasty Test"
-        - "./tests/fixtures/skipfish.sh"
+        - './tests/fixtures/skipfish.sh'
       script:
-        - python -m unittest tests.functional.cli.test_empty_run
-        #- python -m unittest tests.functional.cli.test_except
-        - python -m unittest tests.functional.cli.test_list_plugins
-        - python -m unittest tests.functional.cli.test_nowebui
-        #- python -m unittest tests.functional.cli.test_only
-        #- python -m unittest tests.functional.cli.test_scope
-        #- python -m unittest tests.functional.cli.test_type
-        - python -m unittest tests.functional.plugins.web
+        # - python -m unittest tests.functional.cli.test_empty_run
+        # #- python -m unittest tests.functional.cli.test_except
+        # - python -m unittest tests.functional.cli.test_list_plugins
+        # - python -m unittest tests.functional.cli.test_nowebui
+        # #- python -m unittest tests.functional.cli.test_only
+        # #- python -m unittest tests.functional.cli.test_scope
+        # #- python -m unittest tests.functional.cli.test_type
+        # - python -m unittest tests.functional.plugins.web
 
     - language: node_js
       node_js:
-        - "8"
+        - '8'
       cache: yarn
       before_install:
         - cd owtf/webapp
