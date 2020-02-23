@@ -22,6 +22,7 @@ matrix:
         - psql postgres -c "CREATE DATABASE owtf_db WITH OWNER owtf_db_user ENCODING 'utf-8' TEMPLATE template0;"
       install:
         - pip install -r requirements/base.txt
+        - pip install -r requirements/test.txt
         - echo '\n\n' | python setup.py develop
       before_script:
         - pip install mock pyHamcrest
