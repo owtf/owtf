@@ -188,7 +188,7 @@ class WorkerHandler(APIRequestHandler):
             return False
 
         headers = _filter_headers(headers, SIMPLE_HEADERS)
-        return (origin in ALLOWED_ORIGINS and method in ALLOWED_METHODS and len(headers) == 0)
+        return origin in ALLOWED_ORIGINS and method in ALLOWED_METHODS and len(headers) == 0
 
     def _build_preflight_response(self, headers):
         self.set_header("Access-Control-Allow-Origin", headers["Origin"])
@@ -387,8 +387,7 @@ class WorklistHandler(APIRequestHandler):
                 remove_work(self.session, work_id)
                 self.set_status(200)
             else:
-                if action == "delete":
-                    delete_all_work(self.session)
+                delete_all_work(self.session)
             self.success(None)
         except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
