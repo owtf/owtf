@@ -11,7 +11,7 @@ hrt==0.1.0
 -e git+https://github.com/google/ipaddr-py#egg=ipaddr
 Markdown==2.6.9
 pexpect==4.2.1
-psutil==5.3.1
+psutil==5.6.6
 psycopg2==2.7.4
 PTP==0.4.2
 pyOpenSSL==17.2.0
