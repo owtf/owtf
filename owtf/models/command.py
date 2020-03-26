@@ -8,6 +8,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 from owtf.db.model_base import Model
 from owtf.db.session import flush_transaction
+from . import plugin
 
 
 class Command(Model):
