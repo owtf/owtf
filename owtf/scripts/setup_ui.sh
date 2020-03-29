@@ -20,8 +20,9 @@ rm -rf /tmp/install_nvm.sh
 # Setup nvm and install node
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
-nvm install node
-nvm alias default node
+#Installing node v11.14.0 to ensure that it doesn't break the dependencies.
+nvm install 11.14.0
+nvm alias default 11.14.0
 echo "${normal}[*] npm successfully Installed.${reset}"
 
 # Installing webpack and gulp globally so that it can used by command line to build the bundle.
