@@ -48,7 +48,13 @@ def install_in_directory(directory, command):
         os.chdir(directory)
         os.system(command)
     else:
-        print(WARNING + "[!] Directory {} already exists, so skipping installation for this".format(directory) + RESET)
+        print(
+            WARNING
+            + "[!] Directory {} already exists, so skipping installation for this".format(
+                directory
+            )
+            + RESET
+        )
 
 
 def parse_and_install():

@@ -14,7 +14,9 @@ except ImportError:
     import urllib as urllib2
 
 abs_path = os.path.dirname(os.path.abspath(__file__))
-CMS_EXPLORER_DIR = os.path.join(abs_path, "../tools/restricted/cms-explorer/cms-explorer-1.0")
+CMS_EXPLORER_DIR = os.path.join(
+    abs_path, "../tools/restricted/cms-explorer/cms-explorer-1.0"
+)
 
 
 # get plugins from http://plugins.svn.wordpress.org
@@ -55,7 +57,9 @@ def get_drupal_plugins():
     content = urllib2.urlopen(r)
 
     tree = html.fromstring(content.read())
-    links = tree.xpath('//*[@id="block-system-main"]/div/div/div/div[2]/div/ol/li/div/span/a')
+    links = tree.xpath(
+        '//*[@id="block-system-main"]/div/div/div/div[2]/div/ol/li/div/span/a'
+    )
     modules = []
 
     for el in links:
@@ -75,7 +79,9 @@ def get_drupal_themes():
     content = urllib2.urlopen(r)
 
     tree = html.fromstring(content.read())
-    links = tree.xpath('//*[@id="block-system-main"]/div/div/div/div[2]/div/ol/li/div/span/a')
+    links = tree.xpath(
+        '//*[@id="block-system-main"]/div/div/div/div[2]/div/ol/li/div/span/a'
+    )
     themes = []
     for el in links:
         # lxml.etree.Element stores attributes in a dict interface

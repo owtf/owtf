@@ -53,12 +53,18 @@ class TransactionLogger(OWTFProcess):
                 return [target_id, True]
             elif target in request.url:
                 return [target_id, self.get_scope_for_url(request.url, host_list)]
-            elif response.headers.get("Referer", None) and response.headers["Referer"].startswith(target):
+            elif response.headers.get("Referer", None) and response.headers[
+                "Referer"
+            ].startswith(
+                target
+            ):
                 return [target_id, self.get_scope_for_url(request.url, host_list)]
             # This check must be at the last
             elif urlparse(request.url).hostname == urlparse(target).hostname:
                 return [target_id, True]
-        return [target_manager.get_target_id, self.get_scope_for_url(request.url, host_list)]
+        return [
+            target_manager.get_target_id, self.get_scope_for_url(request.url, host_list)
+        ]
 
     def get_scope_for_url(self, url, host_list):
         """Check the scope for the url in the transaction
@@ -87,8 +93,12 @@ class TransactionLogger(OWTFProcess):
             host_list = get_all_in_scope("host_name")
 
             for request_hash in hash_list:
-                request = request_from_cache(os.path.join(INBOUND_PROXY_CACHE_DIR, request_hash))
-                response = response_from_cache(os.path.join(INBOUND_PROXY_CACHE_DIR, request_hash))
+                request = request_from_cache(
+                    os.path.join(INBOUND_PROXY_CACHE_DIR, request_hash)
+                )
+                response = response_from_cache(
+                    os.path.join(INBOUND_PROXY_CACHE_DIR, request_hash)
+                )
                 target_id, request.in_scope = self.derive_target_for_transaction(
                     request, response, target_list, host_list
                 )

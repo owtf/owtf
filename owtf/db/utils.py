@@ -159,7 +159,9 @@ def apply_pagination(query, page_number=None, page_size=None):
 
     num_pages = _calculate_num_pages(page_number, page_size, total_results)
 
-    Pagination = namedtuple("Pagination", ["page_number", "page_size", "num_pages", "total_results"])
+    Pagination = namedtuple(
+        "Pagination", ["page_number", "page_size", "num_pages", "total_results"]
+    )
     return query, Pagination(page_number, page_size, num_pages, total_results)
 
 

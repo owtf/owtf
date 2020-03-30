@@ -40,7 +40,9 @@ class SMB(pexpect_sh.PExpectShell):
         self.open(options, plugin_info)
         logging.info("Ensuring Mount Point %s exists...", options["SMB_MOUNT_POINT"])
         self.check_mount_point_existence(options)
-        mount_cmd = "smbmount //{}/{} {}".format(options["SMB_HOST"], options["SMB_SHARE"], options["SMB_MOUNT_POINT"])
+        mount_cmd = "smbmount //{}/{} {}".format(
+            options["SMB_HOST"], options["SMB_SHARE"], options["SMB_MOUNT_POINT"]
+        )
         if options["SMB_USER"]:  # Pass user if specified.
             mount_cmd += " -o user={}".format(options["SMB_USER"])
         logging.info("Mounting share..")
@@ -56,7 +58,12 @@ class SMB(pexpect_sh.PExpectShell):
     def transfer(self):
         operation = False
         if self.options["SMB_DOWNLOAD"]:
-            self.download("{}/{}".format(self.options["SMB_MOUNT_POINT"], self.options["SMB_DOWNLOAD"]), ".")
+            self.download(
+                "{}/{}".format(
+                    self.options["SMB_MOUNT_POINT"], self.options["SMB_DOWNLOAD"]
+                ),
+                ".",
+            )
             operation = True
         if self.options["SMB_UPLOAD"]:
             self.upload(self.options["SMB_UPLOAD"], self.options["SMB_MOUNT_POINT"])
@@ -67,7 +74,9 @@ class SMB(pexpect_sh.PExpectShell):
     def unmount(self, plugin_info):
         if self.is_mounted():
             self.shell_exec_monitor(
-                session=self.session, command="umount %s".format(self.options["SMB_MOUNT_POINT"]), plugin_info=dict()
+                session=self.session,
+                command="umount %s".format(self.options["SMB_MOUNT_POINT"]),
+                plugin_info=dict(),
             )
             self.set_mounted(False)
             self.close(plugin_info)
@@ -75,13 +84,17 @@ class SMB(pexpect_sh.PExpectShell):
     def upload(self, file_path, mount_point):
         logging.info("Copying %s to %s", file_path, mount_point)
         self.shell_exec_monitor(
-            session=self.session, command="cp -r {} {}".format(file_path, mount_point), plugin_info=dict()
+            session=self.session,
+            command="cp -r {} {}".format(file_path, mount_point),
+            plugin_info=dict(),
         )
 
     def download(self, remote_file_path, target_dir):
         logging.info("Copying %s to %s", remote_file_path, target_dir)
         self.shell_exec_monitor(
-            session=self.session, command="cp -r {} {}".format(remote_file_path, target_dir), plugin_info=dict()
+            session=self.session,
+            command="cp -r {} {}".format(remote_file_path, target_dir),
+            plugin_info=dict(),
         )
 
 

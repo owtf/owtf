@@ -44,7 +44,9 @@ class FileLock(object):
     class FileLockException(Exception):
         pass
 
-    def __init__(self, protected_file_path, timeout=None, delay=1, lock_file_contents=None):
+    def __init__(
+        self, protected_file_path, timeout=None, delay=1, lock_file_contents=None
+    ):
         """ Prepare the file locker. Specify the file to lock and optionally
             the maximum timeout and the delay between each attempt to lock.
         """
@@ -100,8 +102,13 @@ class FileLock(object):
             except OSError as e:
                 if e.errno != errno.EEXIST:
                     raise
-                if self.timeout is not None and (time.time() - start_time) >= self.timeout:
-                    raise FileLock.FileLockException("Timeout occurred for lock '{!s}'.".format(self.lockfile))
+                if (
+                    self.timeout is not None
+                    and (time.time() - start_time) >= self.timeout
+                ):
+                    raise FileLock.FileLockException(
+                        "Timeout occurred for lock '{!s}'.".format(self.lockfile)
+                    )
                 if not blocking:
                     return False
                 time.sleep(self.delay)

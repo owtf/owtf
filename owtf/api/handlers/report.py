@@ -73,7 +73,9 @@ class ReportExportHandler(APIRequestHandler):
             raise APIError(400, "Missing target id")
         try:
             filter_data = dict(self.request.arguments)
-            plugin_outputs = get_all_poutputs(filter_data, target_id=target_id, inc_output=True)
+            plugin_outputs = get_all_poutputs(
+                filter_data, target_id=target_id, inc_output=True
+            )
         except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
         except exceptions.InvalidParameterType:
@@ -85,7 +87,9 @@ class ReportExportHandler(APIRequestHandler):
             grouped_plugin_outputs[output["plugin_code"]].append(output)
 
         # Needed ordered list for ease in templates
-        grouped_plugin_outputs = collections.OrderedDict(sorted(grouped_plugin_outputs.items()))
+        grouped_plugin_outputs = collections.OrderedDict(
+            sorted(grouped_plugin_outputs.items())
+        )
 
         # Get mappings
         mapping_type = self.get_argument("mapping", None)

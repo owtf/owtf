@@ -27,15 +27,25 @@ def ShellExec(Command):
     print("\nExecuting (Control+C to abort THIS COMMAND ONLY):\n" + Command)
     Output = ""
     try:  # Stolen from: http://stackoverflow.com/questions/5833716/how-to-capture-output-of-a-shell-script-running-in-a-separate-process-in-a-wxpyt
-        proc = subprocess.Popen(Command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1)
+        proc = subprocess.Popen(
+            Command,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            bufsize=1,
+        )
         while True:
             line = proc.stdout.readline()
             if not line:
                 break
-            print(multi_replace(line, {"\n": "", "\r": ""}))  # Show progress on the screen too!
+            print(
+                multi_replace(line, {"\n": "", "\r": ""})
+            )  # Show progress on the screen too!
             Output += line  # Save as much output as possible before a tool crashes! :)
     except KeyboardInterrupt:
-        Output += self.Core.Error.user_abort("Command", Output)  # Identify as Command Level abort
+        Output += self.Core.Error.user_abort(
+            "Command", Output
+        )  # Identify as Command Level abort
     return Output
 
 
@@ -76,7 +86,11 @@ def GetParams():  # Basic validation and parameter retrieval:
     for Arg in Args:
         Chunks = Arg.split("=")
         if len(Chunks) != 2:
-            Usage("'" + str(Arg) + "' is incorrect: The parameter format is ARGNAME=ARGVALUE")
+            Usage(
+                "'"
+                + str(Arg)
+                + "' is incorrect: The parameter format is ARGNAME=ARGVALUE"
+            )
         ArgName = Chunks[0]
         ArgValue = Arg.replace(ArgName + "=", "")
         Params[ArgName] = ArgValue
@@ -85,10 +99,16 @@ def GetParams():  # Basic validation and parameter retrieval:
         if Mandatory not in Params:
             Usage("Must include parameter: " + Mandatory)
 
-    SETScript = Params["PHISHING_SCRIPT_DIR"] + "/set_scripts/payload" + Params["PHISHING_PAYLOAD"] + ".set"
+    SETScript = Params["PHISHING_SCRIPT_DIR"] + "/set_scripts/payload" + Params[
+        "PHISHING_PAYLOAD"
+    ] + ".set"
     SETDebugAutomate = Params["PHISHING_SCRIPT_DIR"] + "/set_debug_automate.sh"
     MandatoryPaths = [
-        Params["TOOL_SET_DIR"], Params["PDF_TEMPLATE"], Params["EMAIL_TARGET"], SETScript, SETDebugAutomate
+        Params["TOOL_SET_DIR"],
+        Params["PDF_TEMPLATE"],
+        Params["EMAIL_TARGET"],
+        SETScript,
+        SETDebugAutomate,
     ]
     for Path in MandatoryPaths:
         if not os.path.exists(Path):
@@ -106,6 +126,12 @@ with open(
     file.write(multi_replace(open(Params["SET_PARAMS_SCRIPT"]).read(), Params))
 
 ShellExec(
-    Params["SET_DEBUG_AUTOMATE"] + " " + Params["TOOL_SET_DIR"] + " " + Params["SET_TMP_SCRIPT"]
+    Params["SET_DEBUG_AUTOMATE"]
+    + " "
+    + Params["TOOL_SET_DIR"]
+    + " "
+    + Params["SET_TMP_SCRIPT"]
 )  # Step 3 - Run SET script
-ShellExec("rm -f " + Params["SET_TMP_SCRIPT"])  # Step 4 - Remove temporary script with hard-coded values
+ShellExec(
+    "rm -f " + Params["SET_TMP_SCRIPT"]
+)  # Step 4 - Remove temporary script with hard-coded values

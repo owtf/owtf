@@ -5,7 +5,18 @@ owtf.models.transaction
 """
 import base64
 
-from sqlalchemy import Boolean, Column, Integer, String, Float, DateTime, Text, ForeignKey, Table, Index
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Integer,
+    String,
+    Float,
+    DateTime,
+    Text,
+    ForeignKey,
+    Table,
+    Index,
+)
 from sqlalchemy.orm import relationship
 
 from owtf.db.model_base import Model
@@ -19,7 +30,11 @@ transaction_association_table = Table(
     Column("grep_output_id", Integer, ForeignKey("grep_outputs.id")),
 )
 
-Index("transaction_id_idx", transaction_association_table.c.transaction_id, postgresql_using="btree")
+Index(
+    "transaction_id_idx",
+    transaction_association_table.c.transaction_id,
+    postgresql_using="btree",
+)
 
 
 class Transaction(Model):
@@ -44,7 +59,10 @@ class Transaction(Model):
     login = Column(Boolean, nullable=True)
     logout = Column(Boolean, nullable=True)
     grep_outputs = relationship(
-        "GrepOutput", secondary=transaction_association_table, cascade="delete", backref="transactions"
+        "GrepOutput",
+        secondary=transaction_association_table,
+        cascade="delete",
+        backref="transactions",
     )
 
     def to_dict(self, include_raw_data=False):

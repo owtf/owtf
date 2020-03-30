@@ -89,7 +89,11 @@ class OWTFSessionHandler(APIRequestHandler):
                 "data": null
             }
         """
-        if (session_id is not None) or (self.get_argument("name", None) is None) or (action is not None):
+        if (
+            (session_id is not None)
+            or (self.get_argument("name", None) is None)
+            or (action is not None)
+        ):
             # Not supposed to post on specific session
             raise APIError(400, "Incorrect query parameters")
         try:
@@ -97,7 +101,9 @@ class OWTFSessionHandler(APIRequestHandler):
             self.set_status(201)  # Stands for "201 Created"
             self.success(None)
         except exceptions.DBIntegrityException:
-            raise APIError(400, "An unknown exception occurred when performing a DB operation")
+            raise APIError(
+                400, "An unknown exception occurred when performing a DB operation"
+            )
 
     def patch(self, session_id=None, action=None):
         """Change session.
@@ -126,10 +132,16 @@ class OWTFSessionHandler(APIRequestHandler):
             raise APIError(400, "Incorrect query parameters")
         try:
             if action == "add":
-                add_target_to_session(self.session, int(self.get_argument("target_id")), session_id=int(session_id))
+                add_target_to_session(
+                    self.session,
+                    int(self.get_argument("target_id")),
+                    session_id=int(session_id),
+                )
             elif action == "remove":
                 remove_target_from_session(
-                    self.session, int(self.get_argument("target_id")), session_id=int(session_id)
+                    self.session,
+                    int(self.get_argument("target_id")),
+                    session_id=int(session_id),
                 )
             elif action == "activate":
                 Session.set_by_id(self.session, int(session_id))

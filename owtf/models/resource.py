@@ -12,7 +12,9 @@ class Resource(Model):
     __tablename__ = "resources"
 
     id = Column(Integer, primary_key=True)
-    dirty = Column(Boolean, default=False)  # Dirty if user edited it. Useful while updating
+    dirty = Column(
+        Boolean, default=False
+    )  # Dirty if user edited it. Useful while updating
     resource_name = Column(String)
     resource_type = Column(String)
     resource = Column(String)

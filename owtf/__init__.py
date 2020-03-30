@@ -11,11 +11,7 @@ __docformat__ = "markdown"
 
 
 version_info_t = NamedTuple(
-    "version_info_t", [
-        ("major", int),
-        ("minor", int),
-        ("patch", int),
-    ]
+    "version_info_t", [("major", int), ("minor", int), ("patch", int)]
 )
 
 # bumpversion can only search for {current_version}

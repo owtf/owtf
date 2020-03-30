@@ -1,0 +1,4 @@
+{
+    "python.formatting.provider": "black",
+    "python.pythonPath": "/usr/local/opt/python/bin/python3.7"
+}

@@ -42,7 +42,9 @@ class LocalWorker(OWTFProcess, BaseWorker):
                 plugin_dir = self.plugin_handler.get_plugin_group_dir(plugin["group"])
                 # Set the target specific thing here
                 target_manager.set_target(target["id"])
-                self.plugin_handler.process_plugin(session=self.session, plugin_dir=plugin_dir, plugin=plugin)
+                self.plugin_handler.process_plugin(
+                    session=self.session, plugin_dir=plugin_dir, plugin=plugin
+                )
                 self.output_q.put("done")
             except queue.Empty:
                 pass
@@ -54,7 +56,9 @@ class LocalWorker(OWTFProcess, BaseWorker):
                 trace = traceback.format_tb(tb)
                 Error.add_error(
                     session=self.session,
-                    message="Exception occurred while running plugin: {}, {}".format(str(e), str(ex)),
+                    message="Exception occurred while running plugin: {}, {}".format(
+                        str(e), str(ex)
+                    ),
                     trace=trace,
                 )
         logging.debug("Worker (%d): Exiting...", self.pid)

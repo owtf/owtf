@@ -17,13 +17,17 @@ class Session(Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, unique=True)
     active = Column(Boolean, default=False)
-    targets = relationship("Target", secondary=target_association_table, backref="sessions")
+    targets = relationship(
+        "Target", secondary=target_association_table, backref="sessions"
+    )
 
     @classmethod
     def get_by_id(cls, session, id):
         session_obj = session.query(Session).get(id)
         if not session_obj:
-            raise exceptions.InvalidSessionReference("No session with id: {!s}".format(id))
+            raise exceptions.InvalidSessionReference(
+                "No session with id: {!s}".format(id)
+            )
         return session_obj.to_dict()
 
     @classmethod
@@ -36,7 +40,9 @@ class Session(Model):
         query = session.query(Session)
         session_obj = query.get(session_id)
         if not session_obj:
-            raise exceptions.InvalidSessionReference("No session with session_id: {!s}".format(session_id))
+            raise exceptions.InvalidSessionReference(
+                "No session with session_id: {!s}".format(session_id)
+            )
         query.update({"active": False})
         session_obj.active = True
         session.commit()

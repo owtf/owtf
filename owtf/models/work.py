@@ -20,4 +20,6 @@ class Work(Model):
     __table_args__ = (UniqueConstraint("target_id", "plugin_key"),)
 
     def __repr__(self):
-        return "<Work (target='{!s}', plugin='{!s}')>".format(self.target_id, self.plugin_key)
+        return "<Work (target='{!s}', plugin='{!s}')>".format(
+            self.target_id, self.plugin_key
+        )

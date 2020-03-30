@@ -77,7 +77,15 @@ except ImportError:
 
 ############## GLOBAL VARIABLES ###################################
 
-global_data = {"StatusCode": {}, "Server": {}, "Content-Type": {}, "Title": {}, "Address": {}, "X-Fwd": {}, "Via": {}}
+global_data = {
+    "StatusCode": {},
+    "Server": {},
+    "Content-Type": {},
+    "Title": {},
+    "Address": {},
+    "X-Fwd": {},
+    "Via": {},
+}
 score = 0
 verbosity = 0
 scheme = "http"
@@ -208,7 +216,10 @@ def analyse_body(data):
         zprint("Analyzing body", "**")
 
     wanted_patterns = [
-        "<title>(.*)</title>", "<address>(.*)</address>", "Reason: <strong>(.*)</strong>", "X-Forwarded-For: (.*)"
+        "<title>(.*)</title>",
+        "<address>(.*)</address>",
+        "Reason: <strong>(.*)</strong>",
+        "X-Forwarded-For: (.*)",
     ]
 
     for p_name in wanted_patterns:
@@ -228,7 +239,10 @@ def analyse_body(data):
             if re.search("X-Forwarded-For:", p_name):
                 global_data["X-Fwd"][hop] = value
                 if method == "TRACE":
-                    zprint('"X-Forwarded-For" in body when using TRACE : Probably a reverse proxy', "++")
+                    zprint(
+                        '"X-Forwarded-For" in body when using TRACE : Probably a reverse proxy',
+                        "++",
+                    )
                     inc_score()
 
 
@@ -276,7 +290,10 @@ for hop in range(0, max_fwds):
     request.add_header("Max-Forwards", hop)
     if verbosity:
         print("-" * 80)
-        zprint('Current value of "Max-Forwards" = ' + str(hop) + " [" + "-" * 20 + "]", "-" * 19)
+        zprint(
+            'Current value of "Max-Forwards" = ' + str(hop) + " [" + "-" * 20 + "]",
+            "-" * 19,
+        )
         print("-" * 80)
 
     try:

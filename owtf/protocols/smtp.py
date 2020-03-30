@@ -32,16 +32,26 @@ class SMTP(object):
             mail_server = self.create_connection_with_mail_server(options)
             mail_server.ehlo()
         except Exception:
-            self.pprint("Error connecting to {!s} on port {!s}".format(options["SMTP_HOST"], options["SMTP_PORT"]))
+            self.pprint(
+                "Error connecting to {!s} on port {!s}".format(
+                    options["SMTP_HOST"], options["SMTP_PORT"]
+                )
+            )
             return None
         try:
             mail_server.starttls()  # Give start TLS a shot
         except Exception as e:
-            self.pprint("{} - Assuming TLS unsupported and trying to continue..".format(str(e)))
+            self.pprint(
+                "{} - Assuming TLS unsupported and trying to continue..".format(str(e))
+            )
         try:
             mail_server.login(options["SMTP_LOGIN"], options["SMTP_PASS"])
         except Exception as e:
-            self.pprint("ERROR: {} - Assuming open-relay and trying to continue..".format(str(e)))
+            self.pprint(
+                "ERROR: {} - Assuming open-relay and trying to continue..".format(
+                    str(e)
+                )
+            )
         return mail_server
 
     def is_file(self, target):
@@ -115,7 +125,10 @@ class SMTP(object):
         binary_blob.set_payload(FileOperations.open(attachment, "rb").read())
         encoders.encode_base64(binary_blob)  # base64 encode the Binary Blob.
         # Binary Blob headers.
-        binary_blob.add_header("Content-Disposition", 'attachment; filename="{}"'.format(os.path.basename(attachment)))
+        binary_blob.add_header(
+            "Content-Disposition",
+            'attachment; filename="{}"'.format(os.path.basename(attachment)),
+        )
         message.attach(binary_blob)
         return True
 

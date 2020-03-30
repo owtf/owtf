@@ -11,7 +11,12 @@ import tornado.web
 
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
-from owtf.lib.exceptions import InvalidParameterType, InvalidTargetReference, InvalidTransactionReference, APIError
+from owtf.lib.exceptions import (
+    InvalidParameterType,
+    InvalidTargetReference,
+    InvalidTransactionReference,
+    APIError,
+)
 from owtf.managers.transaction import (
     delete_transaction,
     get_all_transactions_dicts,
@@ -22,7 +27,11 @@ from owtf.managers.transaction import (
 from owtf.managers.url import get_all_urls, search_all_urls
 
 __all__ = [
-    "TransactionDataHandler", "TransactionHrtHandler", "TransactionSearchHandler", "URLDataHandler", "URLSearchHandler"
+    "TransactionDataHandler",
+    "TransactionHrtHandler",
+    "TransactionSearchHandler",
+    "URLDataHandler",
+    "URLSearchHandler",
 ]
 
 
@@ -75,11 +84,19 @@ class TransactionDataHandler(APIRequestHandler):
         """
         try:
             if transaction_id:
-                self.success(get_by_id_as_dict(self.session, int(transaction_id), target_id=int(target_id)))
+                self.success(
+                    get_by_id_as_dict(
+                        self.session, int(transaction_id), target_id=int(target_id)
+                    )
+                )
             else:
                 # Empty criteria ensure all transactions
                 filter_data = dict(self.request.arguments)
-                self.success(get_all_transactions_dicts(self.session, filter_data, target_id=int(target_id)))
+                self.success(
+                    get_all_transactions_dicts(
+                        self.session, filter_data, target_id=int(target_id)
+                    )
+                )
         except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
         except exceptions.InvalidTransactionReference:
@@ -164,7 +181,14 @@ class TransactionHrtHandler(APIRequestHandler):
         try:
             if transaction_id:
                 filter_data = dict(self.request.arguments)
-                self.write(get_hrt_response(self.session, filter_data, int(transaction_id), target_id=int(target_id)))
+                self.write(
+                    get_hrt_response(
+                        self.session,
+                        filter_data,
+                        int(transaction_id),
+                        target_id=int(target_id),
+                    )
+                )
             else:
                 raise APIError(400, "Needs transaction id")
         except InvalidTargetReference:
@@ -212,7 +236,11 @@ class TransactionSearchHandler(APIRequestHandler):
             # Empty criteria ensure all transactions
             filter_data = dict(self.request.arguments)
             filter_data["search"] = True
-            self.success(search_all_transactions(self.session, filter_data, target_id=int(target_id)))
+            self.success(
+                search_all_transactions(
+                    self.session, filter_data, target_id=int(target_id)
+                )
+            )
         except exceptions.InvalidTargetReference:
             raise APIError(400, "Invalid target reference provided")
         except exceptions.InvalidTransactionReference:
@@ -229,7 +257,9 @@ class URLDataHandler(APIRequestHandler):
         try:
             # Empty criteria ensure all transactions
             filter_data = dict(self.request.arguments)
-            self.write(get_all_urls(self.session, filter_data, target_id=int(target_id)))
+            self.write(
+                get_all_urls(self.session, filter_data, target_id=int(target_id))
+            )
         except exceptions.InvalidTargetReference as e:
             logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
@@ -264,7 +294,9 @@ class URLSearchHandler(APIRequestHandler):
             # Empty criteria ensure all transactions
             filter_data = dict(self.request.arguments)
             filter_data["search"] = True
-            self.write(search_all_urls(self.session, filter_data, target_id=int(target_id)))
+            self.write(
+                search_all_urls(self.session, filter_data, target_id=int(target_id))
+            )
         except exceptions.InvalidTargetReference as e:
             logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)

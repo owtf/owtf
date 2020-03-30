@@ -56,7 +56,9 @@ def extract_method(wrapped_method):
     """
     # If method was decorated with validate, the original method
     #   is available as orig_func thanks to our container decorator
-    return wrapped_method.orig_func if hasattr(wrapped_method, "orig_func") else wrapped_method
+    return wrapped_method.orig_func if hasattr(
+        wrapped_method, "orig_func"
+    ) else wrapped_method
 
 
 def is_method(method):

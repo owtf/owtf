@@ -50,7 +50,9 @@ class PluginParams(object):
             if len(chunks) < 2:
                 Error.add_error(
                     self.session,
-                    "USER ERROR: {!s} arguments should be in NAME=VALUE format".format(str(chunks)),
+                    "USER ERROR: {!s} arguments should be in NAME=VALUE format".format(
+                        str(chunks)
+                    ),
                     "user",
                 )
                 return False
@@ -59,7 +61,11 @@ class PluginParams(object):
                 arg_val = arg.replace(arg_name, "")[1:]
             except ValueError:
                 Error.add_error(
-                    self.session, "USER ERROR: {!s} arguments should be in NAME=VALUE format".format(arg_name), "user"
+                    self.session,
+                    "USER ERROR: {!s} arguments should be in NAME=VALUE format".format(
+                        arg_name
+                    ),
+                    "user",
                 )
                 return False
             self.args[arg_name] = arg_val
@@ -83,7 +89,12 @@ class PluginParams(object):
         for arg_name, arg_description in list(args.items()):
             if arg_description is None:
                 arg_description = ""
-            logging.info("- %s%s%s", arg_name, (30 - len(arg_name)) * "_", arg_description.replace("\n", "\n"))
+            logging.info(
+                "- %s%s%s",
+                arg_name,
+                (30 - len(arg_name)) * "_",
+                arg_description.replace("\n", "\n"),
+            )
 
     def get_args_example(self, full_args_list):
         """Arguments for an example plugin
@@ -94,7 +105,9 @@ class PluginParams(object):
         :rtype: `str`
         """
         args_str = []
-        for key, value in list(merge_dicts(full_args_list["mandatory"], full_args_list["Optional"]).items()):
+        for key, value in list(
+            merge_dicts(full_args_list["mandatory"], full_args_list["Optional"]).items()
+        ):
             args_str.append(key)
         pad = "=? "
         return pad.join(args_str) + pad
@@ -143,9 +156,16 @@ class PluginParams(object):
         for setting in settings_list:
             if config_handler.is_set(setting):  # argument is set in config
                 args[arg_name] = config_handler.get_val(setting)
-                logging.info("default not passed '%s' to '%s'%s", arg_name, str(args[arg_name]), default_order_str)
+                logging.info(
+                    "default not passed '%s' to '%s'%s",
+                    arg_name,
+                    str(args[arg_name]),
+                    default_order_str,
+                )
                 return True
-        logging.info("Could not default not passed: '%s'%s", arg_name, default_order_str)
+        logging.info(
+            "Could not default not passed: '%s'%s", arg_name, default_order_str
+        )
         return False
 
     def get_arg_list(self, session, arg_list, plugin, mandatory=True):
@@ -172,14 +192,18 @@ class PluginParams(object):
                     "{0}_{1}".format(plugin["code"], arg_name),
                     arg_name,
                 ]
-                default = self.default_arg_from_config(args, arg_name, config_default_order)
+                default = self.default_arg_from_config(
+                    args, arg_name, config_default_order
+                )
                 if default or mandatory is False:
                     # The Parameter has been defaulted, must skip loop to avoid assignment at the bottom or
                     # argument is optional = ok to skip
                     continue
                 Error.add_error(
                     session,
-                    "USER ERROR: {!s} requires argument: '{!s}'".format(self.show_plugin(plugin), arg_name),
+                    "USER ERROR: {!s} requires argument: '{!s}'".format(
+                        self.show_plugin(plugin), arg_name
+                    ),
                     "user",
                 )
                 return self.ret_arg_error({}, plugin)  # Abort processing (invalid data)
@@ -242,7 +266,11 @@ class PluginParams(object):
             return self.ret_arg_error(True, plugin)
         if "Description" not in full_args_list:
             Error.add_error(
-                self.session, "OWTF PLUGIN BUG: {!s}  requires a Description".format(self.show_plugin(plugin)), trace=""
+                self.session,
+                "OWTF PLUGIN BUG: {!s}  requires a Description".format(
+                    self.show_plugin(plugin)
+                ),
+                trace="",
             )
             return self.ret_arg_error(False, plugin)
         return True
@@ -275,7 +303,11 @@ class PluginParams(object):
         :rtype: None
         """
         for arg_name, arg_val in list(args.items()):
-            logging.info("Overriding configuration setting '_%s' with value %s..", arg_name, str(arg_val))
+            logging.info(
+                "Overriding configuration setting '_%s' with value %s..",
+                arg_name,
+                str(arg_val),
+            )
             config_handler.set_general_val(
                 "string", "_{!s}".format(arg_name), arg_val
             )  # Pre-pend "_" to avoid naming collisions
@@ -315,7 +347,9 @@ class PluginParams(object):
         for index, permutation in enumerate(permutation_list):
             count = 0
             for perm in permutations:
-                perm_args = permutation_list[index].copy()  # 1st copy by value original arguments
+                perm_args = permutation_list[
+                    index
+                ].copy()  # 1st copy by value original arguments
                 perm_args[arg_name] = perm  # 2nd override argument with permutation
                 if count == 0:  # Modify 1st existing record with permutation
                     permutation_list[index] = perm_args
@@ -361,11 +395,15 @@ class PluginParams(object):
         if "O" in self.raw_args:  # To view available options
             self.show_param_info(full_args_list, plugin)
             return self.no_args  # Abort processing, just showing options
-        mandatory = self.get_arg_list(session, full_args_list["Mandatory"], plugin, True)
+        mandatory = self.get_arg_list(
+            session, full_args_list["Mandatory"], plugin, True
+        )
         optional = self.get_arg_list(session, full_args_list["Optional"], plugin, False)
         if self.get_arg_error(plugin):
             logging.info("")
-            logging.warn("ERROR: Aborting argument processing, please correct the errors above and try again")
+            logging.warn(
+                "ERROR: Aborting argument processing, please correct the errors above and try again"
+            )
             logging.info("")
             return self.no_args  # Error processing arguments, must abort processing
         all_args = merge_dicts(mandatory, optional)

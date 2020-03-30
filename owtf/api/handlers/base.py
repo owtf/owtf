@@ -13,7 +13,13 @@ from tornado.web import RequestHandler
 from owtf import __version__
 from owtf.db.session import Session, get_db_engine
 from owtf.lib.exceptions import APIError
-from owtf.settings import SERVER_PORT, FILE_SERVER_PORT, USE_SENTRY, SERVER_ADDR, SESSION_COOKIE_NAME
+from owtf.settings import (
+    SERVER_PORT,
+    FILE_SERVER_PORT,
+    USE_SENTRY,
+    SERVER_ADDR,
+    SESSION_COOKIE_NAME,
+)
 from owtf.utils.strings import utf8
 
 # if Sentry raven library around, pull in SentryMixin
@@ -114,7 +120,9 @@ class APIRequestHandler(BaseRequestHandler):
         """
 
         def get_exc_message(exception):
-            return exception.log_message if hasattr(exception, "log_message") else str(exception)
+            return exception.log_message if hasattr(exception, "log_message") else str(
+                exception
+            )
 
         self.clear()
         self.set_status(status_code)
@@ -131,7 +139,12 @@ class APIRequestHandler(BaseRequestHandler):
             self.finish()
         else:
             self.write(
-                {"status": "fail", "message": self._reason, "data": get_exc_message(exception), "code": status_code}
+                {
+                    "status": "fail",
+                    "message": self._reason,
+                    "data": get_exc_message(exception),
+                    "code": status_code,
+                }
             )
             self.finish()
 
@@ -173,8 +186,12 @@ class UIRequestHandler(BaseRequestHandler):
         set_cookie(key, value, **kwargs)
 
     def _set_user_cookie(self, user, server):
-        self.application.log.debug("Setting cookie for %s: %s", user.name, server.cookie_name)
-        self._set_cookie(server.cookie_name, user.cookie_id, encrypted=True, path=server.base_url)
+        self.application.log.debug(
+            "Setting cookie for %s: %s", user.name, server.cookie_name
+        )
+        self._set_cookie(
+            server.cookie_name, user.cookie_id, encrypted=True, path=server.base_url
+        )
 
     def get_session_cookie(self):
         """Get the session id from a cookie
@@ -203,7 +220,8 @@ class FileRedirectHandler(BaseRequestHandler):
 
     def get(self, file_url):
         output_files_server = "{}://{}/".format(
-            self.request.protocol, self.request.host.replace(str(SERVER_PORT), str(FILE_SERVER_PORT))
+            self.request.protocol,
+            self.request.host.replace(str(SERVER_PORT), str(FILE_SERVER_PORT)),
         )
         redirect_file_url = output_files_server + url_escape(file_url, plus=False)
         self.redirect(redirect_file_url, permanent=True)

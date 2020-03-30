@@ -14,7 +14,12 @@ from owtf.lib.exceptions import APIError
 from owtf.managers.plugin import get_all_plugin_dicts
 from owtf.managers.target import get_target_config_dicts
 from owtf.managers.worker import worker_manager
-from owtf.settings import ALLOWED_METHODS, SIMPLE_HEADERS, ALLOWED_ORIGINS, SEND_CREDENTIALS
+from owtf.settings import (
+    ALLOWED_METHODS,
+    SIMPLE_HEADERS,
+    ALLOWED_ORIGINS,
+    SEND_CREDENTIALS,
+)
 from owtf.managers.worklist import (
     add_work,
     delete_all_work,
@@ -188,12 +193,16 @@ class WorkerHandler(APIRequestHandler):
             return False
 
         headers = _filter_headers(headers, SIMPLE_HEADERS)
-        return origin in ALLOWED_ORIGINS and method in ALLOWED_METHODS and len(headers) == 0
+        return origin in ALLOWED_ORIGINS and method in ALLOWED_METHODS and len(
+            headers
+        ) == 0
 
     def _build_preflight_response(self, headers):
         self.set_header("Access-Control-Allow-Origin", headers["Origin"])
         self.set_header("Access-Control-Allow-Methods", ",".join(ALLOWED_METHODS))
-        self.set_header("Access-Control-Allow-Headers", ",".join(headers.keys() - SIMPLE_HEADERS))
+        self.set_header(
+            "Access-Control-Allow-Headers", ",".join(headers.keys() - SIMPLE_HEADERS)
+        )
         if SEND_CREDENTIALS:
             self.set_header("Access-Control-Allow-Credentials", "true")
 
@@ -346,7 +355,9 @@ class WorklistHandler(APIRequestHandler):
             if not target_list:
                 raise APIError(400, "Target list should not be empty")
             force_overwrite = str2bool(self.get_argument("force_overwrite", "False"))
-            add_work(self.session, target_list, plugin_list, force_overwrite=force_overwrite)
+            add_work(
+                self.session, target_list, plugin_list, force_overwrite=force_overwrite
+            )
             self.set_status(201)
             self.success(None)
         except exceptions.InvalidTargetReference:

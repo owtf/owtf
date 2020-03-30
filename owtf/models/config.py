@@ -18,4 +18,6 @@ class Config(Model):
     dirty = Column(Boolean, default=False)
 
     def __repr__(self):
-        return "<Config (key='{!s}', value='{!s}', dirty='{!r}')>".format(self.key, self.value, self.dirty)
+        return "<Config (key='{!s}', value='{!s}', dirty='{!r}')>".format(
+            self.key, self.value, self.dirty
+        )

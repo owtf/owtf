@@ -80,7 +80,9 @@ class ErrorDataHandler(APIRequestHandler):
             raise tornado.web.HTTPError(400)
         if self.request.arguments.get_argument("user_message", default=None):
             raise tornado.web.HTTPError(400)
-        err_obj = Error.update_error(self.session, error_id, self.request.arguments.get_argument("user_message"))
+        err_obj = Error.update_error(
+            self.session, error_id, self.request.arguments.get_argument("user_message")
+        )
         self.finish()
 
     def delete(self, error_id=None):

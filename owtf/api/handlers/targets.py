@@ -16,7 +16,9 @@ from owtf.managers.target import (
     update_target,
 )
 
-__all__ = ["TargetConfigSearchHandler", "TargetSeverityChartHandler", "TargetConfigHandler"]
+__all__ = [
+    "TargetConfigSearchHandler", "TargetSeverityChartHandler", "TargetConfigHandler"
+]
 
 
 class TargetConfigHandler(APIRequestHandler):
@@ -96,14 +98,18 @@ class TargetConfigHandler(APIRequestHandler):
                 "data": null
             }
         """
-        if (target_id) or (not self.get_argument("target_url", default=None)):  # How can one post using an id xD
+        if (
+            (target_id) or (not self.get_argument("target_url", default=None))
+        ):  # How can one post using an id xD
             raise APIError(400, "Incorrect query parameters")
         try:
             add_targets(self.session, dict(self.request.arguments)["target_url"])
             self.set_status(201)  # Stands for "201 Created"
             self.success(None)
         except exceptions.DBIntegrityException:
-            raise APIError(400, "An unknown exception occurred when performing a DB operation")
+            raise APIError(
+                400, "An unknown exception occurred when performing a DB operation"
+            )
         except exceptions.UnresolvableTargetException:
             raise APIError(400, "The target url can not be resolved")
 

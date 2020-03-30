@@ -76,8 +76,15 @@ def user_abort(level, partial_output=""):
     :rtype: `str`
     """
     # Levels so far can be Command or Plugin
-    logging.info("\nThe %s was aborted by the user: Please check the report and plugin output files", level)
-    message = ("\nThe {} was aborted by the user: Please check the report and plugin output files".format(level))
+    logging.info(
+        "\nThe %s was aborted by the user: Please check the report and plugin output files",
+        level,
+    )
+    message = (
+        "\nThe {} was aborted by the user: Please check the report and plugin output files".format(
+            level
+        )
+    )
     if level == "Command":
         option = "p"
         if option == "e":
@@ -89,7 +96,11 @@ def user_abort(level, partial_output=""):
     return message
 
 
-signame_by_signum = {v: k for k, v in signal.__dict__.items() if k.startswith("SIG") and not k.startswith("SIG_")}
+signame_by_signum = {
+    v: k
+    for k, v in signal.__dict__.items()
+    if k.startswith("SIG") and not k.startswith("SIG_")
+}
 
 
 class SentryProxy(object):
@@ -122,7 +133,11 @@ def get_sentry_client(sentry_key=SENTRY_API_KEY):
 
 
 def log_and_exit_handler(signum, frame):
-    logging.debug("%s: caught signal %s, exiting", multiprocessing.current_process().name, signame_by_signum[signum])
+    logging.debug(
+        "%s: caught signal %s, exiting",
+        multiprocessing.current_process().name,
+        signame_by_signum[signum],
+    )
     sys.exit(1)
 
 

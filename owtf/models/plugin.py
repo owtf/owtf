@@ -11,6 +11,7 @@ from owtf.db.model_base import Model
 from owtf.utils.timer import timer
 from owtf.models import test_group
 
+
 class Plugin(Model):
     __tablename__ = "plugins"
 
@@ -27,7 +28,9 @@ class Plugin(Model):
     outputs = relationship("PluginOutput", backref="plugin")
 
     def __repr__(self):
-        return "<Plugin (code='{!s}', group='{!s}', type='{!s}')>".format(self.code, self.group, self.type)
+        return "<Plugin (code='{!s}', group='{!s}', type='{!s}')>".format(
+            self.code, self.group, self.type
+        )
 
     @hybrid_property
     def min_time(self):
@@ -98,7 +101,9 @@ class Plugin(Model):
         :rtype: `list`
         """
         groups = (
-            session.query(Plugin.group).filter(or_(Plugin.code.in_(plugins), Plugin.name.in_(plugins))).distinct().all()
+            session.query(Plugin.group).filter(
+                or_(Plugin.code.in_(plugins), Plugin.name.in_(plugins))
+            ).distinct().all()
         )
         groups = [i[0] for i in groups]
         return groups

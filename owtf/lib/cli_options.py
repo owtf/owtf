@@ -27,11 +27,23 @@ def usage(error_message):
         " [ options ] <target1 target2 target3 ..> where target can be:"
         " <target URL / hostname / IP>".format(main)
     )
-    print("                    NOTE:" " targets can also be provided via a text file", end="\n" * 3)
+    print(
+        "                    NOTE:" " targets can also be provided via a text file",
+        end="\n" * 3,
+    )
     print("Examples: ", end="\n" * 2)
-    print("Run all web plugins:                         {}" " http://my.website.com".format(main))
-    print("Run only passive + semi_passive plugins:             {}" " -t quiet http://my.website.com".format(main))
-    print("Run only active plugins:                     {}" " -t active http://my.website.com".format(main))
+    print(
+        "Run all web plugins:                         {}"
+        " http://my.website.com".format(main)
+    )
+    print(
+        "Run only passive + semi_passive plugins:             {}"
+        " -t quiet http://my.website.com".format(main)
+    )
+    print(
+        "Run only active plugins:                     {}"
+        " -t active http://my.website.com".format(main)
+    )
     print()
     print(
         "Run all plugins except 'OWASP-CM-001: Testing_for_SSL-TLS': {}"
@@ -192,7 +204,13 @@ def parse_options(cli_options, valid_groups, valid_types):
         "NOTE: grep plugins run automatically after semi_passive and "
         "active in the default profile",
     )
-    parser.add_argument("-port", "--port", dest="rport", default=None, help="<port> - Port to run probes")
+    parser.add_argument(
+        "-port",
+        "--port",
+        dest="rport",
+        default=None,
+        help="<port> - Port to run probes",
+    )
     parser.add_argument(
         "-portwaves",
         "--portwaves",
@@ -209,7 +227,11 @@ def parse_options(cli_options, valid_groups, valid_types):
         help="Use this flag to run OWTF Inbound Proxy",
     )
     parser.add_argument(
-        "--nowebui", dest="nowebui", default=False, action="store_true", help="Run OWTF without its Web UI."
+        "--nowebui",
+        dest="nowebui",
+        default=False,
+        action="store_true",
+        help="Run OWTF without its Web UI.",
     )
     parser.add_argument("targets", nargs="*", help="List of targets")
     return parser.parse_args(cli_options)

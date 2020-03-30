@@ -11,3 +11,13 @@ services:
       - POSTGRES_USER=owtf_db_user
       - POSTGRES_PASSWORD=jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=
       - POSTGRES_DB=owtf_db
+  pgadmin:
+    image: dpage/pgadmin4
+    depends_on:
+      - db
+    ports:
+      - "5555:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@owtf.org
+      PGADMIN_DEFAULT_PASSWORD: admin
+    restart: unless-stopped

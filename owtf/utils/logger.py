@@ -38,7 +38,9 @@ class OWTFLogger(object):
         :return:
         :rtype: None
         """
-        process_name = kwargs.get("process_name", multiprocessing.current_process().name)
+        process_name = kwargs.get(
+            "process_name", multiprocessing.current_process().name
+        )
         logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)
 

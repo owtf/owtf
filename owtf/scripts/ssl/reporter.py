@@ -38,39 +38,67 @@ try:
     with open(org_name + "_report.html", "w") as f:
         content = RESULTS
         content = content.replace("{{host}}", data[0]["host"])
-        content = content.replace("{{status_code}}", str(data[0]["endpoints"][0]["details"]["httpStatusCode"]))
-        content = content.replace("{{ip_address}}", data[0]["endpoints"][0]["ipAddress"])
+        content = content.replace(
+            "{{status_code}}", str(data[0]["endpoints"][0]["details"]["httpStatusCode"])
+        )
+        content = content.replace(
+            "{{ip_address}}", data[0]["endpoints"][0]["ipAddress"]
+        )
         content = content.replace("{{grade}}", data[0]["endpoints"][0]["grade"])
-        content = content.replace("{{secondary_grade}}", data[0]["endpoints"][0]["gradeTrustIgnored"])
-        content = content.replace("{{freak}}", str(data[0]["endpoints"][0]["details"]["freak"]))
-        content = content.replace("{{poodle}}", str(data[0]["endpoints"][0]["details"]["poodleTls"]))
+        content = content.replace(
+            "{{secondary_grade}}", data[0]["endpoints"][0]["gradeTrustIgnored"]
+        )
+        content = content.replace(
+            "{{freak}}", str(data[0]["endpoints"][0]["details"]["freak"])
+        )
+        content = content.replace(
+            "{{poodle}}", str(data[0]["endpoints"][0]["details"]["poodleTls"])
+        )
 
-        insecureRenegotiationSuported = "true" if data[0]["endpoints"][0]["details"]["renegSupport"] == 1 else "false"
+        insecureRenegotiationSuported = "true" if data[0]["endpoints"][0]["details"][
+            "renegSupport"
+        ] == 1 else "false"
         content = content.replace("{{insecure_reneg}}", insecureRenegotiationSuported)
 
-        content = content.replace("{{openssl_ccs}}", str(data[0]["endpoints"][0]["details"]["openSslCcs"]))
+        content = content.replace(
+            "{{openssl_ccs}}", str(data[0]["endpoints"][0]["details"]["openSslCcs"])
+        )
 
         if "dhUsesKnownPrimes" in data[0]["endpoints"][0]["details"]:
-            insecureDH = "true" if data[0]["endpoints"][0]["details"]["dhUsesKnownPrimes"] == 2 else "false"
+            insecureDH = "true" if data[0]["endpoints"][0]["details"][
+                "dhUsesKnownPrimes"
+            ] == 2 else "false"
         content = content.replace("{{insecure_dh}}", insecureDH)
 
         protocol_str = ""
         for protocol in data[0]["endpoints"][0]["details"]["protocols"]:
-            protocol_str += "<h2> Protocol SSL/TLS version supported : </h2>" + protocol["name"] + "  " + protocol[
+            protocol_str += "<h2> Protocol SSL/TLS version supported : </h2>" + protocol[
+                "name"
+            ] + "  " + protocol[
                 "version"
             ]
         content = content.replace("{{protocol}}", protocol_str)
 
-        certificate_exp = "true" if data[0]["endpoints"][0]["details"]["chain"]["issues"] == 2 else "false"
+        certificate_exp = "true" if data[0]["endpoints"][0]["details"]["chain"][
+            "issues"
+        ] == 2 else "false"
         content = content.replace("{{cert_exp}}", certificate_exp)
 
-        selfSigned = "true" if data[0]["endpoints"][0]["details"]["cert"]["issues"] == 64 else "false"
+        selfSigned = "true" if data[0]["endpoints"][0]["details"]["cert"][
+            "issues"
+        ] == 64 else "false"
         content = content.replace("{{self_signed}}", selfSigned)
 
-        content = content.replace("{{rc4}}", str(data[0]["endpoints"][0]["details"]["supportsRc4"]))
-        content = content.replace("{{fwd_sec}}", str(data[0]["endpoints"][0]["details"]["forwardSecrecy"]))
+        content = content.replace(
+            "{{rc4}}", str(data[0]["endpoints"][0]["details"]["supportsRc4"])
+        )
+        content = content.replace(
+            "{{fwd_sec}}", str(data[0]["endpoints"][0]["details"]["forwardSecrecy"])
+        )
 
-        secureRenegotiationSuported = "true" if data[0]["endpoints"][0]["details"]["renegSupport"] == 2 else "false"
+        secureRenegotiationSuported = "true" if data[0]["endpoints"][0]["details"][
+            "renegSupport"
+        ] == 2 else "false"
         content = content.replace("{{sec_reneg}}", secureRenegotiationSuported)
 
         cert_chains = ""

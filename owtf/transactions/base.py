@@ -216,7 +216,9 @@ class HTTPTransaction(object):
         if self.new:
             logging.info(
                 "New OWTF HTTP Transaction: %s",
-                " - ".join([self.id, self.time_human, self.status, self.method, self.url]),
+                " - ".join(
+                    [self.id, self.time_human, self.status, self.method, self.url]
+                ),
             )
 
     def get_html_link(self, link_name=""):
@@ -275,9 +277,13 @@ class HTTPTransaction(object):
         :rtype: `str`
         """
         try:
-            return "{}\r\n{}\n\n{}".format(self.get_status, str(self.response_headers), self.response_contents)
+            return "{}\r\n{}\n\n{}".format(
+                self.get_status, str(self.response_headers), self.response_contents
+            )
         except UnicodeDecodeError:
-            return "{}\r\n{}\n\n[Binary Content]".format(self.get_status, str(self.response_headers))
+            return "{}\r\n{}\n\n[Binary Content]".format(
+                self.get_status, str(self.response_headers)
+            )
 
     @property
     def get_raw_response_body(self):
@@ -303,7 +309,9 @@ class HTTPTransaction(object):
         self.data = request.body if request.body is not None else ""
         self.method = request.method
         try:
-            self.status = "{!s} {!s}".format(str(response.code), response_messages[int(response.code)])
+            self.status = "{!s} {!s}".format(
+                str(response.code), response_messages[int(response.code)]
+            )
         except KeyError:
             self.status = "{!s} Unknown Error".format(response.code)
         self.raw_request = request.raw_request
@@ -324,14 +332,18 @@ class HTTPTransaction(object):
         return self.decoded_content
 
     def check_if_compressed(self, response, content):
-        if response.info().get("Content-Encoding", "") == "gzip":  # check for gzip compression
+        if (
+            response.info().get("Content-Encoding", "") == "gzip"
+        ):  # check for gzip compression
             compressed_file = io.StringIO()
             compressed_file.write(content)
             compressed_file.seek(0)
             f = gzip.GzipFile(fileobj=compressed_file, mode="rb")
             self.decoded_content = f.read()
             f.close()
-        elif response.info().get("Content-Encoding") == "deflate":  # check for deflate compression
+        elif response.info().get(
+            "Content-Encoding"
+        ) == "deflate":  # check for deflate compression
             self.decoded_content = zlib.decompress(content)
         else:
             self.decoded_content = content  # else the no compression

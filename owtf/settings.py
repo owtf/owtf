@@ -56,9 +56,15 @@ USE_SENTRY = False
 SENTRY_API_KEY = ""
 
 # IMP PATHS
-WEB_TEST_GROUPS = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_web", "groups.cfg")
-NET_TEST_GROUPS = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_net", "groups.cfg")
-AUX_TEST_GROUPS = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_aux", "groups.cfg")
+WEB_TEST_GROUPS = os.path.join(
+    OWTF_CONF, "conf", "profiles", "plugin_web", "groups.cfg"
+)
+NET_TEST_GROUPS = os.path.join(
+    OWTF_CONF, "conf", "profiles", "plugin_net", "groups.cfg"
+)
+AUX_TEST_GROUPS = os.path.join(
+    OWTF_CONF, "conf", "profiles", "plugin_aux", "groups.cfg"
+)
 PLUGINS_DIR = os.path.join(ROOT_DIR, "plugins")
 
 # Output Settings
@@ -74,8 +80,12 @@ WORKER_LOG_DIR = "logs"
 DEFAULT_GENERAL_PROFILE = os.path.join(OWTF_CONF, "conf", "general.yaml")
 DEFAULT_FRAMEWORK_CONFIG = os.path.join(OWTF_CONF, "conf", "framework.yaml")
 DEFAULT_RESOURCES_PROFILE = os.path.join(OWTF_CONF, "conf", "resources.cfg")
-DEFAULT_WEB_PLUGIN_ORDER_PROFILE = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_web", "order.cfg")
-DEFAULT_NET_PLUGIN_ORDER_PROFILE = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_net", "order.cfg")
+DEFAULT_WEB_PLUGIN_ORDER_PROFILE = os.path.join(
+    OWTF_CONF, "conf", "profiles", "plugin_web", "order.cfg"
+)
+DEFAULT_NET_PLUGIN_ORDER_PROFILE = os.path.join(
+    OWTF_CONF, "conf", "profiles", "plugin_net", "order.cfg"
+)
 
 # logs_dir can be both relative or absolute path ;)
 LOGS_DIR = "logs"
@@ -122,7 +132,9 @@ PROXY_RESTRICTED_RESPONSE_HEADERS = [
     "Pragma",
 ]
 
-PROXY_RESTRICTED_REQUEST_HEADERS = ["Connection", "Pragma", "Cache-Control", "If-Modified-Since"]
+PROXY_RESTRICTED_REQUEST_HEADERS = [
+    "Connection", "Pragma", "Cache-Control", "If-Modified-Since"
+]
 PROXY_LOG = "/tmp/owtf/proxy.log"
 
 # Define regex patterns
@@ -167,15 +179,25 @@ USER_AGENT = "Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0"
 PROXY_CHECK_URL = "http://www.google.ie"
 
 # Fallback
-FALLBACK_WEB_TEST_GROUPS = os.path.join(ROOT_DIR, "data", "conf", "profiles", "plugin_web", "groups.cfg")
-FALLBACK_NET_TEST_GROUPS = os.path.join(ROOT_DIR, "data", "conf", "profiles", "plugin_net", "groups.cfg")
-FALLBACK_AUX_TEST_GROUPS = os.path.join(ROOT_DIR, "data", "conf", "profiles", "plugin_aux", "groups.cfg")
+FALLBACK_WEB_TEST_GROUPS = os.path.join(
+    ROOT_DIR, "data", "conf", "profiles", "plugin_web", "groups.cfg"
+)
+FALLBACK_NET_TEST_GROUPS = os.path.join(
+    ROOT_DIR, "data", "conf", "profiles", "plugin_net", "groups.cfg"
+)
+FALLBACK_AUX_TEST_GROUPS = os.path.join(
+    ROOT_DIR, "data", "conf", "profiles", "plugin_aux", "groups.cfg"
+)
 FALLBACK_PLUGINS_DIR = os.path.join(ROOT_DIR, "data", "plugins")
 FALLBACK_GENERAL_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "general.yaml")
 FALLBACK_FRAMEWORK_CONFIG = os.path.join(ROOT_DIR, "data", "conf", "framework.yaml")
 FALLBACK_RESOURCES_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "resources.cfg")
-FALLBACK_WEB_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "profiles", "plugin_web", "order.cfg")
-FALLBACK_NET_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "profiles", "plugin_net", "order.cfg")
+FALLBACK_WEB_PLUGIN_ORDER_PROFILE = os.path.join(
+    ROOT_DIR, "data", "conf", "profiles", "plugin_web", "order.cfg"
+)
+FALLBACK_NET_PLUGIN_ORDER_PROFILE = os.path.join(
+    ROOT_DIR, "data", "conf", "profiles", "plugin_net", "order.cfg"
+)
 
 # Override the values
 local_conf = os.path.join(OWTF_CONF, "settings.py")

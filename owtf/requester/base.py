@@ -45,7 +45,12 @@ from owtf.managers.target import is_url_in_scope
 from owtf.managers.transaction import get_first, is_transaction_already_added
 from owtf.managers.url import is_url
 from owtf.plugin.runner import runner
-from owtf.settings import PROXY_CHECK_URL, USER_AGENT, INBOUND_PROXY_IP, INBOUND_PROXY_PORT
+from owtf.settings import (
+    PROXY_CHECK_URL,
+    USER_AGENT,
+    INBOUND_PROXY_IP,
+    INBOUND_PROXY_PORT,
+)
 from owtf.utils.http import derive_http_method
 from owtf.utils.strings import str_to_dict
 from owtf.utils.timer import timer
@@ -129,14 +134,21 @@ class Requester(object):
                 "WARNING: No outbound proxy selected. It is recommended to "
                 "use an outbound proxy for tactical fuzzing later"
             )
-            self.opener = build_opener(_HTTPHandler, _HTTPSHandler, SmartRedirectHandler)
+            self.opener = build_opener(
+                _HTTPHandler, _HTTPSHandler, SmartRedirectHandler
+            )
         else:  # All requests must use the outbound proxy.
             logging.debug("Setting up proxy(inbound) for OWTF requests..")
             ip, port = proxy
-            proxy_conf = {"http": "http://{!s}:{!s}".format(ip, port), "https": "http://{!s}:{!s}".format(ip, port)}
+            proxy_conf = {
+                "http": "http://{!s}:{!s}".format(ip, port),
+                "https": "http://{!s}:{!s}".format(ip, port),
+            }
             proxy_handler = ProxyHandler(proxy_conf)
             # FIXME: Works except no raw request on https.
-            self.opener = build_opener(proxy_handler, _HTTPHandler, _HTTPSHandler, SmartRedirectHandler)
+            self.opener = build_opener(
+                proxy_handler, _HTTPHandler, _HTTPSHandler, SmartRedirectHandler
+            )
         install_opener(self.opener)
 
     def is_transaction_added(self, url):
@@ -177,10 +189,15 @@ class Requester(object):
                 self.log_transactions = True
             refused_after = self.req_count_refused
             if refused_before < refused_after:  # Proxy is refusing connections.
-                return [False, "ERROR: Proxy Check error: The proxy is not listening or is refusing connections"]
+                return [
+                    False,
+                    "ERROR: Proxy Check error: The proxy is not listening or is refusing connections",
+                ]
             else:
                 return [True, "Proxy Check OK: The proxy appears to be working"]
-        return [True, "Proxy Check OK: No proxy is setup or no HTTP requests will be made"]
+        return [
+            True, "Proxy Check OK: No proxy is setup or no HTTP requests will be made"
+        ]
 
     def get_headers(self):
         """Get headers
@@ -340,7 +357,9 @@ class Requester(object):
             message = "ERROR: The connection was not refused, unknown error!"
         log = logging.getLogger("general")
         log.info(message)
-        return "{!s} (Requester Object): {!s}\n{!s}".format(message, url, str(sys.exc_info()))
+        return "{!s} (Requester Object): {!s}\n{!s}".format(
+            message, url, str(sys.exc_info())
+        )
 
     def get(self, url):
         """Wrapper for get requests
@@ -473,7 +492,9 @@ class Requester(object):
             # Important since there is no transaction ID with transactions objects created by Requester.
             return get_first(self.session, criteria)
 
-    def get_transactions(self, use_cache, url_list, method=None, data=None, unique=True):
+    def get_transactions(
+        self, use_cache, url_list, method=None, data=None, unique=True
+    ):
         """Get transaction from request, response
 
         :param use_cache: Cache usage
@@ -497,7 +518,10 @@ class Requester(object):
             if not url:
                 continue  # Skip blank lines.
             if not is_url(url):
-                logging.info("Minor issue: %s is not a valid URL and has been ignored, processing continues", url)
+                logging.info(
+                    "Minor issue: %s is not a valid URL and has been ignored, processing continues",
+                    url,
+                )
                 continue  # Skip garbage URLs.
             transaction = self.get_transaction(use_cache, url, method=method, data=data)
             if transaction is not None:

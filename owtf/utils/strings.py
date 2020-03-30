@@ -13,7 +13,9 @@ import six
 
 from owtf.settings import REPLACEMENT_DELIMITER
 
-search_regex = re.compile("{!s}([a-zA-Z0-9-_]*?){!s}".format(REPLACEMENT_DELIMITER, REPLACEMENT_DELIMITER))
+search_regex = re.compile(
+    "{!s}([a-zA-Z0-9-_]*?){!s}".format(REPLACEMENT_DELIMITER, REPLACEMENT_DELIMITER)
+)
 
 
 def utf8(string):
@@ -55,7 +57,8 @@ def multi_replace(text, replace_dict):
             # A recursive call to remove all level occurrences of place
             # holders.
             new_text = new_text.replace(
-                REPLACEMENT_DELIMITER + key + REPLACEMENT_DELIMITER, multi_replace(replace_dict[key], replace_dict)
+                REPLACEMENT_DELIMITER + key + REPLACEMENT_DELIMITER,
+                multi_replace(replace_dict[key], replace_dict),
             )
     new_text = os.path.expanduser(new_text)
     return new_text

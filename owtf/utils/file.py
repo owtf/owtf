@@ -30,7 +30,9 @@ def catch_io_errors(func):
             return func(*args, **kwargs)
         except (OSError, IOError) as e:
             if owtf_clean:
-                abort_framework("Error when calling '{!s}'! {!s}.".format(func.__name__, str(e)))
+                abort_framework(
+                    "Error when calling '{!s}'! {!s}.".format(func.__name__, str(e))
+                )
             raise e
 
     return io_error

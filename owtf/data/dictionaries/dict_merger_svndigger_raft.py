@@ -41,13 +41,17 @@ for case in ["lowercase", "mixedcase"]:
     merged_list = {}
 
     # The svndigger list is added at the beginning
-    for line in codecs.open(os.path.join(svndigger_path, "all.txt"), "r", "UTF-8").readlines():
+    for line in codecs.open(
+        os.path.join(svndigger_path, "all.txt"), "r", "UTF-8"
+    ).readlines():
         line = line.rstrip()
         f.write("%s\n" % line)
         merged_list[line] = 1
     # Non repeated entries from raft dicts are added
     for file_path in case_dict[case]:
-        for line in codecs.open(os.path.join(raft_path, file_path), "r", "ISO-8859-1").readlines():
+        for line in codecs.open(
+            os.path.join(raft_path, file_path), "r", "ISO-8859-1"
+        ).readlines():
             try:
                 line = line.rstrip()
                 a = merged_list[line]
@@ -57,7 +61,11 @@ for case in ["lowercase", "mixedcase"]:
     f.close()
 
     # Prepare filtered version for using with dirbuster
-    f = codecs.open(os.path.join(output_path, "filtered_combined_%s.txt" % case), "w", "UTF-8")
-    for line in codecs.open(os.path.join(output_path, "combined_%s.txt" % case), "r", "UTF-8").readlines():
+    f = codecs.open(
+        os.path.join(output_path, "filtered_combined_%s.txt" % case), "w", "UTF-8"
+    )
+    for line in codecs.open(
+        os.path.join(output_path, "combined_%s.txt" % case), "r", "UTF-8"
+    ).readlines():
         f.write(quote_plus(line.encode("utf-8"), "./\r\n"))
     f.close()

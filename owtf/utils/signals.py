@@ -29,7 +29,9 @@ except ImportError:
             self.__doc__ = doc
 
         def _fail(self, *args, **kwargs):
-            raise RuntimeError("Signalling support is unavailable because the blinker library is not installed.")
+            raise RuntimeError(
+                "Signalling support is unavailable because the blinker library is not installed."
+            )
 
         send = lambda *a, **kw: None
         connect = disconnect = has_receivers_for = receivers_for = temporarily_connected_to = connected_to = _fail
