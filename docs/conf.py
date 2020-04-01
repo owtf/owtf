@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-# Offensive Web Testing Framework documentation build configuration file, created by
-# sphinx-quickstart on Thu Sep 11 19:54:14 2014.
+# Offensive Web Testing Framework documentation build configuration file,
+# created by sphinx-quickstart on Thu Sep 11 19:54:14 2014.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
