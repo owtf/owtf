@@ -3,7 +3,7 @@
  *
  * This components manages workers info and allows us to apply certain action [pause/resume/delete/abort/create] on them.
  */
-import React from "react";
+import React from 'react'
 import {
   Pane,
   Button,
@@ -13,11 +13,11 @@ import {
   Heading,
   Dialog,
   Pre
-} from "evergreen-ui";
-import { Breadcrumb, ProgressBar } from "react-bootstrap";
-import PropTypes from "prop-types";
-import { connect } from "react-redux";
-import { createStructuredSelector } from "reselect";
+} from 'evergreen-ui'
+import { Breadcrumb, ProgressBar } from 'react-bootstrap'
+import PropTypes from 'prop-types'
+import { connect } from 'react-redux'
+import { createStructuredSelector } from 'reselect'
 import {
   makeSelectFetchError,
   makeSelectFetchLoading,
@@ -29,39 +29,39 @@ import {
   makeSelectFetchWorkerProgress,
   makeSelectWorkerProgressLoading,
   makeSelectWorkerProgressError,
-  makeSelectFetchWorkerLogs,
-} from "./selectors";
+  makeSelectFetchWorkerLogs
+} from './selectors'
 import {
   loadWorkers,
   createWorker,
   changeWorker,
   deleteWorker,
   loadWorkerProgress,
-  loadWorkerLogs,
-} from "./actions";
-import WorkerPanel from "./WorkerPanel";
+  loadWorkerLogs
+} from './actions'
+import WorkerPanel from './WorkerPanel'
 
 export class WorkersPage extends React.Component {
-  constructor(props, context) {
-    super(props, context);
+  constructor (props, context) {
+    super(props, context)
 
-    this.resumeAllWorkers = this.resumeAllWorkers.bind(this);
-    this.pauseAllWorkers = this.pauseAllWorkers.bind(this);
-    this.abortWorker = this.abortWorker.bind(this);
-    this.resumeWorker = this.resumeWorker.bind(this);
-    this.pauseWorker = this.pauseWorker.bind(this);
-    this.deleteWorker = this.deleteWorker.bind(this);
-    this.addWorker = this.addWorker.bind(this);
-    this.handleLogDialogShow = this.handleLogDialogShow.bind(this);
-    this.handleLogDialogContent = this.handleLogDialogContent.bind(this);
-    this.toasterSuccess = this.toasterSuccess.bind(this);
-    this.toasterError = this.toasterError.bind(this);
-    this.renderProgressBar = this.renderProgressBar.bind(this);
+    this.resumeAllWorkers = this.resumeAllWorkers.bind(this)
+    this.pauseAllWorkers = this.pauseAllWorkers.bind(this)
+    this.abortWorker = this.abortWorker.bind(this)
+    this.resumeWorker = this.resumeWorker.bind(this)
+    this.pauseWorker = this.pauseWorker.bind(this)
+    this.deleteWorker = this.deleteWorker.bind(this)
+    this.addWorker = this.addWorker.bind(this)
+    this.handleLogDialogShow = this.handleLogDialogShow.bind(this)
+    this.handleLogDialogContent = this.handleLogDialogContent.bind(this)
+    this.toasterSuccess = this.toasterSuccess.bind(this)
+    this.toasterError = this.toasterError.bind(this)
+    this.renderProgressBar = this.renderProgressBar.bind(this)
 
     this.state = {
       logDialogShow: false,
-      logDialogContent: "Nothing to show here!"
-    };
+      logDialogContent: 'Nothing to show here!'
+    }
   }
 
   /**
@@ -69,26 +69,26 @@ export class WorkersPage extends React.Component {
    * @param {number} worker_id  Id of the worker on which an action is applied
    * @param {string} action type of action applied [PLAY/PAUSE/DELETE/ABORT]
    */
-  toasterSuccess(worker_id, action) {
+  toasterSuccess (worker_id, action) {
     if (worker_id === 0) {
       // If action is applied on all the workers at once
-      if (action === "pause") {
-        toaster.warning("All Workers are successfully paused :)");
-      } else if (action === "resume") {
-        toaster.success("All Workers are successfully resumed :)");
+      if (action === 'pause') {
+        toaster.warning('All Workers are successfully paused :)')
+      } else if (action === 'resume') {
+        toaster.success('All Workers are successfully resumed :)')
       }
     } else {
       // If action is applied individually
-      if (action === "pause") {
-        toaster.warning("Worker " + worker_id + " is successfully paused :)");
-      } else if (action === "resume") {
-        toaster.success("Worker " + worker_id + " is successfully resumed :)");
-      } else if (action === "abort") {
-        toaster.notify("Worker " + worker_id + " is successfully aborted :)");
-      } else if (action === "delete") {
-        toaster.notify("Worker " + worker_id + " is successfully deleted :)");
-      } else if (action === "create") {
-        toaster.notify("Worker is successfully added :)");
+      if (action === 'pause') {
+        toaster.warning('Worker ' + worker_id + ' is successfully paused :)')
+      } else if (action === 'resume') {
+        toaster.success('Worker ' + worker_id + ' is successfully resumed :)')
+      } else if (action === 'abort') {
+        toaster.notify('Worker ' + worker_id + ' is successfully aborted :)')
+      } else if (action === 'delete') {
+        toaster.notify('Worker ' + worker_id + ' is successfully deleted :)')
+      } else if (action === 'create') {
+        toaster.notify('Worker is successfully added :)')
       }
     }
   }
@@ -97,46 +97,46 @@ export class WorkersPage extends React.Component {
    * Function handles rendering of toaster after a failed API call
    * @param {*} error Error message
    */
-  toasterError(error) {
-    toaster.danger("Server replied: " + error);
+  toasterError (error) {
+    toaster.danger('Server replied: ' + error)
   }
 
   /**
    * Function handles the rendering of worker log dialog box
    */
-  handleLogDialogShow() {
-    this.setState({ logDialogShow: true });
+  handleLogDialogShow () {
+    this.setState({ logDialogShow: true })
   }
 
   /**
    * Function handles the rendering of worker log dialog box content
    */
-  handleLogDialogContent(logs) {
-    this.setState({ logDialogContent: logs });
+  handleLogDialogContent (logs) {
+    this.setState({ logDialogContent: logs })
   }
 
   /**
    * Life cycle method gets called before the component mounts
    * Fetches all the works using the GET API call - /api/v1/workers/
    */
-  componentDidMount() {
-    this.props.onFetchWorkers();
+  componentDidMount () {
+    this.props.onFetchWorkers()
   }
 
   /**
    * Function to resume all workers at once
    * Uses GET API - /api/v1/workers/0/resume
    */
-  resumeAllWorkers() {
-    this.props.onChangeWorker(0, "resume");
+  resumeAllWorkers () {
+    this.props.onChangeWorker(0, 'resume')
   }
 
   /**
    * Function to pause all workers at once
    * Uses GET API - /api/v1/workers/0/pause
    */
-  pauseAllWorkers() {
-    this.props.onChangeWorker(0, "pause");
+  pauseAllWorkers () {
+    this.props.onChangeWorker(0, 'pause')
   }
 
   /**
@@ -144,8 +144,8 @@ export class WorkersPage extends React.Component {
    * @param {number} worker_id Id of the worker to be aborted
    * Uses GET API - /api/v1/wokers/<worker_id>/abort/
    */
-  abortWorker(worker_id) {
-    this.props.onChangeWorker(worker_id, "abort");
+  abortWorker (worker_id) {
+    this.props.onChangeWorker(worker_id, 'abort')
   }
 
   /**
@@ -153,8 +153,8 @@ export class WorkersPage extends React.Component {
    * @param {number} worker_id Id of the worker to be resumed
    * Uses PATCH API - /api/v1/wokers/<worker_id>/resume
    */
-  resumeWorker(worker_id) {
-    this.props.onChangeWorker(worker_id, "resume");
+  resumeWorker (worker_id) {
+    this.props.onChangeWorker(worker_id, 'resume')
   }
 
   /**
@@ -162,8 +162,8 @@ export class WorkersPage extends React.Component {
    * @param {number} worker_id Id of the worker to be paused
    * Uses PATCH API - /api/v1/wokers/<worker_id>/pause
    */
-  pauseWorker(worker_id) {
-    this.props.onChangeWorker(worker_id, "pause");
+  pauseWorker (worker_id) {
+    this.props.onChangeWorker(worker_id, 'pause')
   }
 
   /**
@@ -171,57 +171,61 @@ export class WorkersPage extends React.Component {
    * @param {number} worker_id Id of the worker to be deleted
    * Uses DELETE API - /api/v1/wokers/<worker_id>/
    */
-  deleteWorker(worker_id) {
-    this.props.onDeleteWorker(worker_id);
+  deleteWorker (worker_id) {
+    this.props.onDeleteWorker(worker_id)
   }
 
   /**
    * Function to create a new worker
    * Uses POST API - /api/v1/wokers/
    */
-  addWorker() {
-    this.props.onCreateWorker();
+  addWorker () {
+    this.props.onCreateWorker()
   }
 
   /**
-   * Function which updates progress bar 
+   * Function which updates progress bar
    */
-  renderProgressBar() {
-    const { workerProgress, workerProgressError, workerProgressLoading } = this.props;
+  renderProgressBar () {
+    const {
+      workerProgress,
+      workerProgressError,
+      workerProgressLoading
+    } = this.props
     if (workerProgressError !== false) {
-      return (
-        <Paragraph>Something went wrong, please try again!</Paragraph>
-      )
+      return <Paragraph>ssss</Paragraph>
     }
     if (workerProgressLoading) {
-      return (
-        <Spinner />
-      )
+      return <Spinner />
     }
-    if(workerProgress !== false) {
-      const left_count = workerProgress.left_count;
-      const complete_count = workerProgress.complete_count;
+    if (workerProgress !== false) {
+      const left_count = workerProgress.left_count
+      const complete_count = workerProgress.complete_count
       if (left_count == 0 && complete_count == 0) {
         return (
           <Paragraph>You have not added anything to worklist yet</Paragraph>
         )
       } else {
-        const percentage_done = (complete_count / (left_count + complete_count)) * 100;
+        const percentage_done =
+          (complete_count / (left_count + complete_count)) * 100
         if (percentage_done == 100) {
-          return (
-            <Paragraph>Worklist is empty</Paragraph>
-          )
+          return <Paragraph>Worklist is empty</Paragraph>
         } else {
           return (
-            <ProgressBar active striped bsStyle="success" now={percentage_done} />
+            <ProgressBar
+              active
+              striped
+              bsStyle='success'
+              now={percentage_done}
+            />
           )
         }
       }
     }
   }
 
-  render() {
-    const { fetchError, fetchLoading, workers, workerLogs } = this.props;
+  render () {
+    const { fetchError, fetchLoading, workers, workerLogs } = this.props
     const WorkerPanelProps = {
       resumeWorker: this.resumeWorker,
       pauseWorker: this.pauseWorker,
@@ -232,70 +236,68 @@ export class WorkersPage extends React.Component {
       logDialogShow: this.state.logDialogShow,
       workerLogs,
       onFetchWorkerLogs: this.props.onFetchWorkerLogs,
-      logDialogContent: this.state.logDialogContent,
-    };
+      logDialogContent: this.state.logDialogContent
+    }
     return (
       <Pane
         paddingRight={50}
         paddingLeft={50}
-        display="flex"
-        flexDirection="column"
-        data-test="workerComponent"
+        display='flex'
+        flexDirection='column'
+        data-test='workerComponent'
       >
         <Breadcrumb>
-          <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-          <Breadcrumb.Item active href="/workers/">
+          <Breadcrumb.Item href='/'>Home</Breadcrumb.Item>
+          <Breadcrumb.Item active href='/workers/'>
             Workers
           </Breadcrumb.Item>
         </Breadcrumb>
-        <Pane display="flex" flexDirection="row" marginBottom={30}>
+        <Pane display='flex' flexDirection='row' marginBottom={30}>
           <Pane flex={1} />
           <Button
             marginRight={16}
-            iconBefore="add"
-            appearance="primary"
-            intent="success"
+            iconBefore='add'
+            appearance='primary'
+            intent='success'
             onClick={this.addWorker}
           >
             Add worker!
           </Button>
           <Button
             marginRight={16}
-            iconBefore="pause"
-            appearance="primary"
-            intent="warning"
+            iconBefore='pause'
+            appearance='primary'
+            intent='warning'
             onClick={this.pauseAllWorkers}
           >
             Pause All
           </Button>
           <Button
-            iconBefore="play"
-            appearance="primary"
-            intent="none"
+            iconBefore='play'
+            appearance='primary'
+            intent='none'
             onClick={this.resumeAllWorkers}
           >
             Resume All
           </Button>
         </Pane>
-        <Heading title="updates in 13s">Total scan progress</Heading>
-        <Pane marginBottom={20}>
-         {this.renderProgressBar()}
-        </Pane>
+        <Heading title='updates in 13s'>Total scan progress</Heading>
+        <Pane marginBottom={20}>{this.renderProgressBar()}</Pane>
         {fetchError !== false ? (
           <Pane
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
+            display='flex'
+            alignItems='center'
+            justifyContent='center'
             height={400}
           >
-            <Paragraph>Something went wrong, please try again!</Paragraph>
+            <Paragraph>ssss</Paragraph>
           </Pane>
         ) : null}
         {fetchLoading !== false ? (
           <Pane
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
+            display='flex'
+            alignItems='center'
+            justifyContent='center'
             height={600}
           >
             <Spinner size={64} />
@@ -310,15 +312,15 @@ export class WorkersPage extends React.Component {
         </Pane>
         <Dialog
           isShown={this.state.logDialogShow}
-          title="Worker Log"
+          title='Worker Log'
           onCloseComplete={() => this.setState({ logDialogShow: false })}
-          intent="danger"
+          intent='danger'
           hasFooter={false}
         >
           <Pre>{this.state.logDialogContent}</Pre>
         </Dialog>
       </Pane>
-    );
+    )
   }
 }
 
@@ -338,8 +340,8 @@ WorkersPage.propTypes = {
   onDeleteWorker: PropTypes.func,
   onCreateWorker: PropTypes.func,
   onFetchWorkerProgress: PropTypes.func,
-  onFetchWorkerLogs: PropTypes.func,
-};
+  onFetchWorkerLogs: PropTypes.func
+}
 
 const mapStateToProps = createStructuredSelector({
   workers: makeSelectFetchWorkers,
@@ -353,7 +355,7 @@ const mapStateToProps = createStructuredSelector({
   workerProgressError: makeSelectWorkerProgressError,
   workerProgressLoading: makeSelectWorkerProgressLoading,
   workerLogs: makeSelectFetchWorkerLogs
-});
+})
 
 const mapDispatchToProps = dispatch => {
   return {
@@ -363,11 +365,8 @@ const mapDispatchToProps = dispatch => {
     onDeleteWorker: worker_id => dispatch(deleteWorker(worker_id)),
     onCreateWorker: () => dispatch(createWorker()),
     onFetchWorkerProgress: () => dispatch(loadWorkerProgress()),
-    onFetchWorkerLogs: (name, lines) => dispatch(loadWorkerLogs(name, lines)),
-  };
-};
+    onFetchWorkerLogs: (name, lines) => dispatch(loadWorkerLogs(name, lines))
+  }
+}
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(WorkersPage);
+export default connect(mapStateToProps, mapDispatchToProps)(WorkersPage)

@@ -1,21 +1,20 @@
 /*
-  * This component manages the session table
-  * Handles the session changing and deletion functionality
-  * Renders the list of session in the form of a table
-  */
-import React from 'react';
-import PropTypes from 'prop-types';
-import { Pane, Table, Spinner, IconButton, Radio } from 'evergreen-ui';
-import { filter } from 'fuzzaldrin-plus';
-
+ * This component manages the session table
+ * Handles the session changing and deletion functionality
+ * Renders the list of session in the form of a table
+ */
+import React from 'react'
+import PropTypes from 'prop-types'
+import { Pane, Table, Spinner, IconButton, Radio } from 'evergreen-ui'
+import { filter } from 'fuzzaldrin-plus'
 
 export default class SessionsTable extends React.Component {
-  constructor(props) {
-    super(props);
+  constructor (props) {
+    super(props)
 
     this.state = {
-      searchQuery: "", //Filter for session name
-    };
+      searchQuery: '' //Filter for session name
+    }
   }
 
   /**
@@ -23,24 +22,23 @@ export default class SessionsTable extends React.Component {
    * @param {array} sessions List of all sessions
    */
   handleTableFilter = sessions => {
-    const searchQuery = this.state.searchQuery.trim();
+    const searchQuery = this.state.searchQuery.trim()
 
     // If the searchQuery is empty, return the profiles as is.
-    if (searchQuery.length === 0) return sessions;
+    if (searchQuery.length === 0) return sessions
 
     return sessions.filter(session => {
       // Use the filter from fuzzaldrin-plus to filter by name.
       const result = filter([session.name], searchQuery)
-      return result.length === 1;
+      return result.length === 1
     })
   }
-
 
   /**
    * Function updates the name filter query
    * @param {string} value name filter query
    */
-  handleFilterChange = (value) => {
+  handleFilterChange = value => {
     this.setState({ searchQuery: value })
   }
 
@@ -48,69 +46,81 @@ export default class SessionsTable extends React.Component {
    * Function handles the changing of sessions
    * @param {object} e radio onchange event
    * @param {object} session session corresponding the radio box
-  */
+   */
   handleRadioChange = (e, session) => {
     if (e.target.checked) {
-      this.props.onChangeSession({id: session.id, name:session.name});
+      this.props.onChangeSession({ id: session.id, name: session.name })
     }
-  };
+  }
 
-  render() {
-    const { loading, error, sessions} = this.props;
+  render () {
+    const { loading, error, sessions } = this.props
 
     if (loading) {
       return (
-        <Pane display="flex" alignItems="center" justifyContent="center" height={400}>
-          <Spinner size={32}/>
+        <Pane
+          display='flex'
+          alignItems='center'
+          justifyContent='center'
+          height={400}
+        >
+          <Spinner size={32} />
         </Pane>
-      );
+      )
     }
 
     if (error !== false) {
-      return <p>Something went wrong, please try again!</p>;
+      return <p>ssss</p>
     }
 
     if (sessions !== false) {
-      const items = this.handleTableFilter(this.props.sessions);
+      const items = this.handleTableFilter(this.props.sessions)
 
       return (
         <Table border>
           <Table.Head>
-            <Table.HeaderCell flex="none" width={50}></Table.HeaderCell>
+            <Table.HeaderCell flex='none' width={50}></Table.HeaderCell>
             <Table.SearchHeaderCell
-              flex="none"
+              flex='none'
               width={300}
               onChange={this.handleFilterChange}
               value={this.state.searchQuery}
               placeholder='Session name'
             />
-            <Table.TextHeaderCell flex="none" width={120}>
+            <Table.TextHeaderCell flex='none' width={120}>
               Delete Session
             </Table.TextHeaderCell>
           </Table.Head>
           <Table.Body height={240}>
             {items.map(session => (
               <Table.Row key={session.id} isSelectable>
-                <Table.Cell flex="none" width={50}>
+                <Table.Cell flex='none' width={50}>
                   <Radio
                     size={16}
                     checked={session.active}
                     onChange={e => this.handleRadioChange(e, session)}
                   />
                 </Table.Cell>
-                <Table.TextCell flex="none" width={300}>{session.name}</Table.TextCell>
-                <Table.Cell flex="none" width={120}>
+                <Table.TextCell flex='none' width={300}>
+                  {session.name}
+                </Table.TextCell>
+                <Table.Cell flex='none' width={120}>
                   <IconButton
-                    icon="trash"
-                    intent="danger"
-                    onClick={() => this.props.onDeleteSession({id: session.id, name:session.name})}
+                    icon='trash'
+                    intent='danger'
+                    onClick={() =>
+                      this.props.onDeleteSession({
+                        id: session.id,
+                        name: session.name
+                      })
+                    }
                   />
                 </Table.Cell>
               </Table.Row>
             ))}
           </Table.Body>
         </Table>
-      );
+      )
     }
   }
 }
@@ -120,5 +130,5 @@ SessionsTable.propTypes = {
   error: PropTypes.any,
   sessions: PropTypes.any,
   onChangeSession: PropTypes.func,
-  onDeleteSession: PropTypes.func,
-};
+  onDeleteSession: PropTypes.func
+}

@@ -4,9 +4,9 @@
  * Renders a collapsible side sheet containing all the plugin details.
  */
 
-import React from "react";
-import DataTable from "./Table";
-import RankButtons from "./RankButtons";
+import React from 'react'
+import DataTable from './Table'
+import RankButtons from './RankButtons'
 import {
   Pane,
   Tablist,
@@ -17,15 +17,15 @@ import {
   Small,
   Icon,
   Link
-} from "evergreen-ui";
-import PropTypes from "prop-types";
+} from 'evergreen-ui'
+import PropTypes from 'prop-types'
 
 export default class Collapse extends React.Component {
-  constructor(props, context) {
-    super(props, context);
+  constructor (props, context) {
+    super(props, context)
   }
 
-  render() {
+  render () {
     const {
       plugin,
       pluginCollapseData,
@@ -40,12 +40,12 @@ export default class Collapse extends React.Component {
       handleSideSheetClose,
       sideSheetOpen,
       handlePluginBtnOnAccordian
-    } = this.props;
+    } = this.props
     const DataTableProps = {
       targetData: this.props.targetData,
       deletePluginOutput: this.props.deletePluginOutput,
       postToWorklist: this.props.postToWorklist
-    };
+    }
 
     if (pluginCollapseData.length > 0) {
       return (
@@ -53,148 +53,146 @@ export default class Collapse extends React.Component {
           isShown={sideSheetOpen}
           onCloseComplete={handleSideSheetClose}
           containerProps={{
-            display: "flex",
-            flex: "1",
-            flexDirection: "column"
+            display: 'flex',
+            flex: '1',
+            flexDirection: 'column'
           }}
           width={700}
-          data-test="collapseComponent"
+          data-test='collapseComponent'
         >
-          <Pane zIndex={1} flexShrink={0} elevation={0} backgroundColor="white">
-            <Pane padding={16} borderBottom="muted">
+          <Pane zIndex={1} flexShrink={0} elevation={0} backgroundColor='white'>
+            <Pane padding={16} borderBottom='muted'>
               <Heading size={600}>
                 {(() => {
                   if (
-                    selectedMapping === "" ||
-                    plugin["mappings"][mapping] === undefined
+                    selectedMapping === '' ||
+                    plugin['mappings'][mapping] === undefined
                   ) {
-                    return plugin["code"] + " " + plugin["descrip"];
+                    return plugin['code'] + ' ' + plugin['descrip']
                   } else {
                     return (
-                      plugin["mappings"][mapping][0] +
-                      " " +
-                      plugin["mappings"][mapping][1]
-                    );
+                      plugin['mappings'][mapping][0] +
+                      ' ' +
+                      plugin['mappings'][mapping][1]
+                    )
                   }
                 })()}
               </Heading>
-              <Paragraph size={400} color="muted">
-                {plugin["hint"].split("_").join(" ")}
+              <Paragraph size={400} color='muted'>
+                {plugin['hint'].split('_').join(' ')}
               </Paragraph>
             </Pane>
-            <Pane display="flex" padding={8}>
+            <Pane display='flex' padding={8}>
               <Tablist>
-                <Tab key="type" disabled>
+                <Tab key='type' disabled>
                   Type:
                 </Tab>
                 {pluginCollapseData.map((obj, index) => {
                   if (
                     (selectedType.length === 0 ||
-                      selectedType.indexOf(obj["plugin_type"]) !== -1) &&
+                      selectedType.indexOf(obj['plugin_type']) !== -1) &&
                     (selectedGroup.length === 0 ||
-                      selectedGroup.indexOf(obj["plugin_group"]) !== -1) &&
+                      selectedGroup.indexOf(obj['plugin_group']) !== -1) &&
                     (selectedRank.length === 0 ||
-                      selectedRank.indexOf(obj["user_rank"]) !== -1) &&
+                      selectedRank.indexOf(obj['user_rank']) !== -1) &&
                     (selectedOwtfRank.length === 0 ||
-                      selectedOwtfRank.indexOf(obj["owtf_rank"]) !== -1) &&
+                      selectedOwtfRank.indexOf(obj['owtf_rank']) !== -1) &&
                     (selectedStatus.length === 0 ||
-                      selectedStatus.indexOf(obj["status"]) !== -1)
+                      selectedStatus.indexOf(obj['status']) !== -1)
                   ) {
-                    const pkey = obj["plugin_type"] + "_" + obj["plugin_code"];
+                    const pkey = obj['plugin_type'] + '_' + obj['plugin_code']
                     return (
                       <Tab
                         key={pkey}
                         id={index}
-                        is="a"
+                        is='a'
                         href={
-                          "#" +
-                          obj["plugin_group"] +
-                          "_" +
-                          obj["plugin_type"] +
-                          "_" +
-                          obj["plugin_code"]
+                          '#' +
+                          obj['plugin_group'] +
+                          '_' +
+                          obj['plugin_type'] +
+                          '_' +
+                          obj['plugin_code']
                         }
                         onSelect={() =>
-                          handlePluginBtnOnAccordian(obj["plugin_type"])
+                          handlePluginBtnOnAccordian(obj['plugin_type'])
                         }
-                        isSelected={obj["plugin_type"] === pactive}
+                        isSelected={obj['plugin_type'] === pactive}
                         aria-controls={`panel-${index}`}
                       >
-                        {obj["plugin_type"].split("_").join(" ")}
+                        {obj['plugin_type'].split('_').join(' ')}
                       </Tab>
-                    );
+                    )
                   }
                 })}
-                <Tab key="more-info">
-                  <Link href={plugin["url"]} title="More information">
-                    <Icon icon="lightbulb" />
+                <Tab key='more-info'>
+                  <Link href={plugin['url']} title='More information'>
+                    <Icon icon='lightbulb' />
                   </Link>
                 </Tab>
               </Tablist>
             </Pane>
           </Pane>
-          <Pane flex="1" overflowY="scroll" background="tint1" padding={16}>
+          <Pane flex='1' overflowY='scroll' background='tint1' padding={16}>
             {pluginCollapseData.map((obj, index) => {
               if (
                 (selectedType.length === 0 ||
-                  selectedType.indexOf(obj["plugin_type"]) !== -1) &&
+                  selectedType.indexOf(obj['plugin_type']) !== -1) &&
                 (selectedGroup.length === 0 ||
-                  selectedGroup.indexOf(obj["plugin_group"]) !== -1) &&
+                  selectedGroup.indexOf(obj['plugin_group']) !== -1) &&
                 (selectedRank.length === 0 ||
-                  selectedRank.indexOf(obj["user_rank"]) !== -1)
+                  selectedRank.indexOf(obj['user_rank']) !== -1)
               ) {
-                const pkey = obj["plugin_type"] + "_" + obj["plugin_code"];
+                const pkey = obj['plugin_type'] + '_' + obj['plugin_code']
                 return (
                   <Pane
                     key={pkey}
                     id={`panel-${index}`}
-                    role="tabpanel"
+                    role='tabpanel'
                     aria-labelledby={index}
-                    aria-hidden={obj["plugin_type"] !== pactive}
-                    display={obj["plugin_type"] === pactive ? "block" : "none"}
+                    aria-hidden={obj['plugin_type'] !== pactive}
+                    display={obj['plugin_type'] === pactive ? 'block' : 'none'}
                   >
-                    <Pane display="flex" flexDirection="column">
+                    <Pane display='flex' flexDirection='column'>
                       <Pane marginBottom={20}>
-                        <blockquote className="pull-left">
+                        <blockquote className='pull-left'>
                           <Heading>
-                            {obj["plugin_type"]
-                              .split("_")
-                              .join(" ")
+                            {obj['plugin_type']
+                              .split('_')
+                              .join(' ')
                               .charAt(0)
                               .toUpperCase() +
-                              obj["plugin_type"]
-                                .split("_")
-                                .join(" ")
+                              obj['plugin_type']
+                                .split('_')
+                                .join(' ')
                                 .slice(1)}
                           </Heading>
-                          <Small>{obj["plugin_code"]}</Small>
+                          <Small>{obj['plugin_code']}</Small>
                         </blockquote>
                         <RankButtons obj={obj} patchUserRank={patchUserRank} />
                       </Pane>
                       <DataTable obj={obj} {...DataTableProps} />
                     </Pane>
                   </Pane>
-                );
+                )
               }
             })}
           </Pane>
         </SideSheet>
-      );
+      )
     } else {
       return (
         <SideSheet
           isShown={sideSheetOpen}
           onCloseComplete={handleSideSheetClose}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
+          display='flex'
+          alignItems='center'
+          justifyContent='center'
           width={700}
         >
-          <Paragraph margin={40}>
-            Something went wrong, please try again!
-          </Paragraph>
+          <Paragraph margin={40}>ssss</Paragraph>
         </SideSheet>
-      );
+      )
     }
   }
 }
@@ -216,4 +214,4 @@ Collapse.propTypes = {
   sideSheetOpen: PropTypes.bool,
   handleSideSheetClose: PropTypes.func,
   handlePluginBtnOnAccordian: PropTypes.func
-};
+}
