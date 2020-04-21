@@ -43,7 +43,11 @@ def load_log(
     if not name.endswith(".log"):
         name += ".log"
     if not absolute_path:
-        fullpath = os.path.join(os.getcwd(), dir_owtf_review, dir_owtf_logs, name)
+        fullpath = os.path.join(os.getcwd(),
+        	dir_owtf_review,
+        	dir_owtf_logs,
+        	name
+        )
     else:
         fullpath = name
     with open(fullpath, "r") as f:
