@@ -9,9 +9,20 @@ except ImportError:
 from setuptools.command.develop import develop
 from setuptools.command.install import install
 
-from owtf import __version__
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
+
+#Extracts the version details 
+def get_version(init_path):
+    #Read the __init__ file
+    with open(init_path,"r+") as f:
+        init_page = f.read()
+    #Extract the version from the init file
+    for each_line in init_page.splitlines():
+        if each_line.startswith('__version__'):
+            delimiter = '"' if '"' in each_line else "'"
+            return(each_line.split(delimiter)[1])
+
 
 
 def strip_comments(l):
@@ -67,7 +78,7 @@ class PostInstallCommand(install):
 
 setup(
     name="owtf",
-    version=__version__,
+    version=get_version("owtf/__init__.py"),
     url="https://github.com/owtf/owtf",
     license="BSD",
     author="Abraham Aranguren",
