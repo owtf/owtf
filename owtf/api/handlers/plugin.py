@@ -193,7 +193,7 @@ class PluginNameOutput(APIRequestHandler):
 
             dict_to_return = {}
             for item in results:
-                if dict_to_return.has_key(item["plugin_code"]):
+                if item["plugin_code"] in dict_to_return:
                     dict_to_return[item["plugin_code"]]["data"].append(item)
                 else:
                     ini_list = []
