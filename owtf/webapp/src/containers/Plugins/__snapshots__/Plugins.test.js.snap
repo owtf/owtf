@@ -121,6 +121,7 @@ exports[`Plugins componemt Testing Plugins Table component Should render without
           content="Normal requests to gather fingerprint info"
           hideDelay={120}
           position="bottom"
+          showDelay={0}
         >
           <withTheme(Text)>
             Normal requests to gather fingerprint info
@@ -180,6 +181,7 @@ exports[`Plugins componemt Testing Plugins Table component Should render without
           content="Denial of Service (DoS) Launcher"
           hideDelay={120}
           position="bottom"
+          showDelay={0}
         >
           <withTheme(Text)>
             Denial of Service (DoS) Launcher

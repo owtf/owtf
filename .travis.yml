@@ -6,8 +6,8 @@ matrix:
         - '3.6'
       branches:
         only:
-        - master
-        - develop
+          - master
+          - develop
       services:
         - postgresql
       dist:
@@ -16,12 +16,13 @@ matrix:
         - required
       before_install:
         - sudo apt-get purge python-openssl
-        - sudo apt-get install libffi-dev libyaml-dev python-yaml
+        - sudo apt-get install libffi-dev libgnutls28-dev libyaml-dev python-yaml
         - sudo pip install pyopenssl
         - psql postgres -c "CREATE USER owtf_db_user WITH PASSWORD 'jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=';"
         - psql postgres -c "CREATE DATABASE owtf_db WITH OWNER owtf_db_user ENCODING 'utf-8' TEMPLATE template0;"
       install:
         - pip install -r requirements/base.txt
+        - pip install -r requirements/test.txt
         - echo '\n\n' | python setup.py develop
       before_script:
         - pip install mock pyHamcrest
@@ -30,7 +31,7 @@ matrix:
         - cp -f ./tests/fixtures/profiles/plugin_aux/groups.cfg ~/.owtf/conf/profiles/plugin_aux/groups.cfg
         - git config --global user.email "tasty@mac.test"
         - git config --global user.name "Tasty Test"
-        - "./tests/fixtures/skipfish.sh"
+        - './tests/fixtures/skipfish.sh'
       script:
         - python -m unittest tests.functional.cli.test_empty_run
         #- python -m unittest tests.functional.cli.test_except
@@ -43,11 +44,12 @@ matrix:
 
     - language: node_js
       node_js:
-        - "8"
+        - '10'
       cache: yarn
       before_install:
         - cd owtf/webapp
       script:
+        - yarn upgrade
         - yarn test
 
 notifications:

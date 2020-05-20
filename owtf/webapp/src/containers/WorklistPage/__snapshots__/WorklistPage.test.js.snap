@@ -84,6 +84,7 @@ exports[`Worklist Page component Testing WorklistTable component Should render w
           content="Resume work"
           hideDelay={120}
           position="bottom"
+          showDelay={0}
         >
           <withTheme(IconButton)
             appearance="primary"
@@ -98,6 +99,7 @@ exports[`Worklist Page component Testing WorklistTable component Should render w
           content="Delete work"
           hideDelay={120}
           position="bottom"
+          showDelay={0}
         >
           <withTheme(IconButton)
             appearance="primary"
@@ -164,6 +166,7 @@ exports[`Worklist Page component Testing WorklistTable component Should render w
           content="Pause work"
           hideDelay={120}
           position="bottom"
+          showDelay={0}
         >
           <withTheme(IconButton)
             appearance="primary"
@@ -178,6 +181,7 @@ exports[`Worklist Page component Testing WorklistTable component Should render w
           content="Delete work"
           hideDelay={120}
           position="bottom"
+          showDelay={0}
         >
           <withTheme(IconButton)
             appearance="primary"

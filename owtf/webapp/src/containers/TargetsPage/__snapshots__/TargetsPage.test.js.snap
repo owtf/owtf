@@ -66,7 +66,7 @@ exports[`Targets Page component Testing dumb TargetPage component Should render 
           flex={1}
         >
           <withTheme(Heading)
-            size={800}
+            size={700}
           >
             TARGETS
           </withTheme(Heading)>
