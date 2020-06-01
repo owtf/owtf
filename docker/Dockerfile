@@ -20,25 +20,24 @@ ENV PYCURL_SSL_LIBRARY openssl
 # Install dependencies
 RUN apt-get -y update && apt-get clean
 RUN apt-get -y install  xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc python-all-dev \
-                        python-pip postgresql-server-dev-all postgresql-client postgresql-client-common \
-                        postgresql libcurl4-openssl-dev proxychains tor ca-certificates libpq-dev python-dev \
-                        libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev libffi-dev net-tools lsof locales-all \
-                        libyaml-dev
+  python-pip postgresql-server-dev-all postgresql-client postgresql-client-common \
+  postgresql libcurl4-openssl-dev proxychains tor ca-certificates libpq-dev python-dev \
+  libxslt1-dev libldap2-dev libsasl2-dev libffi-dev net-tools lsof locales-all \
+  libyaml-dev python3 python3-pip python3.8-dev build-essential
+
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
 # Set locale
-RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
-  locale-gen
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 # Install optional tools (LBD, arachni, gnutls-bin, o-saft and metagoofil)
 RUN apt-get -y install  lbd arachni theharvester tlssled nikto dnsrecon nmap whatweb skipfish dirbuster \
-                        metasploit-framework wpscan wapiti hydra metagoofil o-saft
+  metasploit-framework wpscan wapiti hydra metagoofil o-saft
 
 # Ensure pip and setuptools are at their latest versions
 RUN pip install setuptools --upgrade
-RUN pip install pip --upgrade
 RUN pip install cffi
 
 # Install and create a Python virtualenv
@@ -47,11 +46,8 @@ RUN pip install virtualenv && virtualenv ~/.venv/owtf && . ~/.venv/owtf/bin/acti
 # Create a dedicated OWTF directory to copy source to and run from.
 RUN cd / && /bin/mkdir -p owtf
 ADD . /owtf
-ADD docker/wait-for-it.sh /usr/bin/wait-for-it.sh
-RUN chmod +x /usr/bin/wait-for-it.sh
 
-# Copy the configuration file intended for the Docker environment
-RUN cp -f /owtf/docker/default.settings.py /owtf/owtf/settings.py
+RUN pip install -r /owtf/requirements/base.txt
 
 # Install OWTF using the recommended method (setup.py)
 RUN cd /owtf &&\
