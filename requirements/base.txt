@@ -17,7 +17,7 @@ PyVirtualDisplay==0.2.1
 PyYAML==3.13
 requests==2.18.4
 selenium==3.4.3
-six==1.10.0
+six==1.15.0
 SQLAlchemy==1.1.13
 sqlalchemy_mixins==1.0.1
 tornado==5.0.2
