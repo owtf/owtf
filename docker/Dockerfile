@@ -39,28 +39,26 @@ RUN pip3 install setuptools --upgrade
 RUN pip3 install cffi
 RUN python3 -m pip install --upgrade pip
 
-#Create and activating a python virtualenv
-ENV VIRTUAL_ENV=/opt/owtf
-RUN python3 -m virtualenv --python=/usr/bin/python3.7 $VIRTUAL_ENV
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-
 # Create a dedicated OWTF directory to copy source to and run from.
 RUN cd / && /bin/mkdir -p owtf
 ADD . /owtf
 ADD docker/wait-for-it.sh /usr/bin/wait-for-it.sh
 RUN chmod +x /usr/bin/wait-for-it.sh
 
+#Create and activating a python virtualenv
+ENV VIRTUAL_ENV=/bin/owtf
+RUN python3 -m virtualenv --python=/usr/bin/python3.7 $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
 #Installing python dependencies
 RUN pip3 install -r /owtf/requirements/base.txt
 
 # Install OWTF using the recommended method (setup.py)
 RUN cd /owtf &&\
-  python setup.py install
+  python setup.py develop
 
 # Set the current working directory to OWTF root directory
 WORKDIR /owtf
 
 # Expose the required ports for OWTF to run
 EXPOSE 8008 8009 8010
-
-
