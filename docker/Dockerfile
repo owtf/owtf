@@ -1,4 +1,4 @@
-FROM kalilinux/kali-rolling:latest
+FROM kalilinux/kali:latest
 
 LABEL Viyat Bhalodia viyat.bhalodia@owasp.org
 
@@ -19,8 +19,8 @@ ENV PYCURL_SSL_LIBRARY openssl
 
 # Install dependencies
 RUN apt-get -y update && apt-get clean
-RUN apt-get -y install  xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc python-all-dev \
-  python-pip postgresql-server-dev-all postgresql-client postgresql-client-common \
+RUN apt-get -y install  xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc \
+  postgresql-server-dev-all postgresql-client postgresql-client-common \
   postgresql libcurl4-openssl-dev proxychains tor ca-certificates libpq-dev python-dev \
   libxslt1-dev libldap2-dev libsasl2-dev libffi-dev net-tools lsof locales-all \
   libyaml-dev python3 python3-pip python3.7-dev build-essential python3-virtualenv python3-lxml
