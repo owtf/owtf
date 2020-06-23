@@ -21,7 +21,7 @@ ENV PYCURL_SSL_LIBRARY openssl
 RUN apt-get -y update && apt-get clean
 RUN apt-get -y install  xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc \
   postgresql-server-dev-all postgresql-client postgresql-client-common \
-  postgresql libcurl4-openssl-dev proxychains tor ca-certificates libpq-dev python-dev \
+  postgresql libcurl4-openssl-dev proxychains tor ca-certificates libpq-dev  \
   libxslt1-dev libldap2-dev libsasl2-dev libffi-dev net-tools lsof locales-all \
   libyaml-dev python3 python3-pip python3.7-dev build-essential python3-virtualenv python3-lxml
 
