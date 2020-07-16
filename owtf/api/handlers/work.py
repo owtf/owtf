@@ -3,10 +3,11 @@ owtf.api.handlers.work
 ~~~~~~~~~~~~~~~~~~~~~~
 
 """
+from urllib import parse
+
 import tornado.gen
 import tornado.httpclient
 import tornado.web
-
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.api.utils import _filter_headers
 from owtf.lib import exceptions
@@ -14,7 +15,6 @@ from owtf.lib.exceptions import APIError
 from owtf.managers.plugin import get_all_plugin_dicts
 from owtf.managers.target import get_target_config_dicts
 from owtf.managers.worker import worker_manager
-from owtf.settings import ALLOWED_METHODS, SIMPLE_HEADERS, ALLOWED_ORIGINS, SEND_CREDENTIALS
 from owtf.managers.worklist import (
     add_work,
     delete_all_work,
@@ -25,6 +25,12 @@ from owtf.managers.worklist import (
     remove_work,
     resume_all_work,
     search_all_work,
+)
+from owtf.settings import (
+    ALLOWED_METHODS,
+    ALLOWED_ORIGINS,
+    SEND_CREDENTIALS,
+    SIMPLE_HEADERS,
 )
 from owtf.utils.strings import str2bool
 
@@ -188,12 +194,18 @@ class WorkerHandler(APIRequestHandler):
             return False
 
         headers = _filter_headers(headers, SIMPLE_HEADERS)
-        return origin in ALLOWED_ORIGINS and method in ALLOWED_METHODS and len(headers) == 0
+        return (
+            origin in ALLOWED_ORIGINS
+            and method in ALLOWED_METHODS
+            and len(headers) == 0
+        )
 
     def _build_preflight_response(self, headers):
         self.set_header("Access-Control-Allow-Origin", headers["Origin"])
         self.set_header("Access-Control-Allow-Methods", ",".join(ALLOWED_METHODS))
-        self.set_header("Access-Control-Allow-Headers", ",".join(headers.keys() - SIMPLE_HEADERS))
+        self.set_header(
+            "Access-Control-Allow-Headers", ",".join(headers.keys() - SIMPLE_HEADERS)
+        )
         if SEND_CREDENTIALS:
             self.set_header("Access-Control-Allow-Credentials", "true")
 
@@ -336,7 +348,10 @@ class WorklistHandler(APIRequestHandler):
         if work_id is not None or action is not None:
             raise APIError(400, "worker_id and action should be None")
         try:
-            filter_data = dict(self.request.arguments)
+            plugin_data = self.get_argument("plugin_data")
+            # Parsing the data to the required format by filter_data
+            filter_data = dict(parse.parse_qs(plugin_data))
+
             if not filter_data:
                 raise APIError(400, "Arguments should not be null")
             plugin_list = get_all_plugin_dicts(self.session, filter_data)
@@ -346,7 +361,9 @@ class WorklistHandler(APIRequestHandler):
             if not target_list:
                 raise APIError(400, "Target list should not be empty")
             force_overwrite = str2bool(self.get_argument("force_overwrite", "False"))
-            add_work(self.session, target_list, plugin_list, force_overwrite=force_overwrite)
+            add_work(
+                self.session, target_list, plugin_list, force_overwrite=force_overwrite
+            )
             self.set_status(201)
             self.success(None)
         except exceptions.InvalidTargetReference:
