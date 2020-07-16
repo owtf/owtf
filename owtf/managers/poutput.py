@@ -89,11 +89,10 @@ def poutput_gen_query(session, filter_data, target_id, for_delete=False):
         if isinstance(filter_data.get("plugin_code"), str):
             query = query.filter_by(plugin_code=filter_data["plugin_code"])
         if isinstance(filter_data.get("plugin_code"), list):
-            plugins = [
-                each_item.decode("utf-8") for each_item in filter_data["plugin_code"]
-            ]
-            query = query.filter(PluginOutput.plugin_code.in_(plugins))
-            
+            query = query.filter(
+                PluginOutput.plugin_code.in_(filter_data["plugin_code"])
+            )
+
     if filter_data.get("status", None):
         if isinstance(filter_data.get("status"), str):
             query = query.filter_by(status=filter_data["status"])
@@ -160,33 +159,38 @@ def get_unique_dicts(session, target_id=None):
     unique_data = {
         "plugin_type": [
             i[0]
-            for i in session.query(PluginOutput.plugin_type).filter_by(
-                target_id=target_id
-            ).distinct().all()
+            for i in session.query(PluginOutput.plugin_type)
+            .filter_by(target_id=target_id)
+            .distinct()
+            .all()
         ],
         "plugin_group": [
             i[0]
-            for i in session.query(PluginOutput.plugin_group).filter_by(
-                target_id=target_id
-            ).distinct().all()
+            for i in session.query(PluginOutput.plugin_group)
+            .filter_by(target_id=target_id)
+            .distinct()
+            .all()
         ],
         "status": [
             i[0]
-            for i in session.query(PluginOutput.status).filter_by(
-                target_id=target_id
-            ).distinct().all()
+            for i in session.query(PluginOutput.status)
+            .filter_by(target_id=target_id)
+            .distinct()
+            .all()
         ],
         "user_rank": [
             i[0]
-            for i in session.query(PluginOutput.user_rank).filter_by(
-                target_id=target_id
-            ).distinct().all()
+            for i in session.query(PluginOutput.user_rank)
+            .filter_by(target_id=target_id)
+            .distinct()
+            .all()
         ],
         "owtf_rank": [
             i[0]
-            for i in session.query(PluginOutput.owtf_rank).filter_by(
-                target_id=target_id
-            ).distinct().all()
+            for i in session.query(PluginOutput.owtf_rank)
+            .filter_by(target_id=target_id)
+            .distinct()
+            .all()
         ],
     }
     return unique_data
@@ -273,12 +277,16 @@ def plugin_already_run(session, plugin_info, target_id=None):
     :return: True if already ran
     :rtype: `bool`
     """
-    plugin_output_count = session.query(PluginOutput).filter_by(
-        target_id=target_id,
-        plugin_code=plugin_info["code"],
-        plugin_type=plugin_info["type"],
-        plugin_group=plugin_info["group"],
-    ).count()
+    plugin_output_count = (
+        session.query(PluginOutput)
+        .filter_by(
+            target_id=target_id,
+            plugin_code=plugin_info["code"],
+            plugin_type=plugin_info["type"],
+            plugin_group=plugin_info["group"],
+        )
+        .count()
+    )
     return plugin_output_count > 0  # This is nothing but a "None" returned
 
 
@@ -381,9 +389,9 @@ def get_severity_freq(session, session_id=None):
     ]
 
     targets = []
-    target_objs = session.query(Target.id).filter(
-        Target.sessions.any(id=session_id)
-    ).all()
+    target_objs = (
+        session.query(Target.id).filter(Target.sessions.any(id=session_id)).all()
+    )
     for target_obj in target_objs:
         targets.append(target_obj.id)
 
