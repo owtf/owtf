@@ -49,7 +49,13 @@ class APIRequestHandler(BaseRequestHandler):
         """
         Session.configure(bind=get_db_engine())
         self.session = Session()
+        # Decode byte string and turn it in to a character (Unicode) string.
+        self.request.arguments = {
+            key: [value.decode("utf8") for value in value_list]
+            for key, value_list in self.request.arguments.items()
+        }
         self.set_header("Content-Type", "application/json")
+        
 
     def on_finish(self):
         self.session.close()
