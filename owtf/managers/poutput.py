@@ -89,9 +89,11 @@ def poutput_gen_query(session, filter_data, target_id, for_delete=False):
         if isinstance(filter_data.get("plugin_code"), str):
             query = query.filter_by(plugin_code=filter_data["plugin_code"])
         if isinstance(filter_data.get("plugin_code"), list):
-            query = query.filter(
-                PluginOutput.plugin_code.in_(filter_data["plugin_code"])
-            )
+            plugins = [
+                each_item.decode("utf-8") for each_item in filter_data["plugin_code"]
+            ]
+            query = query.filter(PluginOutput.plugin_code.in_(plugins))
+            
     if filter_data.get("status", None):
         if isinstance(filter_data.get("status"), str):
             query = query.filter_by(status=filter_data["status"])
