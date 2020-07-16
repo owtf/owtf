@@ -29,7 +29,7 @@ export function* getPlugins() {
 export function* postTargetsToWorklist(action) {
     const postAPI = postTargetsToWorklistAPI();
     try {
-      yield call(postAPI, action.plugin_data);
+      yield call(postAPI, { plugin_data: action.plugin_data });
       yield put(targetPosted());
       yield put(loadTargets());
     } catch (error) {
