@@ -360,7 +360,7 @@ class WorklistHandler(APIRequestHandler):
                 raise APIError(400, "Plugin list should not be empty")
             if not target_list:
                 raise APIError(400, "Target list should not be empty")
-            force_overwrite = str2bool(self.get_argument("force_overwrite", "False"))
+            force_overwrite = str2bool(filter_data["force_overwrite"][0])
             add_work(
                 self.session, target_list, plugin_list, force_overwrite=force_overwrite
             )
