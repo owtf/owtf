@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 try:
     import http.server as server
 except ImportError:
@@ -77,7 +76,15 @@ except ImportError:
 
 ############## GLOBAL VARIABLES ###################################
 
-global_data = {"StatusCode": {}, "Server": {}, "Content-Type": {}, "Title": {}, "Address": {}, "X-Fwd": {}, "Via": {}}
+global_data = {
+    "StatusCode": {},
+    "Server": {},
+    "Content-Type": {},
+    "Title": {},
+    "Address": {},
+    "X-Fwd": {},
+    "Via": {},
+}
 score = 0
 verbosity = 0
 scheme = "http"
@@ -87,7 +94,9 @@ path = "/"
 method = "TRACE"
 body_content = None
 max_fwds = 3
-userAgent = "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.0.2) Gecko/20060502 Firefox/1.5.0.2"
+userAgent = (
+    "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.0.2) Gecko/20060502 Firefox/1.5.0.2"
+)
 contentType = "text/html"
 
 ############## FUNCTIONS ###################################
@@ -186,7 +195,7 @@ def analyse_headers(data):
     ]
 
     for h_name in wanted_headers:
-        h_value = data.getheader(h_name)
+        h_value = data.get(h_name)
         if h_value != None:
             # Print the value
             if verbosity:
@@ -208,12 +217,15 @@ def analyse_body(data):
         zprint("Analyzing body", "**")
 
     wanted_patterns = [
-        "<title>(.*)</title>", "<address>(.*)</address>", "Reason: <strong>(.*)</strong>", "X-Forwarded-For: (.*)"
+        "<title>(.*)</title>",
+        "<address>(.*)</address>",
+        "Reason: <strong>(.*)</strong>",
+        "X-Forwarded-For: (.*)",
     ]
 
     for p_name in wanted_patterns:
         # Case insensitive search
-        p_value = re.search(p_name, data, re.IGNORECASE)
+        p_value = re.search(p_name, str(data), re.IGNORECASE)
         if p_value != None:
             # Only the 1st group, without newlines
             value = p_value.groups()[0].strip("\r\n")
@@ -228,7 +240,10 @@ def analyse_body(data):
             if re.search("X-Forwarded-For:", p_name):
                 global_data["X-Fwd"][hop] = value
                 if method == "TRACE":
-                    zprint('"X-Forwarded-For" in body when using TRACE : Probably a reverse proxy', "++")
+                    zprint(
+                        '"X-Forwarded-For" in body when using TRACE : Probably a reverse proxy',
+                        "++",
+                    )
                     inc_score()
 
 
@@ -266,9 +281,9 @@ zprint("Max number of hops : " + str(max_fwds))
 for hop in range(0, max_fwds):
 
     # Create the request object
-    request = urllib.request.Request(url)
+    request = Request(url)
     request.get_method = lambda: method
-    request.add_data(body_content)
+    request.data = body_content
     request.add_header("Content-Type", contentType)
     request.add_header("User-agent", userAgent)
 
@@ -276,12 +291,15 @@ for hop in range(0, max_fwds):
     request.add_header("Max-Forwards", hop)
     if verbosity:
         print("-" * 80)
-        zprint('Current value of "Max-Forwards" = ' + str(hop) + " [" + "-" * 20 + "]", "-" * 19)
+        zprint(
+            'Current value of "Max-Forwards" = ' + str(hop) + " [" + "-" * 20 + "]",
+            "-" * 19,
+        )
         print("-" * 80)
 
     try:
         # Do the HTTP request
-        opener = urllib.request.build_opener(urllib.request.HTTPHandler)
+        opener = build_opener(HTTPHandler)
         result = opener.open(request)
 
         # Found something
