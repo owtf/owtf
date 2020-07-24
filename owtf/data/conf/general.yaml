@@ -104,7 +104,7 @@ DICTIONARIES:
   - config: USERNAME_PASSWORD_FILE
     value: ~/.owtf/dictionaries/users/Username_Password.txt
   - config: SAMRDUMP_FILE
-    value: /usr/share/doc/python-impacket-doc/examples/samrdump.py
+    value: /usr/share/doc/python3-impacket/examples/samrdump.py
 # ************************** Directory Brute-forcing dictionaries **************************
 
 # Generic all-in-one dictionary that combines svndigger with raft files of mixedcase:
