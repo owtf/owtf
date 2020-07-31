@@ -114,6 +114,18 @@ export class DataTable extends React.Component {
     const code = obj["plugin_code"];
     const user_notes = obj["user_notes"];
     const editorShow = this.state.editorShow;
+    let resourceList = [];
+    try {
+      output.map(singleOutput => {
+        if (singleOutput.hasOwnProperty('output')) {
+          if (singleOutput.output.hasOwnProperty('ResourceList')) {
+            resourceList = singleOutput.output.ResourceList
+          }
+        }
+      })
+    } catch (_) {
+      resourceList = []
+    }
     return (
       <Pane data-test="dataTableComponent">
         <Table border>
@@ -212,6 +224,25 @@ export class DataTable extends React.Component {
           <Pane border padding={10}>
             <Heading>MORE DETAILS</Heading>
             {/* {output} */}
+            { /**Display only when resourcelist is more than 0,else output.Resourcelist = undefined will appear in UI  */
+              (resourceList.length > 0) &&
+              <Table
+                border
+                padding={10}
+                margin={5}
+              >
+                {'ResourceList'}
+                <ul>
+                  {resourceList.map(
+                    (resource, index) => <li key={index}>
+                      <a href={resource[1]} target="__blank">
+                        {resource[0]}
+                      </a>
+                    </li>
+                  )}
+                </ul>
+              </Table>
+            }
           </Pane>
         </Pane>
       </Pane>
@@ -244,3 +275,4 @@ export default connect(
   mapStateToProps,
   mapDispatchToProps
 )(DataTable);
+
