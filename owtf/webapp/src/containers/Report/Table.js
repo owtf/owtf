@@ -11,7 +11,9 @@ import {
   IconButton,
   Heading,
   toaster,
-  Link
+  Link,
+  UnorderedList,
+  ListItem
 } from "evergreen-ui";
 import CKEditor from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
@@ -115,11 +117,15 @@ export class DataTable extends React.Component {
     const user_notes = obj["user_notes"];
     const editorShow = this.state.editorShow;
     let resourceList = [];
+    let ResourceListName = ''
     try {
       output.map(singleOutput => {
         if (singleOutput.hasOwnProperty('output')) {
           if (singleOutput.output.hasOwnProperty('ResourceList')) {
             resourceList = singleOutput.output.ResourceList
+          }
+          if (singleOutput.output.hasOwnProperty('ResourceListName')) {
+            ResourceListName = singleOutput.output.ResourceListName
           }
         }
       })
@@ -223,26 +229,29 @@ export class DataTable extends React.Component {
 
           <Pane border padding={10}>
             <Heading>MORE DETAILS</Heading>
-            {/* {output} */}
-            { /**Display only when resourcelist is more than 0,else output.Resourcelist = undefined will appear in UI  */
-              (resourceList.length > 0) &&
-              <Table
-                border
-                padding={10}
-                margin={5}
-              >
-                {'ResourceList'}
-                <ul>
-                  {resourceList.map(
-                    (resource, index) => <li key={index}>
-                      <a href={resource[1]} target="__blank">
-                        {resource[0]}
-                      </a>
-                    </li>
-                  )}
-                </ul>
-              </Table>
-            }
+            <Table
+              border
+              padding={10}
+              margin={5}
+            >
+              {
+                (resourceList.length > 0) ?
+                  <>
+                    {ResourceListName}
+                    <UnorderedList>
+                      {resourceList.map(
+                        (resource, index) => <ListItem key={index}>
+                          <Link href={resource[1]} target="__blank">
+                            {resource[0]}
+                          </Link>
+                        </ListItem>
+                      )}
+                    </UnorderedList>
+                  </>
+                  :
+                  'Output not available'
+              }
+            </Table>
           </Pane>
         </Pane>
       </Pane>
@@ -275,4 +284,3 @@ export default connect(
   mapStateToProps,
   mapDispatchToProps
 )(DataTable);
-
