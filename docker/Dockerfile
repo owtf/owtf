@@ -23,7 +23,7 @@ RUN apt-get -y install  xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev z
   postgresql-server-dev-all postgresql-client postgresql-client-common \
   postgresql libcurl4-openssl-dev proxychains tor ca-certificates libpq-dev  \
   libxslt1-dev libldap2-dev libsasl2-dev libffi-dev net-tools lsof locales-all \
-  libyaml-dev python3 python3-pip python3.7-dev build-essential python3-virtualenv python3-lxml python3-impacket
+  libyaml-dev python3 python3-pip python3-dev build-essential python3-virtualenv python3-lxml python3-impacket
 
 # Set locale
 ENV LANG en_US.UTF-8
@@ -47,7 +47,7 @@ RUN chmod +x /usr/bin/wait-for-it.sh
 
 #Create and activating a python virtualenv
 ENV VIRTUAL_ENV=/bin/owtf
-RUN python3 -m virtualenv --python=/usr/bin/python3.7 $VIRTUAL_ENV
+RUN python3 -m virtualenv --python=/usr/bin/python3.8 $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 #Installing python dependencies
