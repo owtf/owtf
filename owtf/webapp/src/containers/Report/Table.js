@@ -236,7 +236,7 @@ export class DataTable extends React.Component {
             >
               {
                 (resourceList.length > 0) ?
-                  <>
+                  <Pane>
                     {ResourceListName}
                     <UnorderedList>
                       {resourceList.map(
@@ -247,7 +247,7 @@ export class DataTable extends React.Component {
                         </ListItem>
                       )}
                     </UnorderedList>
-                  </>
+                  </Pane>
                   :
                   'Output not available'
               }
