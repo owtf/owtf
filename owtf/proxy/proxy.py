@@ -35,7 +35,14 @@ class ProxyHandler(tornado.web.RequestHandler):
     """This RequestHandler processes all the requests that the application received."""
 
     SUPPORTED_METHODS = [
-        "GET", "POST", "CONNECT", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE"
+        "GET",
+        "POST",
+        "CONNECT",
+        "HEAD",
+        "PUT",
+        "DELETE",
+        "OPTIONS",
+        "TRACE",
     ]
     server = None
     restricted_request_headers = None
@@ -307,7 +314,7 @@ class ProxyHandler(tornado.web.RequestHandler):
         # Hacking to be done here, so as to check for ssl using proxy and auth
         try:
             # Adds a fix for check_hostname errors in Tornado 4.3.0
-            context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS)
             context.check_hostname = False
             context.load_default_certs()
             # When connecting through a new socket, no need to wrap the socket before passing to SSIOStream
@@ -417,9 +424,9 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         :rtype: None
         """
         try:  # Cannot write binary content as a string, so catch it
-            self.handshake_request.response_buffer += (">>> {}\r\n".format(message))
+            self.handshake_request.response_buffer += ">>> {}\r\n".format(message)
         except TypeError:
-            self.handshake_request.response_buffer += (">>> May be binary\r\n")
+            self.handshake_request.response_buffer += ">>> May be binary\r\n"
 
     def store_downstream_data(self, message):
         """Save websocket data sent from client to server.
@@ -431,9 +438,9 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         :rtype: None
         """
         try:  # Cannot write binary content as a string, so catch it.
-            self.handshake_request.response_buffer += ("<<< {}\r\n".format(message))
+            self.handshake_request.response_buffer += "<<< {}\r\n".format(message)
         except TypeError:
-            self.handshake_request.response_buffer += ("<<< May be binary\r\n")
+            self.handshake_request.response_buffer += "<<< May be binary\r\n"
 
     def on_message(self, message):
         """Everytime a message is received from client side, this instance method is called.
@@ -466,7 +473,9 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         if not self.upstream.read_future:
             self.upstream.read_message(callback=self.on_response)
         if self.ws_connection:  # Check if connection still exists.
-            if message.result():  # Check if it is not NULL (indirect checking of upstream connection).
+            if (
+                message.result()
+            ):  # Check if it is not NULL (indirect checking of upstream connection).
                 self.write_message(
                     message.result()
                 )  # Write obtained message to client.
@@ -500,7 +509,6 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
 
 
 class CustomWebSocketClientConnection(tornado.websocket.WebSocketClientConnection):
-
     def _handle_1xx(self, code):
         """Had to extract response code, so it is necessary to override.
 
