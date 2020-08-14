@@ -19,7 +19,6 @@ services:
       - db
     volumes:
       - ..:/owtf
-      - /owtf/owtf.egg-info
   db:
     image: postgres:alpine
     ports:
