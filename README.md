@@ -4,8 +4,10 @@
 Status](https://travis-ci.org/owtf/owtf.svg?branch=develop)](https://travis-ci.org/owtf/owtf)
 [![License (3-Clause
 BSD)](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square)](http://opensource.org/licenses/BSD-3-Clause)
-[![python_2.7](https://img.shields.io/badge/python-2.7-blue.svg)](https://www.python.org/downloads/)
 [![python_3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/)
+[![python_3.7](https://img.shields.io/badge/python-3.7-blue.svg)](https://www.python.org/downloads/)
+[![python_3.8](https://img.shields.io/badge/python-3.8-blue.svg)](https://www.python.org/downloads/)
+
 
 **OWASP OWTF** is a project focused on penetration testing efficiency
 and alignment of security tests to security standards like the OWASP
