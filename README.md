@@ -36,7 +36,7 @@ development experience.
 OWTF is developed on KaliLinux and macOS but it is made for Kali Linux
 (or other Debian derivatives)
 
-OWTF supports both Python2 and Python3.
+OWTF supports both Python3.
 
 
 ## OSX pre-requisites
@@ -89,7 +89,7 @@ Create the database,
 
 ### Installing OWTF
 
-- `pip install git+https://github.com/owtf/owtf#egg=owtf` or clone the
+- `pip3 install git+https://github.com/owtf/owtf#egg=owtf` or clone the
 repo and `python setup.py develop`.
 - `owtf` and open `localhost:8009` for the OWTF web interface or `owtf --help` for all available commands.
 
