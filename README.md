@@ -36,7 +36,7 @@ development experience.
 OWTF is developed on KaliLinux and macOS but it is made for Kali Linux
 (or other Debian derivatives)
 
-OWTF supports both Python3.
+OWTF supports Python3.
 
 
 ## OSX pre-requisites
@@ -54,14 +54,23 @@ $ pip install cryptography --global-option=build_ext --global-option="-L/usr/loc
 
 # Installation
 
-Recommended:
+## Running as a Docker container:
+The recommended way to use OWTF is by building the Docker Image so you will not have to worry about dependencies issues and installing the various pentesting tools.
 
-* `docker` is installed (https://www.docker.com/products/docker-desktop)
+* `docker` and `docker-compose` is required. (https://docs.docker.com/compose/install/)
 
-> Using a virtualenv is highly recommended!
+```
+git clone https://github.com/owtf/owtf
+cd owtf
+make compose
+```
 
+
+## Installing directly
 
 ### Create and start the PostgreSQL database server
+
+#### Using preconfigured Postgresql Docker container (Recommended)
 
 > Please make sure you have Docker installed!
 
@@ -89,10 +98,13 @@ Create the database,
 
 ### Installing OWTF
 
-- `pip3 install git+https://github.com/owtf/owtf#egg=owtf` or clone the
-repo and `python setup.py develop`.
-- `owtf` and open `localhost:8009` for the OWTF web interface or `owtf --help` for all available commands.
-
+```
+git clone https://github.com/owtf/owtf
+cd owtf
+python3 setup.py develop
+owtf
+open `localhost:8009` in the web browser for the OWTF web interface or `owtf --help` for all available commands.
+```
 
 # Features
 
