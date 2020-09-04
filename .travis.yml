@@ -44,12 +44,11 @@ matrix:
 
     - language: node_js
       node_js:
-        - '10'
+        - '14.9.0'
       cache: yarn
       before_install:
         - cd owtf/webapp
       script:
-        - yarn upgrade
         - yarn test
 
 notifications:
