@@ -1,4 +1,4 @@
-FROM kalilinux/kali-rolling:latest
+FROM kalilinux/kali:latest
 
 LABEL Viyat Bhalodia viyat.bhalodia@owasp.org
 
@@ -20,12 +20,10 @@ ENV PYCURL_SSL_LIBRARY openssl
 # Install dependencies
 RUN apt-get -y update && apt-get clean
 RUN apt-get -y install  xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc python-all-dev \
-  python-pip postgresql-server-dev-all postgresql-client postgresql-client-common \
-  postgresql libcurl4-openssl-dev proxychains tor ca-certificates libpq-dev python-dev \
+  postgresql-server-dev-all postgresql-client postgresql-client-common \
+  postgresql libcurl4-openssl-dev proxychains tor ca-certificates libpq-dev  \
   libxslt1-dev libldap2-dev libsasl2-dev libffi-dev net-tools lsof locales-all \
-  libyaml-dev python3 python3-pip python3.8-dev build-essential
-
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+  libyaml-dev python3 python3-pip python3-dev build-essential python3-virtualenv python3-lxml python3-impacket golang-go
 
 # Set locale
 ENV LANG en_US.UTF-8
@@ -33,25 +31,31 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 # Install optional tools (LBD, arachni, gnutls-bin, o-saft and metagoofil)
-RUN apt-get -y install  lbd arachni theharvester tlssled nikto dnsrecon nmap whatweb skipfish dirbuster \
-  metasploit-framework wpscan wapiti hydra metagoofil o-saft
+RUN apt-get -y install lbd theharvester tlssled nikto dnsrecon nmap whatweb skipfish dirbuster \
+  metasploit-framework wpscan wapiti hydra metagoofil o-saft amass
 
 # Ensure pip and setuptools are at their latest versions
-RUN pip install setuptools --upgrade
-RUN pip install cffi
-
-# Install and create a Python virtualenv
-RUN pip install virtualenv && virtualenv ~/.venv/owtf && . ~/.venv/owtf/bin/activate
+RUN pip3 install setuptools --upgrade
+RUN pip3 install cffi
+RUN python3 -m pip install --upgrade pip
 
 # Create a dedicated OWTF directory to copy source to and run from.
 RUN cd / && /bin/mkdir -p owtf
 ADD . /owtf
+ADD docker/wait-for-it.sh /usr/bin/wait-for-it.sh
+RUN chmod +x /usr/bin/wait-for-it.sh
 
-RUN pip install -r /owtf/requirements/base.txt
+#Create and activating a python virtualenv
+ENV VIRTUAL_ENV=/bin/owtf
+RUN python3 -m virtualenv --python=/usr/bin/python3.8 $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+#Installing python dependencies
+RUN pip3 install -r /owtf/requirements/base.txt
 
 # Install OWTF using the recommended method (setup.py)
 RUN cd /owtf &&\
-  python setup.py develop
+  python setup.py install
 
 # Set the current working directory to OWTF root directory
 WORKDIR /owtf
