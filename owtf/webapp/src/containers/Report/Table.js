@@ -11,7 +11,9 @@ import {
   IconButton,
   Heading,
   toaster,
-  Link
+  Link,
+  UnorderedList,
+  ListItem
 } from "evergreen-ui";
 import CKEditor from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
@@ -114,6 +116,22 @@ export class DataTable extends React.Component {
     const code = obj["plugin_code"];
     const user_notes = obj["user_notes"];
     const editorShow = this.state.editorShow;
+    let resourceList = [];
+    let ResourceListName = ''
+    try {
+      output.map(singleOutput => {
+        if (singleOutput.hasOwnProperty('output')) {
+          if (singleOutput.output.hasOwnProperty('ResourceList')) {
+            resourceList = singleOutput.output.ResourceList
+          }
+          if (singleOutput.output.hasOwnProperty('ResourceListName')) {
+            ResourceListName = singleOutput.output.ResourceListName
+          }
+        }
+      })
+    } catch (_) {
+      resourceList = []
+    }
     return (
       <Pane data-test="dataTableComponent">
         <Table border>
@@ -211,7 +229,29 @@ export class DataTable extends React.Component {
 
           <Pane border padding={10}>
             <Heading>MORE DETAILS</Heading>
-            {/* {output} */}
+            <Table
+              border
+              padding={10}
+              margin={5}
+            >
+              {
+                (resourceList.length > 0) ?
+                  <Pane>
+                    {ResourceListName}
+                    <UnorderedList>
+                      {resourceList.map(
+                        (resource, index) => <ListItem key={index}>
+                          <Link href={resource[1]} target="__blank">
+                            {resource[0]}
+                          </Link>
+                        </ListItem>
+                      )}
+                    </UnorderedList>
+                  </Pane>
+                  :
+                  'Output not available'
+              }
+            </Table>
           </Pane>
         </Pane>
       </Pane>
