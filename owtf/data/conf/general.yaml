@@ -5,7 +5,7 @@ TOOLS:
   - config: TOOL_SET_DIR
     value: /usr/share/set
   - config: TOOL_THEHARVESTER_BIN
-    value: /usr/bin/theharvester
+    value: /usr/bin/theHarvester
   - config: TOOL_THEHARVESTER_DIR
     value: /usr/share/theharvester
   - config: TOOL_METAGOOFIL_DIR
@@ -41,7 +41,7 @@ TOOLS:
   - config: TOOL_W3AF_BIN
     value: /usr/share/w3af/w3af_console
   - config: TOOL_WAPITI_BIN
-    value: /usr/local/bin/wapiti
+    value: /usr/bin/wapiti
   - config: TOOL_DIRBUSTER_BIN
     value: /usr/share/dirbuster/DirBuster-1.0-RC1.jar
   - config: TOOL_METASPLOIT_DIR
