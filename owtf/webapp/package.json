@@ -104,7 +104,7 @@
     "jest": "^24.3.1",
     "jest-enzyme": "^7.0.2",
     "json-loader": "^0.5.7",
-    "node-sass": "^4.11.0",
+    "node-sass": "^4.13.1",
     "offline-plugin": "^4.9.0",
     "prettier": "^1.13.5",
     "pretty-quick": "^1.6.0",
