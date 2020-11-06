@@ -4,8 +4,10 @@
 Status](https://travis-ci.org/owtf/owtf.svg?branch=develop)](https://travis-ci.org/owtf/owtf)
 [![License (3-Clause
 BSD)](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square)](http://opensource.org/licenses/BSD-3-Clause)
-[![python_2.7](https://img.shields.io/badge/python-2.7-blue.svg)](https://www.python.org/downloads/)
 [![python_3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/)
+[![python_3.7](https://img.shields.io/badge/python-3.7-blue.svg)](https://www.python.org/downloads/)
+[![python_3.8](https://img.shields.io/badge/python-3.8-blue.svg)](https://www.python.org/downloads/)
+
 
 **OWASP OWTF** is a project focused on penetration testing efficiency
 and alignment of security tests to security standards like the OWASP
@@ -34,7 +36,7 @@ development experience.
 OWTF is developed on KaliLinux and macOS but it is made for Kali Linux
 (or other Debian derivatives)
 
-OWTF supports both Python2 and Python3.
+OWTF supports Python3.
 
 
 ## OSX pre-requisites
@@ -52,14 +54,23 @@ $ pip install cryptography --global-option=build_ext --global-option="-L/usr/loc
 
 # Installation
 
-Recommended:
+## Running as a Docker container:
+The recommended way to use OWTF is by building the Docker Image so you will not have to worry about dependencies issues and installing the various pentesting tools.
 
-* `docker` is installed (https://www.docker.com/products/docker-desktop)
+* `docker` and `docker-compose` is required. (https://docs.docker.com/compose/install/)
 
-> Using a virtualenv is highly recommended!
+```
+git clone https://github.com/owtf/owtf
+cd owtf
+make compose
+```
 
+
+## Installing directly
 
 ### Create and start the PostgreSQL database server
+
+#### Using preconfigured Postgresql Docker container (Recommended)
 
 > Please make sure you have Docker installed!
 
@@ -87,10 +98,13 @@ Create the database,
 
 ### Installing OWTF
 
-- `pip install git+https://github.com/owtf/owtf#egg=owtf` or clone the
-repo and `python setup.py develop`.
-- `owtf` and open `localhost:8009` for the OWTF web interface or `owtf --help` for all available commands.
-
+```
+git clone https://github.com/owtf/owtf
+cd owtf
+python3 setup.py develop
+owtf
+open `localhost:8009` in the web browser for the OWTF web interface or `owtf --help` for all available commands.
+```
 
 # Features
 
