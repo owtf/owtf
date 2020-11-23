@@ -34,3 +34,11 @@ Raft-Dictionaries:
 Combined:
   command: "python ~/.owtf/dictionaries/dict_merger_svndigger_raft.py"
   directory: dictionaries/restricted/combined
+Sublist3r:
+  command : "git clone https://github.com/aboul3la/Sublist3r"
+  directory: tools/restricted/sublist3r
+Subjack:
+  command : "go get github.com/haccer/subjack"
+  directory: tools/restricted/subjack
+
+ 
