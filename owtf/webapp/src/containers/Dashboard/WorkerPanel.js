@@ -26,7 +26,7 @@ export class Worker extends React.Component {
   getWork() {
 
     let getLog = (name) => {
-      this.props.onFetchWorkerLogs(name,-1);
+      this.props.onFetchWorkerLogs(name, -1, window.location.hostname);
       setTimeout(() => {
         const workerLogs = this.props.workerLogs;
         if(workerLogs!==false){

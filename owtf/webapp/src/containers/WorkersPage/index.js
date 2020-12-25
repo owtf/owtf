@@ -363,7 +363,7 @@ const mapDispatchToProps = dispatch => {
     onDeleteWorker: worker_id => dispatch(deleteWorker(worker_id)),
     onCreateWorker: () => dispatch(createWorker()),
     onFetchWorkerProgress: () => dispatch(loadWorkerProgress()),
-    onFetchWorkerLogs: (name, lines) => dispatch(loadWorkerLogs(name, lines)),
+    onFetchWorkerLogs: (name, lines, host) => dispatch(loadWorkerLogs(name, lines, host)),
   };
 };
 

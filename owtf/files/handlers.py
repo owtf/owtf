@@ -102,7 +102,8 @@ class StaticFileHandler(tornado.web.StaticFileHandler):
 
             no_of_lines = self.get_argument("lines", default="-1")
             if no_of_lines != "-1":
-                data = subprocess.check_output(["tail", "-" + no_of_lines, abspath])
+                command = f"tail -{no_of_lines} {abspath}"
+                data = subprocess.check_output(command.split())
             else:
                 with open(abspath, "rb") as file:
                     data = file.read()
