@@ -259,7 +259,7 @@ def debug_and_parse(data):
         zprint(str(headers), "DEBUG HEADERS")
         zprint(str(body), "DEBUG BODY")
 
-    # Extract some intersting info
+    # Extract some interesting info
     codes = server.BaseHTTPRequestHandler.responses
     global_data["StatusCode"][hop] = str(data.code) + " " + codes[data.code][0]
     analyse_headers(headers)
