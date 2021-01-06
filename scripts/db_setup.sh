@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 action="init"
 
 postgres_server_ip="127.0.0.1"
