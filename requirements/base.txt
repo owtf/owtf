@@ -23,3 +23,4 @@ sqlalchemy_mixins==1.2.1
 tornado==5.1.1
 bcrypt==3.2.0
 uuid==1.30
+jwt==1.2.0
