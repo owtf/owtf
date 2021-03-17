@@ -190,9 +190,7 @@ export default class Collapse extends React.Component {
           justifyContent="center"
           width={700}
         >
-          <Paragraph margin={40}>
-            Something went wrong, please try again!
-          </Paragraph>
+          <Paragraph margin={40}>No plugins found</Paragraph>
         </SideSheet>
       );
     }
