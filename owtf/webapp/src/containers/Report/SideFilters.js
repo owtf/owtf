@@ -261,7 +261,7 @@ export class SideFilters extends React.Component {
           display="flex"
           flexDirection="column"
           width={200}
-          marginBottom="100%"
+          marginBottom="110%"
         >
           {types.map((type, index) => (
             <Tab
