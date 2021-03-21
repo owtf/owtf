@@ -3,7 +3,7 @@ owtf.api.main
 ~~~~~~~~~~~~~
 """
 import logging
-
+import os
 import tornado
 import tornado.httpserver
 import tornado.ioloop
@@ -44,12 +44,18 @@ class APIServer(OWTFProcess):
             Rule(AnyMatches(), web)
         ])
         # fmt: on
-        self.server = tornado.httpserver.HTTPServer(router)
+        self.server = tornado.httpserver.HTTPServer(
+            router,
+            ssl_options = {
+                "certfile": os.path.join(os.path.dirname(__file__), "../certs/server.crt"),
+                "keyfile": os.path.join(os.path.dirname(__file__), "../certs/server.key")
+            }
+        )
         try:
             port = int(SERVER_PORT)
             address = SERVER_ADDR
             self.server.bind(port, address=address)
-            logging.warning("Starting API and UI server at http://{}:{}".format(SERVER_ADDR, str(SERVER_PORT)))
+            logging.warning("Starting API and UI server at https://{}:{}".format(SERVER_ADDR, str(SERVER_PORT)))
             self.logger.disable_console_logging()
             tornado.options.parse_command_line(
                 args=["dummy_arg", "--log_file_prefix={}".format(SERVER_LOG), "--logging=info"]

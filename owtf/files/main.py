@@ -3,7 +3,7 @@ owtf.files.main
 ~~~~~~~~~~~~~~~
 """
 import logging
-
+import os
 import tornado
 import tornado.httpserver
 import tornado.ioloop
@@ -21,7 +21,13 @@ class FileServer():
     def start(self):
         try:
             self.application = Application(handlers=HANDLERS, template_path=TEMPLATES, debug=False, gzip=True)
-            self.server = tornado.httpserver.HTTPServer(self.application)
+            self.server = tornado.httpserver.HTTPServer(
+                self.application,
+                ssl_options = {
+                    "certfile": os.path.join(os.path.dirname(__file__), "../certs/server.crt"),
+                    "keyfile": os.path.join(os.path.dirname(__file__), "../certs/server.key")
+                }
+            )
             self.server.bind(int(FILE_SERVER_PORT), address=SERVER_ADDR)
             tornado.options.parse_command_line(
                 args=["dummy_arg", "--log_file_prefix={}".format(FILE_SERVER_LOG), "--logging=info"]

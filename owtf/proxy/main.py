@@ -135,8 +135,13 @@ class ProxyProcess(OWTFProcess):
         else:
             self.application.outbound_username = None
             self.application.outbound_password = None
-
-        self.server = tornado.httpserver.HTTPServer(self.application)
+        self.server = tornado.httpserver.HTTPServer(
+            self.application,
+            ssl_options = {
+                "certfile": os.path.join(os.path.dirname(__file__), "../certs/server.crt"),
+                "keyfile": os.path.join(os.path.dirname(__file__), "../certs/server.key")
+            }
+        )
         # server has to be a class variable, because it is used inside request handler to attach sockets for monitoring
         ProxyHandler.server = self.server
 
