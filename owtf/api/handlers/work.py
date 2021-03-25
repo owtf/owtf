@@ -354,6 +354,8 @@ class WorklistHandler(APIRequestHandler):
 
             if not filter_data:
                 raise APIError(400, "Arguments should not be null")
+            if filter_data['id']:
+                filter_data['id'] = filter_data['id'][0].split(",")
             plugin_list = get_all_plugin_dicts(self.session, filter_data)
             target_list = get_target_config_dicts(self.session, filter_data)
             if not plugin_list:
