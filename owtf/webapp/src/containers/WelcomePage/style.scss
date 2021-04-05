@@ -1,0 +1,20 @@
+.btn {
+  color: #fff;
+  border: none;
+  outline: none;
+  padding: 10px 40px;
+  background: rgb(0, 102, 197);
+  border-radius: 50px;
+  text-transform: uppercase;
+  font-weight: 400;
+  font-size: 18px;
+  transition: all 0.5s;
+  box-shadow: 0px 10px 10px rgba(0, 0, 0, 0.404);
+
+  :hover {
+    color: #fff;
+    background: rgb(14, 40, 78);
+    box-shadow: none;
+    transform: translateY(10px);
+  }
+}
