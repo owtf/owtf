@@ -16,7 +16,7 @@ psycopg2==2.7.4
 PTP==0.4.2
 pyOpenSSL==17.2.0
 PyVirtualDisplay==0.2.1
-pyyaml==3.12.0
+pyyaml==5.4
 requests==2.18.4
 selenium==3.4.3
 six==1.10.0

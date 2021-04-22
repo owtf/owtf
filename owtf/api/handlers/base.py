@@ -44,7 +44,7 @@ auth_header_pat = re.compile(r"^(?:token|bearer)\s+([^\s]+)$", flags=re.IGNORECA
 class BaseRequestHandler(RequestHandler):
     def set_default_headers(self):
         self.add_header("X-OWTF-Version", __version__)
-
+        self.add_header("X-Frame-Options", "SAMEORIGIN")
 
 class APIRequestHandler(BaseRequestHandler):
     def initialize(self):

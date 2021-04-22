@@ -1,3 +1,4 @@
+#!/bin/sh
 action="init"
 
 postgres_server_ip="127.0.0.1"
@@ -5,7 +6,7 @@ db_name="owtf_db"
 db_user="owtf_db_user"
 db_pass="jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g="
 postgres_server_port=5432
-postgres_version="$(psql --version 2>&1 | tail -1 | awk '{print $3}' | $SED_CMD 's/\./ /g' | awk '{print $1 "." $2}')"
+postgres_version="$(psql --version 2>&1 | tail -1 | awk '{print $3}' | sed 's/\./ /g' | awk '{print $1 "." $2}')"
 
 
 # =======================================
@@ -20,8 +21,10 @@ postgresql_check_running_status() {
         echo "Please start the PostgreSQL server and rerun."
         echo "For Kali/Debian like systems, try sudo service postgresql start or sudo systemctl start postgresql "
         echo "For macOS, use pg_ctl -D /usr/local/var/postgres start "
+        return 0
     else
         echo "[+] PostgreSQL server is running ${postgres_server_ip}:${postgres_server_port} :)"
+        return 1
     fi
 }
 
@@ -72,24 +75,28 @@ postgresql_check_db() {
 db_setup() {
     # Check if the postgres server is running or not.
     postgresql_check_running_status
-    # postgres server is running perfectly fine begin with db_setup.
-    # Create a user $db_user if it does not exist
-    if [ postgresql_check_user == 1 ]; then
-        echo "[+] User $db_user already exist."
-        # User $db_user already exist in postgres database change the password
-        continue
-    else
-        # Create new user $db_user with password $db_pass
-        postgresql_create_user
-    fi
-    # Create database $db_name if it does not exist.
-    if [ postgresql_check_db == 1 ]; then
-       echo "[+] Database $db_name already exist."
-       continue
-    else
-       # Either database does not exists or the owner of database is not $db_user
-       # Create new database $db_name with owner $db_user
-       postgresql_create_db
+    running_status=$?
+    if [ $running_status = 1 ]; then
+        # If postgres server is running perfectly fine begin with db_setup.
+        # Create a user $db_user if it does not exist
+        if [ postgresql_check_user = 1 ]; then
+            echo "[+] User $db_user already exist."
+            # User $db_user already exist in postgres database change the password
+            continue
+        else
+            # Create new user $db_user with password $db_pass
+            postgresql_create_user
+        fi
+        # Create database $db_name if it does not exist.
+        if [ postgresql_check_db = 1 ]; then
+            echo "[+] Database $db_name already exist."
+            continue
+        else
+            # Either database does not exists or the owner of database is not $db_user
+            # Create new database $db_name with owner $db_user
+            postgresql_create_db
+        fi 
     fi
 }
 
+db_setup

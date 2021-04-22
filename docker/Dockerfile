@@ -46,8 +46,9 @@ ADD docker/wait-for-it.sh /usr/bin/wait-for-it.sh
 RUN chmod +x /usr/bin/wait-for-it.sh
 
 #Create and activating a python virtualenv
+RUN pip3 install wheel
 ENV VIRTUAL_ENV=/bin/owtf
-RUN python3 -m virtualenv --python=/usr/bin/python3.8 $VIRTUAL_ENV
+RUN python3 -m virtualenv --python=/usr/bin/python3.9 $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 #Installing python dependencies
