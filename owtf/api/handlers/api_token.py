@@ -1,5 +1,5 @@
 """
-owtf.api.handlers.auth
+owtf.api.handlers.api_token
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
@@ -8,35 +8,56 @@ from owtf.api.handlers.jwtauth import jwtauth
 from uuid import uuid4
 from owtf.models.api_token import ApiToken
 import jwt
-secret_key = "my_secret_key"
+from owtf.settings import JWT_SECRET_KEY
+from owtf.lib.exceptions import APIError
 
-options = {
-    'verify_signature': True,
-    'verify_exp': True,
-    'verify_nbf': False,
-    'verify_iat': True,
-    'verify_aud': False
-}
+options = {"verify_signature": True, "verify_exp": True, "verify_nbf": False, "verify_iat": True, "verify_aud": False}
+
 
 @jwtauth
 class ApiTokenGenerateHandler(APIRequestHandler):
-    """
-        doc
-    """
+    """Create the api token for a user."""
+
     SUPPORTED_METHODS = ["GET"]
 
     def get(self):
-        api_key = str(uuid4())
-        token = self.request.headers.get('Authorization').split()[1]
-        payload = jwt.decode(
-            token,
-            secret_key,
-            options=options
-        )
-        user_id = payload['user_id']
-        ApiToken.add_api_token(self.session, api_key, user_id)
-        data = {
-            "status": "ok",
-            "api_key": api_key
+        """Get api token for a logged in user
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+        GET /api/v1/generate/api_token/
+        Accept: application/json, text/javascript, */*
+        X-Requested-With: XMLHttpRequest
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+        **ApiToken successful response**;
+        HTTP/1.1 200 OK
+        Content-Encoding: gzip
+        Vary: Accept-Encoding
+        Content-Type: application/json
+
+        {
+            "status": "success",
+            "data": {
+                "api_key": "b9e7157c-2150-4e34-b3f1-1777a75debb7"
+            }
         }
-        return self.success(data)
+
+        """
+        api_key = str(uuid4())
+        try:
+            token = self.request.headers.get("Authorization").split()[1]
+            payload = jwt.decode(token, JWT_SECRET_KEY, options=options)
+            user_id = payload.get("user_id", None)
+            if not user_id:
+                raise APIError(400, "Invalid User Id")
+            ApiToken.add_api_token(self.session, api_key, user_id)
+            data = {"api_key": api_key}
+            return self.success(data)
+        except Exception:
+            raise APIError(400, "Invalid Token")

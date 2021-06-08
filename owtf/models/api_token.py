@@ -7,6 +7,7 @@ from sqlalchemy import Column, Integer, Unicode, ForeignKey
 from owtf.db.model_base import Model
 import uuid
 
+
 class ApiToken(Model):
     __tablename__ = "api_tokens"
 
@@ -24,9 +25,6 @@ class ApiToken(Model):
     @classmethod
     def add_api_token(cls, session, key, user_id):
         """Adds an api_token to the DB"""
-        new_token = cls(
-            user_id = user_id,
-            key = key
-        )
+        new_token = cls(user_id=user_id, key=key)
         session.add(new_token)
         session.commit()
