@@ -1,6 +1,7 @@
 /*
- * LoginPage.
- * Manages Login and handles sending the login request and setting the login token
+ * SignupPage.
+ * Handles the signup of the new user
+ * Redirects to the email confirmation page after input validation
  */
 
 import React from "react";
@@ -19,19 +20,21 @@ import {
 } from "react-social-login-buttons";
 const OAuthBtnStyle = { width: "60%", marginLeft: "20%" };
 
-export class LoginPage extends React.Component {
+export class SignupPage extends React.Component {
   constructor(props, context) {
     super(props, context);
 
     this.state = {
       email: "",
-      password: ""
+      password: "",
+      confirm_password: "",
+      username: ""
     };
   }
 
   render() {
     return (
-      <Pane marginY={90}>
+      <Pane marginY={40}>
         <Pane justifyContent="center" width="35%" elevation={1} margin="auto">
           <Heading
             size="700"
@@ -39,8 +42,16 @@ export class LoginPage extends React.Component {
             marginBottom={20}
             paddingTop={30}
           >
-            Login
+            Signup
           </Heading>
+          <TextInputField
+            placeholder="Username"
+            width="60%"
+            marginLeft="20%"
+            marginBottom={20}
+            value={this.state.username}
+            onChange={e => this.setState({ username: e.target.value })}
+          />
           <TextInputField
             placeholder="Email"
             width="60%"
@@ -57,34 +68,38 @@ export class LoginPage extends React.Component {
             value={this.state.password}
             onChange={e => this.setState({ password: e.target.value })}
           />
-          <Text width="60%" marginLeft="20%" marginBottom={20}>
-            <Link href="/forgot-password">Forgot Password?</Link>
-          </Text>
+          <TextInputField
+            placeholder="Confirm Password"
+            width="60%"
+            marginLeft="20%"
+            marginBottom={20}
+            value={this.state.confirm_password}
+            onChange={e => this.setState({ confirm_password: e.target.value })}
+          />
           <Button
             width="20%"
             marginLeft="40%"
             marginBottom={10}
-            marginTop={20}
             justifyContent="center"
             appearance="primary"
             intent="none"
           >
-            LOGIN
+            SIGNUP
           </Button>
           <Heading width="60%" marginLeft="20%" size="400">
             Or
           </Heading>
           <GoogleLoginButton size="30px" style={OAuthBtnStyle}>
-            Login with Google
+            Join with Google
           </GoogleLoginButton>
           <GithubLoginButton size="30px" style={OAuthBtnStyle}>
-            Login with Github
+            Join with Github
           </GithubLoginButton>
           <TwitterLoginButton size="30px" style={OAuthBtnStyle}>
-            Login with Twitter
+            Join with Twitter
           </TwitterLoginButton>
           <Text size="300" width="60%" marginLeft="20%" marginTop={20}>
-            New to OWTF? <Link href="/signup">Join now</Link>
+            Already have an account? <Link href="/login">Login</Link>
           </Text>
         </Pane>
       </Pane>
@@ -92,4 +107,4 @@ export class LoginPage extends React.Component {
   }
 }
 
-export default LoginPage;
+export default SignupPage;

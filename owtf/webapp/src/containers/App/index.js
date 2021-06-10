@@ -16,6 +16,9 @@ import TargetsPage from "containers/TargetsPage/Loadable";
 import SettingsPage from "containers/SettingsPage/Loadable";
 import Help from "containers/HelpPage/Loadable";
 import LoginPage from "containers/LoginPage/Loadable";
+import SignupPage from "containers/SignupPage/Loadable";
+import ForgotPasswordPage from "containers/ForgotPasswordPage/Loadable";
+import OtpPage from "containers/OtpPage/Loadable";
 import WorkersPage from "containers/WorkersPage/Loadable";
 import WorklistPage from "containers/WorklistPage/Loadable";
 import NotFoundPage from "components/NotFoundPage";
@@ -49,6 +52,9 @@ export default function App() {
         <Route path="/transactions" component={TransactionsPage} />
         <Route path="/help" component={Help} />
         <Route path="/login" component={LoginPage} />
+        <Route path="/signup" component={SignupPage} />
+        <Route path="/forgot-password" component={ForgotPasswordPage} />
+        <Route path="/otp" component={OtpPage} />
         <Route path="*" component={NotFoundPage} />
       </Switch>
     </div>
