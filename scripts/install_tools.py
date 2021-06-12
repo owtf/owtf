@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-from future.utils import iteritems
+from six import iteritems
 
 import os
 
