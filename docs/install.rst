@@ -6,8 +6,8 @@ Prerequisites
 
 There are few packages which are mandatory before you proceed
 
-    * Git client: ``sudo apt-get install git``
-    * Python 2.7, installed by default in most systems
+    * Git client: ``sudo apt-get install git make``
+    * Python 3, installed by default in most systems
 
 Installation
 ------------

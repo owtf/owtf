@@ -28,7 +28,7 @@ install-dependencies:
 	sudo apt-get install -y python3 git
 	sudo apt-get install -y xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc python-all-dev \
 			python3-pip postgresql-server-dev-all postgresql-client postgresql-client-common postgresql  \
-			libcurl4-openssl-dev proxychains tor libffi-dev golang
+			libcurl4-openssl-dev proxychains tor libffi-dev golang-go
 
 opt-tools:
 	sudo apt-get install -y lbd gnutls-bin o-saft metagoofil lbd  \
@@ -46,7 +46,7 @@ activate-virtualenv:
 	bash -c "$(VENV_PATH)/bin/activate"
 
 
-setup:  venv activate-virtualenv install-requirements
+setup: install-dependencies venv activate-virtualenv install-requirements
 
 
 ### REQUIREMENTS
