@@ -203,6 +203,6 @@ except FileNotFoundError:
     pass
 
 # JWT
-JWT_SECRET_KEY = "epb$9n04zst7l%wr9iw$cugk2*_^_aud5=snyn1^k*b*)ab@^i"
+JWT_SECRET_KEY = "changeme"  # Add your JWT_SECRET_KEY here
 JWT_ALGORITHM = "HS256"
 JWT_EXP_DELTA_SECONDS = 60 * 60 * 24
