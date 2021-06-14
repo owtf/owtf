@@ -8,8 +8,8 @@ import {
   Pane,
   Heading,
   Button,
-  Text,
   Link,
+  Paragraph,
   TextInputField
 } from "evergreen-ui";
 import {
@@ -17,6 +17,7 @@ import {
   GithubLoginButton,
   TwitterLoginButton
 } from "react-social-login-buttons";
+import "./style.scss";
 const OAuthBtnStyle = { width: "60%", marginLeft: "20%" };
 
 export class LoginPage extends React.Component {
@@ -31,13 +32,19 @@ export class LoginPage extends React.Component {
 
   render() {
     return (
-      <Pane marginY={90}>
-        <Pane justifyContent="center" width="35%" elevation={1} margin="auto">
+      <Pane marginY={70}>
+        <Pane
+          justifyContent="center"
+          width="35%"
+          elevation={1}
+          margin="auto"
+          padding={5}
+        >
           <Heading
             size="700"
             textAlign="center"
             marginBottom={20}
-            paddingTop={30}
+            paddingTop={20}
           >
             Login
           </Heading>
@@ -53,27 +60,23 @@ export class LoginPage extends React.Component {
             placeholder="Password"
             width="60%"
             marginLeft="20%"
-            marginBottom={20}
+            marginBottom={10}
             value={this.state.password}
             onChange={e => this.setState({ password: e.target.value })}
           />
-          <Text width="60%" marginLeft="20%" marginBottom={20}>
-            <Link href="/forgot-password">Forgot Password?</Link>
-          </Text>
+          <Paragraph width="60%" marginLeft="20%" marginBottom={10}>
+            <Link href="/forgot-password/email">Forgot Password?</Link>
+          </Paragraph>
           <Button
             width="20%"
             marginLeft="40%"
-            marginBottom={10}
-            marginTop={20}
             justifyContent="center"
             appearance="primary"
             intent="none"
           >
             LOGIN
           </Button>
-          <Heading width="60%" marginLeft="20%" size="400">
-            Or
-          </Heading>
+          <hr className="hr-text" data-content="OR" />
           <GoogleLoginButton size="30px" style={OAuthBtnStyle}>
             Login with Google
           </GoogleLoginButton>
@@ -83,9 +86,15 @@ export class LoginPage extends React.Component {
           <TwitterLoginButton size="30px" style={OAuthBtnStyle}>
             Login with Twitter
           </TwitterLoginButton>
-          <Text size="300" width="60%" marginLeft="20%" marginTop={20}>
+          <Paragraph
+            size="300"
+            width="60%"
+            marginLeft="20%"
+            marginTop={10}
+            marginBottom={10}
+          >
             New to OWTF? <Link href="/signup">Join now</Link>
-          </Text>
+          </Paragraph>
         </Pane>
       </Pane>
     );

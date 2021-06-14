@@ -53,8 +53,8 @@ export default function App() {
         <Route path="/help" component={Help} />
         <Route path="/login" component={LoginPage} />
         <Route path="/signup" component={SignupPage} />
-        <Route path="/forgot-password" component={ForgotPasswordPage} />
-        <Route path="/otp" component={OtpPage} />
+        <Route path="/forgot-password/otp" component={OtpPage} />
+        <Route path="/forgot-password/email" component={ForgotPasswordPage} />
         <Route path="*" component={NotFoundPage} />
       </Switch>
     </div>

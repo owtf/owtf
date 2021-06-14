@@ -3,7 +3,14 @@
  * Handles forgot password for the user
  */
 import React from "react";
-import { Pane, Heading, Button, Text, Link, TextInput } from "evergreen-ui";
+import {
+  Pane,
+  Heading,
+  Button,
+  Paragraph,
+  Link,
+  TextInput
+} from "evergreen-ui";
 
 export class ForgotPasswordPage extends React.Component {
   constructor(props, context) {
@@ -17,18 +24,24 @@ export class ForgotPasswordPage extends React.Component {
   render() {
     return (
       <Pane marginY={100}>
-        <Pane justifyContent="center" width="35%" elevation={1} margin="auto">
+        <Pane
+          justifyContent="center"
+          width="35%"
+          elevation={1}
+          margin="auto"
+          padding={5}
+        >
           <Heading
             size="700"
             textAlign="center"
             marginBottom={20}
-            paddingTop={30}
+            paddingTop={20}
           >
             Forgot Password?
           </Heading>
-          <Text width="60%" marginLeft="20%" marginRight="20%" size="300">
+          <Paragraph width="60%" marginLeft="20%" marginRight="20%" size="300">
             Reset password in 2 quick steps.
-          </Text>
+          </Paragraph>
           <TextInput
             placeholder="Email"
             width="60%"
@@ -47,12 +60,11 @@ export class ForgotPasswordPage extends React.Component {
           >
             Reset Password
           </Button>
-          <br />
-          <Text width="10%" marginLeft="45%" size="300">
+          <Paragraph width="10%" marginLeft="45%" size="300">
             <Link href="/login" justifyContent="center">
               Back
             </Link>
-          </Text>
+          </Paragraph>
         </Pane>
       </Pane>
     );

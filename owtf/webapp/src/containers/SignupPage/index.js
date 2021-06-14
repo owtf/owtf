@@ -9,7 +9,7 @@ import {
   Pane,
   Heading,
   Button,
-  Text,
+  Paragraph,
   Link,
   TextInputField
 } from "evergreen-ui";
@@ -19,6 +19,7 @@ import {
   TwitterLoginButton
 } from "react-social-login-buttons";
 const OAuthBtnStyle = { width: "60%", marginLeft: "20%" };
+import "../LoginPage/style.scss";
 
 export class SignupPage extends React.Component {
   constructor(props, context) {
@@ -34,13 +35,19 @@ export class SignupPage extends React.Component {
 
   render() {
     return (
-      <Pane marginY={40}>
-        <Pane justifyContent="center" width="35%" elevation={1} margin="auto">
+      <Pane marginY={30}>
+        <Pane
+          justifyContent="center"
+          width="35%"
+          elevation={1}
+          margin="auto"
+          padding={5}
+        >
           <Heading
             size="700"
             textAlign="center"
             marginBottom={20}
-            paddingTop={30}
+            paddingTop={20}
           >
             Signup
           </Heading>
@@ -79,16 +86,13 @@ export class SignupPage extends React.Component {
           <Button
             width="20%"
             marginLeft="40%"
-            marginBottom={10}
             justifyContent="center"
             appearance="primary"
             intent="none"
           >
             SIGNUP
           </Button>
-          <Heading width="60%" marginLeft="20%" size="400">
-            Or
-          </Heading>
+          <hr className="hr-text" data-content="OR" />
           <GoogleLoginButton size="30px" style={OAuthBtnStyle}>
             Join with Google
           </GoogleLoginButton>
@@ -98,9 +102,15 @@ export class SignupPage extends React.Component {
           <TwitterLoginButton size="30px" style={OAuthBtnStyle}>
             Join with Twitter
           </TwitterLoginButton>
-          <Text size="300" width="60%" marginLeft="20%" marginTop={20}>
+          <Paragraph
+            size="300"
+            width="60%"
+            marginLeft="20%"
+            marginTop={10}
+            marginBottom={10}
+          >
             Already have an account? <Link href="/login">Login</Link>
-          </Text>
+          </Paragraph>
         </Pane>
       </Pane>
     );
