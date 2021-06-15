@@ -206,3 +206,10 @@ except FileNotFoundError:
 JWT_SECRET_KEY = "changeme"  # Add your JWT_SECRET_KEY here
 JWT_ALGORITHM = "HS256"
 JWT_EXP_DELTA_SECONDS = 60 * 60 * 24
+JWT_OPTIONS = {
+    "verify_signature": True,
+    "verify_exp": True,
+    "verify_nbf": False,
+    "verify_iat": True,
+    "verify_aud": False,
+}

@@ -4,10 +4,8 @@
 from sqlalchemy.sql.functions import user
 from owtf.models.user_login_token import UserLoginToken
 import jwt
-from owtf.settings import JWT_SECRET_KEY
+from owtf.settings import JWT_SECRET_KEY, JWT_OPTIONS
 from owtf.db.session import Session
-
-options = {"verify_signature": True, "verify_exp": True, "verify_nbf": False, "verify_iat": True, "verify_aud": False}
 
 
 def jwtauth(handler_class):
@@ -28,7 +26,7 @@ def jwtauth(handler_class):
 
                 token = parts[1]
                 try:
-                    payload = jwt.decode(token, JWT_SECRET_KEY, options=options)
+                    payload = jwt.decode(token, JWT_SECRET_KEY, options=JWT_OPTIONS)
                     user_id = payload.get("user_id", None)
                     session = Session()
                     user_token = UserLoginToken.find_by_userid_and_token(session, user_id, token)

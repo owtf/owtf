@@ -33,10 +33,6 @@ class User(Model):
     @classmethod
     def add_user(cls, session, user):
         """Adds an user to the DB"""
-        new_user = cls(
-            name=user["name"],
-            email=user["email"],
-            password=user["password"].decode("utf-8"),
-        )
+        new_user = cls(name=user["name"], email=user["email"], password=user["password"].decode("utf-8"))
         session.add(new_user)
         session.commit()
