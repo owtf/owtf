@@ -13,13 +13,6 @@ import {
   Link,
   TextInputField
 } from "evergreen-ui";
-import {
-  GoogleLoginButton,
-  GithubLoginButton,
-  TwitterLoginButton
-} from "react-social-login-buttons";
-const OAuthBtnStyle = { width: "60%", marginLeft: "20%" };
-import "../LoginPage/style.scss";
 
 export class SignupPage extends React.Component {
   constructor(props, context) {
@@ -35,7 +28,7 @@ export class SignupPage extends React.Component {
 
   render() {
     return (
-      <Pane marginY={30}>
+      <Pane marginY={90}>
         <Pane
           justifyContent="center"
           width="35%"
@@ -92,16 +85,6 @@ export class SignupPage extends React.Component {
           >
             SIGNUP
           </Button>
-          <hr className="hr-text" data-content="OR" />
-          <GoogleLoginButton size="30px" style={OAuthBtnStyle}>
-            Join with Google
-          </GoogleLoginButton>
-          <GithubLoginButton size="30px" style={OAuthBtnStyle}>
-            Join with Github
-          </GithubLoginButton>
-          <TwitterLoginButton size="30px" style={OAuthBtnStyle}>
-            Join with Twitter
-          </TwitterLoginButton>
           <Paragraph
             size="300"
             width="60%"
