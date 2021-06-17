@@ -1,6 +1,7 @@
 /*
- * LoginPage.
- * Manages Login and handles sending the login request and setting the login token
+ * SignupPage.
+ * Handles the signup of the new user
+ * Redirects to the email confirmation page after input validation
  */
 
 import React from "react";
@@ -8,18 +9,20 @@ import {
   Pane,
   Heading,
   Button,
-  Link,
   Paragraph,
+  Link,
   TextInputField
 } from "evergreen-ui";
 
-export class LoginPage extends React.Component {
+export class SignupPage extends React.Component {
   constructor(props, context) {
     super(props, context);
 
     this.state = {
       email: "",
-      password: ""
+      password: "",
+      confirm_password: "",
+      username: ""
     };
   }
 
@@ -39,8 +42,16 @@ export class LoginPage extends React.Component {
             marginBottom={20}
             paddingTop={20}
           >
-            Login
+            Signup
           </Heading>
+          <TextInputField
+            placeholder="Username"
+            width="60%"
+            marginLeft="20%"
+            marginBottom={20}
+            value={this.state.username}
+            onChange={e => this.setState({ username: e.target.value })}
+          />
           <TextInputField
             placeholder="Email"
             width="60%"
@@ -53,13 +64,18 @@ export class LoginPage extends React.Component {
             placeholder="Password"
             width="60%"
             marginLeft="20%"
-            marginBottom={10}
+            marginBottom={20}
             value={this.state.password}
             onChange={e => this.setState({ password: e.target.value })}
           />
-          <Paragraph width="60%" marginLeft="20%" marginBottom={10}>
-            <Link href="/forgot-password/email">Forgot Password?</Link>
-          </Paragraph>
+          <TextInputField
+            placeholder="Confirm Password"
+            width="60%"
+            marginLeft="20%"
+            marginBottom={20}
+            value={this.state.confirm_password}
+            onChange={e => this.setState({ confirm_password: e.target.value })}
+          />
           <Button
             width="20%"
             marginLeft="40%"
@@ -67,7 +83,7 @@ export class LoginPage extends React.Component {
             appearance="primary"
             intent="none"
           >
-            LOGIN
+            SIGNUP
           </Button>
           <Paragraph
             size="300"
@@ -76,7 +92,7 @@ export class LoginPage extends React.Component {
             marginTop={10}
             marginBottom={10}
           >
-            New to OWTF? <Link href="/signup">Join now</Link>
+            Already have an account? <Link href="/login">Login</Link>
           </Paragraph>
         </Pane>
       </Pane>
@@ -84,4 +100,4 @@ export class LoginPage extends React.Component {
   }
 }
 
-export default LoginPage;
+export default SignupPage;
