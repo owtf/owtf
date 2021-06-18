@@ -1,25 +1,23 @@
 /*
- * LoginPage.
- * Manages Login and handles sending the login request and setting the login token
+ * ForgotPasswordPage.
+ * Handles forgot password for the user
  */
-
 import React from "react";
 import {
   Pane,
   Heading,
   Button,
-  Link,
   Paragraph,
-  TextInputField
+  Link,
+  TextInput
 } from "evergreen-ui";
 
-export class LoginPage extends React.Component {
+export class ForgotPasswordPage extends React.Component {
   constructor(props, context) {
     super(props, context);
 
     this.state = {
-      email: "",
-      password: ""
+      email: ""
     };
   }
 
@@ -39,9 +37,12 @@ export class LoginPage extends React.Component {
             marginBottom={20}
             paddingTop={20}
           >
-            Login
+            Forgot Password?
           </Heading>
-          <TextInputField
+          <Paragraph width="60%" marginLeft="20%" marginRight="20%" size="300">
+            Reset password in 2 quick steps.
+          </Paragraph>
+          <TextInput
             placeholder="Email"
             width="60%"
             marginLeft="20%"
@@ -49,34 +50,20 @@ export class LoginPage extends React.Component {
             value={this.state.email}
             onChange={e => this.setState({ email: e.target.value })}
           />
-          <TextInputField
-            placeholder="Password"
-            width="60%"
-            marginLeft="20%"
-            marginBottom={10}
-            value={this.state.password}
-            onChange={e => this.setState({ password: e.target.value })}
-          />
-          <Paragraph width="60%" marginLeft="20%" marginBottom={10}>
-            <Link href="/forgot-password/email">Forgot Password?</Link>
-          </Paragraph>
           <Button
-            width="20%"
-            marginLeft="40%"
+            width="40%"
+            marginLeft="30%"
+            marginBottom={10}
             justifyContent="center"
             appearance="primary"
             intent="none"
           >
-            LOGIN
+            Reset Password
           </Button>
-          <Paragraph
-            size="300"
-            width="60%"
-            marginLeft="20%"
-            marginTop={10}
-            marginBottom={10}
-          >
-            New to OWTF? <Link href="/signup">Join now</Link>
+          <Paragraph width="10%" marginLeft="45%" size="300">
+            <Link href="/login" justifyContent="center">
+              Back
+            </Link>
           </Paragraph>
         </Pane>
       </Pane>
@@ -84,4 +71,4 @@ export class LoginPage extends React.Component {
   }
 }
 
-export default LoginPage;
+export default ForgotPasswordPage;
