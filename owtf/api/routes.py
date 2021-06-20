@@ -22,7 +22,13 @@ from owtf.api.handlers.transactions import (
     URLSearchHandler,
 )
 from owtf.api.handlers.work import WorkerHandler, WorklistHandler, WorklistSearchHandler
-from owtf.api.handlers.auth import LogInHandler, LogOutHandler, RegisterHandler
+from owtf.api.handlers.auth import (
+    LogInHandler,
+    LogOutHandler,
+    RegisterHandler,
+    AccountActivationGenerateHandler,
+    AccountActivationValidateHandler,
+)
 from owtf.api.handlers.api_token import ApiTokenGenerateHandler
 from owtf.db.session import get_scoped_session
 from owtf.models.plugin import Plugin
@@ -81,6 +87,14 @@ API_v1_HANDLERS = [
     tornado.web.url(r"/api/v1/login/?$", LogInHandler, name="login_api_url"),
     tornado.web.url(r"/api/v1/logout/?$", LogOutHandler, name="logout_api_url"),
     tornado.web.url(r"/api/v1/generate/api_token/?$", ApiTokenGenerateHandler, name="apitokengenerator_api_url"),
+    tornado.web.url(
+        r"/api/v1/generate/confirm_email/?$", AccountActivationGenerateHandler, name="confirmpasswordgenerator_api_url"
+    ),
+    tornado.web.url(
+        r"/api/v1/verify/confirm_email/([^/]+)?$",
+        AccountActivationValidateHandler,
+        name="confirmpasswordverify_api_url",
+    ),
 ]
 
 UI_HANDLERS = [

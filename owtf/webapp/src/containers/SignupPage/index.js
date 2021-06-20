@@ -1,7 +1,7 @@
 /*
  * SignupPage.
  * Handles the signup of the new user
- * Redirects to the email confirmation page after input validation
+ * Redirects to the email verification page after input validation
  */
 
 import React from "react";
@@ -11,20 +11,127 @@ import {
   Button,
   Paragraph,
   Link,
-  TextInputField
+  TextInputField,
+  toaster,
+  Icon,
+  Text
 } from "evergreen-ui";
+import { signupStart } from "./actions";
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
 
 export class SignupPage extends React.Component {
   constructor(props, context) {
     super(props, context);
 
     this.state = {
-      email: "",
-      password: "",
-      confirm_password: "",
-      username: ""
+      username: "", //username of the user to be added
+      email: "", //email of the user to be added
+      password: "", //password of the user to be added
+      confirmPassword: "", //confirmPassword of the user to be added
+      errors: {}, //stores errors during form validation
+      hiddenPassword: true, //handles visibility of password input field
+      hiddenConfirmPassword: true //handles visibility of confirmPassword input field
     };
   }
+
+  /**
+   * Function handles rendering of toaster after a successful API call
+   * @param {string} msg msg to be shown in toaster
+   */
+
+  toasterSuccess = msg => {
+    toaster.success(msg);
+  };
+
+  /**
+   * Function handles rendering of toaster after a failed API call
+   * @param {object} error error object received from the server
+   */
+  toasterError = error => {
+    toaster.danger("Server replied: " + error);
+  };
+
+  /**
+   * Function handles the input validation for all the text input elements
+   * @param {object} e event which triggered this function
+   */
+  handleValidation = e => {
+    let formIsValid = true;
+    let errors = {};
+
+    //Username
+    if (e.target.name === "text-input-name" && !this.state.username) {
+      formIsValid = false;
+      errors["username"] = "Username can't be empty";
+    }
+
+    //Email
+    else if (e.target.name === "text-input-email" && !this.state.email) {
+      formIsValid = false;
+      errors["email"] = "Email can't be empty";
+    } else if (
+      e.target.name === "text-input-email" &&
+      typeof this.state.email !== "undefined"
+    ) {
+      if (
+        !this.state.email.match(
+          /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
+        )
+      ) {
+        formIsValid = false;
+        errors["email"] = "Please enter a valid email";
+      }
+    }
+
+    // Password
+    if (e.target.name === "text-input-password" && !this.state.password) {
+      formIsValid = false;
+      errors["password"] = "Password can't be empty";
+    } else if (
+      e.target.name === "text-input-password" &&
+      typeof this.state.password !== "undefined"
+    ) {
+      if (
+        !this.state.password.match(
+          /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/
+        )
+      ) {
+        formIsValid = false;
+        errors["password"] = "Must have capital, small, number & special chars";
+      }
+    }
+
+    // Confirm Password
+    if (
+      e.target.name === "text-input-confirm-password" &&
+      !this.state.confirmPassword
+    ) {
+      formIsValid = false;
+      errors["confirmPassword"] = "Confirm Password can't be empty";
+    } else if (
+      e.target.name === "text-input-confirm-password" &&
+      this.state.password !== this.state.confirmPassword
+    ) {
+      formIsValid = false;
+      errors["confirmPassword"] = "Password doesn't match";
+    }
+
+    this.setState({ errors: errors });
+    return formIsValid;
+  };
+
+  /**
+   * Function handles the signup of the user
+   */
+  onSignupHandler = () => {
+    this.props.onSignup(
+      this.state.email,
+      this.state.password,
+      this.state.confirmPassword,
+      this.state.username
+    );
+  };
 
   render() {
     return (
@@ -49,39 +156,82 @@ export class SignupPage extends React.Component {
             width="60%"
             marginLeft="20%"
             marginBottom={20}
+            name="text-input-name"
             value={this.state.username}
             onChange={e => this.setState({ username: e.target.value })}
+            onBlur={e => this.handleValidation(e)}
+            validationMessage={this.state.errors["username"]}
           />
           <TextInputField
             placeholder="Email"
             width="60%"
             marginLeft="20%"
             marginBottom={20}
+            name="text-input-email"
             value={this.state.email}
             onChange={e => this.setState({ email: e.target.value })}
+            onBlur={e => this.handleValidation(e)}
+            validationMessage={this.state.errors["email"]}
           />
-          <TextInputField
-            placeholder="Password"
-            width="60%"
-            marginLeft="20%"
-            marginBottom={20}
-            value={this.state.password}
-            onChange={e => this.setState({ password: e.target.value })}
-          />
-          <TextInputField
-            placeholder="Confirm Password"
-            width="60%"
-            marginLeft="20%"
-            marginBottom={20}
-            value={this.state.confirm_password}
-            onChange={e => this.setState({ confirm_password: e.target.value })}
-          />
+          <Pane position="relative">
+            <Pane width="10%" marginLeft="75%" position="absolute">
+              <Icon
+                icon={this.state.hiddenPassword ? "eye-off" : "eye-open"}
+                cursor="pointer"
+                marginX={-10}
+                marginY={8}
+                onMouseDown={e => this.setState({ hiddenPassword: false })}
+                onMouseUp={e => this.setState({ hiddenPassword: true })}
+              />
+            </Pane>
+            <TextInputField
+              placeholder="Password"
+              width="60%"
+              marginLeft="20%"
+              name="text-input-password"
+              value={this.state.password}
+              type={this.state.hiddenPassword ? "password" : "text"}
+              onChange={e => this.setState({ password: e.target.value })}
+              onBlur={e => this.handleValidation(e)}
+              validationMessage={this.state.errors["password"]}
+            />
+            <Pane width="10%" marginLeft="75%" position="absolute">
+              <Icon
+                icon={this.state.hiddenConfirmPassword ? "eye-off" : "eye-open"}
+                cursor="pointer"
+                marginX={-10}
+                marginY={8}
+                onMouseDown={e =>
+                  this.setState({ hiddenConfirmPassword: false })
+                }
+                onMouseUp={e => this.setState({ hiddenConfirmPassword: true })}
+              />
+            </Pane>
+            <TextInputField
+              placeholder="Confirm Password"
+              width="60%"
+              marginLeft="20%"
+              name="text-input-confirm-password"
+              value={this.state.confirmPassword}
+              type={this.state.hiddenConfirmPassword ? "password" : "text"}
+              onChange={e => this.setState({ confirmPassword: e.target.value })}
+              onBlur={e => this.handleValidation(e)}
+              validationMessage={this.state.errors["confirmPassword"]}
+            />
+          </Pane>
           <Button
             width="20%"
             marginLeft="40%"
             justifyContent="center"
             appearance="primary"
             intent="none"
+            onClick={this.onSignupHandler}
+            disabled={
+              Object.keys(this.state.errors).length === 0 &&
+              this.state.errors.constructor === Object
+                ? false
+                : true
+            }
           >
             SIGNUP
           </Button>
@@ -100,4 +250,18 @@ export class SignupPage extends React.Component {
   }
 }
 
-export default SignupPage;
+SignupPage.propTypes = {
+  onSignup: PropTypes.func
+};
+
+const mapDispatchToProps = dispatch => {
+  return {
+    onSignup: (email, password, confirmPassword, name) =>
+      dispatch(signupStart(email, password, confirmPassword, name))
+  };
+};
+
+export default connect(
+  null,
+  mapDispatchToProps
+)(SignupPage);

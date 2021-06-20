@@ -3,6 +3,7 @@ owtf.api.handlers.auth
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
+from sqlalchemy.sql.functions import user
 from owtf.models.user_login_token import UserLoginToken
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib.exceptions import APIError
@@ -18,8 +19,18 @@ from owtf.settings import (
     JWT_EXP_DELTA_SECONDS,
     is_password_valid_regex,
     is_email_valid_regex,
+    EMAIL_FROM,
+    SMTP_HOST,
+    SMTP_LOGIN,
+    SMTP_PASS,
+    SMTP_PORT,
 )
 from owtf.db.session import Session
+from uuid import uuid4
+from owtf.models.email_confirmation import EmailConfirmation
+from email.mime.text import MIMEText
+import smtplib
+from email.mime.multipart import MIMEMultipart
 
 
 class LogInHandler(APIRequestHandler):
@@ -70,26 +81,32 @@ class LogInHandler(APIRequestHandler):
         }
 
         """
-        body_data = json.loads(self.request.body.decode("utf-8"))
-        email = body_data.get("email", None)
-        password = body_data.get("password", None)
+        email = self.get_argument("email", None)
+        password = self.get_argument("password", None)
         if not email:
-            raise APIError(400, "Missing email value")
+            err = {"status": "fail", "message": "Missing email value"}
+            self.success(err)
         if not password:
-            raise APIError(400, "Missing password value")
-        user = User.find_by_email(self.session, email)[0]
+            err = {"status": "fail", "message": "Missing password value"}
+            self.success(err)
+        user = User.find_by_email(self.session, email)
         if (
             user
             and user.password
             and bcrypt.hashpw(password.encode("utf-8"), user.password.encode("utf-8")) == user.password.encode("utf-8")
+            and user.is_active
         ):
             payload = {"user_id": user.id, "exp": datetime.utcnow() + timedelta(seconds=JWT_EXP_DELTA_SECONDS)}
             jwt_token = jwt.encode(payload, JWT_SECRET_KEY, JWT_ALGORITHM)
             data = {"jwt-token": jwt_token.decode("utf-8")}
             UserLoginToken.add_user_login_token(self.session, jwt_token, user.id)
-            self.success(data)
+            self.success({"status": "success", "message": data})
+        elif not user.is_active:
+            err = {"status": "fail", "message": "Your account is not active"}
+            self.success(err)
         else:
-            raise APIError(400, "Invalid login credentials")
+            err = {"status": "fail", "message": "Invalid login credentials"}
+            self.success(err)
 
 
 class RegisterHandler(APIRequestHandler):
@@ -140,42 +157,49 @@ class RegisterHandler(APIRequestHandler):
         }
 
         """
-        body_data = json.loads(self.request.body.decode("utf-8"))
-        name = body_data.get("name", None)
-        email = body_data.get("email", None)
-        password = body_data.get("password", None)
-        confirm_password = body_data.get("confirm_password", None)
+        username = self.get_argument("username", None)
+        email = self.get_argument("email", None)
+        password = self.get_argument("password", None)
+        confirm_password = self.get_argument("confirm_password", None)
 
-        if not name:
-            raise APIError(400, "Missing username value")
+        if not username:
+            err = {"status": "fail", "message": "Missing username value"}
+            self.success(err)
         if not email:
-            raise APIError(400, "Missing email value")
+            err = {"status": "fail", "message": "Missing email value"}
+            self.success(err)
         if not password:
-            raise APIError(400, "Missing password value")
+            err = {"status": "fail", "message": "Missing password value"}
+            self.success(err)
         if not confirm_password:
-            raise APIError(400, "Missing confirm password value")
+            err = {"status": "fail", "message": "Missing confirm password value"}
+            self.success(err)
 
         already_taken = User.find_by_email(self.session, email)
         match_password = re.search(is_password_valid_regex, password)
         match_email = re.search(is_email_valid_regex, email)
 
         if password != confirm_password:
-            raise APIError(400, "Password doesn't match")
+            err = {"status": "fail", "message": "Password doesn't match"}
+            self.success(err)
         elif not match_email:
-            raise APIError(400, "Choose a valid email")
+            err = {"status": "fail", "message": "Choose a valid email"}
+            self.success(err)
         elif not match_password:
-            raise APIError(400, "Choose a strong password")
+            err = {"status": "fail", "message": "Choose a strong password"}
+            self.success(err)
         elif already_taken:
-            raise APIError(400, "Email already exists")
+            err = {"status": "fail", "message": "Email already exists"}
+            self.success(err)
         else:
             hashed_pass = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
             user = {}
             user["email"] = email
             user["password"] = hashed_pass
-            user["name"] = name
+            user["name"] = username  # need to be chaned to username
             User.add_user(self.session, user)
             data = "User created successfully"
-            self.success(data)
+            self.success({"status": "success", "message": data})
 
 
 class LogOutHandler(APIRequestHandler):
@@ -216,3 +240,68 @@ class LogOutHandler(APIRequestHandler):
             self.success(data)
         else:
             raise APIError(400, "Invalid Token")
+
+
+class AccountActivationGenerateHandler(APIRequestHandler):
+    SUPPORTED_METHODS = ["POST"]
+
+    def post(self):
+        email_to = self.get_argument("email", None)
+        email_confirmation_dict = {}
+        email_confirmation_dict["key_value"] = str(uuid4())
+        email_confirmation_dict["expiration_time"] = datetime.now() + timedelta(hours=1)
+        user_obj = User.find_by_email(self.session, email_to)
+        email_confirmation_dict["user_id"] = user_obj.id
+        EmailConfirmation.remove_previous_all(self.session, user_obj.id)
+        EmailConfirmation.add_confirm_password(self.session, email_confirmation_dict)
+
+        html = (
+            """\
+        <html>
+        <body>
+            Welcome """
+            + user_obj.name
+            + ", <br/><br/>"
+            """ 
+            Click <a href=\""""
+            + "http://0.0.0.0:8009/email-verify/"
+            + email_confirmation_dict["key_value"]
+            + """\">here</a> to activate your account (Link will expire in 1 hour).
+        </body>
+        </html>
+        """
+        )
+
+        msg = MIMEMultipart("alternative")
+        part = MIMEText(html, "html")
+        msg["From"] = EMAIL_FROM
+        msg["To"] = email_to
+        msg["Subject"] = "Account Activation"
+        msg.attach(part)
+
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.login(SMTP_LOGIN, SMTP_PASS)
+            server.sendmail(EMAIL_FROM, email_to, msg.as_string())  # changing the from name
+        del msg
+        response = {"status": "success", "message": "Email send successful"}
+        self.success(response)
+
+
+class AccountActivationValidateHandler(APIRequestHandler):
+    SUPPORTED_METHODS = ["GET"]
+
+    def get(self, key_value):
+        email_conf_obj = EmailConfirmation.find_by_key_value(self.session, key_value)
+        if email_conf_obj is not None and email_conf_obj.expiration_time >= datetime.now():
+            User.activate_user(self.session, email_conf_obj.user_id)
+            response = {"status": "success", "message": "Email Verified"}
+            self.success(response)
+        elif email_conf_obj is not None and email_conf_obj.expiration_time < datetime.now():
+            user_id = email_conf_obj.user_id
+            user_email = User.find_by_id(self.session, user_id).email
+            if user_email is not None:
+                response = {"status": "success", "message": "Link Expired", "email": user_email}
+                self.success(response)
+        else:
+            response = {"status": "success", "message": "Invalid Link"}
+            self.success(response)
