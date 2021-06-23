@@ -30,8 +30,8 @@ export class SignupPage extends React.Component {
       password: "", //password of the user to be added
       confirmPassword: "", //confirmPassword of the user to be added
       errors: {}, //stores errors during form validation
-      hiddenPassword: true, //handles visibility of password input field
-      hiddenConfirmPassword: true //handles visibility of confirmPassword input field
+      hidePassword: true, //handles visibility of password input field
+      hideConfirmPassword: true //handles visibility of confirmPassword input field
     };
   }
 
@@ -135,7 +135,7 @@ export class SignupPage extends React.Component {
 
   render() {
     return (
-      <Pane marginY={100}>
+      <Pane marginY={60}>
         <Pane
           justifyContent="center"
           width="35%"
@@ -144,7 +144,7 @@ export class SignupPage extends React.Component {
           padding={5}
         >
           <Heading
-            size="700"
+            size={700}
             textAlign="center"
             marginBottom={20}
             paddingTop={20}
@@ -152,10 +152,11 @@ export class SignupPage extends React.Component {
             Signup
           </Heading>
           <TextInputField
+            label="Your OWTF Username"
             placeholder="Username"
             width="60%"
             marginLeft="20%"
-            marginBottom={20}
+            marginBottom={10}
             name="text-input-name"
             value={this.state.username}
             onChange={e => this.setState({ username: e.target.value })}
@@ -163,10 +164,11 @@ export class SignupPage extends React.Component {
             validationMessage={this.state.errors["username"]}
           />
           <TextInputField
+            label="Email Address"
             placeholder="Email"
             width="60%"
             marginLeft="20%"
-            marginBottom={20}
+            marginBottom={10}
             name="text-input-email"
             value={this.state.email}
             onChange={e => this.setState({ email: e.target.value })}
@@ -176,44 +178,48 @@ export class SignupPage extends React.Component {
           <Pane position="relative">
             <Pane width="10%" marginLeft="75%" position="absolute">
               <Icon
-                icon={this.state.hiddenPassword ? "eye-off" : "eye-open"}
+                icon={this.state.hidePassword ? "eye-off" : "eye-open"}
                 cursor="pointer"
                 marginX={-10}
-                marginY={8}
-                onMouseDown={e => this.setState({ hiddenPassword: false })}
-                onMouseUp={e => this.setState({ hiddenPassword: true })}
+                marginY={32}
+                onMouseDown={e => this.setState({ hidePassword: false })}
+                onMouseUp={e => this.setState({ hidePassword: true })}
               />
             </Pane>
             <TextInputField
+              label="Choose a Password"
+              hint="Must have capital, small, number & special chars"
               placeholder="Password"
               width="60%"
               marginLeft="20%"
               name="text-input-password"
               value={this.state.password}
-              type={this.state.hiddenPassword ? "password" : "text"}
+              type={this.state.hidePassword ? "password" : "text"}
               onChange={e => this.setState({ password: e.target.value })}
               onBlur={e => this.handleValidation(e)}
               validationMessage={this.state.errors["password"]}
+              marginBottom={5}
             />
+          </Pane>
+          <Pane position="relative" paddingTop={0} marginTop={0}>
             <Pane width="10%" marginLeft="75%" position="absolute">
               <Icon
-                icon={this.state.hiddenConfirmPassword ? "eye-off" : "eye-open"}
+                icon={this.state.hideConfirmPassword ? "eye-off" : "eye-open"}
                 cursor="pointer"
                 marginX={-10}
-                marginY={8}
-                onMouseDown={e =>
-                  this.setState({ hiddenConfirmPassword: false })
-                }
-                onMouseUp={e => this.setState({ hiddenConfirmPassword: true })}
+                marginY={32}
+                onMouseDown={e => this.setState({ hideConfirmPassword: false })}
+                onMouseUp={e => this.setState({ hideConfirmPassword: true })}
               />
             </Pane>
             <TextInputField
+              label="Confirm Password"
               placeholder="Confirm Password"
               width="60%"
               marginLeft="20%"
               name="text-input-confirm-password"
               value={this.state.confirmPassword}
-              type={this.state.hiddenConfirmPassword ? "password" : "text"}
+              type={this.state.hideConfirmPassword ? "password" : "text"}
               onChange={e => this.setState({ confirmPassword: e.target.value })}
               onBlur={e => this.handleValidation(e)}
               validationMessage={this.state.errors["confirmPassword"]}
@@ -236,7 +242,7 @@ export class SignupPage extends React.Component {
             SIGNUP
           </Button>
           <Paragraph
-            size="300"
+            size={300}
             width="60%"
             marginLeft="20%"
             marginTop={10}

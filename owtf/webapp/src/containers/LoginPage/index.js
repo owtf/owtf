@@ -34,7 +34,7 @@ export class LoginPage extends React.Component {
           padding={5}
         >
           <Heading
-            size="700"
+            size={700}
             textAlign="center"
             marginBottom={20}
             paddingTop={20}
@@ -42,6 +42,7 @@ export class LoginPage extends React.Component {
             Login
           </Heading>
           <TextInputField
+            label="Your Email Address"
             placeholder="Email"
             width="60%"
             marginLeft="20%"
@@ -50,6 +51,7 @@ export class LoginPage extends React.Component {
             onChange={e => this.setState({ email: e.target.value })}
           />
           <TextInputField
+            label="Your Password"
             placeholder="Password"
             width="60%"
             marginLeft="20%"
@@ -70,7 +72,7 @@ export class LoginPage extends React.Component {
             LOGIN
           </Button>
           <Paragraph
-            size="300"
+            size={300}
             width="60%"
             marginLeft="20%"
             marginTop={10}

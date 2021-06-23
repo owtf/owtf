@@ -9,7 +9,7 @@ import {
   Button,
   Paragraph,
   Link,
-  TextInput
+  TextInputField
 } from "evergreen-ui";
 
 export class ForgotPasswordPage extends React.Component {
@@ -32,21 +32,23 @@ export class ForgotPasswordPage extends React.Component {
           padding={5}
         >
           <Heading
-            size="700"
+            size={700}
             textAlign="center"
             marginBottom={20}
             paddingTop={20}
           >
             Forgot Password?
           </Heading>
-          <Paragraph width="60%" marginLeft="20%" marginRight="20%" size="300">
+          <Paragraph width="60%" marginLeft="20%" marginRight="20%" size={300}>
             Reset password in 2 quick steps.
           </Paragraph>
-          <TextInput
+          <TextInputField
+            label="Enter your Email Address"
             placeholder="Email"
             width="60%"
             marginLeft="20%"
             marginBottom={20}
+            marginTop={10}
             value={this.state.email}
             onChange={e => this.setState({ email: e.target.value })}
           />
@@ -60,7 +62,7 @@ export class ForgotPasswordPage extends React.Component {
           >
             Reset Password
           </Button>
-          <Paragraph width="10%" marginLeft="45%" size="300">
+          <Paragraph width="10%" marginLeft="45%" size={300}>
             <Link href="/login" justifyContent="center">
               Back
             </Link>

@@ -32,17 +32,17 @@ export class EmailSendPage extends React.Component {
           padding={5}
         >
           <Heading
-            size="700"
+            size={700}
             textAlign="center"
             marginBottom={20}
             paddingTop={20}
           >
             Email Sent
           </Heading>
-          <Paragraph size="300" width="60%" marginLeft="20%" marginBottom={5}>
+          <Paragraph size={300} width="60%" marginLeft="20%" marginBottom={5}>
             We have sent a mail to verify your email address.
           </Paragraph>
-          <Paragraph size="300" width="60%" marginLeft="20%">
+          <Paragraph size={300} width="60%" marginLeft="20%">
             If you don't receive, please click here to:
             <br />
             <Link>
@@ -60,10 +60,10 @@ export class EmailSendPage extends React.Component {
               </Button>
             </Link>
           </Paragraph>
-          <Paragraph size="300" width="60%" marginLeft="20%" marginBottom={15}>
+          <Paragraph size={300} width="60%" marginLeft="20%" marginBottom={15}>
             Once you verify, <Link href="/login">Login</Link> here
           </Paragraph>
-          <Paragraph size="300" width="60%" marginLeft="20%" marginBottom={20}>
+          <Paragraph size={300} width="60%" marginLeft="20%" marginBottom={20}>
             If you don't find it in your inbox, check spam folder.
           </Paragraph>
         </Pane>
