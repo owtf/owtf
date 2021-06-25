@@ -24,6 +24,8 @@ from owtf.settings import (
     SMTP_LOGIN,
     SMTP_PASS,
     SMTP_PORT,
+    SERVER_ADDR,
+    SERVER_PORT,
 )
 from owtf.db.session import Session
 from uuid import uuid4
@@ -31,6 +33,9 @@ from owtf.models.email_confirmation import EmailConfirmation
 from email.mime.text import MIMEText
 import smtplib
 from email.mime.multipart import MIMEMultipart
+import logging
+from bs4 import BeautifulSoup
+from owtf.utils.logger import OWTFLogger
 
 
 class LogInHandler(APIRequestHandler):
@@ -263,26 +268,35 @@ class AccountActivationGenerateHandler(APIRequestHandler):
             + user_obj.name
             + ", <br/><br/>"
             """ 
-            Click <a href=\""""
-            + "http://0.0.0.0:8009/email-verify/"
+            Click here """
+            + "http://{}:{}".format(SERVER_ADDR, str(SERVER_PORT))
+            + "/email-verify/"
             + email_confirmation_dict["key_value"]
-            + """\">here</a> to activate your account (Link will expire in 1 hour).
+            + """ to activate your account (Link will expire in 1 hour).
         </body>
         </html>
         """
         )
+        if SMTP_HOST is not None:
+            msg = MIMEMultipart("alternative")
+            part = MIMEText(html, "html")
+            msg["From"] = EMAIL_FROM
+            msg["To"] = email_to
+            msg["Subject"] = "Account Activation"
+            msg.attach(part)
 
-        msg = MIMEMultipart("alternative")
-        part = MIMEText(html, "html")
-        msg["From"] = EMAIL_FROM
-        msg["To"] = email_to
-        msg["Subject"] = "Account Activation"
-        msg.attach(part)
-
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.login(SMTP_LOGIN, SMTP_PASS)
-            server.sendmail(EMAIL_FROM, email_to, msg.as_string())  # changing the from name
-        del msg
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+                server.login(SMTP_LOGIN, SMTP_PASS)
+                server.sendmail(EMAIL_FROM, email_to, msg.as_string())
+            del msg
+        else:
+            logger = OWTFLogger()
+            logger.enable_logging()
+            logging.info("")
+            logging.info("------> Showing the confirmation mail here, Since SMTP server is not set:")
+            logger.disable_console_logging()
+            html = BeautifulSoup(html, "html.parser").get_text()
+            print(html)
         response = {"status": "success", "message": "Email send successful"}
         self.success(response)
 

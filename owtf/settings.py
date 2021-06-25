@@ -94,11 +94,11 @@ TEMPLATES = os.path.join(OWTF_CONF, "build")
 STATIC_ROOT = os.path.join(OWTF_CONF, "build")
 
 # SMTP (Make changes here to setup SMTP server of your choice)
-EMAIL_FROM = "owtf.org@gmail.com"
-SMTP_LOGIN = "owtf-admin@owasp.org"
-SMTP_PASS = "F0FDDB12CBFDBC25978FEC4FDD13645AA719"
-SMTP_HOST = "smtp.elasticemail.com"
-SMTP_PORT = 587
+EMAIL_FROM = None  # Your SMTP From Mail
+SMTP_LOGIN = None  # Your SMTP Login
+SMTP_PASS = None  # Your Password
+SMTP_HOST = None  # Your Mail Server
+SMTP_PORT = None  # Your SMTP Port
 
 # OUTBOUND PROXY
 USE_OUTBOUND_PROXY = False
