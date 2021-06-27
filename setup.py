@@ -90,7 +90,7 @@ setup(
     zip_safe=False,
     platforms="any",
     install_requires=reqs("base.txt") + reqs("docs.txt"),
-    test_requires=reqs("test.txt"),
+    # test_requires=reqs("test.txt"),
     cmdclass={"develop": PostDevelopCommand, "install": PostInstallCommand},
     scripts=["bin/owtf"],
     entry_points={"console_scripts": ["owtf=owtf.core:main"]},

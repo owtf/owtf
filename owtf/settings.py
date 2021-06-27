@@ -35,7 +35,7 @@ else:
     DATABASE_PASS = "jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g="
     DATABASE_NAME = "owtf_db"
     DATABASE_USER = "owtf_db_user"
-    DATABASE_IP = "127.0.0.1"
+    DATABASE_IP = os.environ.get("POSTGRES_HOST","127.0.0.1")
     DATABASE_PORT = 5432
 
 # API and UI Server
