@@ -3,7 +3,7 @@ name: OWTF CI
 on:
   push:
     branches: [master, develop]
-  pull_request:
+  pull_request_target:
     branches: [master, develop]
 
   workflow_dispatch:
@@ -33,7 +33,6 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v2
-
 
       - uses: actions/cache@v2
         with:
@@ -85,3 +84,13 @@ jobs:
       - name: node_js
         working-directory: owtf/webapp
         run: yarn test
+      
+      - name: slack - GitHub Actions Slack integration
+        uses: act10ns/slack@v1.2.2
+        with: 
+          status: ${{ job.status }}
+          steps: ${{ toJson(steps) }}
+          channel: '#owtf-notifications'
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
