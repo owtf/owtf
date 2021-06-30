@@ -34,7 +34,7 @@ class UserLoginToken(Model):
     @classmethod
     def delete_user_login_token(cls, session, token):
         """Delete the user_login_token from the DB"""
-        token_obj = session.query(UserLoginToken).filter_by(token=token).first()
+        token_obj = session.query(cls).filter_by(token=token).first()
         if token_obj is not None:
             session.delete(token_obj)
             session.commit()

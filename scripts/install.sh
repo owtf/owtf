@@ -216,3 +216,4 @@ make post-install
 echo "${info}[*] Finished!${reset}"
 echo "${info}[*] Start OWTF by running cd path/to/pentest/directory; owtf${reset}"
 echo "${warning}[!] Please add a new JWT_SECRET_KEY in the settings file located in owtf/owtf/settings.py${reset} "
+echo "${warning}[!] Please setup SMTP server of your choice in the settings file located in owtf/owtf/settings.py${reset} "

@@ -93,12 +93,12 @@ OWTF_LOG_FILE = "/tmp/owtf.log"
 TEMPLATES = os.path.join(OWTF_CONF, "build")
 STATIC_ROOT = os.path.join(OWTF_CONF, "build")
 
-# SMTP
-EMAIL_FROM = "you@your_server.com"
-SMTP_LOGIN = "login@your_server.com"
-SMTP_PASS = "your_password"
-SMTP_HOST = "your_mail_server.com"
-SMTP_PORT = 25
+# SMTP (Make changes here to setup SMTP server of your choice)
+EMAIL_FROM = None  # Your SMTP From Mail
+SMTP_LOGIN = None  # Your SMTP Login
+SMTP_PASS = None  # Your Password
+SMTP_HOST = None  # Your Mail Server
+SMTP_PORT = None  # Your SMTP Port
 
 # OUTBOUND PROXY
 USE_OUTBOUND_PROXY = False

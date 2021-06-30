@@ -3,8 +3,9 @@ owtf.models.user
 ~~~~~~~~~~~~~~~~
 
 """
-from sqlalchemy import Column, Integer, Unicode
+from sqlalchemy import Column, Integer, Unicode, Boolean
 from owtf.db.model_base import Model
+from sqlalchemy.orm import relationship
 import uuid
 
 
@@ -15,6 +16,9 @@ class User(Model):
     name = Column(Unicode(255))
     email = Column(Unicode(255), nullable=False, unique=True)
     password = Column(Unicode(255), nullable=False)
+    is_active = Column(Boolean, default=False)  # checks whether user email is verified
+    email_confirmations = relationship("EmailConfirmation", cascade="delete")
+    user_login_tokens = relationship("UserLoginToken", cascade="delete")
 
     @classmethod
     def find(cls, session, name):
@@ -25,10 +29,10 @@ class User(Model):
 
     @classmethod
     def find_by_email(cls, session, email):
-        """Find a user by email.
+        """Find a user by email(email is unique).
         Returns None if not found.
         """
-        return session.query(cls).filter_by(email=email).all()
+        return session.query(cls).filter_by(email=email).first()
 
     @classmethod
     def add_user(cls, session, user):
@@ -36,3 +40,16 @@ class User(Model):
         new_user = cls(name=user["name"], email=user["email"], password=user["password"].decode("utf-8"))
         session.add(new_user)
         session.commit()
+
+    @classmethod
+    def activate_user(cls, session, user_id):
+        db_obj = session.query(cls).filter_by(id=user_id).first()
+        db_obj.is_active = True
+        session.commit()
+
+    @classmethod
+    def find_by_id(cls, session, id):
+        """Find a user by id.
+        Returns None if not found.
+        """
+        return session.query(cls).filter_by(id=id).first()

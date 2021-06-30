@@ -24,6 +24,8 @@ import WorklistPage from "containers/WorklistPage/Loadable";
 import NotFoundPage from "components/NotFoundPage";
 import TransactionsPage from "containers/Transactions/Loadable";
 import Report from "containers/Report/Loadable";
+import EmailSendPage from "containers/EmailVerification/Loadable";
+import EmailVerificationPage from "containers/EmailVerification/emailVerification";
 
 export default function App() {
   const navbar = {};
@@ -55,6 +57,8 @@ export default function App() {
         <Route path="/signup" component={SignupPage} />
         <Route path="/forgot-password/otp" component={OtpPage} />
         <Route path="/forgot-password/email" component={ForgotPasswordPage} />
+        <Route path="/email-send/:email" component={EmailSendPage} />
+        <Route path="/email-verify/:link" component={EmailVerificationPage} />
         <Route path="*" component={NotFoundPage} />
       </Switch>
     </div>
