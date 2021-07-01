@@ -36,6 +36,7 @@ from email.mime.multipart import MIMEMultipart
 import logging
 from bs4 import BeautifulSoup
 from owtf.utils.logger import OWTFLogger
+import pyotp
 
 
 class LogInHandler(APIRequestHandler):
@@ -106,7 +107,7 @@ class LogInHandler(APIRequestHandler):
             data = {"jwt-token": jwt_token.decode("utf-8")}
             UserLoginToken.add_user_login_token(self.session, jwt_token, user.id)
             self.success({"status": "success", "message": data})
-        elif not user.is_active:
+        elif user and not user.is_active:
             err = {"status": "fail", "message": "Your account is not active"}
             self.success(err)
         else:
@@ -202,6 +203,7 @@ class RegisterHandler(APIRequestHandler):
             user["email"] = email
             user["password"] = hashed_pass
             user["name"] = username  # need to be chaned to username
+            user["otp_secret_key"] = pyotp.random_base32()
             User.add_user(self.session, user)
             data = "User created successfully"
             self.success({"status": "success", "message": data})
@@ -239,18 +241,65 @@ class LogOutHandler(APIRequestHandler):
         if auth:
             parts = auth.split()
             token = parts[1]
-            session = Session()
-            UserLoginToken.delete_user_login_token(session, token)
-            data = "Logged out"
-            self.success(data)
+            UserLoginToken.delete_user_login_token(self.session, token)
+            response = {"status": "success", "message": "Logged out"}
+            self.success(response)
         else:
             raise APIError(400, "Invalid Token")
 
 
+def send_email_using_smtp(email_to, html, subject, logging_info):
+    """Used for sending the email to the specified email with the given html and subject"""
+    if SMTP_HOST is not None:
+        msg = MIMEMultipart("alternative")
+        part = MIMEText(html, "html")
+        msg["From"] = EMAIL_FROM
+        msg["To"] = email_to
+        msg["Subject"] = subject
+        msg.attach(part)
+
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.login(SMTP_LOGIN, SMTP_PASS)
+            server.sendmail(EMAIL_FROM, email_to, msg.as_string())
+        del msg
+    else:
+        logger = OWTFLogger()
+        logger.enable_logging()
+        logging.info("")
+        logging.info(logging_info)
+        logger.disable_console_logging()
+        html = BeautifulSoup(html, "html.parser").get_text()
+        print(html)
+
+
 class AccountActivationGenerateHandler(APIRequestHandler):
+    """Creates an email confirmation mail and sends it to the user for account confirmation"""
+
     SUPPORTED_METHODS = ["POST"]
 
     def post(self):
+        """
+        **Example request**:
+
+        .. sourcecode:: http
+
+        POST /api/v1/generate/confirm_email/ HTTP/1.1
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+        HTTP/1.1 200 OK
+        Content-Encoding: gzip
+        Vary: Accept-Encoding
+        Content-Type: application/json; charset=UTF-8
+
+        {
+            "status": "success",
+            "message": "Email send successful"
+        }
+
+        """
         email_to = self.get_argument("email", None)
         email_confirmation_dict = {}
         email_confirmation_dict["key_value"] = str(uuid4())
@@ -277,34 +326,44 @@ class AccountActivationGenerateHandler(APIRequestHandler):
         </html>
         """
         )
-        if SMTP_HOST is not None:
-            msg = MIMEMultipart("alternative")
-            part = MIMEText(html, "html")
-            msg["From"] = EMAIL_FROM
-            msg["To"] = email_to
-            msg["Subject"] = "Account Activation"
-            msg.attach(part)
-
-            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-                server.login(SMTP_LOGIN, SMTP_PASS)
-                server.sendmail(EMAIL_FROM, email_to, msg.as_string())
-            del msg
-        else:
-            logger = OWTFLogger()
-            logger.enable_logging()
-            logging.info("")
-            logging.info("------> Showing the confirmation mail here, Since SMTP server is not set:")
-            logger.disable_console_logging()
-            html = BeautifulSoup(html, "html.parser").get_text()
-            print(html)
+        send_email_using_smtp(
+            email_to,
+            html,
+            "Account Activation",
+            "------> Showing the confirmation mail here, Since SMTP server is not set:",
+        )
         response = {"status": "success", "message": "Email send successful"}
         self.success(response)
 
 
 class AccountActivationValidateHandler(APIRequestHandler):
+    """Validates an email confirmation mail which was sent to the user"""
+
     SUPPORTED_METHODS = ["GET"]
 
     def get(self, key_value):
+        """
+        **Example request**:
+
+        .. sourcecode:: http
+
+        GET /api/v1/verify/confirm_email/<link> HTTP/1.1
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+        HTTP/1.1 200 OK
+        Content-Encoding: gzip
+        Vary: Accept-Encoding
+        Content-Type: application/json; charset=UTF-8
+
+        {
+            "status": "success",
+            "message": "Email Verified"
+        }
+
+        """
         email_conf_obj = EmailConfirmation.find_by_key_value(self.session, key_value)
         if email_conf_obj is not None and email_conf_obj.expiration_time >= datetime.now():
             User.activate_user(self.session, email_conf_obj.user_id)
@@ -319,3 +378,159 @@ class AccountActivationValidateHandler(APIRequestHandler):
         else:
             response = {"status": "success", "message": "Invalid Link"}
             self.success(response)
+
+
+class OtpGenerateHandler(APIRequestHandler):
+    """Creates an otp and sends it to the user for password change"""
+
+    SUPPORTED_METHODS = ["POST"]
+
+    def post(self):
+        """
+        **Example request**:
+
+        .. sourcecode:: http
+
+        POST /api/v1/generate/otp/ HTTP/1.1
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+        HTTP/1.1 200 OK
+        Content-Encoding: gzip
+        Vary: Accept-Encoding
+        Content-Type: application/json; charset=UTF-8
+
+        {
+            "status": "success",
+            "message": "Otp Send Successful"
+        }
+
+        """
+        email_to = self.get_argument("email", None)
+        user_obj = User.find_by_email(self.session, email_to)
+        if user_obj is not None:
+            secret_key = user_obj.otp_secret_key
+            totp = pyotp.TOTP(secret_key, interval=300)  # 5 minutes interval
+            OTP = totp.now()
+            html = (
+                """\
+            <html>
+            <body>
+                Welcome """
+                + user_obj.name
+                + ", <br/><br/>"
+                """ 
+                Your OTP for changing password is: """
+                + OTP
+                + " (OTP will expire in 5 mins)"
+                + """
+            </body>
+            </html>
+            """
+            )
+            send_email_using_smtp(
+                email_to, html, "OTP for Password Change", "------> Showing the OTP here, Since SMTP server is not set:"
+            )
+            response = {"status": "success", "message": "Otp Send Successful"}
+            self.success(response)
+        else:
+            err = {"status": "fail", "message": "Email doesn't exist"}
+            self.success(err)
+
+
+class OtpVerifyHandler(APIRequestHandler):
+    """Validates an otp which was sent to the user"""
+
+    SUPPORTED_METHODS = ["POST"]
+
+    def post(self):
+        """
+        **Example request**:
+
+        .. sourcecode:: http
+
+        POST /api/v1/verify/otp/ HTTP/1.1
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+        HTTP/1.1 200 OK
+        Content-Encoding: gzip
+        Vary: Accept-Encoding
+        Content-Type: application/json; charset=UTF-8
+
+        {
+            "status": "success",
+            "message": "OTP Verified"
+        }
+
+        """
+        email = self.get_argument("email", None)
+        otp = self.get_argument("otp", None)
+        user_obj = User.find_by_email(self.session, email)
+        if user_obj is not None and otp is not None:
+            secret_key = user_obj.otp_secret_key
+            totp = pyotp.TOTP(secret_key, interval=300)
+            verify = totp.verify(otp)
+            if verify:
+                self.success({"status": "success", "message": "OTP Verified"})
+            else:
+                self.success({"status": "fail", "message": "Invalid OTP"})
+        else:
+            err = {"status": "fail", "message": "Email doesn't exist"}
+            self.success(err)
+
+
+class PasswordChangeHandler(APIRequestHandler):
+    """Handles setting a new password for the verified user"""
+
+    SUPPORTED_METHODS = ["POST"]
+
+    def post(self):
+        """
+        **Example request**:
+
+        .. sourcecode:: http
+
+        POST /api/v1/new-password/ HTTP/1.1
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+        HTTP/1.1 200 OK
+        Content-Encoding: gzip
+        Vary: Accept-Encoding
+        Content-Type: application/json; charset=UTF-8
+
+        {
+            "status": "success",
+            "message": "Password Change Successful"
+        }
+
+        """
+        password = self.get_argument("password", None)
+        email = self.get_argument("email", None)
+        otp = self.get_argument("otp", None)
+        user_obj = User.find_by_email(self.session, email)
+        match_password = re.search(is_password_valid_regex, password)
+        if not match_password:
+            err = {"status": "fail", "message": "Choose a strong password"}
+            self.success(err)
+        elif email is not None and password is not None and user_obj is not None and otp is not None:
+            secret_key = user_obj.otp_secret_key
+            totp = pyotp.TOTP(secret_key, interval=300)
+            verify = totp.verify(otp)
+            if verify:
+                hashed_pass = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+                User.change_password(self.session, email, hashed_pass)
+                data = {"status": "success", "message": "Password Change Successful"}
+                self.success(data)
+            else:
+                self.success({"status": "fail", "message": "Invalid OTP"})
+        else:
+            err = {"status": "fail", "message": "Password Change Unsuccessful"}
+            self.success(err)

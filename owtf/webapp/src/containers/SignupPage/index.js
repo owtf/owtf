@@ -36,23 +36,6 @@ export class SignupPage extends React.Component {
   }
 
   /**
-   * Function handles rendering of toaster after a successful API call
-   * @param {string} msg msg to be shown in toaster
-   */
-
-  toasterSuccess = msg => {
-    toaster.success(msg);
-  };
-
-  /**
-   * Function handles rendering of toaster after a failed API call
-   * @param {object} error error object received from the server
-   */
-  toasterError = error => {
-    toaster.danger("Server replied: " + error);
-  };
-
-  /**
    * Function handles the input validation for all the text input elements
    * @param {object} e event which triggered this function
    */

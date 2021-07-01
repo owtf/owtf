@@ -8,6 +8,8 @@ import { Pane, Heading, Button, Paragraph, Link } from "evergreen-ui";
 import { emailSendStart } from "./actions";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
+import { createStructuredSelector } from "reselect";
+import { makeSignupCreateEmail } from "../SignupPage/selectors";
 
 export class EmailSendPage extends React.Component {
   constructor(props, context) {
@@ -18,7 +20,7 @@ export class EmailSendPage extends React.Component {
    * Function handles the email resend
    */
   handleResend = () => {
-    this.props.onResend(this.props.match.params.email);
+    this.props.onResend(this.props.email);
   };
 
   render() {
@@ -73,8 +75,13 @@ export class EmailSendPage extends React.Component {
 }
 
 EmailSendPage.propTypes = {
-  onResend: PropTypes.func
+  onResend: PropTypes.func,
+  email: PropTypes.string
 };
+
+const mapStateToProps = createStructuredSelector({
+  email: makeSignupCreateEmail
+});
 
 const mapDispatchToProps = dispatch => {
   return {
@@ -83,6 +90,6 @@ const mapDispatchToProps = dispatch => {
 };
 
 export default connect(
-  null,
+  mapStateToProps,
   mapDispatchToProps
 )(EmailSendPage);
