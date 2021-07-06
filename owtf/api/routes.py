@@ -10,6 +10,7 @@ from owtf.api.handlers.health import HealthCheckHandler
 from owtf.api.handlers.index import IndexHandler
 from owtf.api.handlers.misc import ErrorDataHandler, DashboardPanelHandler, ProgressBarHandler
 from owtf.api.handlers.plugin import PluginDataHandler, PluginNameOutput, PluginOutputHandler
+from owtf.api.handlers.test_group import GroupDataHandler
 from owtf.api.handlers.base import FileRedirectHandler
 from owtf.api.handlers.report import ReportExportHandler
 from owtf.api.handlers.session import OWTFSessionHandler
@@ -43,6 +44,7 @@ API_v1_HANDLERS = [
         PluginDataHandler,
         name="plugins_api_url",
     ),
+    tornado.web.url(r"/api/v1/group/?(add|delete)?/?$", GroupDataHandler, name="group_add_api_url"),
     tornado.web.url(r"/api/v1/plugins/progress/?$", ProgressBarHandler, name="poutput_count"),
     tornado.web.url(r"/api/v1/targets/severitychart/?$", TargetSeverityChartHandler, name="targets_severity"),
     tornado.web.url(r"/api/v1/targets/search/?$", TargetConfigSearchHandler, name="targets_search_api_url"),

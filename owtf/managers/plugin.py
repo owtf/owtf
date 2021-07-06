@@ -198,9 +198,30 @@ def plugin_gen_query(session, criteria):
             query = query.filter(Plugin.type.in_(criteria["type"]))
     if criteria.get("group", None):
         if isinstance(criteria["group"], str):
-            query = query.filter(Plugin.group == criteria["group"])
+            plugin_groups_list = Plugin.get_all_plugin_groups(session)
+            custom_criteria_list = []
+            for plugin_group in plugin_groups_list:
+                if criteria["group"] in plugin_group:
+                    custom_criteria_list.append(plugin_group)
+            if len(custom_criteria_list) == 1:
+                criteria["group"] = custom_criteria_list[0]
+                query = query.filter(Plugin.group == criteria["group"])
+            else:
+                criteria["group"] = custom_criteria_list
+                query = query.filter(Plugin.group.in_(criteria["group"]))      
         if isinstance(criteria["group"], list):
-            query = query.filter(Plugin.group.in_(criteria["group"]))
+            plugin_groups_list = Plugin.get_all_plugin_groups(session)
+            custom_criteria_list = []
+            for requested_group in criteria["group"][0].split(","):
+                for plugin_group in plugin_groups_list:
+                    if requested_group in plugin_group:
+                        custom_criteria_list.append(plugin_group)
+            if len(custom_criteria_list) == 1:
+                criteria["group"] = custom_criteria_list[0]
+                query = query.filter(Plugin.group == criteria["group"])
+            else:
+                criteria["group"] = custom_criteria_list
+                query = query.filter(Plugin.group.in_(criteria["group"]))
     if criteria.get("code", None):
         if isinstance(criteria["code"], str):
             query = query.filter(Plugin.code == criteria["code"])

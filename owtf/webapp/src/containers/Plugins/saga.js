@@ -3,10 +3,10 @@
  */
 
 import { call, put, takeLatest } from 'redux-saga/effects';
-import { LOAD_PLUGINS, POST_TO_WORKLIST } from './constants';
+import { LOAD_PLUGINS, POST_TO_WORKLIST, POST_TO_CREATE_GROUP } from './constants';
 import { pluginsLoaded, pluginsLoadingError, targetPosted, targetPostingError } from './actions';
 import { loadTargets } from '../TargetsPage/actions';
-import { getPluginsAPI, postTargetsToWorklistAPI } from "./api";
+import { getPluginsAPI, postTargetsToWorklistAPI, postPluginsToCreateGroupAPI } from "./api";
 import "@babel/polyfill";
 
 /**
@@ -27,15 +27,30 @@ export function* getPlugins() {
  * Post Targets to worklist request/response handler
  */
 export function* postTargetsToWorklist(action) {
-    const postAPI = postTargetsToWorklistAPI();
-    try {
-      yield call(postAPI, { plugin_data: action.plugin_data });
-      yield put(targetPosted());
-      yield put(loadTargets());
-    } catch (error) {
-      yield put(targetPostingError(error));
-    }
+  const postAPI = postTargetsToWorklistAPI();
+  try {
+    yield call(postAPI, { plugin_data: action.plugin_data });
+    yield put(targetPosted());
+    yield put(loadTargets());
+  } catch (error) {
+    yield put(targetPostingError(error));
   }
+}
+
+
+
+/**
+ * Post custom plugin group to database request/response handler
+ */
+export function* postPluginsToCreateGroup(action) {
+  const postAPI = postPluginsToCreateGroupAPI();
+  try {
+    yield call(postAPI, { plugin_data: action.plugin_data });
+  } catch (error) {
+    yield put(targetPostingError(error));
+  }
+}
+
 
 /**
  * Root saga manages watcher lifecycle
@@ -47,4 +62,5 @@ export default function* pluginSaga() {
   // It will be cancelled automatically on component unmount
   yield takeLatest(LOAD_PLUGINS, getPlugins);
   yield takeLatest(POST_TO_WORKLIST, postTargetsToWorklist);
+  yield takeLatest(POST_TO_CREATE_GROUP, postPluginsToCreateGroup);
 }

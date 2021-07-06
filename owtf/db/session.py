@@ -48,7 +48,7 @@ def flush_transaction(method):
 
 def get_db_engine():
     try:
-        engine = create_engine(DB_URI, pool_recycle=120)
+        engine = create_engine(DB_URI, pool_recycle=10,pool_size=10,max_overflow=5)
         Model.metadata.create_all(engine)
         return engine
     except exc.OperationalError as e:

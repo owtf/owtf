@@ -20,6 +20,9 @@ import {
     LOAD_PLUGINS_SUCCESS,
     LOAD_PLUGINS_ERROR,
     POST_TO_WORKLIST,
+    POST_TO_CREATE_GROUP,
+    POST_TO_CREATE_GROUP_SUCCESS,
+    POST_TO_CREATE_GROUP_ERROR,
     POST_TO_WORKLIST_SUCCESS,
     POST_TO_WORKLIST_ERROR,
   } from './constants';
@@ -68,7 +71,7 @@ import {
    *
    * @param  {string} plugin_data data of the launched plugins.
    *
-   * @return {object} An action object with a type of CREATE_TARGET
+   * @return {object} An action object with a type of POST_TO_WORKLIST
    */
   export function postToWorklist(plugin_data) {
     return {
@@ -76,11 +79,11 @@ import {
       plugin_data
     };
   }
-  
+
   /**
    * Dispatched when the targets are posted to the worklist by the request saga
    *
-   * @return {object} An action object with a type of CREATE_TARGET_SUCCESS
+   * @return {object} An action object with a type of POST_TO_WORKLIST_SUCCESS
    */
   export function targetPosted() {
     return {
@@ -93,11 +96,50 @@ import {
    *
    * @param  {object} error The error
    *
-   * @return {object} An action object with a type of CREATE_TARGET_ERROR passing the error
+   * @return {object} An action object with a type of POST_TO_WORKLIST_ERROR passing the error
    */
   export function targetPostingError(error) {
     return {
       type: POST_TO_WORKLIST_ERROR,
+      error,
+    };
+  }
+
+    /**
+ * Post the selected plugins to add groups, this action starts the request saga.
+ *
+ * @param  {string} plugin_data data of the selected plugin to be added.
+ *
+ * @return {object} An action object with a type of POST_TO_CREATE_GROUP
+ */
+      export function postToCreateGroup(plugin_data) {
+      return {
+        type: POST_TO_CREATE_GROUP,
+        plugin_data
+      };
+    }
+
+  /**
+   * Dispatched when the group add request to the api by the request saga
+   *
+   * @return {object} An action object with a type of POST_TO_CREATE_GROUP_SUCCESS
+   */
+   export function groupCreated() {
+    return {
+      type: POST_TO_CREATE_GROUP_SUCCESS,
+    };
+  }
+  
+  /**
+   * Dispatched when creating the group fails
+   *
+   * @param  {object} error The error
+   *
+   * @return {object} An action object with a type of POST_TO_CREATE_GROUP_ERROR passing the error
+   */
+  export function groupCreatingError(error) {
+    return {
+      type: POST_TO_CREATE_GROUP_ERROR,
       error,
     };
   }
