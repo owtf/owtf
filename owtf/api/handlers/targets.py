@@ -15,10 +15,12 @@ from owtf.managers.target import (
     search_target_configs,
     update_target,
 )
+from owtf.api.handlers.jwtauth import jwtauth
 
 __all__ = ["TargetConfigSearchHandler", "TargetSeverityChartHandler", "TargetConfigHandler"]
 
 
+@jwtauth
 class TargetConfigHandler(APIRequestHandler):
     """Manage target config data."""
 
@@ -172,8 +174,10 @@ class TargetConfigHandler(APIRequestHandler):
             raise APIError(400, "Invalid target reference provided")
 
 
+@jwtauth
 class TargetConfigSearchHandler(APIRequestHandler):
     """Filter targets."""
+
     SUPPORTED_METHODS = ["GET"]
 
     def get(self):
@@ -244,8 +248,10 @@ class TargetConfigSearchHandler(APIRequestHandler):
             raise APIError(400, "Invalid parameter type provided")
 
 
+@jwtauth
 class TargetSeverityChartHandler(APIRequestHandler):
     """Get targets with severity."""
+
     SUPPORTED_METHODS = ["GET"]
 
     def get(self):

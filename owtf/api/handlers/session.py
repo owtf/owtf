@@ -14,10 +14,12 @@ from owtf.managers.session import (
     get_all_session_dicts,
     remove_target_from_session,
 )
+from owtf.api.handlers.jwtauth import jwtauth
 
 __all__ = ["OWTFSessionHandler"]
 
 
+@jwtauth
 class OWTFSessionHandler(APIRequestHandler):
     """Handles OWTF sessions."""
 

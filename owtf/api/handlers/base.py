@@ -45,6 +45,14 @@ class BaseRequestHandler(RequestHandler):
     def set_default_headers(self):
         self.add_header("X-OWTF-Version", __version__)
         self.add_header("X-Frame-Options", "SAMEORIGIN")
+        self.add_header("X-XSS-Protection", "1; mode=block")
+        self.add_header("X-Content-Type-Options", "nosniff")
+        self.add_header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+        self.add_header("Referrer-Policy", "strict-origin-when-cross-origin")
+        self.add_header("Cache-Control", "no-cache,no-store,max-age=0,must-revalidate")
+        self.add_header("Pragma", "no-cache")
+        self.add_header("Expires", "-1")
+
 
 class APIRequestHandler(BaseRequestHandler):
     def initialize(self):
@@ -55,8 +63,7 @@ class APIRequestHandler(BaseRequestHandler):
         self.session = Session()
         # Decode byte string and turn it in to a character (Unicode) string.
         self.request.arguments = {
-            key: [value.decode("utf8") for value in value_list]
-            for key, value_list in self.request.arguments.items()
+            key: [value.decode("utf8") for value in value_list] for key, value_list in self.request.arguments.items()
         }
         self.set_header("Content-Type", "application/json")
 
@@ -123,11 +130,7 @@ class APIRequestHandler(BaseRequestHandler):
         """
 
         def get_exc_message(exception):
-            return (
-                exception.log_message
-                if hasattr(exception, "log_message")
-                else str(exception)
-            )
+            return exception.log_message if hasattr(exception, "log_message") else str(exception)
 
         self.clear()
         self.set_status(status_code)
@@ -190,12 +193,8 @@ class UIRequestHandler(BaseRequestHandler):
         set_cookie(key, value, **kwargs)
 
     def _set_user_cookie(self, user, server):
-        self.application.log.debug(
-            "Setting cookie for %s: %s", user.name, server.cookie_name
-        )
-        self._set_cookie(
-            server.cookie_name, user.cookie_id, encrypted=True, path=server.base_url
-        )
+        self.application.log.debug("Setting cookie for %s: %s", user.name, server.cookie_name)
+        self._set_cookie(server.cookie_name, user.cookie_id, encrypted=True, path=server.base_url)
 
     def get_session_cookie(self):
         """Get the session id from a cookie
