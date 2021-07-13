@@ -5,9 +5,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
-import { Dialog, Pane, Tab, Tablist, Spinner, Heading, Checkbox, Button, TextInputField } from 'evergreen-ui';
-import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchPlugins, makeSelectPostToWorklistError } from './selectors';
-import { loadPlugins, postToWorklist, postToCreateGroup } from './actions';
+import { Dialog, Pane, Tab, Tablist, Spinner, Heading, Checkbox, Button, TextInputField, toaster } from 'evergreen-ui';
+import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchPlugins, makeSelectPostToWorklistError, makeSelectPostToCreateGroupError, makeSelectPostToDeleteGroupError } from './selectors';
+import { loadPlugins, postToWorklist, postToCreateGroup, postToDeleteGroup } from './actions';
 import PluginsTable from './PluginsTable';
 
 export class Plugins extends React.Component {
@@ -20,6 +20,9 @@ export class Plugins extends React.Component {
     this.handleCheckboxChange = this.handleCheckboxChange.bind(this);
     this.forceOverwriteChange = this.forceOverwriteChange.bind(this);
     this.handlePostToWorklist = this.handlePostToWorklist.bind(this);
+    this.createGroup = this.createGroup.bind(this);
+    this.handlePostToCreateGroup = this.handlePostToCreateGroup.bind(this);
+    this.deleteGroup = this.deleteGroup.bind(this);
     this.resetState = this.resetState.bind(this);
 
     this.state = {
@@ -45,6 +48,7 @@ export class Plugins extends React.Component {
       groupSelectedPlugins: {},
       force_overwrite: false,
       groupShown: false,
+      customGroup: ""
     });
   }
 
@@ -90,17 +94,17 @@ export class Plugins extends React.Component {
    */
   handleCheckboxChange(e, collection_type, collection_name) {
     const newArray = this.state.groupSelectedPlugins;
-    if(e.target.checked){
-      if(newArray[collection_type] === undefined)
+    if (e.target.checked) {
+      if (newArray[collection_type] === undefined)
         newArray[collection_type] = [];
       newArray[collection_type].push(collection_name);
     } else {
       const index = newArray[collection_type].indexOf(collection_name);
-      newArray[collection_type].splice(index ,1);
-      if(newArray[collection_type].length === 0)
+      newArray[collection_type].splice(index, 1);
+      if (newArray[collection_type].length === 0)
         delete newArray[collection_type];
     }
-    this.setState({ groupSelectedPlugins: newArray});
+    this.setState({ groupSelectedPlugins: newArray });
   }
 
   /**
@@ -121,7 +125,7 @@ export class Plugins extends React.Component {
       this.handlePostToWorklist(pluginDetails);
     })
     // Then fire off any selected groups
-    if(Object.getOwnPropertyNames(this.state.groupSelectedPlugins).length !== 0){ // i.e no checkboxes checked then do not send a request
+    if (Object.getOwnPropertyNames(this.state.groupSelectedPlugins).length !== 0) { // i.e no checkboxes checked then do not send a request
       this.handlePostToWorklist(this.state.groupSelectedPlugins);
     }
     this.resetState();
@@ -132,10 +136,10 @@ export class Plugins extends React.Component {
    * Function that posts targets to worklist using API call
    * @param {object} selectedPluginData array containing the target and plugin launch data
    */
-  handlePostToWorklist(selectedPluginData){
+  handlePostToWorklist(selectedPluginData) {
     selectedPluginData["id"] = this.props.selectedTargets;
     selectedPluginData["force_overwrite"] = this.state.force_overwrite;
-    const data = Object.keys(selectedPluginData).map(function(key) { //seriliaze the selectedPluginData object
+    const data = Object.keys(selectedPluginData).map(function (key) { //seriliaze the selectedPluginData object
       return encodeURIComponent(key) + '=' + encodeURIComponent(selectedPluginData[key])
     }).join('&');
 
@@ -143,8 +147,8 @@ export class Plugins extends React.Component {
       this.props.handleAlertMsg("warning", "No targets selected to launch plugins");
     } else {
       this.props.onPostToWorklist(data);
-      setTimeout(()=> {
-        if(this.props.postingError !== false){
+      setTimeout(() => {
+        if (this.props.postingError !== false) {
           this.props.handleAlertMsg("danger", "Unable to add " + this.props.postingError); // on post to worklist saga success
         } else {
           this.props.handleAlertMsg("success", "Selected plugins launched, please check worklist to manage :D"); // on post to worklist saga success
@@ -155,41 +159,80 @@ export class Plugins extends React.Component {
   }
 
 
-    /**
-   * Function handles the creation of custom test group
-   */
-    createGroup(selectedPlugins,customGroup) {
+  /**
+ * Function handles the creation of custom test group
+ */
+  createGroup() {
+    if (this.state.customGroup != "") {
       // First fire off individual plugins to group add API 
-      selectedPlugins.map(pluginDetails => {
+      this.state.selectedPlugins.map(pluginDetails => {
         delete pluginDetails["key"];
-        this.handlePostToCreateGroup(pluginDetails,customGroup);
+        this.handlePostToCreateGroup(pluginDetails, this.state.customGroup);
       })
+
+      if (Object.getOwnPropertyNames(this.state.groupSelectedPlugins).length !== 0) { // i.e no checkboxes checked then do not send a request
+        this.handlePostToCreateGroup(this.state.groupSelectedPlugins);
+      }
       this.resetState();
       this.props.resetTargetState();
+    } else {
+      toaster.danger("Custom group name cannot be empty");
     }
+  }
 
-    /**
-     * Function that posts selected plugins to group/add API call
-     * @param {object} selectedPluginData array containing the plugin selected data
-     */
-    handlePostToCreateGroup(selectedPluginData,customGroup) {
-      selectedPluginData["id"] = this.props.selectedTargets;
+  /**
+   * Function that posts selected plugins to group/add API call
+   * @param {object} selectedPluginData array containing the plugin selected data
+   * @param {string} customGroup name of the custom group to be added
+   */
+  handlePostToCreateGroup(selectedPluginData, customGroup) {
+    selectedPluginData["id"] = this.props.selectedTargets;
+    const data = Object.keys(selectedPluginData).map(function (key) { //seriliaze the selectedPluginData object
+      if (key === "group") {
+        selectedPluginData[key] = selectedPluginData[key] + ";" + customGroup
+      }
+      return encodeURIComponent(key) + '=' + encodeURIComponent(selectedPluginData[key])
+    }).join('&');
+    this.props.onPostToCreateGroup(data);
+    setTimeout(() => {
+      if (this.props.creatingError !== false) {
+        this.props.handleAlertMsg("danger", "Unable to add " + this.props.creatingError); // on post to worklist saga success
+      } else {
+        this.props.handleAlertMsg("success", "Selected plugins added to the group :D"); // on post to worklist saga success
+      }
+    }, 1000);
+    this.props.handlePluginClose();
+  }
+
+  /**
+   * Function handles the deletion of custom test group
+   * @param {object} selectedPluginData array containing the selected plugin groups
+   */
+  deleteGroup(selectedPluginData) {
+    const keys = Object.keys(selectedPluginData);
+    console.log(keys);
+    if (keys.includes('type')) {
+      toaster.danger("Cannot delete plugin type");
+    }
+    if ((Object.getOwnPropertyNames(selectedPluginData).length !== 0) && !(keys.includes('type')) ) { // i.e no checkboxes checked then do not send a request 
       const data = Object.keys(selectedPluginData).map(function (key) { //seriliaze the selectedPluginData object
-        if (key === "group") {
-          selectedPluginData[key] = selectedPluginData[key]+";"+customGroup
-        }
         return encodeURIComponent(key) + '=' + encodeURIComponent(selectedPluginData[key])
       }).join('&');
-      this.props.onPostToCreateGroup(data);
+
       setTimeout(() => {
-        if (this.props.postingError !== false) {
-          this.props.handleAlertMsg("danger", "Unable to add " + this.props.postingError); // on post to worklist saga success
+        if (this.props.deletingError !== false) {
+          this.props.handleAlertMsg("danger", "Unable to delete " + this.props.deletingError); // on post to worklist saga success
         } else {
-          this.props.handleAlertMsg("success", "Selected plugins added to the group :D"); // on post to worklist saga success
+          this.props.handleAlertMsg("success", "Selected plugin group deleted"); // on post to worklist saga success
         }
       }, 1000);
-      this.props.handlePluginClose();
+      console.log(data);
+      this.props.onPostToDeleteGroup(data);
     }
+    this.resetState();
+    this.props.resetTargetState();
+  }
+
 
   render() {
     const { handlePluginClose, pluginShow, plugins, loading, error } = this.props;
@@ -253,10 +296,10 @@ export class Plugins extends React.Component {
                 title="Create custom plugin group"
                 onCloseComplete={() => this.setState({ groupShown: false })}
                 confirmLabel="Create Group"
-                onConfirm={() => this.createGroup(this.state.selectedPlugins,this.state.customGroup)}
+                onConfirm={() => this.createGroup()}
               >
                 <Pane>
-                  <TextInputField label="Group name" name="group_name" placeholder="Enter group name" onChange={event => this.setState({customGroup: event.target.value})}></TextInputField>
+                  <TextInputField label="Group name" name="group_name" placeholder="Enter group name" onChange={event => this.setState({ customGroup: event.target.value })}></TextInputField>
                 </Pane>
               </Dialog>
               <Button
@@ -288,6 +331,17 @@ export class Plugins extends React.Component {
             aria-hidden={this.state.selectedIndex !== 2}
             display={this.state.selectedIndex === 2 ? 'block' : 'none'}
           >
+            <Pane display="flex" flexDirection="row-reverse" alignItems="right">
+              <Button
+                appearance="primary"
+                width={104}
+                marginRight={16}
+                float="right"
+                onClick={() => this.deleteGroup(this.state.groupSelectedPlugins)}
+              >
+                Delete Group
+              </Button>
+            </Pane>
             <Pane display="flex" flexDirection="row">
               <Pane display="flex" flexDirection="column" width={600}>
                 <Heading marginTop="default">Plugin Groups</Heading>
@@ -339,11 +393,20 @@ Plugins.propTypes = {
     PropTypes.object,
     PropTypes.bool,
   ]),
+  creatingError: PropTypes.oneOfType([
+    PropTypes.object,
+    PropTypes.bool,
+  ]),
+  deletingError: PropTypes.oneOfType([
+    PropTypes.object,
+    PropTypes.bool,
+  ]),
   pluginShow: PropTypes.bool,
   groupShown: PropTypes.bool,
   onFetchPlugins: PropTypes.func,
   onPostToWorklist: PropTypes.func,
   onPostToCreateGroup: PropTypes.func,
+  onPostToDeleteGroup: PropTypes.func,
   handlePluginClose: PropTypes.func,
   selectedTargets: PropTypes.array,
   handleAlertMsg: PropTypes.func,
@@ -355,6 +418,8 @@ const mapStateToProps = createStructuredSelector({
   loading: makeSelectFetchLoading,
   error: makeSelectFetchError,
   postingError: makeSelectPostToWorklistError,
+  creatingError: makeSelectPostToCreateGroupError,
+  deletingError: makeSelectPostToDeleteGroupError,
 });
 
 const mapDispatchToProps = (dispatch) => {
@@ -362,6 +427,7 @@ const mapDispatchToProps = (dispatch) => {
     onFetchPlugins: () => dispatch(loadPlugins()),
     onPostToWorklist: (plugin_data) => dispatch(postToWorklist(plugin_data)),
     onPostToCreateGroup: (plugin_data) => dispatch(postToCreateGroup(plugin_data)),
+    onPostToDeleteGroup: (plugin_data) => dispatch(postToDeleteGroup(plugin_data)),
   };
 };
 

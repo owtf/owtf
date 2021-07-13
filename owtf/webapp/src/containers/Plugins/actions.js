@@ -20,11 +20,14 @@ import {
     LOAD_PLUGINS_SUCCESS,
     LOAD_PLUGINS_ERROR,
     POST_TO_WORKLIST,
+    POST_TO_WORKLIST_SUCCESS,
+    POST_TO_WORKLIST_ERROR,
     POST_TO_CREATE_GROUP,
     POST_TO_CREATE_GROUP_SUCCESS,
     POST_TO_CREATE_GROUP_ERROR,
-    POST_TO_WORKLIST_SUCCESS,
-    POST_TO_WORKLIST_ERROR,
+    POST_TO_DELETE_GROUP,
+    POST_TO_DELETE_GROUP_SUCCESS,
+    POST_TO_DELETE_GROUP_ERROR,
   } from './constants';
   
   /**
@@ -140,6 +143,46 @@ import {
   export function groupCreatingError(error) {
     return {
       type: POST_TO_CREATE_GROUP_ERROR,
+      error,
+    };
+  }
+
+
+    /**
+ * Post the selected groups to delete groups, this action starts the request saga.
+ *
+ * @param  {string} plugin_data data of the selected plugin to be added.
+ *
+ * @return {object} An action object with a type of POST_TO_DELETE_GROUP
+ */
+     export function postToDeleteGroup(plugin_data) {
+      return {
+        type: POST_TO_DELETE_GROUP,
+        plugin_data
+      };
+    }
+
+  /**
+   * Dispatched when the group add request to the api by the request saga
+   *
+   * @return {object} An action object with a type of POST_TO_CREATE_GROUP_SUCCESS
+   */
+   export function groupDeleted() {
+    return {
+      type: POST_TO_DELETE_GROUP_SUCCESS,
+    };
+  }
+  
+  /**
+   * Dispatched when creating the group fails
+   *
+   * @param  {object} error The error
+   *
+   * @return {object} An action object with a type of POST_TO_CREATE_GROUP_ERROR passing the error
+   */
+  export function groupDeletingError(error) {
+    return {
+      type: POST_TO_DELETE_GROUP_ERROR,
       error,
     };
   }

@@ -23,6 +23,9 @@ import {
   POST_TO_CREATE_GROUP,
   POST_TO_CREATE_GROUP_SUCCESS,
   POST_TO_CREATE_GROUP_ERROR,
+  POST_TO_DELETE_GROUP,
+  POST_TO_DELETE_GROUP_SUCCESS,
+  POST_TO_DELETE_GROUP_ERROR,
 } from './constants';
 
 // The initial state of the plugins.
@@ -105,8 +108,35 @@ export function postToCreateGroupReducer(state = initialPostToCreateGroupState, 
   }
 }
 
+// The initial state of the target create
+const initialPostToDeleteGroupState = fromJS({
+  loading: false,
+  error: false,
+});
+
+
+export function postToDeleteGroupReducer(state = initialPostToDeleteGroupState, action) {
+  switch (action.type) {
+    case POST_TO_DELETE_GROUP:
+      return state
+        .set('loading', true)
+        .set('error', false)
+    case POST_TO_DELETE_GROUP_SUCCESS:
+      return state
+        .set('loading', false)
+        .set('error', false)
+    case POST_TO_DELETE_GROUP_ERROR:
+      return state
+        .set('loading', false)
+        .set('error', action.error);
+    default:
+      return state;
+  }
+}
+
 export default combineReducers({
   load: pluginsLoadReducer,
   postToWorklist: postToWorklistReducer,
-  postToCreateGroup: postToCreateGroupReducer
+  postToCreateGroup: postToCreateGroupReducer,
+  postToDeleteGroup: postToDeleteGroupReducer
 })

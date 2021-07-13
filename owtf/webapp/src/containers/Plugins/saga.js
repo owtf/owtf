@@ -3,10 +3,10 @@
  */
 
 import { call, put, takeLatest } from 'redux-saga/effects';
-import { LOAD_PLUGINS, POST_TO_WORKLIST, POST_TO_CREATE_GROUP } from './constants';
-import { pluginsLoaded, pluginsLoadingError, targetPosted, targetPostingError } from './actions';
+import { LOAD_PLUGINS, POST_TO_WORKLIST, POST_TO_CREATE_GROUP, POST_TO_DELETE_GROUP } from './constants';
+import { loadPlugins, pluginsLoaded, pluginsLoadingError, targetPosted, targetPostingError, groupCreated, groupCreatingError, groupDeleted, groupDeletingError } from './actions';
 import { loadTargets } from '../TargetsPage/actions';
-import { getPluginsAPI, postTargetsToWorklistAPI, postPluginsToCreateGroupAPI } from "./api";
+import { getPluginsAPI, postTargetsToWorklistAPI, postPluginsToCreateGroupAPI, postGroupToDeleteGroupAPI } from "./api";
 import "@babel/polyfill";
 
 /**
@@ -40,14 +40,30 @@ export function* postTargetsToWorklist(action) {
 
 
 /**
- * Post custom plugin group to database request/response handler
+ * Post custom plugin group to add group request/response handler
  */
 export function* postPluginsToCreateGroup(action) {
   const postAPI = postPluginsToCreateGroupAPI();
   try {
     yield call(postAPI, { plugin_data: action.plugin_data });
+    yield put(groupCreated());
+    yield put(loadPlugins());
   } catch (error) {
-    yield put(targetPostingError(error));
+    yield put(groupCreatingError(error));
+  }
+}
+
+/**
+ * Post custom plugin group to delete group request/response handler
+ */
+ export function* postGroupToDeleteGroup(action) {
+  const postAPI = postGroupToDeleteGroupAPI();
+  try {
+    yield call(postAPI, { plugin_data: action.plugin_data });
+    yield put(groupDeleted());
+    yield put(loadPlugins());
+  } catch (error) {
+    yield put(groupDeletingError(error));
   }
 }
 
@@ -63,4 +79,5 @@ export default function* pluginSaga() {
   yield takeLatest(LOAD_PLUGINS, getPlugins);
   yield takeLatest(POST_TO_WORKLIST, postTargetsToWorklist);
   yield takeLatest(POST_TO_CREATE_GROUP, postPluginsToCreateGroup);
+  yield takeLatest(POST_TO_DELETE_GROUP, postGroupToDeleteGroup);
 }
