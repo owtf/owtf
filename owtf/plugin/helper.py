@@ -297,7 +297,7 @@ class PluginHelper(object):
         logging.info("File: %s saved to: %s", Filename, save_path)
         template = Template(
             """
-            <a href="{{ Link }}" target="_blank">
+            <a href="{{ Link }}" target="_blank" rel="noopener noreferrer">
                 {{ LinkName }}
             </a>
             """
