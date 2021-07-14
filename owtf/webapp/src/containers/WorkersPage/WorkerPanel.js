@@ -130,10 +130,11 @@ export default class WorkerPanel extends React.Component {
    */
   getWorkerLog(name, lines, host){
     this.props.onFetchWorkerLogs(name, lines, host);
+    const id = name.split('-')[1];
     setTimeout(() => {
       const workerLogs = this.props.workerLogs;
       if(workerLogs!==false){
-        this.props.handleLogDialogContent(workerLogs);
+        this.props.handleLogDialogContent(workerLogs,id);
       }
     }, 500);
   }
@@ -146,7 +147,8 @@ export default class WorkerPanel extends React.Component {
    */
   openLogModal(worker, lines, host) {
     this.getWorkerLog(worker, lines, host);
-    this.props.handleLogDialogShow();
+    const id = worker.split('-')[1];
+    this.props.handleLogDialogShow(id);
   }
 
   render() {
@@ -251,7 +253,7 @@ export default class WorkerPanel extends React.Component {
                   </Button>
                 </Popover>
               </Paragraph>
-              <Pre marginTop={10}>{logDialogContent}</Pre>
+              <Pre marginTop={10}>{logDialogContent[worker.id]}</Pre>
             </Pane>
           )}
         </Pane>
@@ -271,5 +273,5 @@ WorkerPanel.propTypes = {
   logDialogShow: PropTypes.bool,
   workerLogs: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
   onFetchWorkerLogs: PropTypes.func,
-  logDialogContent: PropTypes.string,
+  logDialogContent: PropTypes.array,
 };

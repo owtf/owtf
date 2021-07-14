@@ -30,7 +30,11 @@ export class Worker extends React.Component {
       setTimeout(() => {
         const workerLogs = this.props.workerLogs;
         if(workerLogs!==false){
-          this.setState({ dialogContent: workerLogs });
+          if (workerLogs == ""){
+            this.setState({ dialogContent: "Nothing to show here!" });
+          }else{
+            this.setState({ dialogContent: workerLogs });
+          }
         }
       }, 500);
       this.setState({ showDialog: true });

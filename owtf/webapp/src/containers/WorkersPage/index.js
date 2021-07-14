@@ -60,7 +60,8 @@ export class WorkersPage extends React.Component {
 
     this.state = {
       logDialogShow: false,
-      logDialogContent: "Nothing to show here!"
+      logDialogContent: [],
+      worker_id: 1
     };
   }
 
@@ -104,15 +105,22 @@ export class WorkersPage extends React.Component {
   /**
    * Function handles the rendering of worker log dialog box
    */
-  handleLogDialogShow() {
+  handleLogDialogShow(id) {
+    this.setState({worker_id: Number(id)});
     this.setState({ logDialogShow: true });
   }
 
   /**
    * Function handles the rendering of worker log dialog box content
    */
-  handleLogDialogContent(logs) {
-    this.setState({ logDialogContent: logs });
+  handleLogDialogContent(logs, id) {
+    const newlogs = this.state.logDialogContent;
+    if (logs == ""){
+      newlogs[Number(id)] = "Nothing to show here!";
+    }else{
+      newlogs[Number(id)] = logs;
+    }
+    this.setState({ logDialogContent: newlogs });
   }
 
   /**
@@ -198,7 +206,7 @@ export class WorkersPage extends React.Component {
         <Spinner />
       )
     }
-    if(workerProgress !== false) {
+    if (workerProgress !== false) {
       const left_count = workerProgress.left_count;
       const complete_count = workerProgress.complete_count;
       if (left_count == 0 && complete_count == 0) {
@@ -279,7 +287,7 @@ export class WorkersPage extends React.Component {
         </Pane>
         <Heading title="updates in 13s">Total scan progress</Heading>
         <Pane marginBottom={20}>
-         {this.renderProgressBar()}
+          {this.renderProgressBar()}
         </Pane>
         {fetchError !== false ? (
           <Pane
@@ -304,8 +312,8 @@ export class WorkersPage extends React.Component {
         <Pane clearfix>
           {workers !== false
             ? workers.map(obj => (
-                <WorkerPanel worker={obj} key={obj.id} {...WorkerPanelProps} />
-              ))
+              <WorkerPanel worker={obj} key={obj.id} {...WorkerPanelProps} />
+            ))
             : null}
         </Pane>
         <Dialog
@@ -315,7 +323,7 @@ export class WorkersPage extends React.Component {
           intent="danger"
           hasFooter={false}
         >
-          <Pre>{this.state.logDialogContent}</Pre>
+          <Pre>{this.state.logDialogContent[this.state.worker_id]}</Pre>
         </Dialog>
       </Pane>
     );
