@@ -1,14 +1,16 @@
 /* Plugin component
  * This components manages Plugins and handles the plugin launch on selected targets
  */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
-import { Dialog, Pane, Tab, Tablist, Spinner, Heading, Checkbox, Button, TextInputField, toaster } from 'evergreen-ui';
+import { Dialog, Pane, Tab, Tablist, Spinner, Heading, Checkbox, SearchInput, Button, TextInputField, toaster } from 'evergreen-ui';
 import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchPlugins, makeSelectPostToWorklistError, makeSelectPostToCreateGroupError, makeSelectPostToDeleteGroupError } from './selectors';
 import { loadPlugins, postToWorklist, postToCreateGroup, postToDeleteGroup } from './actions';
 import PluginsTable from './PluginsTable';
+
 
 export class Plugins extends React.Component {
   constructor(props, context) {
@@ -32,6 +34,7 @@ export class Plugins extends React.Component {
       force_overwrite: false, //handles force-overwrite checkbox
       groupShown: false, //custom groups input pop up
       customGroup: "", //custom group name input box
+      globalSearch: "" // handles the search query for the main search box
     };
   }
 
@@ -49,6 +52,7 @@ export class Plugins extends React.Component {
       force_overwrite: false,
       groupShown: false,
       customGroup: ""
+
     });
   }
 
@@ -68,6 +72,7 @@ export class Plugins extends React.Component {
     const pluginTypes = [];
     if (this.props.plugins !== false) {
       this.props.plugins.map(plugin => {
+
         if (pluginGroups.indexOf(plugin.group) == -1) {
           if (plugin.group.includes(";")) {
             const custom_plugin_group = plugin.group.split(";");
@@ -84,6 +89,7 @@ export class Plugins extends React.Component {
     }
     const customPluginGroups = [...new Set(pluginGroups)];
     return [customPluginGroups, pluginTypes];
+
   }
 
   /**
@@ -123,9 +129,12 @@ export class Plugins extends React.Component {
     this.state.selectedPlugins.map(pluginDetails => {
       delete pluginDetails["key"];
       this.handlePostToWorklist(pluginDetails);
-    })
+    });
     // Then fire off any selected groups
-    if (Object.getOwnPropertyNames(this.state.groupSelectedPlugins).length !== 0) { // i.e no checkboxes checked then do not send a request
+    if (
+      Object.getOwnPropertyNames(this.state.groupSelectedPlugins).length !== 0
+    ) {
+      // i.e no checkboxes checked then do not send a request
       this.handlePostToWorklist(this.state.groupSelectedPlugins);
     }
     this.resetState();
@@ -238,10 +247,12 @@ export class Plugins extends React.Component {
     const { handlePluginClose, pluginShow, plugins, loading, error } = this.props;
     const PluginsTableProps = {
       plugins: plugins,
+      globalSearch: this.state.globalSearch,
       updateSelectedPlugins: this.updateSelectedPlugins,
     }
     const groupShown = this.state.groupShown;
     const groupArray = this.handleGroupLaunch();
+
 
     return (
       <Dialog
@@ -272,6 +283,20 @@ export class Plugins extends React.Component {
             >
               Launch in groups
             </Tab>
+            <Tab>
+              {this.state.selectedIndex === 1 ? (
+                <SearchInput
+                  flex={1}
+                  borderRadius={100}
+                  className="search-box"
+                  placeholder="Search"
+                  onChange={e =>
+                    this.setState({ globalSearch: e.target.value })
+                  }
+                  value={this.state.globalSearch}
+                />
+              ) : null}
+            </Tab>
           </Tablist>
           <Checkbox
             id="force-overwrite"
@@ -288,8 +313,9 @@ export class Plugins extends React.Component {
             role="tabpanel"
             aria-labelledby="individual"
             aria-hidden={this.state.selectedIndex !== 1}
-            display={this.state.selectedIndex === 1 ? 'block' : 'none'}
+            display={this.state.selectedIndex === 1 ? "block" : "none"}
           >
+
             <Pane clearfix>
               <Dialog
                 isShown={groupShown}
@@ -329,7 +355,7 @@ export class Plugins extends React.Component {
             role="tabpanel"
             aria-labelledby="group"
             aria-hidden={this.state.selectedIndex !== 2}
-            display={this.state.selectedIndex === 2 ? 'block' : 'none'}
+            display={this.state.selectedIndex === 2 ? "block" : "none"}
           >
             <Pane display="flex" flexDirection="row-reverse" alignItems="right">
               <Button
@@ -350,9 +376,14 @@ export class Plugins extends React.Component {
                     <Checkbox
                       key={index}
                       label={group}
-                      checked={(this.state.groupSelectedPlugins["group"] !== undefined)
-                        && (this.state.groupSelectedPlugins["group"].includes(group))}
-                      onChange={e => this.handleCheckboxChange(e, "group", group)}
+                      checked={
+                        this.state.groupSelectedPlugins["group"] !==
+                          undefined &&
+                        this.state.groupSelectedPlugins["group"].includes(group)
+                      }
+                      onChange={e =>
+                        this.handleCheckboxChange(e, "group", group)
+                      }
                     />
                   );
                 })}
@@ -363,9 +394,11 @@ export class Plugins extends React.Component {
                   return (
                     <Checkbox
                       key={index}
-                      label={type.replace(/_/g, ' ')}
-                      checked={(this.state.groupSelectedPlugins["type"] !== undefined)
-                        && (this.state.groupSelectedPlugins["type"].includes(type))}
+                      label={type.replace(/_/g, " ")}
+                      checked={
+                        this.state.groupSelectedPlugins["type"] !== undefined &&
+                        this.state.groupSelectedPlugins["type"].includes(type)
+                      }
                       onChange={e => this.handleCheckboxChange(e, "type", type)}
                     />
                   );
@@ -410,7 +443,7 @@ Plugins.propTypes = {
   handlePluginClose: PropTypes.func,
   selectedTargets: PropTypes.array,
   handleAlertMsg: PropTypes.func,
-  resetTargetState: PropTypes.func,
+  resetTargetState: PropTypes.func
 };
 
 const mapStateToProps = createStructuredSelector({
@@ -428,7 +461,11 @@ const mapDispatchToProps = (dispatch) => {
     onPostToWorklist: (plugin_data) => dispatch(postToWorklist(plugin_data)),
     onPostToCreateGroup: (plugin_data) => dispatch(postToCreateGroup(plugin_data)),
     onPostToDeleteGroup: (plugin_data) => dispatch(postToDeleteGroup(plugin_data)),
+
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Plugins);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Plugins);

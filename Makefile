@@ -1,9 +1,10 @@
 USER := $(shell whoami)
-PROJ=owtf
-PYTHON=python3
+PROJ := owtf
+PYTHON := python3
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
-VENV_PATH=$$HOME/.virtualenvs/${PROJ}
+VENV_PATH := ${HOME}/.virtualenvs/${PROJ}
+SHELL := /bin/bash
 
 .PHONY: venv setup web docs lint clean bump build release
 
@@ -13,8 +14,8 @@ ifeq ($(USER), root)
 endif
 
 clean-pyc:
-	-find . -type f -a \( -name "*.pyc" -o -name "*$$py.class" \) | xargs rm
-	-find . -type d -name "__pycache__" | xargs rm -r
+	-find . -type f -a \( -name "*.pyc" -o -name "*$$py.class" \) | xargs rm -rf
+	-find . -type d -name "__pycache__" | xargs rm -rf
 
 clean-build:
 	rm -rf build/ dist/ .eggs/ *.egg-info/ .tox/ .coverage cover/
@@ -24,37 +25,36 @@ clean-build:
 install-dependencies:
 	@echo "--> Installing Kali dependencies"
 	sudo apt-get update
-	sudo apt-get install -y python git
+	sudo apt-get install -y python3 git
 	sudo apt-get install -y xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc python-all-dev \
-			python-pip postgresql-server-dev-all postgresql-client postgresql-client-common postgresql  \
-			libcurl4-openssl-dev proxychains tor libffi-dev
+			python3-pip postgresql-server-dev-all postgresql-client postgresql-client-common postgresql  \
+			libcurl4-openssl-dev proxychains tor libffi-dev golang-go
 
 opt-tools:
-	sudo apt-get install -y lbd gnutls-bin arachni o-saft metagoofil lbd arachni \
+	sudo apt-get install -y lbd gnutls-bin o-saft metagoofil lbd  \
 	                        theharvester tlssled nikto dnsrecon nmap whatweb skipfish dirbuster metasploit-framework \
-	                        wpscan wapiti waffit hydra metagoofil o-saft
+	                        wpscan wapiti  hydra metagoofil o-saft
 
 venv:
 	@echo "Installing the virtualenv for OWTF"
 	rm -rf $(VENV_PATH)
 	$(PYTHON) -m venv $(VENV_PATH) --clear
 
-web-tools:
-	sudo apt-get install kali-linux-web
 
 activate-virtualenv:
-	source $(VENV_PATH)/bin/activate
+	chmod +x $(VENV_PATH)/bin/activate
+	bash -c "$(VENV_PATH)/bin/activate"
 
 
-setup:  venv activate-virtualenv install-requirements
+setup: install-dependencies venv activate-virtualenv install-requirements
 
 
 ### REQUIREMENTS
 
 install-python-requirements: setup.py check-root
 	@echo "--> Installing Python development dependencies."
-	pip install setuptools
-	for f in `ls requirements/` ; do pip install -r requirements/$$f ; done
+	pip3 install setuptools
+	for f in `ls requirements/` ; do pip3 install -r requirements/$$f ; done
 
 install-ui-requirements:
 	@echo "--> Installing Node development dependencies."
@@ -62,7 +62,7 @@ install-ui-requirements:
 
 install-docs-requirements:
 	@echo "--> Installing Sphinx dependencies"
-	pip install sphinx sphinx_rtd_theme
+	pip3 install sphinx sphinx_rtd_theme
 
 install-requirements: install-python-requirements install-ui-requirements install-docs-requirements
 
@@ -135,8 +135,8 @@ coverage-py: clean-py
 
 clean-py:
 	@echo "--> Removing Python bytecode files."
-	find . -name '__pycache__' -delete  # Python 3
-	find . -name '*.py[co]' -delete  # Python 2
+	find . -name '__pycache__' -exec rm -rf {} \;  # Python 3
+	find . -name '*.py[co]' -exec rm -rf {} \;  # Python 2
 
 clean-js:
 	@echo "--> Removing JavaScript build output."

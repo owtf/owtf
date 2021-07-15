@@ -15,6 +15,8 @@ import reportsReducer from "containers/Report/reducer";
 import worklistReducer from "containers/WorklistPage/reducer";
 import dashboardReducer from "containers/Dashboard/reducer";
 import workersReducer from "containers/WorkersPage/reducer";
+import emailVerificationReducer from "containers/EmailVerification/reducer";
+import signupReducer from "containers/SignupPage/reducer";
 /*
  * routeReducer
  *
@@ -57,6 +59,8 @@ export default function createReducer() {
     reports: reportsReducer,
     worklist: worklistReducer,
     dashboard: dashboardReducer,
-    workers: workersReducer
+    workers: workersReducer,
+    emailverification: emailVerificationReducer,
+    signup: signupReducer
   });
 }
