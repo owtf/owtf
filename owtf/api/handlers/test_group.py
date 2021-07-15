@@ -93,7 +93,7 @@ class GroupDataHandler(APIRequestHandler):
                 self.session.commit()
                 self.success(test_group.value(TestGroup.group))
         elif action == "delete":
-            default_groups = ["network","auxillary","web"]
+            default_groups = ["network","auxiliary","web"]
             plugin_data = plugin_data.split("=")
             if plugin_data[0] == "group":
                 if "%" in plugin_data[1]:

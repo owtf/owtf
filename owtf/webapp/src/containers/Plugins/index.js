@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import PropTypes from 'prop-types';
+import PropTypes, { bool } from 'prop-types';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { Dialog, Pane, Tab, Tablist, Spinner, Heading, Checkbox, SearchInput, Button, TextInputField, toaster } from 'evergreen-ui';
@@ -219,11 +219,20 @@ export class Plugins extends React.Component {
    */
   deleteGroup(selectedPluginData) {
     const keys = Object.keys(selectedPluginData);
-    console.log(keys);
+    var default_groups = true;
+    if (keys.includes('group')) {
+      const group_array = Array.from(selectedPluginData['group']);
+      if ((group_array.includes('web')) || (group_array.includes('auxiliary')) || (group_array.includes('network'))) {
+        default_groups = false;
+        toaster.danger("Cannot delete default plugin group");
+      } else {
+        default_groups = true;
+      }
+    }
     if (keys.includes('type')) {
       toaster.danger("Cannot delete plugin type");
     }
-    if ((Object.getOwnPropertyNames(selectedPluginData).length !== 0) && !(keys.includes('type')) ) { // i.e no checkboxes checked then do not send a request 
+    if ((Object.getOwnPropertyNames(selectedPluginData).length !== 0) && !(keys.includes('type')) && (default_groups)) { // i.e no checkboxes checked then do not send a request 
       const data = Object.keys(selectedPluginData).map(function (key) { //seriliaze the selectedPluginData object
         return encodeURIComponent(key) + '=' + encodeURIComponent(selectedPluginData[key])
       }).join('&');
@@ -235,7 +244,7 @@ export class Plugins extends React.Component {
           this.props.handleAlertMsg("success", "Selected plugin group deleted"); // on post to worklist saga success
         }
       }, 1000);
-      console.log(data);
+      // console.log(data);
       this.props.onPostToDeleteGroup(data);
     }
     this.resetState();
@@ -342,7 +351,7 @@ export class Plugins extends React.Component {
             {error !== false ? <p>Something went wrong, please try again!</p> : null}
             {loading !== false
               ? <Pane display="flex" alignItems="center" justifyContent="center" height={400}>
-                <Spinner size={64}/>
+                <Spinner size={64} />
               </Pane>
               : null}
             {plugins !== false
@@ -378,7 +387,7 @@ export class Plugins extends React.Component {
                       label={group}
                       checked={
                         this.state.groupSelectedPlugins["group"] !==
-                          undefined &&
+                        undefined &&
                         this.state.groupSelectedPlugins["group"].includes(group)
                       }
                       onChange={e =>
