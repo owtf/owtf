@@ -40,51 +40,54 @@ from owtf.api.handlers.jwtauth import jwtauth
 
 
 class LogInHandler(APIRequestHandler):
-    """LogIn using the correct credentials (email, password). After successfull login a JWT Token is generated"""
+    """LogIn using the correct credentials (email, password). After successfull login a JWT Token is generated."""
 
     SUPPORTED_METHODS = ["POST"]
 
     def post(self):
-        """
+        """Post login data and return jwt token based on user credentials.
+
         **Example request**:
 
         .. sourcecode:: http
 
-        POST /api/v1/login/ HTTP/1.1
-        Content-Type: application/json; charset=UTF-8
+            POST /api/v1/login/ HTTP/1.1
+            Content-Type: application/json; charset=UTF-8
 
-        {
-            "email": "test@test.com",
-            "password": "Test@34335",
-        }
+            {
+                "email": "test@test.com",
+                "password": "Test@34335",
+            }
 
-        **Example response**:
+        **Example successful login response**:
 
         .. sourcecode:: http
 
-        **Login successful response**;
-        HTTP/1.1 200 OK
-        Content-Encoding: gzip
-        Vary: Accept-Encoding
-        Content-Type: application/json; charset=UTF-8
+            HTTP/1.1 200 OK
+            Content-Encoding: gzip
+            Vary: Accept-Encoding
+            Content-Type: application/json; charset=UTF-8
 
-        {
-            "status": "success",
-            "data": {
-                "jwt-token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjozNSwiZXhwIjoxNjIzMjUyMjQwfQ.FjTpJySn3wprlaS26dC9LGBOMrtHJeJsTDJnyCKNmBk"
+            {
+                "status": "success",
+                "message": {
+                    "jwt-token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjozNSwiZXhwIjoxNjIzMjUyMjQwfQ.FjTpJySn3wprlaS26dC9LGBOMrtHJeJsTDJnyCKNmBk"
+                }
             }
-        }
 
-        **Login failed response**;
-        HTTP/1.1 200 OK
-        Content-Encoding: gzip
-        Vary: Accept-Encoding
-        Content-Type: application/json; charset=UTF-8
+        **Example failed login response**;
 
-        {
-            "status": "fail",
-            "data": "Invalid login credentials"
-        }
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Encoding: gzip
+            Vary: Accept-Encoding
+            Content-Type: application/json; charset=UTF-8
+
+            {
+                "status": "fail",
+                "message": "Invalid login credentials"
+            }
 
         """
         email = self.get_argument("email", None)
@@ -116,51 +119,54 @@ class LogInHandler(APIRequestHandler):
 
 
 class RegisterHandler(APIRequestHandler):
-    """Registers a new user when he provides email, name, password and confirm password"""
+    """Registers a new user when he provides email, name, password and confirm password."""
 
     SUPPORTED_METHODS = ["POST"]
 
     def post(self):
-        """
+        """Post data for creating a new user as per the data given by user.
+
         **Example request**:
 
         .. sourcecode:: http
 
-        POST /api/v1/register/ HTTP/1.1
-        Content-Type: application/json; charset=UTF-8
+            POST /api/v1/register/ HTTP/1.1
+            Content-Type: application/json; charset=UTF-8
 
-        {
-            "email": "test@test.com",
-            "password": "Test@34335",
-            "confirm_password": "Test@34335",
-            "name": "test"
-        }
+            {
+                "email": "test@test.com",
+                "password": "Test@34335",
+                "confirm_password": "Test@34335",
+                "name": "test"
+            }
 
-        **Example response**:
+        **Example Successful registration response**:
 
         .. sourcecode:: http
 
-        **Successful registration response**
-        HTTP/1.1 200 OK
-        Content-Encoding: gzip
-        Vary: Accept-Encoding
-        Content-Type: application/json; charset=UTF-8
+            HTTP/1.1 200 OK
+            Content-Encoding: gzip
+            Vary: Accept-Encoding
+            Content-Type: application/json; charset=UTF-8
 
-        {
-            "status": "success",
-            "data": "User created successfully"
-        }
+            {
+                "status": "success",
+                "message": "User created successfully"
+            }
 
-        **Failed registration response**
-        HTTP/1.1 200 OK
-        Content-Encoding: gzip
-        Vary: Accept-Encoding
-        Content-Type: application/json; charset=UTF-8
+        **Example Failed registration response**:
 
-        {
-            "status": "fail",
-            "data": "Email already exists"
-        }
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Encoding: gzip
+            Vary: Accept-Encoding
+            Content-Type: application/json; charset=UTF-8
+
+            {
+                "status": "fail",
+                "message": "Email already exists"
+            }
 
         """
         username = self.get_argument("username", None)
@@ -210,31 +216,30 @@ class RegisterHandler(APIRequestHandler):
 
 @jwtauth
 class LogOutHandler(APIRequestHandler):
-    """Logs out the current user and clears the cookie"""
+    """Logs out the current user and clears the cookie."""
 
     def get(self):
-        """
+        """Get user log out of the system.
+
         **Example request**:
 
         .. sourcecode:: http
 
-        GET /api/v1/logout/ HTTP/1.1
+            GET /api/v1/logout/ HTTP/1.1
 
         **Example response**:
 
         .. sourcecode:: http
 
-        HTTP/1.1 200 OK
-        Content-Encoding: gzip
-        Vary: Accept-Encoding
-        Content-Type: application/json; charset=UTF-8
+            HTTP/1.1 200 OK
+            Content-Encoding: gzip
+            Vary: Accept-Encoding
+            Content-Type: application/json; charset=UTF-8
 
-        {
-            "status": "success",
-            "data": {
-                "status": "ok"
+            {
+                "status": "success",
+                "message": "Logged out"
             }
-        }
 
         """
         auth = self.request.headers.get("Authorization")
@@ -250,9 +255,38 @@ class LogOutHandler(APIRequestHandler):
 
 
 class AccountActivationGenerateHandler(APIRequestHandler):
+    """Creates an email confirmation mail and sends it to the user for account confirmation."""
+
     SUPPORTED_METHODS = ["POST"]
 
     def post(self):
+        """Post an email verification link to the specified email.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            POST /api/v1/generate/confirm_email/ HTTP/1.1
+
+            {
+                "email": "test@test.com",
+            }
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Encoding: gzip
+            Vary: Accept-Encoding
+            Content-Type: application/json; charset=UTF-8
+
+            {
+                "status": "success",
+                "message": "Email send successful"
+            }
+
+        """
         email_to = self.get_argument("email", None)
         email_confirmation_dict = {}
         email_confirmation_dict["key_value"] = str(uuid4())
@@ -304,9 +338,34 @@ class AccountActivationGenerateHandler(APIRequestHandler):
 
 
 class AccountActivationValidateHandler(APIRequestHandler):
+    """Validates an email confirmation mail which was sent to the user."""
+
     SUPPORTED_METHODS = ["GET"]
 
     def get(self, key_value):
+        """Get the email link to verify and activate user account.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            GET /api/v1/verify/confirm_email/<link> HTTP/1.1
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Encoding: gzip
+            Vary: Accept-Encoding
+            Content-Type: application/json; charset=UTF-8
+
+            {
+                "status": "success",
+                "message": "Email Verified"
+            }
+
+        """
         email_conf_obj = EmailConfirmation.find_by_key_value(self.session, key_value)
         if email_conf_obj is not None and email_conf_obj.expiration_time >= datetime.now():
             User.activate_user(self.session, email_conf_obj.user_id)
