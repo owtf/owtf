@@ -47,7 +47,6 @@ class BaseRequestHandler(RequestHandler):
         self.add_header("X-Frame-Options", "SAMEORIGIN")
         self.add_header("X-XSS-Protection", "1; mode=block")
         self.add_header("X-Content-Type-Options", "nosniff")
-        self.add_header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
         self.add_header("Referrer-Policy", "strict-origin-when-cross-origin")
         self.add_header("Cache-Control", "no-cache,no-store,max-age=0,must-revalidate")
         self.add_header("Pragma", "no-cache")
