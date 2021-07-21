@@ -14,10 +14,11 @@ import {
   Paragraph,
   SelectMenu,
   Strong,
-  TextInputField,
+  TextInputField
 } from "evergreen-ui";
 import PropTypes from "prop-types";
 import "style.scss";
+import { API_BASE_ISSUE_URL } from "../../utils/constants";
 
 export default class GithubReport extends React.Component {
   constructor(props, context) {
@@ -35,12 +36,19 @@ export default class GithubReport extends React.Component {
   }
 
   /* Function resposible to open github issue */
-  openGitHubIssue(link) {
-    window.open(link);
-  } 
+  openGitHubIssue(errorBody) {
+    const requestURL =
+      API_BASE_ISSUE_URL +
+      "new?title=" +
+      this.state.errorTitle +
+      "&body=" +
+      errorBody;
+    window.open(requestURL);
+  }
 
   render() {
     const errorData = this.props.errors;
+    console.log("errorData", errorData);
     return (
       <Pane data-test="githubReportComponent">
         <Button
@@ -115,11 +123,7 @@ export default class GithubReport extends React.Component {
                     iconBefore="git-branch"
                     appearance="primary"
                     marginRight={12}
-                    onClick={() =>
-                      this.openGitHubIssue(
-                        errorData[this.state.selectedError].github_issue_url
-                      )
-                    }
+                    onClick={() => this.openGitHubIssue(errorData)}
                   >
                     Show issue on GitHub
                   </Button>
@@ -170,7 +174,7 @@ export default class GithubReport extends React.Component {
                     marginRight={12}
                     onClick={() =>
                       this.openGitHubIssue(
-                        errorData[this.state.selectedError].github_issue_url
+                        errorData[this.state.selectedError].traceback
                       )
                     }
                   >
@@ -200,5 +204,5 @@ export default class GithubReport extends React.Component {
 
 GithubReport.propTypes = {
   errors: PropTypes.oneOfType([PropTypes.array, PropTypes.bool]),
-  onDeleteError: PropTypes.func,
+  onDeleteError: PropTypes.func
 };
