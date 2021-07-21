@@ -1,0 +1,96 @@
+name: OWTF CI
+
+on:
+  push:
+    branches: [master, develop]
+  pull_request_target:
+    branches: [master, develop]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: [3.9]
+        node-version: [15.0]
+    services:
+      db:
+        image: postgres
+        env:
+          POSTGRES_USER: owtf_db_user
+          POSTGRES_PASSWORD: jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=
+          POSTGRES_DB: owtf_db
+        ports:
+          - 5432:5432
+        options: >-
+          --name=postgres
+          --health-cmd pg_isready 
+          --health-interval 10s 
+          --health-timeout 5s 
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/*') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ hashFiles('**/requirements/*') }}
+
+      - name: before_install
+        run: |
+          sudo apt update
+          sudo apt -y install libffi-dev golang postgresql-client libgnutls28-dev libyaml-dev python3-yaml python3-pip libcurl4-openssl-dev libssl-dev python3-venv
+          pip3 install pyopenssl
+      - name: install
+        run: |
+          echo "Running install base requirements"
+          pip3 install -r requirements/base.txt
+          echo "Running install test requirements"
+          pip3 install -r requirements/test.txt
+          echo "create virtual environment"
+          python3 -m venv $HOME/.virtualenvs/owtf --clear
+          echo "Activate virtual environment"
+          source $HOME/.virtualenvs/owtf/bin/activate
+          echo "Running setup.py"
+          echo '\n\n' | python3 setup.py develop
+      - name: before_script
+        run: |
+          source $HOME/.virtualenvs/owtf/bin/activate
+          pip3 install mock pyHamcrest
+          mkdir -p ~/.owtf/conf/profiles/plugin_web/
+          mkdir -p ~/.owtf/conf/profiles/plugin_net/
+          mkdir -p ~/.owtf/conf/profiles/plugin_aux/
+          cp -f ./tests/fixtures/profiles/plugin_web/groups.cfg ~/.owtf/conf/profiles/plugin_web/groups.cfg
+          cp -f ./tests/fixtures/profiles/plugin_net/groups.cfg ~/.owtf/conf/profiles/plugin_net/groups.cfg
+          cp -f ./tests/fixtures/profiles/plugin_aux/groups.cfg ~/.owtf/conf/profiles/plugin_aux/groups.cfg
+          git config --global user.email "tasty@mac.test"
+          git config --global user.name "Tasty Test"
+      - name: Python_tests_step
+        run: |
+          source $HOME/.virtualenvs/owtf/bin/activate
+          python3 -m unittest tests.functional.cli.test_empty_run
+          python3 -m unittest tests.functional.cli.test_list_plugins
+          python3 -m unittest tests.functional.cli.test_nowebui
+          python3 -m unittest tests.functional.plugins.web
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+
+      - name: node_js
+        working-directory: owtf/webapp
+        run: yarn test
+
+      - name: slack - GitHub Actions Slack integration
+        uses: act10ns/slack@v1.2.2
+        with:
+          status: ${{ job.status }}
+          steps: ${{ toJson(steps) }}
+          channel: "#owtf-notifications"
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

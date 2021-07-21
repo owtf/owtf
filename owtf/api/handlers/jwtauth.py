@@ -9,7 +9,7 @@ from owtf.db.session import Session
 
 
 def jwtauth(handler_class):
-    """Handle Tornado JWT Auth"""
+    """Decorator to handle Tornado JWT Authentication"""
 
     def wrap_execute(handler_execute):
         def require_auth(handler, kwargs):
