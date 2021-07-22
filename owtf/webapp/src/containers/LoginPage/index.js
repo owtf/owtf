@@ -10,8 +10,12 @@ import {
   Button,
   Link,
   Paragraph,
-  TextInputField
+  TextInputField,
+  Icon
 } from "evergreen-ui";
+import { loginStart } from "./actions";
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
 
 export class LoginPage extends React.Component {
   constructor(props, context) {
@@ -19,9 +23,17 @@ export class LoginPage extends React.Component {
 
     this.state = {
       email: "",
-      password: ""
+      password: "",
+      hidePassword: true
     };
   }
+
+  /**
+   * Function gets called right after the user clicks login
+   */
+  onLoginHandler = () => {
+    this.props.onLogin(this.state.email, this.state.password);
+  };
 
   render() {
     return (
@@ -50,15 +62,28 @@ export class LoginPage extends React.Component {
             value={this.state.email}
             onChange={e => this.setState({ email: e.target.value })}
           />
-          <TextInputField
-            label="Your Password"
-            placeholder="Password"
-            width="60%"
-            marginLeft="20%"
-            marginBottom={10}
-            value={this.state.password}
-            onChange={e => this.setState({ password: e.target.value })}
-          />
+          <Pane position="relative">
+            <Pane width="10%" marginLeft="75%" position="absolute">
+              <Icon
+                icon={this.state.hidePassword ? "eye-off" : "eye-open"}
+                cursor="pointer"
+                marginX={-10}
+                marginY={32}
+                onMouseDown={e => this.setState({ hidePassword: false })}
+                onMouseUp={e => this.setState({ hidePassword: true })}
+              />
+            </Pane>
+            <TextInputField
+              label="Your Password"
+              placeholder="Password"
+              width="60%"
+              marginLeft="20%"
+              marginBottom={10}
+              value={this.state.password}
+              type={this.state.hidePassword ? "password" : "text"}
+              onChange={e => this.setState({ password: e.target.value })}
+            />
+          </Pane>
           <Paragraph width="60%" marginLeft="20%" marginBottom={10}>
             <Link href="/forgot-password/email">Forgot Password?</Link>
           </Paragraph>
@@ -68,6 +93,7 @@ export class LoginPage extends React.Component {
             justifyContent="center"
             appearance="primary"
             intent="none"
+            onClick={this.onLoginHandler}
           >
             LOGIN
           </Button>
@@ -86,4 +112,17 @@ export class LoginPage extends React.Component {
   }
 }
 
-export default LoginPage;
+LoginPage.propTypes = {
+  onLogin: PropTypes.func
+};
+
+const mapDispatchToProps = dispatch => {
+  return {
+    onLogin: (email, password) => dispatch(loginStart(email, password))
+  };
+};
+
+export default connect(
+  null,
+  mapDispatchToProps
+)(LoginPage);
