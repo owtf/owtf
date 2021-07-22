@@ -11,8 +11,7 @@ import "@babel/polyfill";
 import React from "react";
 import ReactDOM from "react-dom";
 import { Provider } from "react-redux";
-import { ConnectedRouter } from "react-router-redux";
-import history from "./utils/historyUtils";
+import history from "../src/utils/historyUtils";
 
 // Import root app
 import App from "containers/App";
@@ -26,9 +25,7 @@ const MOUNT_NODE = document.getElementById("root");
 
 ReactDOM.render(
   <Provider store={store}>
-    <ConnectedRouter history={history}>
-      <App />
-    </ConnectedRouter>
+    <App />
   </Provider>,
   MOUNT_NODE
 );

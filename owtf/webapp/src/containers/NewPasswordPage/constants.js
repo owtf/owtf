@@ -1,0 +1,3 @@
+export const NEW_PASSWORD_START = "owtf/NewPasswordPage/NEW_PASSWORD_START",
+  NEW_PASSWORD_SUCCESS = "owtf/NewPasswordPage/NEW_PASSWORD_SUCCESS",
+  NEW_PASSWORD_FAIL = "owtf/NewPasswordPage/NEW_PASSWORD_FAIL";
