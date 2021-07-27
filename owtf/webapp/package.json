@@ -14,7 +14,7 @@
     "url": "git+https://github.com/owtf/owtf"
   },
   "author": "Viyat Bhalodia <viyat.bhalodia@owasp.org>",
-  "license": "BSD 3-Clause",
+  "license": "BSD-3-Clause",
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^12.2.0",
     "@ckeditor/ckeditor5-react": "^1.1.3",
