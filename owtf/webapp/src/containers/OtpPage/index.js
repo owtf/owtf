@@ -68,7 +68,7 @@ export class OtpPage extends React.Component {
 
   render() {
     return (
-      <Pane marginY={100}>
+      <Pane marginY={100} data-test="otpPageComponent">
         <Pane
           justifyContent="center"
           width="35%"
@@ -97,13 +97,14 @@ export class OtpPage extends React.Component {
             marginLeft="20%"
             marginTop={10}
             marginBottom={10}
+            name="text-input-otp"
             value={this.state.otp}
             onBlur={e => this.handleOtpValidation(e)}
             onChange={e => this.setState({ otp: e.target.value })}
             validationMessage={this.state.otpError ? this.state.otpError : null}
           />
           <Paragraph size={300} width="60%" marginLeft="20%">
-            <Link onClick={this.resendHandler}>Resend code</Link>
+            <Link onClick={this.resendHandler}>Resend Code</Link>
           </Paragraph>
           <Button
             width="20%"
