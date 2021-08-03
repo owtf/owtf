@@ -27,7 +27,8 @@ exports[`HelpPage component Should render without errors 1`] = `
         <withTheme(Icon)
           icon="search"
         />
-         Exploitation 
+         Exploitation
+         
       </withTheme(Pane)>
     </withTheme(Heading)>
     <withTheme(Text)
@@ -39,6 +40,7 @@ exports[`HelpPage component Should render without errors 1`] = `
         >
           <a
             href="http://hackvertor.co.uk/public"
+            rel="noopener noreferrer"
             target="_blank"
           >
             Hackvertor
@@ -49,6 +51,7 @@ exports[`HelpPage component Should render without errors 1`] = `
         >
           <a
             href="http://www.exploit-db.com/"
+            rel="noopener noreferrer"
             target="_blank"
           >
             ExploitDB
@@ -59,6 +62,7 @@ exports[`HelpPage component Should render without errors 1`] = `
         >
           <a
             href="http://www.exploitsearch.net/"
+            rel="noopener noreferrer"
             target="_blank"
           >
             ExploitSearch
@@ -69,6 +73,7 @@ exports[`HelpPage component Should render without errors 1`] = `
         >
           <a
             href="http://www.hakipedia.com/index.php/Hakipedia"
+            rel="noopener noreferrer"
             target="_blank"
           >
             Hackipedia
@@ -95,7 +100,8 @@ exports[`HelpPage component Should render without errors 1`] = `
         <withTheme(Icon)
           icon="horizontal-bar-chart-desc"
         />
-         Methodology 
+         Methodology
+         
       </withTheme(Pane)>
     </withTheme(Heading)>
     <withTheme(Text)
@@ -107,6 +113,7 @@ exports[`HelpPage component Should render without errors 1`] = `
         >
           <a
             href="https://www.owasp.org/index.php/OWASP_Testing_Guide_v3_Table_of_Contents"
+            rel="noopener noreferrer"
             target="_blank"
           >
             OWASP
@@ -117,6 +124,7 @@ exports[`HelpPage component Should render without errors 1`] = `
         >
           <a
             href="http://www.exploit-db.com/"
+            rel="noopener noreferrer"
             target="_blank"
           >
             Pentest Standard
@@ -127,6 +135,7 @@ exports[`HelpPage component Should render without errors 1`] = `
         >
           <a
             href="http://www.isecom.org/research/osstmm.html"
+            rel="noopener noreferrer"
             target="_blank"
           >
             OSSTMM
@@ -153,7 +162,8 @@ exports[`HelpPage component Should render without errors 1`] = `
         <withTheme(Icon)
           icon="calculator"
         />
-         Calculators 
+         Calculators
+         
       </withTheme(Pane)>
     </withTheme(Heading)>
     <withTheme(Text)
@@ -165,6 +175,7 @@ exports[`HelpPage component Should render without errors 1`] = `
         >
           <a
             href="http://nvd.nist.gov/cvss.cfm?adv&calculator&version=2"
+            rel="noopener noreferrer"
             target="_blank"
           >
             CVSS Advanced
@@ -175,6 +186,7 @@ exports[`HelpPage component Should render without errors 1`] = `
         >
           <a
             href="http://nvd.nist.gov/cvss.cfm?calculator&version=2"
+            rel="noopener noreferrer"
             target="_blank"
           >
             CVSS Normal
@@ -201,7 +213,8 @@ exports[`HelpPage component Should render without errors 1`] = `
         <withTheme(Icon)
           icon="book"
         />
-         Test/Learn 
+         Test/Learn
+         
       </withTheme(Pane)>
     </withTheme(Heading)>
     <withTheme(Text)
@@ -213,6 +226,7 @@ exports[`HelpPage component Should render without errors 1`] = `
         >
           <a
             href="http://www.owasp.org/index.php?title=OWASP_Vulnerable_Web_Applications_Directory_Project"
+            rel="noopener noreferrer"
             target="_blank"
           >
             OWASP VWAD
@@ -223,6 +237,7 @@ exports[`HelpPage component Should render without errors 1`] = `
         >
           <a
             href="http://securitythoughts.wordpress.com/2010/03/22/vulnerable-web-applications-for-learning/"
+            rel="noopener noreferrer"
             target="_blank"
           >
             Securitythoughts
@@ -233,6 +248,7 @@ exports[`HelpPage component Should render without errors 1`] = `
         >
           <a
             href="http://danielmiessler.com/projects/webappsec_testing_resources/"
+            rel="noopener noreferrer"
             target="_blank"
           >
             Danielmiessler
@@ -259,7 +275,8 @@ exports[`HelpPage component Should render without errors 1`] = `
         <withTheme(Icon)
           icon="help"
         />
-         OWTF Help Links 
+         OWTF Help Links
+         
       </withTheme(Pane)>
     </withTheme(Heading)>
     <withTheme(Pane)
@@ -279,6 +296,7 @@ exports[`HelpPage component Should render without errors 1`] = `
             >
               <a
                 href="https://github.com/owtf/owtf/wiki"
+                rel="noopener noreferrer"
                 target="_blank"
               >
                 Github Wiki
@@ -289,6 +307,7 @@ exports[`HelpPage component Should render without errors 1`] = `
             >
               <a
                 href="http://www.youtube.com/user/owtfproject"
+                rel="noopener noreferrer"
                 target="_blank"
               >
                 Youtube channel
@@ -299,6 +318,7 @@ exports[`HelpPage component Should render without errors 1`] = `
             >
               <a
                 href="http://blog.7-a.org/search/label/OWTF%20Release"
+                rel="noopener noreferrer"
                 target="_blank"
               >
                 Release notes
@@ -320,6 +340,7 @@ exports[`HelpPage component Should render without errors 1`] = `
             >
               <a
                 href="https://github.com/owtf/owtf"
+                rel="noopener noreferrer"
                 target="_blank"
               >
                 Github repository
@@ -330,6 +351,7 @@ exports[`HelpPage component Should render without errors 1`] = `
             >
               <a
                 href="https://github.com/owtf/owtf/issues"
+                rel="noopener noreferrer"
                 target="_blank"
               >
                 Issue tracker
@@ -351,6 +373,7 @@ exports[`HelpPage component Should render without errors 1`] = `
             >
               <a
                 href="https://lists.owasp.org/mailman/listinfo/owasp_owtf"
+                rel="noopener noreferrer"
                 target="_blank"
               >
                 Mailing List
@@ -361,6 +384,7 @@ exports[`HelpPage component Should render without errors 1`] = `
             >
               <a
                 href="https://twitter.com/owtfp"
+                rel="noopener noreferrer"
                 target="_blank"
               >
                 Twitter
@@ -371,6 +395,7 @@ exports[`HelpPage component Should render without errors 1`] = `
             >
               <a
                 href="https://medium.com/@owtf"
+                rel="noopener noreferrer"
                 target="_blank"
               >
                 Medium Blog
@@ -381,6 +406,7 @@ exports[`HelpPage component Should render without errors 1`] = `
             >
               <a
                 href="http://blog.7-a.org"
+                rel="noopener noreferrer"
                 target="_blank"
               >
                 Author's blog
