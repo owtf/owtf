@@ -25,7 +25,7 @@ export class EmailSendPage extends React.Component {
 
   render() {
     return (
-      <Pane marginY={100}>
+      <Pane marginY={100} data-test="emailSendPageComponent">
         <Pane
           justifyContent="center"
           width="35%"
