@@ -390,6 +390,13 @@ exports[`Report page component Testing Table component Should render without err
       <withTheme(Heading)>
         MORE DETAILS
       </withTheme(Heading)>
+      <Table
+        border={true}
+        margin={5}
+        padding={10}
+      >
+        Output not available
+      </Table>
     </withTheme(Pane)>
   </withTheme(Pane)>
 </withTheme(Pane)>
