@@ -11,15 +11,45 @@ import {
   Link,
   TextInputField
 } from "evergreen-ui";
+import { forgotPasswordEmailStart } from "./actions";
+import { connect } from "react-redux";
 
 export class ForgotPasswordPage extends React.Component {
   constructor(props, context) {
     super(props, context);
 
     this.state = {
-      email: ""
+      email: "",
+      emailError: ""
     };
   }
+
+  /**
+   * Function handles the input email validation
+   *
+   * @param {object} e event which triggered this function
+   */
+  handleEmailValidation = e => {
+    if (!this.state.email) {
+      this.setState({ emailError: "Email can't be empty" });
+    } else if (typeof this.state.email !== "undefined") {
+      if (
+        !this.state.email.match(
+          /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
+        )
+      ) {
+        this.setState({ emailError: "Please enter a valid email" });
+      } else {
+        this.setState({ emailError: "" });
+      }
+    }
+  };
+
+  resetHandler = e => {
+    if (!this.state.emailError) {
+      this.props.onReset(this.state.email);
+    }
+  };
 
   render() {
     return (
@@ -51,6 +81,10 @@ export class ForgotPasswordPage extends React.Component {
             marginTop={10}
             value={this.state.email}
             onChange={e => this.setState({ email: e.target.value })}
+            onBlur={e => this.handleEmailValidation(e)}
+            validationMessage={
+              this.state.emailError ? this.state.emailError : null
+            }
           />
           <Button
             width="40%"
@@ -59,6 +93,8 @@ export class ForgotPasswordPage extends React.Component {
             justifyContent="center"
             appearance="primary"
             intent="none"
+            onClick={e => this.resetHandler(e)}
+            disabled={this.state.emailError ? true : false}
           >
             Reset Password
           </Button>
@@ -73,4 +109,13 @@ export class ForgotPasswordPage extends React.Component {
   }
 }
 
-export default ForgotPasswordPage;
+const mapDispatchToProps = dispatch => {
+  return {
+    onReset: email => dispatch(forgotPasswordEmailStart(email))
+  };
+};
+
+export default connect(
+  null,
+  mapDispatchToProps
+)(ForgotPasswordPage);

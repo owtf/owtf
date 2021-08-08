@@ -1,34 +1,35 @@
-/*
- * signupReducer
- *
- * Changes the redux store state on signup
- */
-
 import { fromJS } from "immutable";
 import { combineReducers } from "redux-immutable"; // combineReducers of 'redux' doesn't work with immutable.js
 
-import { SIGNUP_START, SIGNUP_SUCCESS, SIGNUP_FAIL } from "./constants";
+import {
+  FORGOT_PASSWORD_EMAIL_START,
+  FORGOT_PASSWORD_EMAIL_SUCCESS,
+  FORGOT_PASSWORD_EMAIL_FAIL
+} from "./constants";
 
-// The initial state of the signup
-const initialSignupState = fromJS({
+// The initial state of the forgot password
+const initialForgotPasswordEmailState = fromJS({
   error: false,
   loading: false,
   email: null
 });
 
-export function signupReducer(state = initialSignupState, action) {
+export function forgotPasswordEmailReducer(
+  state = initialForgotPasswordEmailState,
+  action
+) {
   switch (action.type) {
-    case SIGNUP_START:
+    case FORGOT_PASSWORD_EMAIL_START:
       return state
         .set("loading", true)
         .set("error", false)
         .set("email", null);
-    case SIGNUP_SUCCESS:
+    case FORGOT_PASSWORD_EMAIL_SUCCESS:
       return state
         .set("loading", false)
         .set("error", false)
         .set("email", action.email);
-    case SIGNUP_FAIL:
+    case FORGOT_PASSWORD_EMAIL_FAIL:
       return state
         .set("loading", false)
         .set("error", action.error)
@@ -39,5 +40,5 @@ export function signupReducer(state = initialSignupState, action) {
 }
 
 export default combineReducers({
-  create: signupReducer
+  forgot: forgotPasswordEmailReducer
 });

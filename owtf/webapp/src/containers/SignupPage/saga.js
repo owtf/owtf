@@ -3,11 +3,9 @@ import { signupFail, signupSuccess } from "./actions";
 import { emailSendStart } from "../EmailVerification/actions";
 import { SIGNUP_START } from "./constants";
 import { signupUsingSignupAPI } from "./api";
-import { SignupPage } from "./index";
-import history from "../../utils/historyUtils";
+import { push } from "react-router-redux";
+import { toaster } from "evergreen-ui";
 import "@babel/polyfill";
-
-const signuppage = new SignupPage();
 
 /**
  * Create the signup of the user from API
@@ -24,19 +22,15 @@ export function* postDataToSignupAPI(action) {
     const responseData = yield call(postSignupAPI, signupData);
     if (responseData.data["status"] == "success") {
       yield put(signupSuccess(responseData.data["message"], action.email));
-      signuppage.toasterSuccess(responseData.data["message"]);
-      setTimeout(() => {
-        history.push({
-          pathname: "/email-send/" + action.email
-        });
-      }, 1500);
+      toaster.success(responseData.data["message"]);
+      yield put(push("/email-send/"));
       yield put(emailSendStart(signupData["email"]));
     } else {
       yield put(signupFail(responseData.data["message"]));
-      signuppage.toasterError(responseData.data["message"]);
+      toaster.danger(responseData.data["message"]);
     }
   } catch (error) {
-    signuppage.toasterError("Signup unsuccessful");
+    toaster.danger("Signup unsuccessful");
     yield put(signupFail(error));
   }
 }
