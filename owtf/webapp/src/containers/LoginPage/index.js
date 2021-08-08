@@ -37,7 +37,7 @@ export class LoginPage extends React.Component {
 
   render() {
     return (
-      <Pane marginY={100}>
+      <Pane marginY={100} data-test="loginPageComponent">
         <Pane
           justifyContent="center"
           width="35%"

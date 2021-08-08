@@ -1,0 +1,142 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SignupPage component Testing dumb signup page component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="signupPageComponent"
+  marginY={60}
+>
+  <withTheme(Pane)
+    elevation={1}
+    justifyContent="center"
+    margin="auto"
+    padding={5}
+    width="35%"
+  >
+    <withTheme(Heading)
+      marginBottom={20}
+      paddingTop={20}
+      size={700}
+      textAlign="center"
+    >
+      Signup
+    </withTheme(Heading)>
+    <TextInputField
+      inputHeight={32}
+      inputWidth="100%"
+      label="Your OWTF Username"
+      marginBottom={10}
+      marginLeft="20%"
+      name="text-input-name"
+      onBlur={[Function]}
+      onChange={[Function]}
+      placeholder="Username"
+      value=""
+      width="60%"
+    />
+    <TextInputField
+      inputHeight={32}
+      inputWidth="100%"
+      label="Email Address"
+      marginBottom={10}
+      marginLeft="20%"
+      name="text-input-email"
+      onBlur={[Function]}
+      onChange={[Function]}
+      placeholder="Email"
+      value=""
+      width="60%"
+    />
+    <withTheme(Pane)
+      position="relative"
+    >
+      <withTheme(Pane)
+        marginLeft="75%"
+        position="absolute"
+        width="10%"
+      >
+        <withTheme(Icon)
+          cursor="pointer"
+          icon="eye-off"
+          marginX={-10}
+          marginY={32}
+          onMouseDown={[Function]}
+          onMouseUp={[Function]}
+        />
+      </withTheme(Pane)>
+      <TextInputField
+        hint="Must have capital, small, number & special chars"
+        inputHeight={32}
+        inputWidth="100%"
+        label="Choose a Password"
+        marginBottom={5}
+        marginLeft="20%"
+        name="text-input-password"
+        onBlur={[Function]}
+        onChange={[Function]}
+        placeholder="Password"
+        type="password"
+        value=""
+        width="60%"
+      />
+    </withTheme(Pane)>
+    <withTheme(Pane)
+      marginTop={0}
+      paddingTop={0}
+      position="relative"
+    >
+      <withTheme(Pane)
+        marginLeft="75%"
+        position="absolute"
+        width="10%"
+      >
+        <withTheme(Icon)
+          cursor="pointer"
+          icon="eye-off"
+          marginX={-10}
+          marginY={32}
+          onMouseDown={[Function]}
+          onMouseUp={[Function]}
+        />
+      </withTheme(Pane)>
+      <TextInputField
+        inputHeight={32}
+        inputWidth="100%"
+        label="Confirm Password"
+        marginLeft="20%"
+        name="text-input-confirm-password"
+        onBlur={[Function]}
+        onChange={[Function]}
+        placeholder="Confirm Password"
+        type="password"
+        value=""
+        width="60%"
+      />
+    </withTheme(Pane)>
+    <withTheme(Button)
+      appearance="primary"
+      disabled={false}
+      intent="none"
+      justifyContent="center"
+      marginLeft="40%"
+      onClick={[Function]}
+      width="20%"
+    >
+      SIGNUP
+    </withTheme(Button)>
+    <withTheme(Paragraph)
+      marginBottom={10}
+      marginLeft="20%"
+      marginTop={10}
+      size={300}
+      width="60%"
+    >
+      Already have an account? 
+      <withTheme(Link)
+        href="/login"
+      >
+        Login
+      </withTheme(Link)>
+    </withTheme(Paragraph)>
+  </withTheme(Pane)>
+</withTheme(Pane)>
+`;

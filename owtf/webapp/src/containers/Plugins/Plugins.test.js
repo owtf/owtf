@@ -8,20 +8,20 @@ import ConnectedPlugins, { Plugins } from "./index";
 import PluginsTable from "./PluginsTable";
 import { fromJS } from "immutable";
 
-import { 
-	pluginsLoaded,
-	pluginsLoadingError,
-	targetPosted,
-	targetPostingError,
+import {
+  pluginsLoaded,
+  pluginsLoadingError,
+  targetPosted,
+  targetPostingError
 } from "./actions";
-import { 
-	LOAD_PLUGINS,
-	LOAD_PLUGINS_SUCCESS,
-	LOAD_PLUGINS_ERROR,
-	POST_TO_WORKLIST,
-	POST_TO_WORKLIST_SUCCESS,
-	POST_TO_WORKLIST_ERROR,
- } from "./constants";
+import {
+  LOAD_PLUGINS,
+  LOAD_PLUGINS_SUCCESS,
+  LOAD_PLUGINS_ERROR,
+  POST_TO_WORKLIST,
+  POST_TO_WORKLIST_SUCCESS,
+  POST_TO_WORKLIST_ERROR
+} from "./constants";
 
 import { getPlugins, postTargetsToWorklist } from "./saga";
 import { runSaga } from "redux-saga";
@@ -30,130 +30,126 @@ import * as api from "./api";
 import { pluginsLoadReducer, postToWorklistReducer } from "./reducer";
 import { loadTargets } from "../TargetsPage/actions";
 
-const setUp = (initialState={}) => {
-	const mockStore = configureStore();
-	const store = mockStore(initialState);
-	const wrapper = shallow(<ConnectedPlugins store={store} />);
-	return wrapper;
+const setUp = (initialState = {}) => {
+  const mockStore = configureStore();
+  const store = mockStore(initialState);
+  const wrapper = shallow(<ConnectedPlugins store={store} />);
+  return wrapper;
 };
 
 describe("Plugins componemt", () => {
+  describe("Testing dumb plugins component", () => {
+    let wrapper;
+    let props;
+    beforeEach(() => {
+      props = {
+        loading: false,
+        error: false,
+        plugins: [
+          {
+            key: "semi_passive@OWTF-IG-004",
+            group: "web",
+            name: "Web_Application_Fingerprint",
+            code: "OWTF-IG-004",
+            descrip: "Normal requests to gather fingerprint info",
+            type: "semi_passive"
+          }
+        ],
+        postingError: false,
+        pluginShow: false,
+        onFetchPlugins: jest.fn(),
+        onPostToWorklist: jest.fn(),
+        handlePluginClose: jest.fn(),
+        selectedTargets: [],
+        handleAlertMsg: jest.fn(),
+        resetTargetState: jest.fn()
+      };
+      wrapper = shallow(<Plugins {...props} />);
+    });
 
-	describe("Testing dumb plugins component", () => {
+    it("Should have correct prop-types", () => {
+      const expectedProps = {
+        loading: false,
+        error: false,
+        plugins: [],
+        postingError: false,
+        pluginShow: true,
+        onFetchPlugins: () => {},
+        onPostToWorklist: () => {},
+        handlePluginClose: () => {},
+        selectedTargets: [1, 2],
+        handleAlertMsg: () => {},
+        resetTargetState: () => {}
+      };
+      const propsErr = checkProps(Plugins, expectedProps);
+      expect(propsErr).toBeUndefined();
+    });
 
-		let wrapper;
-		let props;
-		beforeEach(() => {
-				props = {
-					loading: false,
-					error: false,
-					plugins: [{
-						key: "semi_passive@OWTF-IG-004",
-						group:	"web",
-						name:	"Web_Application_Fingerprint",
-						code:	"OWTF-IG-004",
-						descrip:	"Normal requests to gather fingerprint info",
-						type:	"semi_passive",
-					}],
-					postingError: false,
-					pluginShow: false,
-					onFetchPlugins: jest.fn(),
-					onPostToWorklist: jest.fn(),
-					handlePluginClose: jest.fn(),
-					selectedTargets: [],
-					handleAlertMsg: jest.fn(),
-					resetTargetState: jest.fn()
-				};
-				wrapper = shallow(<Plugins {...props} />);
-		});
+    it("Should render without errors", () => {
+      const component = wrapper.find("withTheme(Dialog)");
+      expect(component.length).toBe(1);
+      expect(toJson(component)).toMatchSnapshot();
+    });
 
-		it("Should have correct prop-types", () => {
+    it("Should correctly render its sub-components", () => {
+      const tablist = wrapper.find("Tablist");
+      const tabs = wrapper.find("withTheme(Tab)");
+      const individualPanel = wrapper.find("#panel-individual");
+      const groupPanel = wrapper.find("#panel-group");
+      const checkbox = wrapper.find("#force-overwrite");
+      const pluginTable = wrapper.find("PluginsTable");
 
-			const expectedProps = {
-				loading: false,
-				error: false,
-				plugins: [],
-				postingError: false,
-				pluginShow: true,
-				onFetchPlugins: () => {},
-				onPostToWorklist: () => {},
-				handlePluginClose: () => {},
-				selectedTargets: [1, 2],
-				handleAlertMsg: () => {},
-				resetTargetState: () => {}
-			};
-			const propsErr = checkProps(Plugins, expectedProps)
-			expect(propsErr).toBeUndefined();
-	
-		});
-	
-		it("Should render without errors", () => {
-			const component = wrapper.find("withTheme(Dialog)");
-			expect(component.length).toBe(1);
-			expect(toJson(component)).toMatchSnapshot();
-		});
+      expect(tablist.length).toBe(1);
+      expect(tabs.length).toBe(3);
+      expect(tabs.at(0).props().children).toEqual("Launch Individually");
+      expect(tabs.at(1).props().children).toEqual("Launch in groups");
+      expect(individualPanel.length).toBe(1);
+      expect(groupPanel.length).toBe(1);
+      expect(checkbox.length).toBe(1);
+      expect(pluginTable.length).toBe(1);
+    });
 
-		it("Should correctly render its sub-components", () => {
-			const tablist = wrapper.find("Tablist");
-			const tabs = wrapper.find("withTheme(Tab)");
-			const individualPanel = wrapper.find("#panel-individual");
-			const groupPanel = wrapper.find("#panel-group");
-			const checkbox = wrapper.find("#force-overwrite");
-			const pluginTable = wrapper.find("PluginsTable");
+    it("Should properly switch panels on tab click", () => {
+      const individualTab = wrapper.find("withTheme(Tab)").at(0);
+      const groupTab = wrapper.find("withTheme(Tab)").at(1);
+      groupTab.simulate("select");
+      expect(wrapper.instance().state.selectedIndex).toEqual(2);
+      individualTab.simulate("select");
+      expect(wrapper.instance().state.selectedIndex).toEqual(1);
+    });
 
-			expect(tablist.length).toBe(1);
-			expect(tabs.length).toBe(2);
-			expect(tabs.at(0).props().children).toEqual("Launch Individually");
-			expect(tabs.at(1).props().children).toEqual("Launch in groups");
-			expect(individualPanel.length).toBe(1);			
-			expect(groupPanel.length).toBe(1);			
-			expect(checkbox.length).toBe(1);
-			expect(pluginTable.length).toBe(1);
-		});
+    it("handleGroupLaunch should correcly return plugins group & type array", () => {
+      const expectedGroupArray = [["web"], ["semi_passive"]];
+      const plugins = wrapper.instance();
+      const groupArray = plugins.handleGroupLaunch();
+      expect(groupArray).toEqual(expectedGroupArray);
+    });
 
-		it("Should properly switch panels on tab click", () => {
-			const individualTab = wrapper.find("withTheme(Tab)").at(0);
-			const groupTab = wrapper.find("withTheme(Tab)").at(1);
-			groupTab.simulate("select");
-			expect(wrapper.instance().state.selectedIndex).toEqual(2);
-			individualTab.simulate("select");
-			expect(wrapper.instance().state.selectedIndex).toEqual(1);
-		});
+    it("Should pass correct props to its child components", () => {
+      const pluginTable = wrapper.find("PluginsTable");
+      expect(pluginTable.props().plugins).toEqual(props.plugins);
+    });
+  });
 
-		it("handleGroupLaunch should correcly return plugins group & type array", () => {
-			const expectedGroupArray = [
-				["web"],["semi_passive"]
-			]
-			const plugins = wrapper.instance();
-			const groupArray = plugins.handleGroupLaunch();
-			expect(groupArray).toEqual(expectedGroupArray);
-		})
-
-		it("Should pass correct props to its child components", () => {
-			const pluginTable = wrapper.find("PluginsTable");
-			expect(pluginTable.props().plugins).toEqual(props.plugins); 
-		});
-	});
-
-	describe("Testing connected Plugins component", () => {
+  describe("Testing connected Plugins component", () => {
     let wrapper;
     let initialState;
     beforeEach(() => {
       const load = {
         loading: true,
-				error: false,
-				plugins: false
+        error: false,
+        plugins: false
       };
       const postToWorklist = {
         loading: false,
-				error: {},
-			};
+        error: {}
+      };
       const plugins = {
-				load,
-				postToWorklist
-			};
+        load,
+        postToWorklist
+      };
       initialState = fromJS({
-				plugins
+        plugins
       });
       wrapper = setUp(initialState);
     });
@@ -162,12 +158,12 @@ describe("Plugins componemt", () => {
       const pluginsProp = initialState
         .get("plugins")
         .get("load")
-				.get("plugins");
-			const fetchErrorProp = initialState
+        .get("plugins");
+      const fetchErrorProp = initialState
         .get("plugins")
         .get("load")
-				.get("error");
-			const fetchLoadingProp = initialState
+        .get("error");
+      const fetchLoadingProp = initialState
         .get("plugins")
         .get("load")
         .get("loading");
@@ -181,40 +177,41 @@ describe("Plugins componemt", () => {
       expect(wrapper.props().error).toEqual(fetchErrorProp);
       expect(wrapper.props().postingError).toEqual(createErrorProp);
     });
-	});
+  });
 
-	describe("Testing Plugins Table component", () => {
+  describe("Testing Plugins Table component", () => {
     let wrapper;
     let props;
     beforeEach(() => {
       props = {
         plugins: [
-					{
-						key: "semi_passive@OWTF-IG-004",
-						group:	"web",
-						name:	"Web_Application_Fingerprint",
-						code:	"OWTF-IG-004",
-						descrip:	"Normal requests to gather fingerprint info",
-						type:	"semi_passive"
-					}, 
-					{
-						key:	"dos@OWTF-ADoS-001",
-						group:	"auxiliary",
-						name:	"Direct_DoS_Launcher",
-						code:	"OWTF-ADoS-001",
-						descrip:	"Denial of Service (DoS) Launcher",
-						type:	"dos"
-					}
-				],
-				updateSelectedPlugins: jest.fn(),
+          {
+            key: "semi_passive@OWTF-IG-004",
+            group: "web",
+            name: "Web_Application_Fingerprint",
+            code: "OWTF-IG-004",
+            descrip: "Normal requests to gather fingerprint info",
+            type: "semi_passive"
+          },
+          {
+            key: "dos@OWTF-ADoS-001",
+            group: "auxiliary",
+            name: "Direct_DoS_Launcher",
+            code: "OWTF-ADoS-001",
+            descrip: "Denial of Service (DoS) Launcher",
+            type: "dos"
+          }
+        ],
+        updateSelectedPlugins: jest.fn(),
+        globalSearch: ""
       };
       wrapper = shallow(<PluginsTable {...props} />);
     });
 
     it("Should have correct prop-types", () => {
       const expectedProps = {
-				plugins: [],
-				updateSelectedPlugins: () => {}
+        plugins: [],
+        updateSelectedPlugins: () => {}
       };
       const propsErr = checkProps(PluginsTable, expectedProps);
       expect(propsErr).toBeUndefined();
@@ -224,57 +221,75 @@ describe("Plugins componemt", () => {
       const component = wrapper.find("Table");
       expect(component.length).toBe(1);
       expect(toJson(component)).toMatchSnapshot();
-		});
+    });
 
-		it("Should correctly render table's sub-components", () => {
-			const searchHeader = wrapper.find("SearchTableHeaderCell");
-			const checkBoxHeader = wrapper.find("TableHeaderCell");
-			const tableRow = wrapper.find("withTheme(TableRow)");
-			const textCell = wrapper.find("TextTableCell");
-			const cell = wrapper.find("withTheme(TableCell)");
-			const checkBox = wrapper.find("withTheme(Checkbox)");
+    it("Should correctly render table's sub-components", () => {
+      const searchHeader = wrapper.find("SearchTableHeaderCell");
+      const checkBoxHeader = wrapper.find("TableHeaderCell");
+      const tableRow = wrapper.find("withTheme(TableRow)");
+      const textCell = wrapper.find("TextTableCell");
+      const cell = wrapper.find("withTheme(TableCell)");
+      const checkBox = wrapper.find("withTheme(Checkbox)");
 
-			expect(searchHeader.length).toBe(5);
-			expect(searchHeader.at(0).props().placeholder).toEqual("Code");
-			expect(searchHeader.at(1).props().placeholder).toEqual("Name");
-			expect(searchHeader.at(2).props().placeholder).toEqual("Type");
-			expect(searchHeader.at(3).props().placeholder).toEqual("Group");
-			expect(searchHeader.at(4).props().placeholder).toEqual("Help");
-			expect(checkBoxHeader.length).toBe(1);
-			expect(tableRow.length).toBe(props.plugins.length);
-			expect(textCell.length).toBe(5*props.plugins.length);
-			expect(textCell.at(0).props().children).toEqual(props.plugins[0].code);
-			expect(textCell.at(3).props().children).toEqual(props.plugins[0].group);
-			expect(cell.length).toBe(props.plugins.length);
-			expect(checkBox.length).toBe(1+props.plugins.length);
-		});
+      expect(searchHeader.length).toBe(5);
+      expect(searchHeader.at(0).props().placeholder).toEqual("Code");
+      expect(searchHeader.at(1).props().placeholder).toEqual("Name");
+      expect(searchHeader.at(2).props().placeholder).toEqual("Type");
+      expect(searchHeader.at(3).props().placeholder).toEqual("Group");
+      expect(searchHeader.at(4).props().placeholder).toEqual("Help");
+      expect(checkBoxHeader.length).toBe(1);
+      expect(tableRow.length).toBe(props.plugins.length);
+      expect(textCell.length).toBe(5 * props.plugins.length);
+      expect(textCell.at(0).props().children).toEqual(props.plugins[0].code);
+      expect(textCell.at(3).props().children).toEqual(props.plugins[0].group);
+      expect(cell.length).toBe(props.plugins.length);
+      expect(checkBox.length).toBe(1 + props.plugins.length);
+    });
 
-		it("Should call updateSelectedPlugins on checkbox click", () => {
-			expect(props.updateSelectedPlugins.mock.calls.length).toBe(0);
-			const checkBox = wrapper.find("withTheme(Checkbox)").at(0);
-			const event = {
-				preventDefault() {},
-				target: { checked: false }
-			};
-			checkBox.simulate("change", event);
-			expect(props.updateSelectedPlugins.mock.calls.length).toBe(1);
-		});
+    it("Should call updateSelectedPlugins on checkbox click", () => {
+      expect(props.updateSelectedPlugins.mock.calls.length).toBe(0);
+      const checkBox = wrapper.find("withTheme(Checkbox)").at(0);
+      const event = {
+        preventDefault() {},
+        target: { checked: false }
+      };
+      checkBox.simulate("change", event);
+      expect(props.updateSelectedPlugins.mock.calls.length).toBe(1);
+    });
 
-		it("Should filter the plugins correctly", () => {
+    it("Should filter the plugins correctly", () => {
       wrapper.setState({ codeSearch: "IG" });
-			expect(wrapper.find("withTheme(TableRow)").length).toBe(1);
-			expect(wrapper.find("TextTableCell").at(0).props().children).toEqual("OWTF-IG-004");
+      expect(wrapper.find("withTheme(TableRow)").length).toBe(1);
+      expect(
+        wrapper
+          .find("TextTableCell")
+          .at(0)
+          .props().children
+      ).toEqual("OWTF-IG-004");
       wrapper.setState({ codeSearch: "", nameSearch: "DoS" });
       expect(wrapper.find("withTheme(TableRow)").length).toBe(1);
-      wrapper.setState({ nameSearch: "", typeSearch: "dos", groupSearch: "web" });
+      wrapper.setState({
+        nameSearch: "",
+        typeSearch: "dos",
+        groupSearch: "web"
+      });
       expect(wrapper.find("withTheme(TableRow)").length).toBe(0);
-      wrapper.setState({ helpSearch: "Denial", typeSearch: "", groupSearch: "" });
-			expect(wrapper.find("withTheme(TableRow)").length).toBe(1);
-			expect(wrapper.find("TextTableCell").at(0).props().children).toEqual("OWTF-ADoS-001");
-		});
-	});
+      wrapper.setState({
+        helpSearch: "Denial",
+        typeSearch: "",
+        groupSearch: ""
+      });
+      expect(wrapper.find("withTheme(TableRow)").length).toBe(1);
+      expect(
+        wrapper
+          .find("TextTableCell")
+          .at(0)
+          .props().children
+      ).toEqual("OWTF-ADoS-001");
+    });
+  });
 
-	describe("Testing the sagas", () => {
+  describe("Testing the sagas", () => {
     describe("Testing getPlugins saga", () => {
       it("Should load plugins in case of success", async () => {
         // we push all dispatched actions to make assertions easier
@@ -287,14 +302,16 @@ describe("Plugins componemt", () => {
         // are dependent on it
         const mockedPlugins = {
           status: "success",
-          data:[{
-						key: "semi_passive@OWTF-IG-004",
-						group:	"web",
-						name:	"Web_Application_Fingerprint",
-						code:	"OWTF-IG-004",
-						descrip:	"Normal requests to gather fingerprint info",
-						type:	"semi_passive",
-					}]
+          data: [
+            {
+              key: "semi_passive@OWTF-IG-004",
+              group: "web",
+              name: "Web_Application_Fingerprint",
+              code: "OWTF-IG-004",
+              descrip: "Normal requests to gather fingerprint info",
+              type: "semi_passive"
+            }
+          ]
         };
         api.getPluginsAPI = jest.fn(() =>
           jest.fn(() => Promise.resolve(mockedPlugins))
@@ -332,20 +349,22 @@ describe("Plugins componemt", () => {
         expect(api.getPluginsAPI.mock.calls.length).toBe(1);
         expect(dispatchedActions).toContainEqual(pluginsLoadingError(error));
       });
-		});
+    });
 
-		describe("Testing postTargetsToWorklist saga", () => {
+    describe("Testing postTargetsToWorklist saga", () => {
       let fakeAction;
       beforeEach(() => {
         fakeAction = {
-					type: POST_TO_WORKLIST,
-					plugin_data: {}
+          type: POST_TO_WORKLIST,
+          plugin_data: {}
         };
       });
 
       it("Should post selected targets to worklist and load targets in case of success", async () => {
         const dispatchedActions = [];
-        api.postTargetsToWorklistAPI = jest.fn(() => jest.fn(() => Promise.resolve()));
+        api.postTargetsToWorklistAPI = jest.fn(() =>
+          jest.fn(() => Promise.resolve())
+        );
 
         const fakeStore = {
           getState: () => ({ state: "test" }),
@@ -361,7 +380,9 @@ describe("Plugins componemt", () => {
       it("Should handle target posting error in case of failure", async () => {
         const dispatchedActions = [];
         const error = "API server is down";
-        api.postTargetsToWorklistAPI = jest.fn(() => jest.fn(() => Promise.reject(error)));
+        api.postTargetsToWorklistAPI = jest.fn(() =>
+          jest.fn(() => Promise.reject(error))
+        );
 
         const fakeStore = {
           getState: () => ({ state: "test" }),
@@ -373,10 +394,10 @@ describe("Plugins componemt", () => {
         expect(api.postTargetsToWorklistAPI.mock.calls.length).toBe(1);
         expect(dispatchedActions).toContainEqual(targetPostingError(error));
       });
-		});
-	});
+    });
+  });
 
-	describe("Testing reducers", () => {
+  describe("Testing reducers", () => {
     describe("Testing pluginsLoadReducer", () => {
       let initialState;
       beforeEach(() => {
@@ -404,14 +425,16 @@ describe("Plugins componemt", () => {
       });
 
       it("Should handle LOAD_PLUGINS_SUCCESS", () => {
-        const plugins = [{
-					key: "semi_passive@OWTF-IG-004",
-					group:	"web",
-					name:	"Web_Application_Fingerprint",
-					code:	"OWTF-IG-004",
-					descrip:	"Normal requests to gather fingerprint info",
-					type:	"semi_passive",
-				}];
+        const plugins = [
+          {
+            key: "semi_passive@OWTF-IG-004",
+            group: "web",
+            name: "Web_Application_Fingerprint",
+            code: "OWTF-IG-004",
+            descrip: "Normal requests to gather fingerprint info",
+            type: "semi_passive"
+          }
+        ];
         const newState = pluginsLoadReducer(
           fromJS({
             loading: true,
@@ -466,8 +489,8 @@ describe("Plugins componemt", () => {
 
       it("Should handle POST_TO_WORKLIST,", () => {
         const newState = postToWorklistReducer(undefined, {
-					type: POST_TO_WORKLIST,
-					plugin_data: {}
+          type: POST_TO_WORKLIST,
+          plugin_data: {}
         });
         expect(newState.toJS()).toEqual({ loading: true, error: false });
       });
@@ -504,6 +527,6 @@ describe("Plugins componemt", () => {
           error: "Test target posting error"
         });
       });
-		});
-	});
+    });
+  });
 });

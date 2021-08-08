@@ -48,7 +48,7 @@ export function* autoCheckLogin(action) {
       yield put(logout());
     }
   } catch (error) {
-    // no toast msg to show
+    yield put(logout());
   }
 }
 
