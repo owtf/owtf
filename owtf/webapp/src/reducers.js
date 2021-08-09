@@ -17,6 +17,10 @@ import dashboardReducer from "containers/Dashboard/reducer";
 import workersReducer from "containers/WorkersPage/reducer";
 import emailVerificationReducer from "containers/EmailVerification/reducer";
 import signupReducer from "containers/SignupPage/reducer";
+import loginReducer from "containers/LoginPage/reducer";
+import otpReducer from "containers/OtpPage/reducer";
+import forgotPasswordEmailReducer from "./containers/ForgotPasswordPage/reducer";
+
 /*
  * routeReducer
  *
@@ -60,7 +64,10 @@ export default function createReducer() {
     worklist: worklistReducer,
     dashboard: dashboardReducer,
     workers: workersReducer,
-    emailverification: emailVerificationReducer,
-    signup: signupReducer
+    email_verification: emailVerificationReducer,
+    signup: signupReducer,
+    login: loginReducer,
+    otp: otpReducer,
+    forgot_password: forgotPasswordEmailReducer
   });
 }

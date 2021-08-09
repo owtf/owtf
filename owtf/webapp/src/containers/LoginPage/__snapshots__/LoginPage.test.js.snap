@@ -1,0 +1,101 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`LoginPage component Testing dumb login component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="loginPageComponent"
+  marginY={100}
+>
+  <withTheme(Pane)
+    elevation={1}
+    justifyContent="center"
+    margin="auto"
+    padding={5}
+    width="35%"
+  >
+    <withTheme(Heading)
+      marginBottom={20}
+      paddingTop={20}
+      size={700}
+      textAlign="center"
+    >
+      Login
+    </withTheme(Heading)>
+    <TextInputField
+      inputHeight={32}
+      inputWidth="100%"
+      label="Your Email Address"
+      marginBottom={20}
+      marginLeft="20%"
+      onChange={[Function]}
+      placeholder="Email"
+      value=""
+      width="60%"
+    />
+    <withTheme(Pane)
+      position="relative"
+    >
+      <withTheme(Pane)
+        marginLeft="75%"
+        position="absolute"
+        width="10%"
+      >
+        <withTheme(Icon)
+          cursor="pointer"
+          icon="eye-off"
+          marginX={-10}
+          marginY={32}
+          onMouseDown={[Function]}
+          onMouseUp={[Function]}
+        />
+      </withTheme(Pane)>
+      <TextInputField
+        inputHeight={32}
+        inputWidth="100%"
+        label="Your Password"
+        marginBottom={10}
+        marginLeft="20%"
+        onChange={[Function]}
+        placeholder="Password"
+        type="password"
+        value=""
+        width="60%"
+      />
+    </withTheme(Pane)>
+    <withTheme(Paragraph)
+      marginBottom={10}
+      marginLeft="20%"
+      width="60%"
+    >
+      <withTheme(Link)
+        href="/forgot-password/email"
+      >
+        Forgot Password?
+      </withTheme(Link)>
+    </withTheme(Paragraph)>
+    <withTheme(Button)
+      appearance="primary"
+      intent="none"
+      justifyContent="center"
+      marginLeft="40%"
+      onClick={[Function]}
+      width="20%"
+    >
+      LOGIN
+    </withTheme(Button)>
+    <withTheme(Paragraph)
+      marginBottom={10}
+      marginLeft="20%"
+      marginTop={10}
+      size={300}
+      width="60%"
+    >
+      New to OWTF? 
+      <withTheme(Link)
+        href="/signup"
+      >
+        Join now
+      </withTheme(Link)>
+    </withTheme(Paragraph)>
+  </withTheme(Pane)>
+</withTheme(Pane)>
+`;

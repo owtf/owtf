@@ -1,0 +1,77 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EmailVerification component Testing dumb email verification component Should render without errors 1`] = `
+<withTheme(Pane)
+  data-test="emailSendPageComponent"
+  marginY={100}
+>
+  <withTheme(Pane)
+    elevation={1}
+    justifyContent="center"
+    margin="auto"
+    padding={5}
+    width="35%"
+  >
+    <withTheme(Heading)
+      marginBottom={20}
+      paddingTop={20}
+      size={700}
+      textAlign="center"
+    >
+      Email Sent
+    </withTheme(Heading)>
+    <withTheme(Paragraph)
+      marginBottom={5}
+      marginLeft="20%"
+      size={300}
+      width="60%"
+    >
+      We have sent a mail to verify your email address.
+    </withTheme(Paragraph)>
+    <withTheme(Paragraph)
+      marginLeft="20%"
+      size={300}
+      width="60%"
+    >
+      If you don't receive, please click here to:
+      <br />
+      <withTheme(Link)>
+        <withTheme(Button)
+          appearance="primary"
+          intent="none"
+          justifyContent="center"
+          marginBottom={10}
+          marginLeft="40%"
+          marginTop={10}
+          onClick={[Function]}
+          width="20%"
+        >
+          Resend
+        </withTheme(Button)>
+      </withTheme(Link)>
+    </withTheme(Paragraph)>
+    <withTheme(Paragraph)
+      marginBottom={15}
+      marginLeft="20%"
+      size={300}
+      width="60%"
+    >
+      Once you verify, 
+      <withTheme(Link)
+        href="/login"
+      >
+        Login
+      </withTheme(Link)>
+       here
+    </withTheme(Paragraph)>
+    <withTheme(Paragraph)
+      marginBottom={20}
+      marginLeft="20%"
+      size={300}
+      width="60%"
+    >
+      If you don't find it in your inbox, check spam folder.
+    </withTheme(Paragraph)>
+  </withTheme(Pane)>
+</withTheme(Pane)>
+`;

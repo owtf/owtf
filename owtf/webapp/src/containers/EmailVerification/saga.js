@@ -7,9 +7,9 @@ import {
   emailVerificationSuccess,
   emailVerificationFail
 } from "./actions";
-import "@babel/polyfill";
 import { toaster } from "evergreen-ui";
-import history from "../../utils/historyUtils";
+import { push } from "react-router-redux";
+import "@babel/polyfill";
 
 /**
  * Send the email verification link to the email of the user using API
@@ -43,15 +43,11 @@ export function* postToVerificationAPI(action) {
       if (responseData.data["message"] === "Email Verified") {
         pathname = "/login";
       } else if (responseData.data["message"] === "Link Expired") {
-        pathname = "/email-send/" + responseData.data["email"];
+        pathname = "/email-send/";
       } else if (responseData.data["message"] === "Invalid Link") {
         pathname = "/signup";
       }
-      setTimeout(() => {
-        history.push({
-          pathname: pathname
-        });
-      }, 1500);
+      yield put(push(pathname));
       toaster.success(responseData.data["message"]);
       yield put(emailVerificationSuccess(responseData.data["message"]));
     }

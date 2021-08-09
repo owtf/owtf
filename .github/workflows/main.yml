@@ -40,7 +40,7 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/*') }}
           restore-keys: |
             ${{ runner.os }}-pip-${{ hashFiles('**/requirements/*') }}
-            
+
       - name: before_install
         run: |
           sudo apt update
@@ -84,13 +84,13 @@ jobs:
       - name: node_js
         working-directory: owtf/webapp
         run: yarn test
-      
+
       - name: slack - GitHub Actions Slack integration
         uses: act10ns/slack@v1.2.2
-        with: 
+        with:
           status: ${{ job.status }}
           steps: ${{ toJson(steps) }}
-          channel: '#owtf-notifications'
+          channel: "#owtf-notifications"
         if: always()
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
