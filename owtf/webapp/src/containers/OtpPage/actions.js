@@ -1,0 +1,47 @@
+import { OTP_START, OTP_SUCCESS, OTP_FAIL } from "./constants";
+
+/**
+ * Dispatched when otp send starts
+ *
+ * @param  {string} email The email of the user
+ * @param  {string} otp The otp send by the server
+ *
+ * @return {object} An action object with a type of OTP_START passing the email and otp
+ */
+export function otpStart(email, otp) {
+  return {
+    type: OTP_START,
+    email: email,
+    otp: otp
+  };
+}
+
+/**
+ * Dispatched when otp send fails
+ *
+ * @param  {object} error The error object
+ *
+ * @return {object} An action object with a type of OTP_FAIL passing the error
+ */
+export function otpFail(error) {
+  return {
+    type: OTP_FAIL,
+    error: error
+  };
+}
+
+/**
+ * Dispatched when otp send is successful
+ *
+ * @param  {string} msg msg returned by the server
+ * @param  {string} otp Otp of the user
+ *
+ * @return {object} An action object with a type of OTP_SUCCESS passing the msg and otp
+ */
+export function otpSuccess(msg, otp) {
+  return {
+    type: OTP_SUCCESS,
+    msg: msg,
+    otp: otp
+  };
+}

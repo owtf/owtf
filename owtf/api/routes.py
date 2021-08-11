@@ -29,6 +29,9 @@ from owtf.api.handlers.auth import (
     RegisterHandler,
     AccountActivationGenerateHandler,
     AccountActivationValidateHandler,
+    OtpGenerateHandler,
+    OtpVerifyHandler,
+    PasswordChangeHandler,
 )
 from owtf.api.handlers.api_token import ApiTokenGenerateHandler
 from owtf.db.session import get_scoped_session
@@ -97,6 +100,9 @@ API_v1_HANDLERS = [
         AccountActivationValidateHandler,
         name="confirmpasswordverify_api_url",
     ),
+    tornado.web.url(r"/api/v1/generate/otp/?$", OtpGenerateHandler, name="otp_generate_api_url"),
+    tornado.web.url(r"/api/v1/verify/otp/?$", OtpVerifyHandler, name="otp_verify_api_url"),
+    tornado.web.url(r"/api/v1/new-password/?$", PasswordChangeHandler, name="password_change_api_url"),
 ]
 
 UI_HANDLERS = [

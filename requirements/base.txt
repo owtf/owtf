@@ -25,3 +25,4 @@ bcrypt==3.2.0
 uuid==1.30
 PyJWT==1.7.1
 bs4==0.0.1
+pyotp==2.6.0

@@ -17,6 +17,7 @@ class User(Model):
     email = Column(Unicode(255), nullable=False, unique=True)
     password = Column(Unicode(255), nullable=False)
     is_active = Column(Boolean, default=False)  # checks whether user email is verified
+    otp_secret_key = Column(Unicode(255), nullable=False, unique=True)  # used to generate unique otp
     email_confirmations = relationship("EmailConfirmation", cascade="delete")
     user_login_tokens = relationship("UserLoginToken", cascade="delete")
 
@@ -37,7 +38,12 @@ class User(Model):
     @classmethod
     def add_user(cls, session, user):
         """Adds an user to the DB"""
-        new_user = cls(name=user["name"], email=user["email"], password=user["password"].decode("utf-8"))
+        new_user = cls(
+            name=user["name"],
+            email=user["email"],
+            password=user["password"].decode("utf-8"),
+            otp_secret_key=user["otp_secret_key"],
+        )
         session.add(new_user)
         session.commit()
 
@@ -53,3 +59,9 @@ class User(Model):
         Returns None if not found.
         """
         return session.query(cls).filter_by(id=id).first()
+
+    @classmethod
+    def change_password(cls, session, email, password):
+        db_obj = session.query(cls).filter_by(email=email).first()
+        db_obj.password = password
+        session.commit()
