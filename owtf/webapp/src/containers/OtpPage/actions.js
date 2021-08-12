@@ -3,15 +3,15 @@ import { OTP_START, OTP_SUCCESS, OTP_FAIL } from "./constants";
 /**
  * Dispatched when otp send starts
  *
- * @param  {string} email The email of the user
+ * @param  {string} emailOrUsername The email/username of the user
  * @param  {string} otp The otp send by the server
  *
  * @return {object} An action object with a type of OTP_START passing the email and otp
  */
-export function otpStart(email, otp) {
+export function otpStart(emailOrUsername, otp) {
   return {
     type: OTP_START,
-    email: email,
+    emailOrUsername: emailOrUsername,
     otp: otp
   };
 }

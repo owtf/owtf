@@ -42,7 +42,7 @@ describe("LoginPage component", () => {
 
     it("Should correctly render its sub-components", () => {
       wrapper.setState({
-        email: "test_user@test.com",
+        emailOrUsername: "test_user@test.com",
         password: "Test@1234",
         hidePassword: true
       });
@@ -54,7 +54,9 @@ describe("LoginPage component", () => {
       expect(heading.length).toBe(1);
       expect(heading.at(0).props().children).toEqual("Login");
       expect(textInputField.length).toBe(2);
-      expect(textInputField.at(0).props().placeholder).toEqual("Email");
+      expect(textInputField.at(0).props().placeholder).toEqual(
+        "Username / Email"
+      );
       expect(textInputField.at(1).props().placeholder).toEqual("Password");
       expect(paragraph.length).toBe(2);
       expect(button.length).toBe(1);
@@ -69,7 +71,9 @@ describe("LoginPage component", () => {
       };
 
       textInputFieldEmail.simulate("change", eventEmail);
-      expect(wrapper.instance().state.email).toEqual("test_user@test.com");
+      expect(wrapper.instance().state.emailOrUsername).toEqual(
+        "test_user@test.com"
+      );
 
       const textInputFieldPassword = wrapper.find("TextInputField").at(1);
       const eventPassword = {
@@ -95,7 +99,7 @@ describe("LoginPage component", () => {
       beforeEach(() => {
         fakeAction = {
           type: LOGIN_START,
-          email: "test_user@test.com",
+          emailOrUsername: "test_user@test.com",
           password: "Test@1234"
         };
       });
@@ -106,7 +110,7 @@ describe("LoginPage component", () => {
           data: {
             status: "success",
             message: {
-              "jwt-token": "test_token"
+              "jwt-token": ""
             }
           }
         };
@@ -123,7 +127,7 @@ describe("LoginPage component", () => {
         await runSaga(fakeStore, postDataToLoginAPI, fakeAction).done;
         expect(api.loginUsingLoginAPI.mock.calls.length).toBe(1);
         expect(dispatchedActions).toContainEqual(
-          loginSuccess(successData["data"]["message"]["jwt-token"])
+          loginSuccess(successData["data"]["message"]["jwt-token"], "Username")
         );
       });
 
@@ -160,7 +164,7 @@ describe("LoginPage component", () => {
           data: {
             status: "success",
             message: {
-              "jwt-token": "test_token"
+              "jwt-token": ""
             }
           }
         };
@@ -177,7 +181,7 @@ describe("LoginPage component", () => {
         await runSaga(fakeStore, postDataToLoginAPI, fakeAction).done;
         expect(api.loginUsingLoginAPI.mock.calls.length).toBe(1);
         expect(dispatchedActions).toContainEqual(
-          loginSuccess(successData["data"]["message"]["jwt-token"])
+          loginSuccess(successData["data"]["message"]["jwt-token"], "Username")
         );
       });
 
@@ -208,7 +212,8 @@ describe("LoginPage component", () => {
           token: null,
           error: false,
           loading: false,
-          isAuthenticated: false
+          isAuthenticated: false,
+          username: null
         };
       });
 
@@ -225,22 +230,26 @@ describe("LoginPage component", () => {
           loading: true,
           error: false,
           token: null,
-          isAuthenticated: false
+          isAuthenticated: false,
+          username: null
         });
       });
 
       it("Should handle LOGIN_SUCCESS", () => {
         const token = "test_token";
+        const user_name = "test_user_name";
         const newState = loginReducer(
           fromJS({
             loading: true,
             error: true,
             token: null,
-            isAuthenticated: false
+            isAuthenticated: false,
+            username: user_name
           }),
           {
             type: LOGIN_SUCCESS,
-            token: token
+            token: token,
+            username: user_name
           }
         );
 
@@ -248,7 +257,8 @@ describe("LoginPage component", () => {
           loading: false,
           error: false,
           token: token,
-          isAuthenticated: true
+          isAuthenticated: true,
+          username: user_name
         });
       });
 
@@ -259,7 +269,8 @@ describe("LoginPage component", () => {
             loading: true,
             error: true,
             token: null,
-            isAuthenticated: false
+            isAuthenticated: false,
+            username: null
           }),
           {
             type: LOGIN_FAIL,
@@ -271,7 +282,8 @@ describe("LoginPage component", () => {
           loading: false,
           error: err,
           token: null,
-          isAuthenticated: false
+          isAuthenticated: false,
+          username: null
         });
       });
     });
