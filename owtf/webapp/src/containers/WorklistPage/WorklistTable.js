@@ -5,7 +5,7 @@
  */
 import React from "react";
 import { filter } from "fuzzaldrin-plus";
-import { Table, IconButton, Link, Tooltip } from "evergreen-ui";
+import { Table, IconButton, Link, Tooltip, Checkbox } from "evergreen-ui";
 import PropTypes from "prop-types";
 
 export default class WorklistTable extends React.Component {
@@ -16,7 +16,8 @@ export default class WorklistTable extends React.Component {
       urlSearch: "", //filter for target URL
       nameSearch: "", //plugin name filter query
       typeSearch: "", //plugin type filter query
-      groupSearch: "" //plugin group filter query
+      groupSearch: "", //plugin group filter query
+      items: {} // stores the filtered items
     };
   }
 
@@ -119,21 +120,34 @@ export default class WorklistTable extends React.Component {
     this.setState({ groupSearch: value });
   };
 
-  render() {
+  /**
+   * Function handling the toggling of the selection checkbox
+   * @param {e, items} value event, items to be selected
+   */
+  toggleCheck = (e, items) => {
+    this.props.changeSelection(e.target.checked);
+    this.props.updatingWorklist(items);
+  };
+
+  render = () => {
     const { worklist, resumeWork, pauseWork, deleteWork } = this.props;
     const items = this.handleTableFilter(worklist);
     return (
       <Table data-test="worklistTableComponent">
-        <Table.Head height={50}>
-          <Table.TextHeaderCell flex="none" width="10%">
-            Est. Time (min)
+        <Table.Head height={55}>
+          <Table.TextHeaderCell flex="none" width="12%">
+            <Checkbox
+              checked={this.props.selection}
+              onChange={(e, item) => this.toggleCheck(e, items)}
+              label="Est. Time (min)"
+            />
           </Table.TextHeaderCell>
           <Table.TextHeaderCell flex="none" width="10%">
             Actions
           </Table.TextHeaderCell>
           <Table.SearchHeaderCell
             flex="none"
-            width="24%"
+            width="22%"
             onChange={this.handleURLFilterChange}
             value={this.state.urlSearch}
             placeholder="Target"
@@ -163,7 +177,7 @@ export default class WorklistTable extends React.Component {
         <Table.VirtualBody height={800}>
           {items.map(work => (
             <Table.Row key={work.id} isSelectable>
-              <Table.TextCell flex="none" width="10%">
+              <Table.TextCell flex="none" width="12%">
                 {work.plugin.min_time}
               </Table.TextCell>
               <Table.Cell flex="none" width="10%">
@@ -192,7 +206,7 @@ export default class WorklistTable extends React.Component {
               </Table.Cell>
               <Table.TextCell
                 flex="none"
-                width="25%"
+                width="23%"
                 title={work.target.target_url}
               >
                 <Link href={`/targets/${work.target.id}`} target="_blank">
@@ -217,7 +231,7 @@ export default class WorklistTable extends React.Component {
         </Table.VirtualBody>
       </Table>
     );
-  }
+  };
 }
 
 WorklistTable.propTypes = {
