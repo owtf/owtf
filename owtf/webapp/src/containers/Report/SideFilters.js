@@ -257,7 +257,12 @@ export class SideFilters extends React.Component {
 
         {/* Type Filter starts*/}
         <Strong marginBottom={10}> Plugin Type</Strong>
-        <Tablist display="flex" flexDirection="column" width={200}>
+        <Tablist
+          display="flex"
+          flexDirection="column"
+          width={200}
+          marginBottom="110%"
+        >
           {types.map((type, index) => (
             <Tab
               key={index}
