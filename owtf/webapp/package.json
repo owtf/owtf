@@ -27,7 +27,7 @@
     "history": "^4.7.2",
     "immutability-helper": "^3.0.0",
     "immutable": "^3.8.2",
-    "jszip": "^3.2.1",
+    "jszip": "^3.7.0",
     "jwt-decode": "^3.1.2",
     "moment": "^2.24.0",
     "prop-types": "^15.6.1",
