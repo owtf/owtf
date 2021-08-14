@@ -37,7 +37,9 @@ export class WorklistPage extends React.Component {
     this.deleteWork = this.deleteWork.bind(this);
 
     this.state = {
-      globalSearch: "" //handles the search query for the main search box
+      globalSearch: "", //handles the search query for the main search box
+      selection: false, // handles selection of checkbox
+      worklist: {} // stores the selected worklist
     };
   }
 
@@ -142,6 +144,52 @@ export class WorklistPage extends React.Component {
     }, 500);
   }
 
+  /**
+   * Function to change state variable worklist
+   * @param {worklist} worklist object with current selected worklist
+   */
+  updatingWorklist = worklist => {
+    this.setState({ worklist: worklist });
+  };
+
+  /**
+   * Function to change state variable selection
+   * @param {val} val (true/false) with which selection should be set
+   */
+  changeSelection = val => {
+    this.setState({ selection: val });
+  };
+
+  /**
+   * Function to delete selected work
+   * Uses Function deleteWork()
+   */
+  deleteSelectedWork = () => {
+    for (let val of this.state.worklist) {
+      this.deleteWork(val.id);
+    }
+  };
+
+  /**
+   * Function to resume selected work
+   * Uses Function resumeWork()
+   */
+  resumeSelectedWork = () => {
+    for (let val of this.state.worklist) {
+      this.resumeWork(val.id);
+    }
+  };
+
+  /**
+   * Function to pause selected work
+   * Uses Function pauseWork()
+   */
+  pauseSelectedWork = () => {
+    for (let val of this.state.worklist) {
+      this.pauseWork(val.id);
+    }
+  };
+
   render() {
     const { fetchLoading, fetchError, worklist } = this.props;
     const WorklistTableProps = {
@@ -186,26 +234,36 @@ export class WorklistPage extends React.Component {
             iconBefore="pause"
             appearance="primary"
             intent="success"
-            onClick={this.pauseAllWork}
+            onClick={
+              !this.state.selection ? this.pauseAllWork : this.pauseSelectedWork
+            }
           >
-            Pause All
+            {!this.state.selection ? "Pause All" : "Pause Selected"}
           </Button>
           <Button
             marginRight={16}
             iconBefore="play"
             appearance="primary"
             intent="warning"
-            onClick={this.resumeAllWork}
+            onClick={
+              !this.state.selection
+                ? this.resumeAllWork
+                : this.resumeSelectedWork
+            }
           >
-            Resume All
+            {!this.state.selection ? "Resume All" : "Resume Selected"}
           </Button>
           <Button
             iconBefore="trash"
             appearance="primary"
             intent="danger"
-            onClick={this.deleteAllWork}
+            onClick={
+              !this.state.selection
+                ? this.deleteAllWork
+                : this.deleteSelectedWork
+            }
           >
-            Delete All
+            {!this.state.selection ? "Delete All" : "Delete Selected"}
           </Button>
         </Pane>
         {fetchError !== false ? (
@@ -228,7 +286,17 @@ export class WorklistPage extends React.Component {
             <Spinner size={64} />
           </Pane>
         ) : null}
-        {worklist !== false ? <WorklistTable {...WorklistTableProps} /> : null}
+        {worklist !== false ? (
+          <WorklistTable
+            {...WorklistTableProps}
+            updatingWorklist={this.updatingWorklist}
+            selection={this.state.selection}
+            changeSelection={this.changeSelection}
+            resumeAllWork={this.resumeAllWork}
+            pauseAllWork={this.pauseAllWork}
+            deleteAllWork={this.deleteAllWork}
+          />
+        ) : null}
       </Pane>
     );
   }
