@@ -12,6 +12,12 @@ import reportSaga from "./containers/Report/saga";
 import worklistSaga from "./containers/WorklistPage/saga";
 import dashboardSaga from "./containers/Dashboard/saga";
 import workersSaga from "./containers/WorkersPage/saga";
+import signupSaga from "./containers/SignupPage/saga";
+import emailVerificationSaga from "./containers/EmailVerification/saga";
+import forgotPasswordEmailSaga from "./containers/ForgotPasswordPage/saga";
+import otpSaga from "./containers/OtpPage/saga";
+import newPasswordSaga from "./containers/NewPasswordPage/saga";
+import loginSaga from "./containers/LoginPage/saga";
 
 export default function* rootSaga() {
   yield all([
@@ -23,6 +29,12 @@ export default function* rootSaga() {
     reportSaga(),
     worklistSaga(),
     dashboardSaga(),
-    workersSaga()
+    workersSaga(),
+    signupSaga(),
+    loginSaga(),
+    emailVerificationSaga(),
+    forgotPasswordEmailSaga(),
+    otpSaga(),
+    newPasswordSaga()
   ]);
 }

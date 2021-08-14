@@ -36,7 +36,7 @@ echo "[*]Level 3:Subdomain Enumeration using Sublist3r"
 echo
 echo "[*] Starting Level 1"
 #certspotter.com
-curl -s -N "https://certspotter.com/api/v0/certs?domain=$1" | jq -r '.[].dns_names[]' 2>/dev/null | grep -o "\w.*$1" | sort -u >> subdomain_$1.txt &
+curl -s -N "https://certspotter.com/api/v1/issuances?domain=$1&expand=dns_names" | jq -r '.[].dns_names[]' 2>/dev/null | grep -o "\w.*$1" | sort -u >> subdomain_$1.txt &
 #crt.sh
 curl -s -N "https://crt.sh/?q=%25.$1&output=json"| jq -r '.[].name_value' 2>/dev/null | sed 's/\*\.//g' | sort -u | grep -o "\w.*$1" >> subdomain_$1.txt &
 #hackertarget.com
@@ -62,7 +62,9 @@ curl -s -N "https://tls.bufferover.run/dns?q=.$1" | jq -r .Results 2>/dev/null |
 #dnsdumpster
 cmdtoken=$(curl -ILs https://dnsdumpster.com | grep csrftoken | cut -d " " -f2 | cut -d "=" -f2 | tr -d ";");curl -s --header "Host:dnsdumpster.com" --referer https://dnsdumpster.com --user-agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0" --data "csrfmiddlewaretoken=$cmdtoken&targetip=$1" --cookie "csrftoken=$cmdtoken; _ga=GA1.2.1737013576.1458811829; _gat=1" https://dnsdumpster.com > dnsdumpster.html;cat dnsdumpster.html|grep "https://api.hackertarget.com/httpheaders"|grep -o "\w.*$1"|cut -d "/" -f7|sort -u >> subdomain_$1.txt;rm dnsdumpster.html &&
 #rapiddns.io
-curl -s "https://rapiddns.io/subdomain/$1?full=1#result" | grep -oaEi "https?://[^\"\\'> ]+" | grep $1 | cut -d "/" -f3 | sort -u >> subdomain_$1.txt
+curl -s "https://rapiddns.io/subdomain/$1?full=1#result" | grep -oaEi "https?://[^\"\\'> ]+" | grep $1 | cut -d "/" -f3 | sort -u >> subdomain_$1.txt &
+# jldc
+curl -s -N "https://jldc.me/anubis/subdomains/$1?limit=40" | grep '"id":' | cut -d '"' -f4 | sort -u >> subdomain_$1.txt
 echo
 echo "[*] Level 1 Done!!"
 }

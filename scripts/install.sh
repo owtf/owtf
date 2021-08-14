@@ -160,7 +160,7 @@ ui_setup() {
     # Setup nvm and install node
     . ${NVM_DIR}/nvm.sh
     echo "${normal}[*] Installing NPM...${reset}"
-    nvm install node
+    nvm install 15.0
     nvm alias default node
     echo "${normal}[*] npm successfully installed.${reset}"
 
@@ -215,3 +215,5 @@ make post-install
 
 echo "${info}[*] Finished!${reset}"
 echo "${info}[*] Start OWTF by running cd path/to/pentest/directory; owtf${reset}"
+echo "${warning}[!] Please add a new JWT_SECRET_KEY in the settings file located in owtf/owtf/settings.py${reset} "
+echo "${warning}[!] Please setup SMTP server of your choice in the settings file located in owtf/owtf/settings.py${reset} "

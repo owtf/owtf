@@ -6,3 +6,4 @@ Configuration
 
        configuration/db.rst
        configuration/framework_config.rst
+       configuration/smtp.rst

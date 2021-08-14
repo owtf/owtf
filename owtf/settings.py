@@ -35,7 +35,7 @@ else:
     DATABASE_PASS = "jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g="
     DATABASE_NAME = "owtf_db"
     DATABASE_USER = "owtf_db_user"
-    DATABASE_IP = "127.0.0.1"
+    DATABASE_IP = os.environ.get("POSTGRES_HOST","127.0.0.1")
     DATABASE_PORT = 5432
 
 # API and UI Server
@@ -63,15 +63,9 @@ USE_SENTRY = False
 SENTRY_API_KEY = ""
 
 # IMP PATHS
-WEB_TEST_GROUPS = os.path.join(
-    OWTF_CONF, "conf", "profiles", "plugin_web", "groups.cfg"
-)
-NET_TEST_GROUPS = os.path.join(
-    OWTF_CONF, "conf", "profiles", "plugin_net", "groups.cfg"
-)
-AUX_TEST_GROUPS = os.path.join(
-    OWTF_CONF, "conf", "profiles", "plugin_aux", "groups.cfg"
-)
+WEB_TEST_GROUPS = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_web", "groups.cfg")
+NET_TEST_GROUPS = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_net", "groups.cfg")
+AUX_TEST_GROUPS = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_aux", "groups.cfg")
 PLUGINS_DIR = os.path.join(ROOT_DIR, "plugins")
 
 # Output Settings
@@ -87,12 +81,8 @@ WORKER_LOG_DIR = "logs"
 DEFAULT_GENERAL_PROFILE = os.path.join(OWTF_CONF, "conf", "general.yaml")
 DEFAULT_FRAMEWORK_CONFIG = os.path.join(OWTF_CONF, "conf", "framework.yaml")
 DEFAULT_RESOURCES_PROFILE = os.path.join(OWTF_CONF, "conf", "resources.cfg")
-DEFAULT_WEB_PLUGIN_ORDER_PROFILE = os.path.join(
-    OWTF_CONF, "conf", "profiles", "plugin_web", "order.cfg"
-)
-DEFAULT_NET_PLUGIN_ORDER_PROFILE = os.path.join(
-    OWTF_CONF, "conf", "profiles", "plugin_net", "order.cfg"
-)
+DEFAULT_WEB_PLUGIN_ORDER_PROFILE = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_web", "order.cfg")
+DEFAULT_NET_PLUGIN_ORDER_PROFILE = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_net", "order.cfg")
 
 # logs_dir can be both relative or absolute path ;)
 LOGS_DIR = "logs"
@@ -103,12 +93,12 @@ OWTF_LOG_FILE = "/tmp/owtf.log"
 TEMPLATES = os.path.join(OWTF_CONF, "build")
 STATIC_ROOT = os.path.join(OWTF_CONF, "build")
 
-# SMTP
-EMAIL_FROM = "you@your_server.com"
-SMTP_LOGIN = "login@your_server.com"
-SMTP_PASS = "your_password"
-SMTP_HOST = "your_mail_server.com"
-SMTP_PORT = 25
+# SMTP (Make changes here to setup SMTP server of your choice)
+EMAIL_FROM = None  # Your SMTP From Mail
+SMTP_LOGIN = None  # Your SMTP Login
+SMTP_PASS = None  # Your Password
+SMTP_HOST = None  # Your Mail Server
+SMTP_PORT = None  # Your SMTP Port
 
 # OUTBOUND PROXY
 USE_OUTBOUND_PROXY = False
@@ -148,12 +138,16 @@ PROXY_RESTRICTED_REQUEST_HEADERS = [
 PROXY_LOG = "/tmp/owtf/proxy.log"
 
 # Define regex patterns
-REGEXP_FILE_URL = "^[^\?]+\.(xml|exe|pdf|cs|log|inc|dat|bak|conf|cnf|old|zip|7z|rar|tar|gz|bz2|txt|xls|xlsx|doc|docx|ppt|pptx)$"
+REGEXP_FILE_URL = (
+    "^[^\?]+\.(xml|exe|pdf|cs|log|inc|dat|bak|conf|cnf|old|zip|7z|rar|tar|gz|bz2|txt|xls|xlsx|doc|docx|ppt|pptx)$"
+)
 # Potentially small files will be retrieved for analysis
 REGEXP_SMALL_FILE_URL = "^[^\?]+\.(xml|cs|inc|dat|bak|conf|cnf|old|txt)$"
 REGEXP_IMAGE_URL = "^[^\?]+\.(jpg|jpeg|png|gif|bmp)$"
 REGEXP_VALID_URL = "^[^\?]+\.(shtml|shtm|stm)$"
 REGEXP_SSI_URL = "^(http|ftp)[^ ]+$"
+REGEXP_PASSWORD = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!#%*?&]{8,20}$"
+REGEXP_EMAIL = "^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[-]?\w+[.]\w{2,3}$"
 
 # Compile regular expressions once at the beginning for speed purposes:
 is_file_regex = re.compile(REGEXP_FILE_URL, re.IGNORECASE)
@@ -161,6 +155,8 @@ is_small_file_regex = re.compile(REGEXP_SMALL_FILE_URL, re.IGNORECASE)
 is_image_regex = re.compile(REGEXP_IMAGE_URL, re.IGNORECASE)
 is_url_regex = re.compile(REGEXP_VALID_URL, re.IGNORECASE)
 is_ssi_regex = re.compile(REGEXP_SSI_URL, re.IGNORECASE)
+is_password_valid_regex = re.compile(REGEXP_PASSWORD)
+is_email_valid_regex = re.compile(REGEXP_EMAIL, re.IGNORECASE)
 
 # UI
 SERVER_LOG = "/tmp/owtf/ui_server.log"
@@ -187,25 +183,15 @@ USER_AGENT = "Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0"
 PROXY_CHECK_URL = "http://www.google.ie"
 
 # Fallback
-FALLBACK_WEB_TEST_GROUPS = os.path.join(
-    ROOT_DIR, "data", "conf", "profiles", "plugin_web", "groups.cfg"
-)
-FALLBACK_NET_TEST_GROUPS = os.path.join(
-    ROOT_DIR, "data", "conf", "profiles", "plugin_net", "groups.cfg"
-)
-FALLBACK_AUX_TEST_GROUPS = os.path.join(
-    ROOT_DIR, "data", "conf", "profiles", "plugin_aux", "groups.cfg"
-)
+FALLBACK_WEB_TEST_GROUPS = os.path.join(ROOT_DIR, "data", "conf", "profiles", "plugin_web", "groups.cfg")
+FALLBACK_NET_TEST_GROUPS = os.path.join(ROOT_DIR, "data", "conf", "profiles", "plugin_net", "groups.cfg")
+FALLBACK_AUX_TEST_GROUPS = os.path.join(ROOT_DIR, "data", "conf", "profiles", "plugin_aux", "groups.cfg")
 FALLBACK_PLUGINS_DIR = os.path.join(ROOT_DIR, "data", "plugins")
 FALLBACK_GENERAL_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "general.yaml")
 FALLBACK_FRAMEWORK_CONFIG = os.path.join(ROOT_DIR, "data", "conf", "framework.yaml")
 FALLBACK_RESOURCES_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "resources.cfg")
-FALLBACK_WEB_PLUGIN_ORDER_PROFILE = os.path.join(
-    ROOT_DIR, "data", "conf", "profiles", "plugin_web", "order.cfg"
-)
-FALLBACK_NET_PLUGIN_ORDER_PROFILE = os.path.join(
-    ROOT_DIR, "data", "conf", "profiles", "plugin_net", "order.cfg"
-)
+FALLBACK_WEB_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "profiles", "plugin_web", "order.cfg")
+FALLBACK_NET_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "profiles", "plugin_net", "order.cfg")
 
 # Override the values
 local_conf = os.path.join(OWTF_CONF, "settings.py")
@@ -215,3 +201,15 @@ try:
         exec(settings, globals(), locals())
 except FileNotFoundError:
     pass
+
+# JWT
+JWT_SECRET_KEY = "changeme"  # Add your JWT_SECRET_KEY here
+JWT_ALGORITHM = "HS256"
+JWT_EXP_DELTA_SECONDS = 60 * 60 * 24
+JWT_OPTIONS = {
+    "verify_signature": True,
+    "verify_exp": True,
+    "verify_nbf": False,
+    "verify_iat": True,
+    "verify_aud": False,
+}
