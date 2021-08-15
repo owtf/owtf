@@ -21,7 +21,7 @@ def jwtauth(handler_class):
                 if parts[0].lower() != "bearer" or len(parts) == 1 or len(parts) > 2:
                     handler._transforms = []
                     handler.set_status(401)
-                    handler.write("invalid header authorization")
+                    handler.write({"success": False, "message": "Invalid header authorization"})
                     handler.finish()
 
                 token = parts[1]
@@ -33,17 +33,17 @@ def jwtauth(handler_class):
                     if user_id is None or user_token is None:
                         handler._transforms = []
                         handler.set_status(401)
-                        handler.write("Unauthorized")
+                        handler.write({"success": False, "message": "Unauthorized"})
                         handler.finish()
 
                 except Exception:
                     handler._transforms = []
                     handler.set_status(401)
-                    handler.write("Unauthorized")
+                    handler.write({"success": False, "message": "Unauthorized"})
                     handler.finish()
             else:
                 handler._transforms = []
-                handler.write("Missing authorization")
+                handler.write({"success": False, "message": "Missing authorization"})
                 handler.finish()
 
             return True

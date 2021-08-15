@@ -36,6 +36,7 @@ from email.mime.multipart import MIMEMultipart
 import logging
 from bs4 import BeautifulSoup
 from owtf.utils.logger import OWTFLogger
+from owtf.api.handlers.jwtauth import jwtauth
 import pyotp
 
 
@@ -225,6 +226,7 @@ class RegisterHandler(APIRequestHandler):
             self.success({"status": "success", "message": data})
 
 
+@jwtauth
 class LogOutHandler(APIRequestHandler):
     """Logs out the current user and clears the cookie."""
 

@@ -12,11 +12,12 @@ from owtf.lib.exceptions import APIError
 from owtf.managers.plugin import get_all_plugin_dicts, get_types_for_plugin_group
 from owtf.managers.poutput import delete_all_poutput, get_all_poutputs, update_poutput
 from owtf.models.test_group import TestGroup
-
+from owtf.api.handlers.jwtauth import jwtauth
 
 __all__ = ["PluginNameOutput", "PluginDataHandler", "PluginOutputHandler"]
 
 
+@jwtauth
 class PluginDataHandler(APIRequestHandler):
     """Get completed plugin output data from the DB."""
 
@@ -99,6 +100,7 @@ class PluginDataHandler(APIRequestHandler):
             raise APIError(400, "Invalid target provided.")
 
 
+@jwtauth
 class PluginNameOutput(APIRequestHandler):
     """Get the scan results for a target."""
 
@@ -213,6 +215,7 @@ class PluginNameOutput(APIRequestHandler):
             raise APIError(400, "Invalid parameter type provided")
 
 
+@jwtauth
 class PluginOutputHandler(APIRequestHandler):
     """Filter plugin output data."""
 

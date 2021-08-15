@@ -1,7 +1,7 @@
 repos:
--   repo: https://github.com/ambv/black
-    rev: stable
+  - repo: https://github.com/ambv/black
+    rev: 21.6b0
     hooks:
-    - id: black
-      args: [--line-length=120, --safe]
-      python_version: python3.6
+      - id: black
+        args: [--line-length=120, --safe]
+        python_version: python3.6
