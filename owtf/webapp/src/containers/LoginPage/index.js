@@ -22,7 +22,7 @@ export class LoginPage extends React.Component {
     super(props, context);
 
     this.state = {
-      email: "",
+      emailOrUsername: "",
       password: "",
       hidePassword: true
     };
@@ -32,7 +32,7 @@ export class LoginPage extends React.Component {
    * Function gets called right after the user clicks login
    */
   onLoginHandler = () => {
-    this.props.onLogin(this.state.email, this.state.password);
+    this.props.onLogin(this.state.emailOrUsername, this.state.password);
   };
 
   render() {
@@ -54,13 +54,13 @@ export class LoginPage extends React.Component {
             Login
           </Heading>
           <TextInputField
-            label="Your Email Address"
-            placeholder="Email"
+            label="Your Username / Email Address"
+            placeholder="Username / Email"
             width="60%"
             marginLeft="20%"
             marginBottom={20}
-            value={this.state.email}
-            onChange={e => this.setState({ email: e.target.value })}
+            value={this.state.emailOrUsername}
+            onChange={e => this.setState({ emailOrUsername: e.target.value })}
           />
           <Pane position="relative">
             <Pane width="10%" marginLeft="75%" position="absolute">
@@ -118,7 +118,8 @@ LoginPage.propTypes = {
 
 const mapDispatchToProps = dispatch => {
   return {
-    onLogin: (email, password) => dispatch(loginStart(email, password))
+    onLogin: (emailOrUsername, password) =>
+      dispatch(loginStart(emailOrUsername, password))
   };
 };
 

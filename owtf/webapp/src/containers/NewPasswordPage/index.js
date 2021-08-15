@@ -76,7 +76,7 @@ export class NewPasswordPage extends React.Component {
 
   ChangeHandler = () => {
     this.props.onNewPassword(
-      this.props.email,
+      this.props.emailOrUsername,
       this.state.newPassword,
       this.props.otp
     );
@@ -178,18 +178,18 @@ export class NewPasswordPage extends React.Component {
 NewPasswordPage.propTypes = {
   onNewPassword: PropTypes.func,
   otp: PropTypes.string,
-  email: PropTypes.string
+  emailOrUsername: PropTypes.string
 };
 
 const mapStateToProps = createStructuredSelector({
   otp: makeSelectCreateOtp,
-  email: makeSelectForgotEmail
+  emailOrUsername: makeSelectForgotEmail
 });
 
 const mapDispatchToProps = dispatch => {
   return {
-    onNewPassword: (email, password, otp) =>
-      dispatch(newPasswordStart(email, password, otp))
+    onNewPassword: (emailOrUsername, password, otp) =>
+      dispatch(newPasswordStart(emailOrUsername, password, otp))
   };
 };
 

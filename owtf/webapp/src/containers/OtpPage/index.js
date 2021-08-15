@@ -30,7 +30,7 @@ export class OtpPage extends React.Component {
   }
 
   submitHandler = () => {
-    this.props.onSubmit(this.props.email, this.state.otp);
+    this.props.onSubmit(this.props.emailOrUsername, this.state.otp);
   };
 
   isNumeric = str => {
@@ -63,7 +63,7 @@ export class OtpPage extends React.Component {
    * Function handles the otp resend
    */
   resendHandler = () => {
-    this.props.onResend(this.props.email, this.state.otp);
+    this.props.onResend(this.props.emailOrUsername, this.state.otp);
   };
 
   render() {
@@ -131,17 +131,19 @@ export class OtpPage extends React.Component {
 OtpPage.propTypes = {
   onSubmit: PropTypes.func,
   onResend: PropTypes.func,
-  email: PropTypes.string
+  emailOrUsername: PropTypes.string
 };
 
 const mapStateToProps = createStructuredSelector({
-  email: makeSelectForgotEmail
+  emailOrUsername: makeSelectForgotEmail
 });
 
 const mapDispatchToProps = dispatch => {
   return {
-    onSubmit: (email, otp) => dispatch(otpStart(email, otp)),
-    onResend: email => dispatch(forgotPasswordEmailStart(email))
+    onSubmit: (emailOrUsername, otp) =>
+      dispatch(otpStart(emailOrUsername, otp)),
+    onResend: emailOrUsername =>
+      dispatch(forgotPasswordEmailStart(emailOrUsername))
   };
 };
 

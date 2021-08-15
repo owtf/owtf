@@ -19,7 +19,7 @@ export class ForgotPasswordPage extends React.Component {
     super(props, context);
 
     this.state = {
-      email: "",
+      emailOrUsername: "",
       emailError: ""
     };
   }
@@ -30,11 +30,11 @@ export class ForgotPasswordPage extends React.Component {
    * @param {object} e event which triggered this function
    */
   handleEmailValidation = e => {
-    if (!this.state.email) {
+    if (!this.state.emailOrUsername) {
       this.setState({ emailError: "Email can't be empty" });
-    } else if (typeof this.state.email !== "undefined") {
+    } else if (typeof this.state.emailOrUsername !== "undefined") {
       if (
-        !this.state.email.match(
+        !this.state.emailOrUsername.match(
           /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
         )
       ) {
@@ -47,7 +47,7 @@ export class ForgotPasswordPage extends React.Component {
 
   resetHandler = e => {
     if (!this.state.emailError) {
-      this.props.onReset(this.state.email);
+      this.props.onReset(this.state.emailOrUsername);
     }
   };
 
@@ -73,15 +73,14 @@ export class ForgotPasswordPage extends React.Component {
             Reset password in 2 quick steps.
           </Paragraph>
           <TextInputField
-            label="Enter your Email Address"
-            placeholder="Email"
+            label="Enter your Username / Email Address"
+            placeholder="Username / Email"
             width="60%"
             marginLeft="20%"
             marginBottom={20}
             marginTop={10}
-            value={this.state.email}
-            onChange={e => this.setState({ email: e.target.value })}
-            onBlur={e => this.handleEmailValidation(e)}
+            value={this.state.emailOrUsername}
+            onChange={e => this.setState({ emailOrUsername: e.target.value })}
             validationMessage={
               this.state.emailError ? this.state.emailError : null
             }
@@ -111,7 +110,8 @@ export class ForgotPasswordPage extends React.Component {
 
 const mapDispatchToProps = dispatch => {
   return {
-    onReset: email => dispatch(forgotPasswordEmailStart(email))
+    onReset: emailOrUsername =>
+      dispatch(forgotPasswordEmailStart(emailOrUsername))
   };
 };
 

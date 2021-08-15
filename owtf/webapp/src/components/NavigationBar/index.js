@@ -2,10 +2,10 @@
  * Navigation Bar
  */
 
-import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
-import { LinkContainer } from 'react-router-bootstrap';
-import { Navbar, NavItem, Nav, NavDropdown, MenuItem } from 'react-bootstrap';
+import React, { Component } from "react";
+import { Link } from "react-router-dom";
+import { LinkContainer } from "react-router-bootstrap";
+import { Navbar, NavItem, Nav, NavDropdown, MenuItem } from "react-bootstrap";
 
 export default class NavigationBar extends Component {
   render() {
@@ -28,7 +28,12 @@ export class NavMenu extends Component {
     const links = this.props.links.map((link, index) => {
       if (link.dropdown) {
         return (
-          <NavLinkDropdown key={index} index={index} links={link.links} text={link.text} />
+          <NavLinkDropdown
+            key={index}
+            index={index}
+            links={link.links}
+            text={link.text}
+          />
         );
       }
 
@@ -38,14 +43,11 @@ export class NavMenu extends Component {
             {link.text}
           </NavItem>
         </LinkContainer>
-
       );
     });
     return (
       <Navbar.Collapse>
-        <Nav pullRight>
-          {links}
-        </Nav>
+        <Nav pullRight>{links}</Nav>
       </Navbar.Collapse>
     );
   }
@@ -53,16 +55,21 @@ export class NavMenu extends Component {
 
 export class NavLinkDropdown extends Component {
   render() {
-    const links = this.props.links.map(function (link, index) {
+    const links = this.props.links.map(function(link, index) {
       return (
         <LinkContainer key={link.text} to={link.linkTo}>
-          <MenuItem key={link.text} eventKey={this.props.index + (index * 0.1)}>{link.text}</MenuItem>
+          <MenuItem key={link.text} eventKey={index + index * 0.1}>
+            {link.text}
+          </MenuItem>
         </LinkContainer>
-
       );
     });
     return (
-      <NavDropdown eventKey={this.props.index} title={this.props.text} id="basic-nav-dropdown">
+      <NavDropdown
+        eventKey={this.props.index}
+        title={this.props.text}
+        id="basic-nav-dropdown"
+      >
         {links}
       </NavDropdown>
     );
