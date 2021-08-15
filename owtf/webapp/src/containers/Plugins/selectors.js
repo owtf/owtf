@@ -16,6 +16,16 @@ const makeSelectPostToWorklist = createSelector(
   (pluginState) => pluginState.get('postToWorklist')
 );
 
+const makeSelectPostToCreateGroup = createSelector(
+  selectPlugin,
+  (pluginState) => pluginState.get('postToCreateGroup')
+);
+
+const makeSelectPostToDeleteGroup = createSelector(
+  selectPlugin,
+  (pluginState) => pluginState.get('postToDeleteGroup')
+);
+
 const makeSelectFetchLoading = createSelector(
   makeSelectFetch,
   (fetchState) => fetchState.get('loading')
@@ -36,9 +46,21 @@ const makeSelectPostToWorklistError = createSelector(
   (fetchState) => fetchState.get('error')
 );
 
+const makeSelectPostToCreateGroupError = createSelector(
+  makeSelectPostToCreateGroup,
+  (fetchState) => fetchState.get('error')
+);
+
+const makeSelectPostToDeleteGroupError = createSelector(
+  makeSelectPostToDeleteGroup,
+  (fetchState) => fetchState.get('error')
+);
+
 export {
   makeSelectFetchLoading,
   makeSelectFetchError,
   makeSelectFetchPlugins,
   makeSelectPostToWorklistError,
+  makeSelectPostToCreateGroupError,
+  makeSelectPostToDeleteGroupError,
 };

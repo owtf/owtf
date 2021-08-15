@@ -222,6 +222,10 @@ def group_sort_order(plugin_list):
         "semi_passive": 2,
         "passive": 3,
         "external": 4,
+        "selenium": 5,
+        "dos":6,
+        "exploit":7,
+        "smb":8
     }
     # reverse = True so that descending order is maintained
     sorted_plugin_list = sorted(
