@@ -23,15 +23,15 @@ export function loginFail(error) {
 /**
  * Dispatched when user login starts
  *
- * @param  {string} email The email of the user
+ * @param  {string} emailOrUsername The email/username  of the user
  * @param  {string} password The password of the user
  *
  * @return {object} An action object with a type of LOGIN_START passing the email and password
  */
-export function loginStart(email, password) {
+export function loginStart(emailOrUsername, password) {
   return {
     type: LOGIN_START,
-    email: email,
+    emailOrUsername: emailOrUsername,
     password: password
   };
 }
@@ -39,14 +39,16 @@ export function loginStart(email, password) {
 /**
  * Dispatched when logging the user is successful
  *
- * @param  {string} msg JWT Token returned by the server
+ * @param  {string} token JWT Token returned by the server
+ * @param  {string} username Username of the user being logged in
  *
  * @return {object} An action object with a type of LOGIN_SUCCESS passing the token
  */
-export function loginSuccess(token) {
+export function loginSuccess(token, username) {
   return {
     type: LOGIN_SUCCESS,
-    token
+    token,
+    username
   };
 }
 

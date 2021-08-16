@@ -13,7 +13,7 @@ class User(Model):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(Unicode(255))
+    name = Column(Unicode(255), nullable=False, unique=True)
     email = Column(Unicode(255), nullable=False, unique=True)
     password = Column(Unicode(255), nullable=False)
     is_active = Column(Boolean, default=False)  # checks whether user email is verified
@@ -34,6 +34,13 @@ class User(Model):
         Returns None if not found.
         """
         return session.query(cls).filter_by(email=email).first()
+
+    @classmethod
+    def find_by_name(cls, session, name):
+        """Find a user by username(username is unique).
+        Returns None if not found.
+        """
+        return session.query(cls).filter_by(name=name).first()
 
     @classmethod
     def add_user(cls, session, user):

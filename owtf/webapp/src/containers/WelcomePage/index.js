@@ -4,8 +4,12 @@
 import React from "react";
 import { LinkContainer } from "react-router-bootstrap";
 import { Button } from "react-bootstrap";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
+import { createStructuredSelector } from "reselect";
+import { makeSelectLoginIsAuthenticated } from "../LoginPage/selectors";
 
-export default class WelcomePage extends React.Component {
+export class WelcomePage extends React.Component {
   // Since state and props are static,
   // there's no need to re-render this component
   shouldComponentUpdate() {
@@ -26,9 +30,11 @@ export default class WelcomePage extends React.Component {
               className="row"
               style={{ display: "flex", justifyContent: "center" }}
             >
-              <LinkContainer to="/login">
-                <Button bsStyle="primary">Login</Button>
-              </LinkContainer>
+              {!this.props.isAuthenticated ? (
+                <LinkContainer to="/login">
+                  <Button bsStyle="primary">Login</Button>
+                </LinkContainer>
+              ) : null}
             </div>
           </div>
         </div>
@@ -36,3 +42,16 @@ export default class WelcomePage extends React.Component {
     );
   }
 }
+
+WelcomePage.propTypes = {
+  isAuthenticated: PropTypes.string
+};
+
+const mapStateToProps = createStructuredSelector({
+  isAuthenticated: makeSelectLoginIsAuthenticated
+});
+
+export default connect(
+  mapStateToProps,
+  null
+)(WelcomePage);

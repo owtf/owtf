@@ -10,7 +10,7 @@ export function* postDataToOtpAPI(action) {
   const postOtpAPI = OtpVerifyAPI();
   try {
     const Data = {
-      email: action.email,
+      emailOrUsername: action.emailOrUsername,
       otp: action.otp
     };
     const responseData = yield call(postOtpAPI, Data);

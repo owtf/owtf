@@ -10,14 +10,16 @@ export function* postDataToNewPasswordAPI(action) {
   const postNewPasswordAPI = newPasswordAPI();
   try {
     const Data = {
-      email: action.email,
+      emailOrUsername: action.emailOrUsername,
       password: action.password,
       otp: action.otp
     };
     const responseData = yield call(postNewPasswordAPI, Data);
     if (responseData.data["status"] == "success") {
       toaster.success(responseData.data["message"]);
-      yield put(newPasswordSuccess(responseData.data["message"], action.email));
+      yield put(
+        newPasswordSuccess(responseData.data["message"], action.emailOrUsername)
+      );
       yield put(push("/login/"));
     } else {
       toaster.danger(responseData.data["message"]);

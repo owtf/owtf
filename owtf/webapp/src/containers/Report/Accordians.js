@@ -66,9 +66,7 @@ export class Accordians extends React.Component {
           justifyContent="center"
           height={400}
         >
-          <Paragraph size={500}>
-            Something went wrong, please try again!
-          </Paragraph>
+          <Paragraph size={500}>No plugins found</Paragraph>
         </Pane>
       );
     }

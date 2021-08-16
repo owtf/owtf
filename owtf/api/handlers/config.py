@@ -7,10 +7,12 @@ from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
 from owtf.lib.exceptions import APIError
 from owtf.managers.config import get_all_config_dicts, update_config_val
+from owtf.api.handlers.jwtauth import jwtauth
 
 __all__ = ["ConfigurationHandler"]
 
 
+@jwtauth
 class ConfigurationHandler(APIRequestHandler):
     """Update framework settings and tool paths."""
 
