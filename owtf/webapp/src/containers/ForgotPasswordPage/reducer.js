@@ -11,7 +11,7 @@ import {
 const initialForgotPasswordEmailState = fromJS({
   error: false,
   loading: false,
-  email: null
+  emailOrUsername: null
 });
 
 export function forgotPasswordEmailReducer(
@@ -23,17 +23,17 @@ export function forgotPasswordEmailReducer(
       return state
         .set("loading", true)
         .set("error", false)
-        .set("email", null);
+        .set("emailOrUsername", null);
     case FORGOT_PASSWORD_EMAIL_SUCCESS:
       return state
         .set("loading", false)
         .set("error", false)
-        .set("email", action.email);
+        .set("emailOrUsername", action.emailOrUsername);
     case FORGOT_PASSWORD_EMAIL_FAIL:
       return state
         .set("loading", false)
         .set("error", action.error)
-        .set("email", null);
+        .set("emailOrUsername", null);
     default:
       return state;
   }

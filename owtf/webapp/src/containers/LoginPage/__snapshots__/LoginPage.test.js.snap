@@ -23,11 +23,11 @@ exports[`LoginPage component Testing dumb login component Should render without 
     <TextInputField
       inputHeight={32}
       inputWidth="100%"
-      label="Your Email Address"
+      label="Your Username / Email Address"
       marginBottom={20}
       marginLeft="20%"
       onChange={[Function]}
-      placeholder="Email"
+      placeholder="Username / Email"
       value=""
       width="60%"
     />

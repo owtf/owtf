@@ -36,6 +36,7 @@ from email.mime.multipart import MIMEMultipart
 import logging
 from bs4 import BeautifulSoup
 from owtf.utils.logger import OWTFLogger
+from owtf.api.handlers.jwtauth import jwtauth
 import pyotp
 
 
@@ -55,7 +56,7 @@ class LogInHandler(APIRequestHandler):
             Content-Type: application/json; charset=UTF-8
 
             {
-                "email": "test@test.com",
+                "emailOrUsername": "test@test.com",
                 "password": "Test@34335",
             }
 
@@ -90,22 +91,28 @@ class LogInHandler(APIRequestHandler):
             }
 
         """
-        email = self.get_argument("email", None)
+        email_or_username = self.get_argument("emailOrUsername", None)
         password = self.get_argument("password", None)
-        if not email:
-            err = {"status": "fail", "message": "Missing email value"}
+        if not email_or_username:
+            err = {"status": "fail", "message": "Missing email or username value"}
             self.success(err)
         if not password:
             err = {"status": "fail", "message": "Missing password value"}
             self.success(err)
-        user = User.find_by_email(self.session, email)
+        user = User.find_by_email(self.session, email_or_username)
+        if user is None:
+            user = User.find_by_name(self.session, email_or_username)
         if (
             user
             and user.password
             and bcrypt.hashpw(password.encode("utf-8"), user.password.encode("utf-8")) == user.password.encode("utf-8")
             and user.is_active
         ):
-            payload = {"user_id": user.id, "exp": datetime.utcnow() + timedelta(seconds=JWT_EXP_DELTA_SECONDS)}
+            payload = {
+                "user_id": user.id,
+                "exp": datetime.utcnow() + timedelta(seconds=JWT_EXP_DELTA_SECONDS),
+                "username": user.name,
+            }
             jwt_token = jwt.encode(payload, JWT_SECRET_KEY, JWT_ALGORITHM)
             data = {"jwt-token": jwt_token.decode("utf-8")}
             UserLoginToken.add_user_login_token(self.session, jwt_token, user.id)
@@ -187,7 +194,8 @@ class RegisterHandler(APIRequestHandler):
             err = {"status": "fail", "message": "Missing confirm password value"}
             self.success(err)
 
-        already_taken = User.find_by_email(self.session, email)
+        email_already_taken = User.find_by_email(self.session, email)
+        name_already_taken = User.find_by_name(self.session, username)
         match_password = re.search(is_password_valid_regex, password)
         match_email = re.search(is_email_valid_regex, email)
 
@@ -200,7 +208,10 @@ class RegisterHandler(APIRequestHandler):
         elif not match_password:
             err = {"status": "fail", "message": "Choose a strong password"}
             self.success(err)
-        elif already_taken:
+        elif name_already_taken:
+            err = {"status": "fail", "message": "Username already exists"}
+            self.success(err)
+        elif email_already_taken:
             err = {"status": "fail", "message": "Email already exists"}
             self.success(err)
         else:
@@ -215,6 +226,7 @@ class RegisterHandler(APIRequestHandler):
             self.success({"status": "success", "message": data})
 
 
+@jwtauth
 class LogOutHandler(APIRequestHandler):
     """Logs out the current user and clears the cookie."""
 
@@ -419,8 +431,10 @@ class OtpGenerateHandler(APIRequestHandler):
             }
 
         """
-        email_to = self.get_argument("email", None)
-        user_obj = User.find_by_email(self.session, email_to)
+        email_or_username = self.get_argument("emailOrUsername", None)
+        user_obj = User.find_by_email(self.session, email_or_username)
+        if user_obj is None:
+            user_obj = User.find_by_name(self.session, email_or_username)
         if user_obj is not None:
             secret_key = user_obj.otp_secret_key
             totp = pyotp.TOTP(secret_key, interval=300)  # 5 minutes interval
@@ -442,12 +456,15 @@ class OtpGenerateHandler(APIRequestHandler):
             """
             )
             send_email_using_smtp(
-                email_to, html, "OTP for Password Change", "------> Showing the OTP here, Since SMTP server is not set:"
+                user_obj.email,
+                html,
+                "OTP for Password Change",
+                "------> Showing the OTP here, Since SMTP server is not set:",
             )
             response = {"status": "success", "message": "Otp Send Successful"}
             self.success(response)
         else:
-            err = {"status": "fail", "message": "Email doesn't exist"}
+            err = {"status": "fail", "message": "Email/Username doesn't exist"}
             self.success(err)
 
 
@@ -479,9 +496,11 @@ class OtpVerifyHandler(APIRequestHandler):
             }
 
         """
-        email = self.get_argument("email", None)
+        email_or_username = self.get_argument("emailOrUsername", None)
         otp = self.get_argument("otp", None)
-        user_obj = User.find_by_email(self.session, email)
+        user_obj = User.find_by_email(self.session, email_or_username)
+        if user_obj is None:
+            user_obj = User.find_by_name(self.session, email_or_username)
         if user_obj is not None and otp is not None:
             secret_key = user_obj.otp_secret_key
             totp = pyotp.TOTP(secret_key, interval=300)
@@ -524,20 +543,22 @@ class PasswordChangeHandler(APIRequestHandler):
 
         """
         password = self.get_argument("password", None)
-        email = self.get_argument("email", None)
+        email_or_username = self.get_argument("emailOrUsername", None)
         otp = self.get_argument("otp", None)
-        user_obj = User.find_by_email(self.session, email)
+        user_obj = User.find_by_email(self.session, email_or_username)
+        if user_obj is None:
+            user_obj = User.find_by_name(self.session, email_or_username)
         match_password = re.search(is_password_valid_regex, password)
         if not match_password:
             err = {"status": "fail", "message": "Choose a strong password"}
             self.success(err)
-        elif email is not None and password is not None and user_obj is not None and otp is not None:
+        elif email_or_username is not None and password is not None and user_obj is not None and otp is not None:
             secret_key = user_obj.otp_secret_key
             totp = pyotp.TOTP(secret_key, interval=300)
             verify = totp.verify(otp)
             if verify:
                 hashed_pass = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-                User.change_password(self.session, email, hashed_pass)
+                User.change_password(self.session, user_obj.email, hashed_pass)
                 data = {"status": "success", "message": "Password Change Successful"}
                 self.success(data)
             else:
