@@ -10,7 +10,7 @@ export function* postDataToEmailAPI(action) {
   const postEmailAPI = emailAPI();
   try {
     const forgotPasswordData = {
-      email: action.email,
+      emailOrUsername: action.emailOrUsername,
       otp: action.otp
     };
     const responseData = yield call(postEmailAPI, forgotPasswordData);
@@ -18,7 +18,10 @@ export function* postDataToEmailAPI(action) {
       toaster.success(responseData.data["message"]);
       yield put(push("/forgot-password/otp/"));
       yield put(
-        forgotPasswordEmailSuccess(responseData.data["message"], action.email)
+        forgotPasswordEmailSuccess(
+          responseData.data["message"],
+          action.emailOrUsername
+        )
       );
     } else {
       toaster.danger(responseData.data["message"]);

@@ -33,10 +33,12 @@ from owtf.settings import (
     SIMPLE_HEADERS,
 )
 from owtf.utils.strings import str2bool
+from owtf.api.handlers.jwtauth import jwtauth
 
 __all__ = ["WorkerHandler", "WorklistHandler", "WorklistSearchHandler"]
 
 
+@jwtauth
 class WorkerHandler(APIRequestHandler):
     """Manage workers."""
 
@@ -194,18 +196,12 @@ class WorkerHandler(APIRequestHandler):
             return False
 
         headers = _filter_headers(headers, SIMPLE_HEADERS)
-        return (
-            origin in ALLOWED_ORIGINS
-            and method in ALLOWED_METHODS
-            and len(headers) == 0
-        )
+        return origin in ALLOWED_ORIGINS and method in ALLOWED_METHODS and len(headers) == 0
 
     def _build_preflight_response(self, headers):
         self.set_header("Access-Control-Allow-Origin", headers["Origin"])
         self.set_header("Access-Control-Allow-Methods", ",".join(ALLOWED_METHODS))
-        self.set_header(
-            "Access-Control-Allow-Headers", ",".join(headers.keys() - SIMPLE_HEADERS)
-        )
+        self.set_header("Access-Control-Allow-Headers", ",".join(headers.keys() - SIMPLE_HEADERS))
         if SEND_CREDENTIALS:
             self.set_header("Access-Control-Allow-Credentials", "true")
 
@@ -243,6 +239,7 @@ class WorkerHandler(APIRequestHandler):
             raise APIError(400, "Invalid worker referenced")
 
 
+@jwtauth
 class WorklistHandler(APIRequestHandler):
     """Handle the worklist."""
 
@@ -354,8 +351,8 @@ class WorklistHandler(APIRequestHandler):
 
             if not filter_data:
                 raise APIError(400, "Arguments should not be null")
-            if filter_data['id']:
-                filter_data['id'] = filter_data['id'][0].split(",")
+            if filter_data["id"]:
+                filter_data["id"] = filter_data["id"][0].split(",")
             plugin_list = get_all_plugin_dicts(self.session, filter_data)
             target_list = get_target_config_dicts(self.session, filter_data)
             if not plugin_list:
@@ -363,9 +360,7 @@ class WorklistHandler(APIRequestHandler):
             if not target_list:
                 raise APIError(400, "Target list should not be empty")
             force_overwrite = str2bool(filter_data["force_overwrite"][0])
-            add_work(
-                self.session, target_list, plugin_list, force_overwrite=force_overwrite
-            )
+            add_work(self.session, target_list, plugin_list, force_overwrite=force_overwrite)
             self.set_status(201)
             self.success(None)
         except exceptions.InvalidTargetReference:
@@ -461,6 +456,7 @@ class WorklistHandler(APIRequestHandler):
             raise APIError(400, "Invalid worker referenced")
 
 
+@jwtauth
 class WorklistSearchHandler(APIRequestHandler):
     """Search worklist."""
 

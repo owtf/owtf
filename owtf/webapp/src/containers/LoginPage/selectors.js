@@ -16,4 +16,13 @@ const makeSelectLoginIsAuthenticated = createSelector(
   loginState => loginState.get("isAuthenticated")
 );
 
-export { makeSelectLogin, makeSelectLoginIsAuthenticated };
+const makeSelectLoginUsername = createSelector(
+  makeSelectLogin,
+  loginState => loginState.get("username")
+);
+
+export {
+  makeSelectLogin,
+  makeSelectLoginIsAuthenticated,
+  makeSelectLoginUsername
+};

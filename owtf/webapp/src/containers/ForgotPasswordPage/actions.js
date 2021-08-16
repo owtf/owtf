@@ -4,10 +4,10 @@ import {
   FORGOT_PASSWORD_EMAIL_FAIL
 } from "./constants";
 
-export function forgotPasswordEmailStart(email) {
+export function forgotPasswordEmailStart(emailOrUsername) {
   return {
     type: FORGOT_PASSWORD_EMAIL_START,
-    email: email
+    emailOrUsername: emailOrUsername
   };
 }
 
@@ -18,10 +18,10 @@ export function forgotPasswordEmailFail(error) {
   };
 }
 
-export function forgotPasswordEmailSuccess(msg, email) {
+export function forgotPasswordEmailSuccess(msg, emailOrUsername) {
   return {
     type: FORGOT_PASSWORD_EMAIL_SUCCESS,
     msg: msg,
-    email: email
+    emailOrUsername: emailOrUsername
   };
 }

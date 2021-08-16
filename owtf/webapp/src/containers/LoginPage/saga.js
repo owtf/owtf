@@ -10,12 +10,22 @@ import "@babel/polyfill";
 export function* postDataToLoginAPI(action) {
   const postLoginAPI = loginUsingLoginAPI();
   try {
-    const login_data = { email: action.email, password: action.password };
+    const login_data = {
+      emailOrUsername: action.emailOrUsername,
+      password: action.password
+    };
     const responseData = yield call(postLoginAPI, login_data);
     if (responseData.data["status"] == "success") {
       toaster.success("Login Successful");
-      localStorage.setItem("token", responseData.data["message"]["jwt-token"]);
-      yield put(loginSuccess(responseData.data["message"]["jwt-token"]));
+      const token = responseData.data["message"]["jwt-token"];
+      localStorage.setItem("token", token);
+      let username;
+      if (token !== "") {
+        ({ username } = jwt_decode(token));
+      } else {
+        username = "Username";
+      }
+      yield put(loginSuccess(token, username));
       yield put(push("/dashboard"));
     } else {
       yield put(loginFail(responseData.data["message"]));
@@ -30,22 +40,23 @@ export function* postDataToLoginAPI(action) {
 export function* autoCheckLogin(action) {
   try {
     const token = localStorage.getItem("token");
-    const { exp } = jwt_decode(token);
-    const expirationDate = new Date(0);
-    expirationDate.setUTCSeconds(exp);
-    if (token === undefined) {
-      yield put(logout());
-    } else if (expirationDate <= new Date()) {
-      yield put(logout());
-    } else {
-      localStorage.setItem("token", token);
-      yield put(loginSuccess(token));
-      yield new Promise(resolve =>
-        setTimeout(() => {
-          resolve();
-        }, expirationDate.getTime() - new Date().getTime())
-      );
-      yield put(logout());
+    if (token) {
+      const { exp } = jwt_decode(token);
+      const expirationDate = new Date(0);
+      expirationDate.setUTCSeconds(exp);
+      if (expirationDate <= new Date()) {
+        yield put(logout());
+      } else {
+        localStorage.setItem("token", token);
+        const { username } = jwt_decode(token);
+        yield put(loginSuccess(token, username));
+        yield new Promise(resolve =>
+          setTimeout(() => {
+            resolve();
+          }, expirationDate.getTime() - new Date().getTime())
+        );
+        yield put(logout());
+      }
     }
   } catch (error) {
     yield put(logout());

@@ -13,7 +13,7 @@ const makeSelectForgot = createSelector(
 
 const makeSelectForgotEmail = createSelector(
   makeSelectForgot,
-  forgotPasswordState => forgotPasswordState.get("email")
+  forgotPasswordState => forgotPasswordState.get("emailOrUsername")
 );
 
 export { makeSelectForgot, makeSelectForgotEmail };

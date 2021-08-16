@@ -34,7 +34,10 @@ import { toaster } from "evergreen-ui";
 import history from "../../utils/historyUtils";
 import PropTypes from "prop-types";
 import { createStructuredSelector } from "reselect";
-import { makeSelectLoginIsAuthenticated } from "../LoginPage/selectors";
+import {
+  makeSelectLoginIsAuthenticated,
+  makeSelectLoginUsername
+} from "../LoginPage/selectors";
 
 export class App extends React.Component {
   constructor(props, context) {
@@ -55,12 +58,20 @@ export class App extends React.Component {
       { linkTo: "/worklist", text: "Worklist" },
       { linkTo: "/settings", text: "Settings" },
       { linkTo: "/transactions", text: "Transactions" },
-      { linkTo: "/help", text: "Help" },
-      {
-        linkTo: this.props.isAuthenticated ? "/logout" : "/login",
-        text: this.props.isAuthenticated ? "Logout" : "Login"
-      }
+      { linkTo: "/help", text: "Help" }
     ];
+    if (this.props.isAuthenticated) {
+      this.navbar.links.push({
+        dropdown: true,
+        text: this.props.username,
+        links: [{ linkTo: "/logout", text: "Logout" }]
+      });
+    } else {
+      this.navbar.links.push({
+        linkTo: "/login",
+        text: "Login"
+      });
+    }
     return (
       <Router history={history}>
         <div>
@@ -107,20 +118,41 @@ export class App extends React.Component {
               component={Help}
               authenticated={this.props.isAuthenticated}
             />
-            <Route path="/login" component={LoginPage} />
+            <Route
+              path="/login"
+              component={this.props.isAuthenticated ? NotFoundPage : LoginPage}
+            />
             <Route path="/logout" component={LogoutPage} />
-            <Route path="/signup" component={SignupPage} />
-            <Route path="/forgot-password/otp/" component={OtpPage} />
+            <Route
+              path="/signup"
+              component={this.props.isAuthenticated ? NotFoundPage : SignupPage}
+            />
+            <Route
+              path="/forgot-password/otp/"
+              component={this.props.isAuthenticated ? NotFoundPage : OtpPage}
+            />
             <Route
               path="/forgot-password/email"
-              component={ForgotPasswordPage}
+              component={
+                this.props.isAuthenticated ? NotFoundPage : ForgotPasswordPage
+              }
             />
-            <Route path="/email-send/" component={EmailSendPage} />
+            <Route
+              path="/email-send/"
+              component={
+                this.props.isAuthenticated ? NotFoundPage : EmailSendPage
+              }
+            />
             <Route
               path="/email-verify/:link"
               component={EmailVerificationPage}
             />
-            <Route path="/new-password/" component={NewPasswordPage} />
+            <Route
+              path="/new-password/"
+              component={
+                this.props.isAuthenticated ? NotFoundPage : NewPasswordPage
+              }
+            />
             <Route path="*" component={NotFoundPage} />
           </Switch>
         </div>
@@ -151,11 +183,13 @@ function PrivateRoute({ component: Component, authenticated, ...rest }) {
 
 App.propTypes = {
   tryAutoLogin: PropTypes.func,
-  isAuthenticated: PropTypes.string
+  isAuthenticated: PropTypes.string,
+  username: PropTypes.string
 };
 
 const mapStateToProps = createStructuredSelector({
-  isAuthenticated: makeSelectLoginIsAuthenticated
+  isAuthenticated: makeSelectLoginIsAuthenticated,
+  username: makeSelectLoginUsername
 });
 
 const mapDispatchToProps = dispatch => {
