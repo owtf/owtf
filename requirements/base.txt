@@ -5,6 +5,7 @@ dnspython==1.15.0
 future==0.16.0
 hrt==0.1.0
 # Here till they upload a Python3 compatible version of the library
+impacket
 ipaddr
 Markdown==2.6.9
 pexpect==4.6.0

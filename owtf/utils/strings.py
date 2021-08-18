@@ -1,7 +1,6 @@
 """
 owtf.utils.strings
 ~~~~~~~~~~~~~~~~~~
-
 """
 import base64
 import binascii
@@ -13,7 +12,9 @@ import six
 
 from owtf.settings import REPLACEMENT_DELIMITER
 
-search_regex = re.compile("{!s}([a-zA-Z0-9-_]*?){!s}".format(REPLACEMENT_DELIMITER, REPLACEMENT_DELIMITER))
+search_regex = re.compile(
+    "{!s}([a-zA-Z0-9-_]*?){!s}".format(REPLACEMENT_DELIMITER, REPLACEMENT_DELIMITER)
+)
 
 
 def utf8(string):
@@ -30,7 +31,6 @@ def to_str(byte):
 
 def str2bool(string):
     """ Converts a string to a boolean
-
     :param string: String to convert
     :type string: `str`
     :return: Boolean equivalent
@@ -49,21 +49,27 @@ def multi_replace(text, replace_dict):
     :rtype: `str`
     """
     new_text = text
-    for key in search_regex.findall(new_text):
-        # Check if key exists in the replace dict ;)
-        if replace_dict.get(key, None):
-            # A recursive call to remove all level occurrences of place
-            # holders.
-            new_text = new_text.replace(
-                REPLACEMENT_DELIMITER + key + REPLACEMENT_DELIMITER, multi_replace(replace_dict[key], replace_dict)
-            )
+    if search_regex.findall(new_text):
+        for key in search_regex.findall(new_text):
+            # Check if key exists in the replace dict ;)
+            if replace_dict.get(key, None):
+                # A recursive call to remove all level occurrences of place
+                # holders.
+                new_text = new_text.replace(
+                    REPLACEMENT_DELIMITER + key + REPLACEMENT_DELIMITER,
+                    multi_replace(replace_dict[key], replace_dict),
+                )
+    else:
+        # Find the character in new_text and replace it with the character in replace_dict
+        for find in replace_dict:
+            new_text = new_text.replace(find, str(replace_dict[find]))
+
     new_text = os.path.expanduser(new_text)
     return new_text
 
 
 def get_as_list(key_list):
     """Get values for keys in a list
-
     :param key_list: List of keys
     :type key_list: `list`
     :return: List of corresponding values
@@ -79,7 +85,6 @@ def get_as_list(key_list):
 
 def get_header_list(key):
     """Get list from a string of values for a key
-
     :param key: Key
     :type key: `str`
     :return: List of values
@@ -92,7 +97,6 @@ def get_header_list(key):
 
 def pad_key(key):
     """Add delimiters.
-
     :param key: Key to pad
     :type key: `str`
     :return: Padded key string
@@ -103,7 +107,6 @@ def pad_key(key):
 
 def strip_key(key):
     """Replaces key with empty space
-
     :param key: Key to clear
     :type key: `str`
     :return: Empty key
@@ -115,7 +118,6 @@ def strip_key(key):
 def multi_replace_dict(text, replace_dict):
     """Perform multiple replacements in one go using the replace dictionary
     in format: { 'search' : 'replace' }
-
     :param text: Text to replace
     :type text: `str`
     :param replace_dict: The replacement strings in a dict
@@ -131,7 +133,6 @@ def multi_replace_dict(text, replace_dict):
 
 def wipe_bad_chars(filename):
     """The function wipes bad characters from name of output file
-
     :param filename: The file name to scrub
     :type filename: `str`
     :return: New replaced file filename
@@ -142,7 +143,6 @@ def wipe_bad_chars(filename):
 
 def remove_blanks_list(src):
     """Removes empty elements from the list
-
     :param src: List
     :type src: `list`
     :return: New list without blanks
@@ -153,7 +153,6 @@ def remove_blanks_list(src):
 
 def list_to_dict_keys(list):
     """Convert a list to dict with keys from list items
-
     :param list: list to convert
     :type list: `list`
     :return: The newly formed dictionary
@@ -167,7 +166,6 @@ def list_to_dict_keys(list):
 
 def add_to_dict(from_dict, to_dict):
     """Add the items from dict a with copy attribute to dict b
-
     :param from_dict: Dict to copy from
     :type from_dict: `dict`
     :param to_dict: Dict to copy to
@@ -185,7 +183,6 @@ def add_to_dict(from_dict, to_dict):
 def merge_dicts(a, b):
     """Returns a by-value copy contained the merged content of the 2 passed
     dictionaries
-
     :param a: Dict a
     :type a: `dict`
     :param b: Dict b
@@ -201,7 +198,6 @@ def merge_dicts(a, b):
 
 def truncate_lines(str, num_lines, eol="\n"):
     """Truncate and remove EOL characters
-
     :param str: String to truncate
     :type str: `str`
     :param num_lines: Number of lines to process
@@ -216,7 +212,6 @@ def truncate_lines(str, num_lines, eol="\n"):
 
 def get_random_str(len):
     """Function returns random strings of length len
-
     :param len: Length
     :type len: `int`
     :return: Random generated string
@@ -231,7 +226,6 @@ def gen_secure_random_str():
 
 def scrub_output(output):
     """Remove all ANSI control sequences from the output
-
     :param output: Output to scrub
     :type output: `str`
     :return: Scrubbed output
@@ -243,7 +237,6 @@ def scrub_output(output):
 
 def paths_exist(path_list):
     """Check if paths in the list exist
-
     :param path_list: The list of paths to check
     :type path_list: `list`
     :return: True if valid paths, else False
@@ -259,7 +252,6 @@ def paths_exist(path_list):
 
 def is_convertable(value, conv):
     """Convert a value
-
     :param value:
     :type value:
     :param conv:
@@ -275,7 +267,6 @@ def is_convertable(value, conv):
 
 def str_to_dict(string):
     """Convert a string to a dict
-
     :param string: String to convert
     :type string: `str`
     :return: Resultant dict

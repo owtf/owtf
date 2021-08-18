@@ -98,7 +98,7 @@ FRAMEWORK_CONFIGS:
   - config: USERNAME_PASSWORD_FILE
     value: "@@@FRAMEWORK_DIR@@@/dictionaries/users/Username_Password.txt"
   - config: SAMRDUMP_FILE
-    value: /usr/share/doc/python-impacket-doc/examples/samrdump.py
+    value: /usr/share/doc/python3-impacket/examples/samrdump.py
 
   # ---------------------------------------- AUX_PLUGIN_DATA ----------------------------------------
   # Default repeat delimiter (to be used when not supplied by the user), this is really powerful, see REPEAT_DELIM_DESCRIP
