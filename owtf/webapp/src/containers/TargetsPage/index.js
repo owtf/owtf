@@ -5,7 +5,7 @@
  * Shows the list of targets along with actions to apply on the targets
  */
 
-import React from "react";
+import React, { Suspense } from "react";
 import {
   Pane,
   Heading,
@@ -15,9 +15,9 @@ import {
   Alert,
   Spinner
 } from "evergreen-ui";
-import Sessions from "../Sessions/index";
-import Plugins from "../Plugins/index";
-import TargetsTable from "./TargetsTable";
+const Sessions = React.lazy(() => import(/* webpackPreload: true */ "../Sessions/index"));
+const Plugins = React.lazy(() => import(/* webpackPreload: true */ "../Plugins/index"));
+const TargetsTable = React.lazy(() => import(/* webpackPreload: true */ "./TargetsTable"));
 // import "./style.scss";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
@@ -300,7 +300,9 @@ export class TargetsPage extends React.Component {
               >
                 Add Targets
               </Button>
-              <Plugins {...PluginProps} />
+              <Suspense fallback={<div>Loading...</div>}>
+                <Plugins {...PluginProps} />
+              </Suspense>
             </Pane>
           </Pane>
           <Pane margin={40} flex={1}>
@@ -309,7 +311,9 @@ export class TargetsPage extends React.Component {
                 <Heading size={700}>TARGETS</Heading>
               </Pane>
               <Pane marginRight={16}>
-                <Sessions />
+                <Suspense fallback={<div>Loading...</div>}>
+                  <Sessions />
+                </Suspense>
               </Pane>
               <Pane>
                 <Button onClick={this.exportTargets}>
@@ -340,7 +344,9 @@ export class TargetsPage extends React.Component {
                 <Spinner size={64} />
               </Pane>
             ) : null}
-            {targets !== false ? <TargetsTable {...TargetsTableProps} /> : null}
+            {targets !== false ? <Suspense fallback={<div>Loading...</div>}>
+              <TargetsTable {...TargetsTableProps} />
+            </Suspense> : null}
           </Pane>
         </Pane>
       </Pane>

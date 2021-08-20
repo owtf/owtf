@@ -5,14 +5,14 @@
  * Handles creating, changing, deleting a session
  */
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { Pane, Dialog, TextInput, Button } from 'evergreen-ui';
 import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchSessions } from './selectors';
 import { loadSessions, createSession, changeSession, deleteSession } from "./actions";
-import SessionsTable from './SessionTable';
+const SessionsTable = React.lazy(() => import(/* webpackPreload: true */ './SessionTable'));
 
 export class Sessions extends React.Component {
   constructor(props, context) {
@@ -70,7 +70,7 @@ export class Sessions extends React.Component {
    */
   handleAddSession() {
     this.props.onCreateSession(this.state.newSessionName);
-    this.setState({ newSessionName: ""});
+    this.setState({ newSessionName: "" });
   }
 
   componentDidMount() {
@@ -118,7 +118,9 @@ export class Sessions extends React.Component {
               Add!
             </Button>
           </Pane>
-          <SessionsTable {...sessionsTableProps} />
+          <Suspense fallback={<div>Loading...</div>}>
+            <SessionsTable {...sessionsTableProps} />
+          </Suspense>
         </Dialog>
       </Pane>
     );

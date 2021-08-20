@@ -1,15 +1,15 @@
 /*
  * SettingsPage
  */
-import React from 'react';
-import {Pane, Button, Alert, Spinner} from 'evergreen-ui';
+import React, { Suspense } from 'react';
+import { Pane, Button, Alert, Spinner } from 'evergreen-ui';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchConfigurations, makeSelectChangeError } from './selectors';
 import { loadConfigurations, changeConfigurations } from './actions';
-import ConfigurationTabsContent from '../../components/ConfigurationTabsContent';
-import ConfigurationTabsNav from '../../components/ConfigurationTabsNav';
+const ConfigurationTabsContent = React.lazy(() => import(/* webpackPreload: true */ '../../components/ConfigurationTabsContent'));
+const ConfigurationTabsNav = React.lazy(() => import(/* webpackPreload: true */ '../../components/ConfigurationTabsNav'));
 
 export class SettingsPage extends React.Component {
   constructor(props, context) {
@@ -75,12 +75,12 @@ export class SettingsPage extends React.Component {
 
       return (
         <Alert
-            appearance="card"
-            intent="success"
-            title="Configuration updated successfully!"
-            isRemoveable={true}
-            onRemove={this.handleDismiss}
-          />
+          appearance="card"
+          intent="success"
+          title="Configuration updated successfully!"
+          isRemoveable={true}
+          onRemove={this.handleDismiss}
+        />
       );
     }
   }
@@ -120,16 +120,19 @@ export class SettingsPage extends React.Component {
             </Button>
           </Pane>
           <Pane display="flex" margin={20}>
-            <ConfigurationTabsNav
-              configurations={configurations}
-              handleTabSelect={this.handleTabSelect}
-              selectedIndex={this.state.selectedIndex} />
-
-            <Pane padding={16} flex="1">
-              <ConfigurationTabsContent
+            <Suspense fallback={<div>Loading...</div>}>
+              <ConfigurationTabsNav
                 configurations={configurations}
-                handleConfigurationChange={this.handleConfigurationChange}
+                handleTabSelect={this.handleTabSelect}
                 selectedIndex={this.state.selectedIndex} />
+            </Suspense>
+            <Pane padding={16} flex="1">
+              <Suspense fallback={<div>Loading...</div>}>
+                <ConfigurationTabsContent
+                  configurations={configurations}
+                  handleConfigurationChange={this.handleConfigurationChange}
+                  selectedIndex={this.state.selectedIndex} />
+              </Suspense>
             </Pane>
           </Pane>
         </Pane>

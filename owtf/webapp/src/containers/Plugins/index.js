@@ -22,7 +22,8 @@ import {
   makeSelectPostToWorklistError
 } from "./selectors";
 import { loadPlugins, postToWorklist } from "./actions";
-import PluginsTable from "./PluginsTable";
+import { Suspense } from "react";
+const PluginsTable = React.lazy(() => import(/* webpackPreload: true */ "./PluginsTable"));
 
 export class Plugins extends React.Component {
   constructor(props, context) {
@@ -142,7 +143,7 @@ export class Plugins extends React.Component {
     selectedPluginData["id"] = this.props.selectedTargets;
     selectedPluginData["force_overwrite"] = this.state.force_overwrite;
     const data = Object.keys(selectedPluginData)
-      .map(function(key) {
+      .map(function (key) {
         //seriliaze the selectedPluginData object
         return (
           encodeURIComponent(key) +
@@ -267,7 +268,12 @@ export class Plugins extends React.Component {
                 <Spinner size={64} />
               </Pane>
             ) : null}
-            {plugins !== false ? <PluginsTable {...PluginsTableProps} /> : null}
+            {plugins !== false ?
+              <Suspense fallback={<div>Loading...</div>}>
+                <PluginsTable {...PluginsTableProps} />
+              </Suspense>
+              : null}
+
           </Pane>
           <Pane
             key={2}
@@ -287,7 +293,7 @@ export class Plugins extends React.Component {
                       label={group}
                       checked={
                         this.state.groupSelectedPlugins["group"] !==
-                          undefined &&
+                        undefined &&
                         this.state.groupSelectedPlugins["group"].includes(group)
                       }
                       onChange={e =>

@@ -6,199 +6,67 @@
  * contain code that should be seen on all pages. (e.g. navigation bar)
  */
 
-import React from "react";
-import { Switch, Route, Router, Redirect } from "react-router-dom";
+import React, { Suspense } from "react";
+import { BrowserRouter, Switch, Route } from "react-router-dom";
 
-import NavigationBar from "components/NavigationBar";
-import WelcomePage from "containers/WelcomePage/Loadable";
-import Dashboard from "containers/Dashboard/Loadable";
-import TargetsPage from "containers/TargetsPage/Loadable";
-import SettingsPage from "containers/SettingsPage/Loadable";
-import Help from "containers/HelpPage/Loadable";
-import LoginPage from "containers/LoginPage/Loadable";
-import SignupPage from "containers/SignupPage/Loadable";
-import ForgotPasswordPage from "containers/ForgotPasswordPage/Loadable";
-import OtpPage from "containers/OtpPage/Loadable";
-import WorkersPage from "containers/WorkersPage/Loadable";
-import WorklistPage from "containers/WorklistPage/Loadable";
-import NotFoundPage from "components/NotFoundPage";
-import TransactionsPage from "containers/Transactions/Loadable";
-import Report from "containers/Report/Loadable";
-import EmailSendPage from "containers/EmailVerification/Loadable";
-import EmailVerificationPage from "containers/EmailVerification/emailVerification";
-import NewPasswordPage from "containers/NewPasswordPage/Loadable";
-import LogoutPage from "containers/LoginPage/logout";
-import { connect } from "react-redux";
-import { loginAutoCheck } from "../LoginPage/actions";
-import { toaster } from "evergreen-ui";
-import history from "../../utils/historyUtils";
-import PropTypes from "prop-types";
-import { createStructuredSelector } from "reselect";
-import {
-  makeSelectLoginIsAuthenticated,
-  makeSelectLoginUsername
-} from "../LoginPage/selectors";
+const NavigationBar = React.lazy(() => import(/* webpackPreload: true */ "components/NavigationBar"));
+const WelcomePage = React.lazy(() => import(/* webpackPreload: true */ "containers/WelcomePage/Loadable"));
+const Dashboard = React.lazy(() => import(/* webpackPreload: true */ "containers/Dashboard/Loadable"));
+const TargetsPage = React.lazy(() => import(/* webpackPreload: true */ "containers/TargetsPage/Loadable"));
+const SettingsPage = React.lazy(() => import(/* webpackPreload: true */ "containers/SettingsPage/Loadable"));
+const Help = React.lazy(() => import(/* webpackPreload: true */ "containers/HelpPage/Loadable"));
+const LoginPage = React.lazy(() => import(/* webpackPreload: true */ "containers/LoginPage/Loadable"));
+const SignupPage = React.lazy(() => import(/* webpackPreload: true */ "containers/SignupPage/Loadable"));
+const ForgotPasswordPage = React.lazy(() => import(/* webpackPreload: true */ "containers/ForgotPasswordPage/Loadable"));
+const OtpPage = React.lazy(() => import(/* webpackPreload: true */ "containers/OtpPage/Loadable"));
+const WorkersPage = React.lazy(() => import(/* webpackPreload: true */ "containers/WorkersPage/Loadable"));
+const WorklistPage = React.lazy(() => import(/* webpackPreload: true */ "containers/WorklistPage/Loadable"));
+const NotFoundPage = React.lazy(() => import(/* webpackPreload: true */ "components/NotFoundPage"));
+const TransactionsPage = React.lazy(() => import(/* webpackPreload: true */ "containers/Transactions/Loadable"));
+const Report = React.lazy(() => import(/* webpackPreload: true */ "containers/Report/Loadable"));
+const EmailSendPage = React.lazy(() => import(/* webpackPreload: true */ "containers/EmailVerification/Loadable"));
+const EmailVerificationPage = React.lazy(() => import(/* webpackPreload: true */ "containers/EmailVerification/emailVerification"));
 
-export class App extends React.Component {
-  constructor(props, context) {
-    super(props, context);
-  }
-
-  componentDidMount = () => {
-    this.props.tryAutoLogin();
-  };
-
-  render() {
-    this.navbar = {};
-    this.navbar.brand = { linkTo: "/", text: "OWASP OWTF" };
-    this.navbar.links = [
-      { linkTo: "/dashboard", text: "Dashboard" },
-      { linkTo: "/targets", text: "Targets" },
-      { linkTo: "/workers", text: "Workers" },
-      { linkTo: "/worklist", text: "Worklist" },
-      { linkTo: "/settings", text: "Settings" },
-      { linkTo: "/transactions", text: "Transactions" },
-      { linkTo: "/help", text: "Help" }
-    ];
-    if (this.props.isAuthenticated) {
-      this.navbar.links.push({
-        dropdown: true,
-        text: this.props.username,
-        links: [{ linkTo: "/logout", text: "Logout" }]
-      });
-    } else {
-      this.navbar.links.push({
-        linkTo: "/login",
-        text: "Login"
-      });
-    }
-    return (
-      <Router history={history}>
-        <div>
-          <NavigationBar {...this.navbar} />
-          <Switch>
-            <Route exact path="/" component={WelcomePage} />
-            <PrivateRoute
-              path="/dashboard"
-              component={Dashboard}
-              authenticated={this.props.isAuthenticated}
-            />
-            <PrivateRoute
-              path="/targets/:id"
-              component={Report}
-              authenticated={this.props.isAuthenticated}
-            />
-            <PrivateRoute
-              path="/targets"
-              component={TargetsPage}
-              authenticated={this.props.isAuthenticated}
-            />
-            <PrivateRoute
-              path="/workers"
-              component={WorkersPage}
-              authenticated={this.props.isAuthenticated}
-            />
-            <PrivateRoute
-              path="/worklist"
-              component={WorklistPage}
-              authenticated={this.props.isAuthenticated}
-            />
-            <PrivateRoute
-              path="/settings"
-              component={SettingsPage}
-              authenticated={this.props.isAuthenticated}
-            />
-            <PrivateRoute
-              path="/transactions"
-              component={TransactionsPage}
-              authenticated={this.props.isAuthenticated}
-            />
-            <PrivateRoute
-              path="/help"
-              component={Help}
-              authenticated={this.props.isAuthenticated}
-            />
-            <Route
-              path="/login"
-              component={this.props.isAuthenticated ? NotFoundPage : LoginPage}
-            />
-            <Route path="/logout" component={LogoutPage} />
-            <Route
-              path="/signup"
-              component={this.props.isAuthenticated ? NotFoundPage : SignupPage}
-            />
-            <Route
-              path="/forgot-password/otp/"
-              component={this.props.isAuthenticated ? NotFoundPage : OtpPage}
-            />
-            <Route
-              path="/forgot-password/email"
-              component={
-                this.props.isAuthenticated ? NotFoundPage : ForgotPasswordPage
-              }
-            />
-            <Route
-              path="/email-send/"
-              component={
-                this.props.isAuthenticated ? NotFoundPage : EmailSendPage
-              }
-            />
-            <Route
-              path="/email-verify/:link"
-              component={EmailVerificationPage}
-            />
-            <Route
-              path="/new-password/"
-              component={
-                this.props.isAuthenticated ? NotFoundPage : NewPasswordPage
-              }
-            />
-            <Route path="*" component={NotFoundPage} />
-          </Switch>
-        </div>
-      </Router>
-    );
-  }
-}
-
-function PrivateRoute({ component: Component, authenticated, ...rest }) {
-  if (!authenticated) {
-    toaster.danger("Login Required!");
-  }
+export default function App() {
+  const navbar = {};
+  navbar.brand = { linkTo: "/", text: "OWASP OWTF" };
+  navbar.links = [
+    { linkTo: "/dashboard", text: "Dashboard" },
+    { linkTo: "/targets", text: "Targets" },
+    { linkTo: "/workers", text: "Workers" },
+    { linkTo: "/worklist", text: "Worklist" },
+    { linkTo: "/settings", text: "Settings" },
+    { linkTo: "/transactions", text: "Transactions" },
+    { linkTo: "/help", text: "Help" },
+    { linkTo: "/login", text: "Login" }
+  ];
   return (
-    <Route
-      {...rest}
-      render={props =>
-        authenticated === true ? (
-          <Component {...props} />
-        ) : (
-          <Redirect
-            to={{ pathname: "/login", state: { from: props.location } }}
-          />
-        )
-      }
-    />
+    <div>
+      <Suspense fallback={<div>Loading...</div>}>
+        <BrowserRouter>
+          <div>
+            <NavigationBar {...navbar} />
+            <Switch>
+              <Route exact path="/" component={props => <WelcomePage {...props} />} />
+              <Route path="/dashboard" component={props => <Dashboard {...props} />} />
+              <Route path="/targets/:id" component={props => <Report {...props} />} />
+              <Route path="/targets" component={props => <TargetsPage {...props} />} />
+              <Route path="/workers" component={props => <WorkersPage {...props} />} />
+              <Route path="/worklist" component={props => <WorklistPage {...props} />} />
+              <Route path="/settings" component={props => <SettingsPage {...props} />} />
+              <Route path="/transactions" component={props => <TransactionsPage {...props} />} />
+              <Route path="/help" component={props => <Help {...props} />} />
+              <Route path="/login" component={props => <LoginPage {...props} />} />
+              <Route path="/signup" component={props => <SignupPage {...props} />} />
+              <Route path="/forgot-password/otp" component={props => <OtpPage {...props} />} />
+              <Route path="/forgot-password/email" component={props => <ForgotPasswordPage {...props} />} />
+              <Route path="/email-send/:email" component={props => <EmailSendPage {...props} />} />
+              <Route path="/email-verify/:link" component={props => <EmailVerificationPage {...props} />} />
+              <Route path="*" component={props => <NotFoundPage {...props} />} />
+            </Switch>
+          </div>
+        </BrowserRouter>
+      </Suspense>
+    </div>
   );
 }
-
-App.propTypes = {
-  tryAutoLogin: PropTypes.func,
-  isAuthenticated: PropTypes.string,
-  username: PropTypes.string
-};
-
-const mapStateToProps = createStructuredSelector({
-  isAuthenticated: makeSelectLoginIsAuthenticated,
-  username: makeSelectLoginUsername
-});
-
-const mapDispatchToProps = dispatch => {
-  return {
-    tryAutoLogin: () => dispatch(loginAutoCheck())
-  };
-};
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(App);
