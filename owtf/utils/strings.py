@@ -29,7 +29,7 @@ def to_str(byte):
 
 
 def str2bool(string):
-    """ Converts a string to a boolean
+    """Converts a string to a boolean
 
     :param string: String to convert
     :type string: `str`
@@ -39,7 +39,7 @@ def str2bool(string):
     return not (string in ["False", "false", 0, "0"])
 
 
-def multi_replace(text, replace_dict, simple_text = False):
+def multi_replace(text, replace_dict, simple_text=False):
     """Recursive multiple replacement function
     :param text: Text to replace
     :type text: `str`
@@ -63,9 +63,7 @@ def multi_replace(text, replace_dict, simple_text = False):
         for key in replace_dict.keys():
             # A recursive call to remove all level occurrences of place
             # holders.
-            new_text = new_text.replace(
-                key, replace_dict[key]
-            )
+            new_text = new_text.replace(key, replace_dict[key])
         new_text = os.path.expanduser(new_text)
     return new_text
 
@@ -147,6 +145,7 @@ def wipe_bad_chars(filename):
     :rtype: `str`
     """
     return multi_replace(filename, {"(": "", " ": "_", ")": "", "/": "_"}, True)
+
 
 def remove_blanks_list(src):
     """Removes empty elements from the list
