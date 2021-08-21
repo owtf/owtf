@@ -84,7 +84,7 @@ export class NewPasswordPage extends React.Component {
 
   render() {
     return (
-      <Pane marginY={100}>
+      <Pane marginY={100} data-test="newPasswordPageComponent">
         <Pane
           justifyContent="center"
           width="35%"

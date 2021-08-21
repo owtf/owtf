@@ -63,7 +63,7 @@ describe("OtpPage component", () => {
         "Enter the 6-digit verification code sent to your email."
       );
       expect(paragraph.at(1).props().children.props.children).toEqual(
-        "Change Email"
+        "Change Username / Email"
       );
       expect(paragraph.at(2).props().children.props.children).toEqual(
         "Resend Code"

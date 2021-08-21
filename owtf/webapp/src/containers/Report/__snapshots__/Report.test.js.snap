@@ -706,6 +706,7 @@ exports[`Report page component Testing dumb SideFilters component Should render 
   <Tablist
     display="flex"
     flexDirection="column"
+    marginBottom="110%"
     width={200}
   >
     <withTheme(Tab)
