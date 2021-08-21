@@ -37,7 +37,7 @@ exports[`OtpPage component Testing dumb otp component Should render without erro
       <withTheme(Link)
         href="/forgot-password/email/"
       >
-        Change Email
+        Change Username / Email
       </withTheme(Link)>
     </withTheme(Paragraph)>
     <TextInputField

@@ -3,18 +3,19 @@ owtf.models.user_login_token
 ~~~~~~~~~~~~~~~~
 
 """
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, UniqueConstraint
 from owtf.db.model_base import Model
 import uuid
 from datetime import datetime, timedelta
 from owtf.settings import JWT_EXP_DELTA_SECONDS
+from owtf.models.user import User
 
 
 class UserLoginToken(Model):
     __tablename__ = "user_login_tokens"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey(User.id))
     token = Column(String, nullable=False)
 
     @classmethod
