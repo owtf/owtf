@@ -11,6 +11,7 @@ import logging
 from sqlalchemy import create_engine, exc, func
 from sqlalchemy.orm import Session as _Session
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 
 from owtf.db.model_base import Model
 from owtf.settings import DATABASE_IP, DATABASE_NAME, DATABASE_PASS, DATABASE_USER, DATABASE_PORT
@@ -48,7 +49,7 @@ def flush_transaction(method):
 
 def get_db_engine():
     try:
-        engine = create_engine(DB_URI, pool_recycle=120)
+        engine = create_engine(DB_URI, poolclass=NullPool)
         Model.metadata.create_all(engine)
         return engine
     except exc.OperationalError as e:
