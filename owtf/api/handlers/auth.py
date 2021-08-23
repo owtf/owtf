@@ -464,7 +464,7 @@ class OtpGenerateHandler(APIRequestHandler):
             response = {"status": "success", "message": "Otp Send Successful"}
             self.success(response)
         else:
-            err = {"status": "fail", "message": "Email/Username doesn't exist"}
+            err = {"status": "fail", "message": "Username / Email doesn't exist"}
             self.success(err)
 
 
@@ -510,7 +510,7 @@ class OtpVerifyHandler(APIRequestHandler):
             else:
                 self.success({"status": "fail", "message": "Invalid OTP"})
         else:
-            err = {"status": "fail", "message": "Email doesn't exist"}
+            err = {"status": "fail", "message": "Username / Email doesn't exist"}
             self.success(err)
 
 

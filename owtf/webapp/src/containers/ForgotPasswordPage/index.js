@@ -12,6 +12,7 @@ import {
   TextInputField
 } from "evergreen-ui";
 import { forgotPasswordEmailStart } from "./actions";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
 export class ForgotPasswordPage extends React.Component {
@@ -53,7 +54,7 @@ export class ForgotPasswordPage extends React.Component {
 
   render() {
     return (
-      <Pane marginY={100}>
+      <Pane marginY={100} data-test="forgotPasswordPageComponent">
         <Pane
           justifyContent="center"
           width="35%"
@@ -77,6 +78,7 @@ export class ForgotPasswordPage extends React.Component {
             placeholder="Username / Email"
             width="60%"
             marginLeft="20%"
+            name="text-input-email-or-username"
             marginBottom={20}
             marginTop={10}
             value={this.state.emailOrUsername}
@@ -107,6 +109,10 @@ export class ForgotPasswordPage extends React.Component {
     );
   }
 }
+
+ForgotPasswordPage.propTypes = {
+  onReset: PropTypes.func
+};
 
 const mapDispatchToProps = dispatch => {
   return {

@@ -44,7 +44,7 @@ In case user forgets his password, he can follow the steps shown below to reset 
 .. figure:: /images/forgot_password.png
     :align: center
 
-    Provide the email of the account for which you want to reset password
+    Provide the username/email of the account for which you want to reset password
 
 .. figure:: /images/otp_sent.png
     :align: center

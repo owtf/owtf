@@ -208,7 +208,7 @@ exports[`Dashboard component Testing Worker panel component Testing worker compo
   >
     <img
       className="workerpanel-labelimg"
-      src="/static/b0ac8b98e2b251549cd044fe7d5d7edd.png"
+      src={Object {}}
     />
     <withTheme(Paragraph)
       margin={10}

@@ -83,11 +83,7 @@ export class App extends React.Component {
               component={Dashboard}
               authenticated={this.props.isAuthenticated}
             />
-            <PrivateRoute
-              path="/targets/:id"
-              component={Report}
-              authenticated={this.props.isAuthenticated}
-            />
+            <Route exact path="/targets/:id" component={Report} />
             <PrivateRoute
               path="/targets"
               component={TargetsPage}

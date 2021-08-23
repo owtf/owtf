@@ -48,7 +48,6 @@ export default class GithubReport extends React.Component {
 
   render() {
     const errorData = this.props.errors;
-    console.log("errorData", errorData);
     return (
       <Pane data-test="githubReportComponent">
         <Button
