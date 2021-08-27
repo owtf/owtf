@@ -5,6 +5,7 @@ owtf.models.user
 """
 from sqlalchemy import Column, Integer, Unicode, Boolean
 from owtf.db.model_base import Model
+from owtf.models.email_confirmation import EmailConfirmation
 from sqlalchemy.orm import relationship
 import uuid
 
@@ -18,7 +19,7 @@ class User(Model):
     password = Column(Unicode(255), nullable=False)
     is_active = Column(Boolean, default=False)  # checks whether user email is verified
     otp_secret_key = Column(Unicode(255), nullable=False, unique=True)  # used to generate unique otp
-    email_confirmations = relationship("EmailConfirmation", cascade="delete")
+    email_confirmations = relationship(EmailConfirmation, cascade="delete")
     user_login_tokens = relationship("UserLoginToken", cascade="delete")
 
     @classmethod

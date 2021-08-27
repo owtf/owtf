@@ -88,7 +88,7 @@ export class OtpPage extends React.Component {
             Enter the 6-digit verification code sent to your email.
           </Paragraph>
           <Paragraph size={300} width="60%" marginLeft="20%" marginTop={10}>
-            <Link href="/forgot-password/email/">Change Email</Link>
+            <Link href="/forgot-password/email/">Change Username / Email</Link>
           </Paragraph>
           <TextInputField
             label="Enter the OTP received"

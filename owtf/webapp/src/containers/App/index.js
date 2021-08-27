@@ -27,46 +27,127 @@ const Report = React.lazy(() => import(/* webpackPreload: true */ "containers/Re
 const EmailSendPage = React.lazy(() => import(/* webpackPreload: true */ "containers/EmailVerification/Loadable"));
 const EmailVerificationPage = React.lazy(() => import(/* webpackPreload: true */ "containers/EmailVerification/emailVerification"));
 
-export default function App() {
-  const navbar = {};
-  navbar.brand = { linkTo: "/", text: "OWASP OWTF" };
-  navbar.links = [
-    { linkTo: "/dashboard", text: "Dashboard" },
-    { linkTo: "/targets", text: "Targets" },
-    { linkTo: "/workers", text: "Workers" },
-    { linkTo: "/worklist", text: "Worklist" },
-    { linkTo: "/settings", text: "Settings" },
-    { linkTo: "/transactions", text: "Transactions" },
-    { linkTo: "/help", text: "Help" },
-    { linkTo: "/login", text: "Login" }
-  ];
-  return (
-    <div>
-      <Suspense fallback={<div>Loading...</div>}>
-        <BrowserRouter>
-          <div>
-            <NavigationBar {...navbar} />
-            <Switch>
-              <Route exact path="/" component={props => <WelcomePage {...props} />} />
-              <Route path="/dashboard" component={props => <Dashboard {...props} />} />
-              <Route path="/targets/:id" component={props => <Report {...props} />} />
-              <Route path="/targets" component={props => <TargetsPage {...props} />} />
-              <Route path="/workers" component={props => <WorkersPage {...props} />} />
-              <Route path="/worklist" component={props => <WorklistPage {...props} />} />
-              <Route path="/settings" component={props => <SettingsPage {...props} />} />
-              <Route path="/transactions" component={props => <TransactionsPage {...props} />} />
-              <Route path="/help" component={props => <Help {...props} />} />
-              <Route path="/login" component={props => <LoginPage {...props} />} />
-              <Route path="/signup" component={props => <SignupPage {...props} />} />
-              <Route path="/forgot-password/otp" component={props => <OtpPage {...props} />} />
-              <Route path="/forgot-password/email" component={props => <ForgotPasswordPage {...props} />} />
-              <Route path="/email-send/:email" component={props => <EmailSendPage {...props} />} />
-              <Route path="/email-verify/:link" component={props => <EmailVerificationPage {...props} />} />
-              <Route path="*" component={props => <NotFoundPage {...props} />} />
-            </Switch>
-          </div>
-        </BrowserRouter>
-      </Suspense>
-    </div>
-  );
+
+export class App extends React.Component {
+  constructor(props, context) {
+    super(props, context);
+  }
+
+  componentDidMount = () => {
+    this.props.tryAutoLogin();
+  };
+
+  render() {
+    this.navbar = {};
+    this.navbar.brand = { linkTo: "/", text: "OWASP OWTF" };
+    this.navbar.links = [
+      { linkTo: "/dashboard", text: "Dashboard" },
+      { linkTo: "/targets", text: "Targets" },
+      { linkTo: "/workers", text: "Workers" },
+      { linkTo: "/worklist", text: "Worklist" },
+      { linkTo: "/settings", text: "Settings" },
+      { linkTo: "/transactions", text: "Transactions" },
+      { linkTo: "/help", text: "Help" }
+    ];
+    if (this.props.isAuthenticated) {
+      this.navbar.links.push({
+        dropdown: true,
+        text: this.props.username,
+        links: [{ linkTo: "/logout", text: "Logout" }]
+      });
+    } else {
+      this.navbar.links.push({
+        linkTo: "/login",
+        text: "Login"
+      });
+    }
+    return (
+      <Router history={history}>
+        <div>
+          <NavigationBar {...this.navbar} />
+          <Switch>
+            <Route exact path="/" component={WelcomePage} />
+            <PrivateRoute
+              path="/dashboard"
+              component={Dashboard}
+              authenticated={this.props.isAuthenticated}
+            />
+            <Route exact path="/targets/:id" component={Report} />
+            <PrivateRoute
+              path="/targets"
+              component={TargetsPage}
+              authenticated={this.props.isAuthenticated}
+            />
+            <PrivateRoute
+              path="/workers"
+              component={WorkersPage}
+              authenticated={this.props.isAuthenticated}
+            />
+            <PrivateRoute
+              path="/worklist"
+              component={WorklistPage}
+              authenticated={this.props.isAuthenticated}
+            />
+            <PrivateRoute
+              path="/settings"
+              component={SettingsPage}
+              authenticated={this.props.isAuthenticated}
+            />
+            <PrivateRoute
+              path="/transactions"
+              component={TransactionsPage}
+              authenticated={this.props.isAuthenticated}
+            />
+            <PrivateRoute
+              path="/help"
+              component={Help}
+              authenticated={this.props.isAuthenticated}
+            />
+            <Route
+              path="/login"
+              component={this.props.isAuthenticated ? NotFoundPage : LoginPage}
+            />
+            <Route path="/logout" component={LogoutPage} />
+            <Route
+              path="/signup"
+              component={this.props.isAuthenticated ? NotFoundPage : SignupPage}
+            />
+            <Route
+              path="/forgot-password/otp/"
+              component={this.props.isAuthenticated ? NotFoundPage : OtpPage}
+            />
+            <Route
+              path="/forgot-password/email"
+              component={
+                this.props.isAuthenticated ? NotFoundPage : ForgotPasswordPage
+              }
+            />
+            <Route
+              path="/email-send/"
+              component={
+                this.props.isAuthenticated ? NotFoundPage : EmailSendPage
+              }
+            />
+            <Route
+              path="/email-verify/:link"
+              component={EmailVerificationPage}
+            />
+            <Route
+              path="/new-password/"
+              component={
+                this.props.isAuthenticated ? NotFoundPage : NewPasswordPage
+              }
+            />
+            <Route path="*" component={NotFoundPage} />
+          </Switch>
+        </div>
+      </Router>
+    );
+  }
+}
+
+function PrivateRoute({ component: Component, authenticated, ...rest }) {
+  if (!authenticated) {
+    toaster.danger("Login Required!");
+  }
 }

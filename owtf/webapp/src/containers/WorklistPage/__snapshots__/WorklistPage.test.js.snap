@@ -6,13 +6,16 @@ exports[`Worklist Page component Testing WorklistTable component Should render w
 >
   <TableHead
     accountForScrollbar={true}
-    height={50}
+    height={55}
   >
     <TextTableHeaderCell
       flex="none"
-      width="10%"
+      width="12%"
     >
-      Est. Time (min)
+      <withTheme(Checkbox)
+        label="Est. Time (min)"
+        onChange={[Function]}
+      />
     </TextTableHeaderCell>
     <TextTableHeaderCell
       flex="none"
@@ -27,7 +30,7 @@ exports[`Worklist Page component Testing WorklistTable component Should render w
       placeholder="Target"
       spellCheck={true}
       value=""
-      width="24%"
+      width="22%"
     />
     <SearchTableHeaderCell
       flex="none"
@@ -71,7 +74,7 @@ exports[`Worklist Page component Testing WorklistTable component Should render w
       <TextTableCell
         flex="none"
         isNumber={false}
-        width="10%"
+        width="12%"
       >
         0s, 111ms
       </TextTableCell>
@@ -114,7 +117,7 @@ exports[`Worklist Page component Testing WorklistTable component Should render w
         flex="none"
         isNumber={false}
         title="https://dcs.com"
-        width="25%"
+        width="23%"
       >
         <withTheme(Link)
           href="/targets/undefined"
@@ -153,7 +156,7 @@ exports[`Worklist Page component Testing WorklistTable component Should render w
       <TextTableCell
         flex="none"
         isNumber={false}
-        width="10%"
+        width="12%"
       >
         0s, 80ms
       </TextTableCell>
@@ -196,7 +199,7 @@ exports[`Worklist Page component Testing WorklistTable component Should render w
         flex="none"
         isNumber={false}
         title="https://dcs.com"
-        width="25%"
+        width="23%"
       >
         <withTheme(Link)
           href="/targets/undefined"
@@ -302,10 +305,16 @@ exports[`Worklist Page component Testing dumb WorklistPage component Should rend
     </withTheme(Button)>
   </withTheme(Pane)>
   <WorklistTable
+    changeSelection={[Function]}
+    deleteAllWork={[Function]}
     deleteWork={[Function]}
     globalSearch=""
+    pauseAllWork={[Function]}
     pauseWork={[Function]}
+    resumeAllWork={[Function]}
     resumeWork={[Function]}
+    selection={false}
+    updatingWorklist={[Function]}
     worklist={
       Array [
         Object {
