@@ -6,27 +6,37 @@
  * contain code that should be seen on all pages. (e.g. navigation bar)
  */
 
-import React, { Suspense } from "react";
-import { BrowserRouter, Switch, Route } from "react-router-dom";
-
-const NavigationBar = React.lazy(() => import(/* webpackPreload: true */ "components/NavigationBar"));
-const WelcomePage = React.lazy(() => import(/* webpackPreload: true */ "containers/WelcomePage/Loadable"));
-const Dashboard = React.lazy(() => import(/* webpackPreload: true */ "containers/Dashboard/Loadable"));
-const TargetsPage = React.lazy(() => import(/* webpackPreload: true */ "containers/TargetsPage/Loadable"));
-const SettingsPage = React.lazy(() => import(/* webpackPreload: true */ "containers/SettingsPage/Loadable"));
-const Help = React.lazy(() => import(/* webpackPreload: true */ "containers/HelpPage/Loadable"));
-const LoginPage = React.lazy(() => import(/* webpackPreload: true */ "containers/LoginPage/Loadable"));
-const SignupPage = React.lazy(() => import(/* webpackPreload: true */ "containers/SignupPage/Loadable"));
-const ForgotPasswordPage = React.lazy(() => import(/* webpackPreload: true */ "containers/ForgotPasswordPage/Loadable"));
-const OtpPage = React.lazy(() => import(/* webpackPreload: true */ "containers/OtpPage/Loadable"));
-const WorkersPage = React.lazy(() => import(/* webpackPreload: true */ "containers/WorkersPage/Loadable"));
-const WorklistPage = React.lazy(() => import(/* webpackPreload: true */ "containers/WorklistPage/Loadable"));
-const NotFoundPage = React.lazy(() => import(/* webpackPreload: true */ "components/NotFoundPage"));
-const TransactionsPage = React.lazy(() => import(/* webpackPreload: true */ "containers/Transactions/Loadable"));
-const Report = React.lazy(() => import(/* webpackPreload: true */ "containers/Report/Loadable"));
-const EmailSendPage = React.lazy(() => import(/* webpackPreload: true */ "containers/EmailVerification/Loadable"));
-const EmailVerificationPage = React.lazy(() => import(/* webpackPreload: true */ "containers/EmailVerification/emailVerification"));
-
+import React from "react";
+import { Switch, Route, Router, Redirect } from "react-router-dom";
+import NavigationBar from "components/NavigationBar";
+import WelcomePage from "containers/WelcomePage/Loadable";
+import Dashboard from "containers/Dashboard/Loadable";
+import TargetsPage from "containers/TargetsPage/Loadable";
+import SettingsPage from "containers/SettingsPage/Loadable";
+import Help from "containers/HelpPage/Loadable";
+import LoginPage from "containers/LoginPage/Loadable";
+import SignupPage from "containers/SignupPage/Loadable";
+import ForgotPasswordPage from "containers/ForgotPasswordPage/Loadable";
+import OtpPage from "containers/OtpPage/Loadable";
+import WorkersPage from "containers/WorkersPage/Loadable";
+import WorklistPage from "containers/WorklistPage/Loadable";
+import NotFoundPage from "components/NotFoundPage";
+import TransactionsPage from "containers/Transactions/Loadable";
+import Report from "containers/Report/Loadable";
+import EmailSendPage from "containers/EmailVerification/Loadable";
+import EmailVerificationPage from "containers/EmailVerification/emailVerification";
+import NewPasswordPage from "containers/NewPasswordPage/Loadable";
+import LogoutPage from "containers/LoginPage/logout";
+import { connect } from "react-redux";
+import { loginAutoCheck } from "../LoginPage/actions";
+import { toaster } from "evergreen-ui";
+import history from "../../utils/historyUtils";
+import PropTypes from "prop-types";
+import { createStructuredSelector } from "reselect";
+import {
+  makeSelectLoginIsAuthenticated,
+  makeSelectLoginUsername
+} from "../LoginPage/selectors";
 
 export class App extends React.Component {
   constructor(props, context) {
@@ -150,4 +160,40 @@ function PrivateRoute({ component: Component, authenticated, ...rest }) {
   if (!authenticated) {
     toaster.danger("Login Required!");
   }
+  return (
+    <Route
+      {...rest}
+      render={props =>
+        authenticated === true ? (
+          <Component {...props} />
+        ) : (
+          <Redirect
+            to={{ pathname: "/login", state: { from: props.location } }}
+          />
+        )
+      }
+    />
+  );
 }
+
+App.propTypes = {
+  tryAutoLogin: PropTypes.func,
+  isAuthenticated: PropTypes.string,
+  username: PropTypes.string
+};
+
+const mapStateToProps = createStructuredSelector({
+  isAuthenticated: makeSelectLoginIsAuthenticated,
+  username: makeSelectLoginUsername
+});
+
+const mapDispatchToProps = dispatch => {
+  return {
+    tryAutoLogin: () => dispatch(loginAutoCheck())
+  };
+};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(App);
