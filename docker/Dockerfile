@@ -34,11 +34,6 @@ ENV LC_ALL en_US.UTF-8
 RUN apt-get -y install lbd theharvester tlssled nikto dnsrecon nmap whatweb skipfish dirbuster \
   metasploit-framework wpscan wapiti hydra metagoofil o-saft amass
 
-# Ensure pip and setuptools are at their latest versions
-RUN pip3 install setuptools --upgrade
-RUN pip3 install cffi
-RUN python3 -m pip install --upgrade pip
-
 # Create a dedicated OWTF directory to copy source to and run from.
 RUN cd / && /bin/mkdir -p owtf
 ADD . /owtf
@@ -46,13 +41,18 @@ ADD docker/wait-for-it.sh /usr/bin/wait-for-it.sh
 RUN chmod +x /usr/bin/wait-for-it.sh
 
 #Create and activating a python virtualenv
-RUN pip3 install wheel
 ENV VIRTUAL_ENV=/bin/owtf
 RUN python3 -m virtualenv --python=/usr/bin/python3.9 $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
+# Ensure pip and setuptools are at their latest versions
+RUN pip install --upgrade pip
+RUN pip install setuptools==57.5.0
+RUN pip install cffi
+RUN pip install wheel
+
 #Installing python dependencies
-RUN pip3 install -r /owtf/requirements/base.txt
+RUN pip install -r /owtf/requirements/base.txt
 
 # Install OWTF using the recommended method (setup.py)
 RUN cd /owtf &&\
