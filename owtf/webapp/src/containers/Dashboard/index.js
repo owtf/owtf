@@ -9,13 +9,13 @@
  *    - WorkerPanel (WorkerPanel.js) - Shows progress of running targets and worker log.
  */
 
-import React from "react";
+import React, { Suspense } from "react";
 import { Pane, Heading, Small, toaster, Spinner, Paragraph } from "evergreen-ui";
 import { Breadcrumb } from "react-bootstrap";
-import Chart from "./Chart";
-import WorkerPanel from "./WorkerPanel";
-import VulnerabilityPanel from "./Panel";
-import GitHubReport from "./GithubReport";
+const Chart = React.lazy(() => import(/* webpackPreload: true */ "./Chart"));
+const WorkerPanel = React.lazy(() => import(/* webpackPreload: true */ "./WorkerPanel"));
+const VulnerabilityPanel = React.lazy(() => import(/* webpackPreload: true */ "./Panel"));
+const GitHubReport = React.lazy(() => import(/* webpackPreload: true */ "./GithubReport"));
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
@@ -109,7 +109,9 @@ export class Dashboard extends React.Component {
           <Small marginTop={10}>, this is your dashboard</Small>
           <Pane flex={1}>
             {this.props.errors !== false ? (
-              <GitHubReport {...GitHubReportProps} />
+              <Suspense fallback={<div>Loading...</div>}>
+                <GitHubReport {...GitHubReportProps} />
+              </Suspense>
             ) : null}
           </Pane>
         </Pane>
@@ -127,19 +129,21 @@ export class Dashboard extends React.Component {
                 Something went wrong, please try again!
               </Paragraph>
             </Pane>
-          ) : null }
+          ) : null}
           {this.props.severityLoading ? (
             <Pane
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            height={200}
-          >
-            <Spinner />
-          </Pane>
-          ) : null }
-          { this.props.severity !== false ? (
-            <VulnerabilityPanel panelData={this.props.severity} />
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              height={200}
+            >
+              <Spinner />
+            </Pane>
+          ) : null}
+          {this.props.severity !== false ? (
+            <Suspense fallback={<div>Loading...</div>}>
+              <VulnerabilityPanel panelData={this.props.severity} />
+            </Suspense>
           ) : null}
         </Pane>
         <Pane
@@ -160,7 +164,7 @@ export class Dashboard extends React.Component {
                   Something went wrong, please try again!
                 </Paragraph>
               </Pane>
-            ) : null }
+            ) : null}
             {this.props.targetSeverityLoading ? (
               <Pane
                 display="flex"
@@ -170,9 +174,11 @@ export class Dashboard extends React.Component {
               >
                 <Spinner />
               </Pane>
-            ) : null }
+            ) : null}
             {this.props.targetSeverity !== false ? (
-              <Chart chartData={this.props.targetSeverity.data} />
+              <Suspense fallback={<div>Loading...</div>}>
+                <Chart chartData={this.props.targetSeverity.data} />
+              </Suspense>
             ) : null}
           </Pane>
           <Pane marginTop={20} paddingRight={20} width="50%">
@@ -188,7 +194,7 @@ export class Dashboard extends React.Component {
                   Something went wrong, please try again!
                 </Paragraph>
               </Pane>
-            ) : null }
+            ) : null}
             {this.props.workerProgressLoading ? (
               <Pane
                 display="flex"
@@ -198,14 +204,16 @@ export class Dashboard extends React.Component {
               >
                 <Spinner />
               </Pane>
-            ) : null }
+            ) : null}
             {this.props.workerProgress !== false ? (
-              <WorkerPanel 
-                progressData={this.props.workerProgress} 
-                workerData={this.props.workers} 
-                workerLogs={this.props.workerLogs}
-                onFetchWorkerLogs={this.props.onFetchWorkerLogs}
-                pollInterval={POLLINTERVAL} />
+              <Suspense fallback={<div>Loading...</div>}>
+                <WorkerPanel
+                  progressData={this.props.workerProgress}
+                  workerData={this.props.workers}
+                  workerLogs={this.props.workerLogs}
+                  onFetchWorkerLogs={this.props.onFetchWorkerLogs}
+                  pollInterval={POLLINTERVAL} />
+              </Suspense>
             ) : null}
           </Pane>
         </Pane>
@@ -256,7 +264,7 @@ const mapStateToProps = createStructuredSelector({
   workerProgressLoading: makeSelectWorkerProgressLoading,
   workerProgressError: makeSelectWorkerProgressError,
   workers: makeSelectFetchWorkers,
-  workerLogs: makeSelectFetchWorkerLogs,  
+  workerLogs: makeSelectFetchWorkerLogs,
 });
 
 const mapDispatchToProps = dispatch => {

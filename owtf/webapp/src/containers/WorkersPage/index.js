@@ -3,7 +3,7 @@
  *
  * This components manages workers info and allows us to apply certain action [pause/resume/delete/abort/create] on them.
  */
-import React from "react";
+import React, { Suspense } from "react";
 import {
   Pane,
   Button,
@@ -39,7 +39,7 @@ import {
   loadWorkerProgress,
   loadWorkerLogs,
 } from "./actions";
-import WorkerPanel from "./WorkerPanel";
+const WorkerPanel = React.lazy(() => import(/* webpackPreload: true */ "./WorkerPanel"));
 
 export class WorkersPage extends React.Component {
   constructor(props, context) {
@@ -304,7 +304,9 @@ export class WorkersPage extends React.Component {
         <Pane clearfix>
           {workers !== false
             ? workers.map(obj => (
+              <Suspense fallback={<div>Loading...</div>}>
                 <WorkerPanel worker={obj} key={obj.id} {...WorkerPanelProps} />
+              </Suspense>
               ))
             : null}
         </Pane>

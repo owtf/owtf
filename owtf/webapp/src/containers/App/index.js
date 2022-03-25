@@ -8,7 +8,6 @@
 
 import React from "react";
 import { Switch, Route, Router, Redirect } from "react-router-dom";
-
 import NavigationBar from "components/NavigationBar";
 import WelcomePage from "containers/WelcomePage/Loadable";
 import Dashboard from "containers/Dashboard/Loadable";

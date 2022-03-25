@@ -10,12 +10,12 @@
  *
  */
 
-import React from "react";
+import React, { Suspense } from "react";
 import { Pane } from "evergreen-ui";
-import Header from "./Header";
-import SideFilters from "./SideFilters";
-import Toolbar from "./Toolbar";
-import Accordians from "./Accordians";
+const Header = React.lazy(() => import(/* webpackPreload: true */ "./Header"));
+const SideFilters = React.lazy(() => import(/* webpackPreload: true */ "./SideFilters"));
+const Toolbar = React.lazy(() => import(/* webpackPreload: true */ "./Toolbar"));
+const Accordians = React.lazy(() => import(/* webpackPreload: true */ "./Accordians"));
 import { loadTarget } from "./actions";
 import {
   makeSelectFetchTarget,
@@ -137,14 +137,23 @@ export class Report extends React.Component {
         data-test="reportComponent"
       >
         <Pane width={220} background="tint2" padding={20} flex="none">
-          <SideFilters {...SideFiltersProps} />
+          <Suspense fallback={<div>Loading...</div>}>
+            <SideFilters {...SideFiltersProps} />
+          </Suspense>
         </Pane>
         <Pane flex={1} padding={30}>
-          {this.props.target !== false ? <Header {...HeaderProps} /> : null}
-          <Toolbar {...ToolbarProps} />
+          {this.props.target !== false ?
+            <Suspense fallback={<div>Loading...</div>}>
+              <Header {...HeaderProps} />
+            </Suspense> : null}
+          <Suspense fallback={<div>Loading...</div>}>
+            <Toolbar {...ToolbarProps} />
+          </Suspense>
           <br />
           {this.props.target !== false ? (
-            <Accordians {...AccordiansProps} {...this.state} />
+            <Suspense fallback={<div>Loading...</div>}>
+              <Accordians {...AccordiansProps} {...this.state} />
+            </Suspense>
           ) : null}
         </Pane>
       </Pane>

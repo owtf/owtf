@@ -3,7 +3,7 @@
  * Renders the plugin details table inside the plugin side sheet.
  */
 
-import React from "react";
+import React, { Suspense } from "react";
 import {
   Button,
   Pane,
@@ -15,7 +15,7 @@ import {
   UnorderedList,
   ListItem
 } from "evergreen-ui";
-import CKEditor from "@ckeditor/ckeditor5-react";
+const CKEditor = React.lazy(() => import(/* webpackPreload: true */ "@ckeditor/ckeditor5-react"));
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import "./style.scss";
 import PropTypes from "prop-types";
@@ -216,14 +216,16 @@ export class DataTable extends React.Component {
               {editorShow ? "Save Notes" : "Notes"}
             </Button>
             {editorShow ? (
-              <CKEditor
-                isShown={this.state.editorShow}
-                editor={ClassicEditor}
-                data={user_notes}
-                onChange={(event, editor) =>
-                  this.handleEditorData(event, editor)
-                }
-              />
+              <Suspense fallback={<div>Loading...</div>}>
+                <CKEditor
+                  isShown={this.state.editorShow}
+                  editor={ClassicEditor}
+                  data={user_notes}
+                  onChange={(event, editor) =>
+                    this.handleEditorData(event, editor)
+                  }
+                />
+              </Suspense>
             ) : null}
           </Pane>
 
