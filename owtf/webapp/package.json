@@ -29,7 +29,7 @@
     "immutable": "^3.8.2",
     "jszip": "^3.7.0",
     "jwt-decode": "^3.1.2",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "prop-types": "^15.6.1",
     "rc-progress": "^2.5.1",
     "react": "^16.2.0",
