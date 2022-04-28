@@ -136,7 +136,7 @@ export default class Header extends React.Component {
           marginTop={50}
         >
           <Pane
-            fflexBasis={800}
+            flexBasis={800}
             display="flex"
             flexDirection="Column"
             alignItems=""
