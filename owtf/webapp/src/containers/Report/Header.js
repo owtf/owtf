@@ -138,13 +138,13 @@ export default class Header extends React.Component {
           <Pane
             flexBasis={800}
             display="flex"
-            flexDirection="row"
-            alignItems="center"
+            flexDirection="Column"
+            alignItems=""
           >
-            <Heading size={900} marginLeft={10}>
+            <Heading size={800} marginLeft={10}>
               {this.props.targetData.target_url}
             </Heading>
-            <Small marginTop={10} marginLeft={10}>
+            <Small marginTop={20} marginBottom={20} marginLeft={10}>
               {" (" + this.props.targetData.host_ip + ")"}
             </Small>
           </Pane>
