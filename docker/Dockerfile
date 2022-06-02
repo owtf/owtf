@@ -20,10 +20,10 @@ ENV PYCURL_SSL_LIBRARY openssl
 # Install dependencies
 RUN apt-get -y update && apt-get clean
 RUN apt-get -y install  xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc python-all-dev \
-  postgresql-server-dev-all postgresql-client postgresql-client-common \
-  postgresql libcurl4-openssl-dev proxychains tor ca-certificates libpq-dev  \
-  libxslt1-dev libldap2-dev libsasl2-dev libffi-dev net-tools lsof locales-all \
-  libyaml-dev python3 python3-pip python3-dev build-essential python3-virtualenv python3-lxml python3-impacket golang-go
+postgresql-server-dev-all postgresql-client postgresql-client-common \
+postgresql libcurl4-openssl-dev proxychains tor ca-certificates libpq-dev  \
+libxslt1-dev libldap2-dev libsasl2-dev libffi-dev net-tools lsof locales-all \
+libyaml-dev python3.9 python3.9-dev build-essential python3.9-venv python3-lxml python3-impacket golang-go python3-pip
 
 # Set locale
 ENV LANG en_US.UTF-8
@@ -32,7 +32,7 @@ ENV LC_ALL en_US.UTF-8
 
 # Install optional tools (LBD, arachni, gnutls-bin, o-saft and metagoofil)
 RUN apt-get -y install lbd theharvester tlssled nikto dnsrecon nmap whatweb skipfish dirbuster \
-  metasploit-framework wpscan wapiti hydra metagoofil o-saft amass
+metasploit-framework wpscan wapiti hydra metagoofil o-saft amass
 
 # Create a dedicated OWTF directory to copy source to and run from.
 RUN cd / && /bin/mkdir -p owtf
@@ -42,7 +42,7 @@ RUN chmod +x /usr/bin/wait-for-it.sh
 
 #Create and activating a python virtualenv
 ENV VIRTUAL_ENV=/bin/owtf
-RUN python3 -m virtualenv --python=/usr/bin/python3.9 $VIRTUAL_ENV
+RUN python3.9 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Ensure pip and setuptools are at their latest versions
@@ -56,7 +56,7 @@ RUN pip install -r /owtf/requirements/base.txt
 
 # Install OWTF using the recommended method (setup.py)
 RUN cd /owtf &&\
-  python setup.py install
+python setup.py install
 
 # Set the current working directory to OWTF root directory
 WORKDIR /owtf
