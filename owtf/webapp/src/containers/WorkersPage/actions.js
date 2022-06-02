@@ -218,14 +218,15 @@ export function workerProgressLoadingError(error) {
  * 
  * @param {string} name Name of the worker log
  * @param {number} lines lines in the logs to fetch
- * 
+ * @param {string} host hostname of the web server
  * @return {object} An action object with a type of LOAD_WORKER_LOGS
  */
-export function loadWorkerLogs(name, lines) {
+export function loadWorkerLogs(name, lines, host) {
   return {
     type: LOAD_WORKER_LOGS,
     name,
     lines,
+    host,
   };
 }
 

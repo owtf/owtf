@@ -24,12 +24,18 @@ export class Worker extends React.Component {
 
   /* Function resposible to make enteries for each worker in worker legend */
   getWork() {
-    let getLog = name => {
-      this.props.onFetchWorkerLogs(name, -1);
+
+    let getLog = (name) => {
+      this.props.onFetchWorkerLogs(name, -1, window.location.hostname);
       setTimeout(() => {
         const workerLogs = this.props.workerLogs;
-        if (workerLogs !== false) {
-          this.setState({ dialogContent: workerLogs });
+        if(workerLogs!==false){
+          if (workerLogs == ""){
+            this.setState({ dialogContent: "Nothing to show here!" });
+          }else{
+            this.setState({ dialogContent: workerLogs });
+          }
+
         }
       }, 500);
       this.setState({ showDialog: true });

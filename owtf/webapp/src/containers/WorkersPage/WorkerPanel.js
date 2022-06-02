@@ -47,7 +47,7 @@ export default class WorkerPanel extends React.Component {
    */
   displayLog() {
     this.setState({ showLogs: true });
-    this.getWorkerLog(this.props.worker.name, -1);
+    this.getWorkerLog(this.props.worker.name, -1, window.location.hostname);
   }
 
   /**
@@ -126,13 +126,15 @@ export default class WorkerPanel extends React.Component {
    * Function handling log lines
    * @param {sring} name Worker name
    * @param {number} lines log lines to show
+   * @param {string} host Hostname of the webserver
    */
-  getWorkerLog(name, lines){
-    this.props.onFetchWorkerLogs(name, lines);
+  getWorkerLog(name, lines, host){
+    this.props.onFetchWorkerLogs(name, lines, host);
+    const id = name.split('-')[1];
     setTimeout(() => {
       const workerLogs = this.props.workerLogs;
       if(workerLogs!==false){
-        this.props.handleLogDialogContent(workerLogs);
+        this.props.handleLogDialogContent(workerLogs,id);
       }
     }, 500);
   }
@@ -141,10 +143,12 @@ export default class WorkerPanel extends React.Component {
    * Handles the rendering of worker log dialog box
    * @param {string} worker worker name
    * @param {number} lines Lines to render
+   * @param {string} host hostname of the web server
    */
-  openLogModal(worker, lines) {
-    this.getWorkerLog(worker, lines);
-    this.props.handleLogDialogShow();
+  openLogModal(worker, lines, host) {
+    this.getWorkerLog(worker, lines, host);
+    const id = worker.split('-')[1];
+    this.props.handleLogDialogShow(id);
   }
 
   render() {
@@ -221,7 +225,7 @@ export default class WorkerPanel extends React.Component {
                       <Menu.Group>
                         <Menu.Item onSelect={this.hideLog}>None</Menu.Item>
                         <Menu.Item
-                          onSelect={() => this.openLogModal(worker.name, -1)}
+                          onSelect={() => this.openLogModal(worker.name, -1, window.location.hostname)}
                         >
                           All
                         </Menu.Item>
@@ -229,7 +233,7 @@ export default class WorkerPanel extends React.Component {
                           <Menu.Item
                             key={i + 1}
                             onSelect={() =>
-                              this.openLogModal(worker.name, i.toString())
+                              this.openLogModal(worker.name, i.toString(), window.location.hostname)
                             }
                           >
                             {i + 1}
@@ -249,7 +253,7 @@ export default class WorkerPanel extends React.Component {
                   </Button>
                 </Popover>
               </Paragraph>
-              <Pre marginTop={10}>{logDialogContent}</Pre>
+              <Pre marginTop={10}>{logDialogContent[worker.id]}</Pre>
             </Pane>
           )}
         </Pane>
@@ -269,5 +273,5 @@ WorkerPanel.propTypes = {
   logDialogShow: PropTypes.bool,
   workerLogs: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
   onFetchWorkerLogs: PropTypes.func,
-  logDialogContent: PropTypes.string,
+  logDialogContent: PropTypes.array,
 };

@@ -268,7 +268,7 @@ const mapDispatchToProps = dispatch => {
     onFetchTargetSeverity: () => dispatch(loadTargetSeverity()),
     onFetchWorkerProgress: () => dispatch(loadWorkerProgress()),
     onFetchWorkers: () => dispatch(loadWorkers()),
-    onFetchWorkerLogs: (name, lines) => dispatch(loadWorkerLogs(name, lines)),
+    onFetchWorkerLogs: (name, lines, host) => dispatch(loadWorkerLogs(name, lines, host)),
   };
 };
 

@@ -55,13 +55,9 @@ export function getWorkerProgressAPI() {
 }
 
 export function getWorkerLogsAPI(action) {
-  const requestURL = `/logs/${
-    action.name
-  }.log?lines=${action.lines.toString()}/`;
-  const options = getHeaders();
+  const requestURL = `http://${action.host}:8010/logs/${action.name}.log?lines=${action.lines.toString()}`;
   const req_options = {
     responseAs: "text",
-    ...options
   };
   const request = new Request(requestURL, req_options);
   return request.get.bind(request);
