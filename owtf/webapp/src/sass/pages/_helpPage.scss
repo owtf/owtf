@@ -1,0 +1,135 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+@mixin containerMixin {
+  display: inline-block;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.096);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: $light-background-1;
+  padding: 0 0 2rem 0;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+  transition: all 0.3s;
+
+  &:hover {
+    transform: scale(1.02);
+  }
+}
+
+@mixin headingMixin {
+  @include flexbox;
+  @include flex-direction(row);
+  margin: 0.5rem 0;
+  margin-top: 0;
+  padding: 1.5rem 3rem;
+  font-family: $font-family-2;
+  color: $dark-background-1;
+  // background-color: rgba(206, 231, 252, 0.374);;
+
+  & h2 {
+    margin: 0 1rem;
+    font-size: 2.5rem;
+    align-items: center;
+    padding-top: 0.5rem;
+  }
+
+  & span {
+    & svg {
+      height: 3.2rem;
+      width: 3.2rem;
+    }
+  }
+}
+
+@mixin linksContainerMixin {
+  & ul {
+    @include flexbox;
+    @include flex-direction(column);
+    @include justify-content(space-around);
+    padding: 1rem 5rem;
+
+    & li {
+      list-style: circle;
+      margin: 0.5rem 0;
+
+      & a {
+        display: inline-block;
+        font-size: 1.9rem;
+      }
+    }
+  }
+}
+
+.helpPageContainer {
+  padding: 5rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  row-gap: 3rem;
+  column-gap: 5rem;
+
+  &__exploitationContainer {
+    @include containerMixin;
+
+    &__headingContainer {
+      @include headingMixin;
+    }
+
+    &__linksContainer {
+      @include linksContainerMixin;
+    }
+  }
+
+  &__methodologyContainer {
+    @include containerMixin;
+
+    &__headingContainer {
+      @include headingMixin;
+    }
+
+    &__linksContainer {
+      @include linksContainerMixin;
+    }
+  }
+
+  &__calculatorsContainer {
+    @include containerMixin;
+
+    &__headingContainer {
+      @include headingMixin;
+    }
+
+    &__linksContainer {
+      @include linksContainerMixin;
+    }
+  }
+
+  &__testLearnContainer {
+    @include containerMixin;
+
+    &__headingContainer {
+      @include headingMixin;
+    }
+
+    &__linksContainer {
+      @include linksContainerMixin;
+    }
+  }
+
+  &__helpLinksContainer {
+    @include containerMixin;
+
+    &__headingContainer {
+      @include headingMixin;
+    }
+
+    &__linksWrapper {
+      @include flexbox;
+      @include flex-direction(row);
+      @include justify-content(space-between);
+
+      &__linksContainer {
+        @include linksContainerMixin;
+      }
+    }
+  }
+}

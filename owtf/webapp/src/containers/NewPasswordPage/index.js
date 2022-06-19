@@ -4,20 +4,15 @@
  */
 
 import React from "react";
-import {
-  Pane,
-  Heading,
-  Button,
-  Paragraph,
-  TextInputField,
-  Icon
-} from "evergreen-ui";
 import { newPasswordStart } from "./actions";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import { makeSelectCreateOtp } from "../OtpPage/selectors";
 import { createStructuredSelector } from "reselect";
 import { makeSelectForgotEmail } from "../ForgotPasswordPage/selectors";
+import { AiFillEyeInvisible } from "react-icons/ai";
+import { AiFillEye } from "react-icons/ai";
+import logo from "../../../public/img/logo.png";
 
 export class NewPasswordPage extends React.Component {
   constructor(props, context) {
@@ -84,70 +79,56 @@ export class NewPasswordPage extends React.Component {
 
   render() {
     return (
-      <Pane marginY={100} data-test="newPasswordPageComponent">
-        <Pane
-          justifyContent="center"
-          width="35%"
-          elevation={1}
-          margin="auto"
-          padding={5}
-        >
-          <Heading
-            size={700}
-            textAlign="center"
-            marginBottom={20}
-            paddingTop={20}
-          >
+      <div
+        className="resetPasswordPageContainer"
+        data-test="newPasswordPageComponent"
+      >
+        <div className="resetPasswordPageContainer__resetPasswordComponentContainer">
+          <div className="resetPasswordPageContainer__resetPasswordComponentContainer__brandLogoContainer">
+            <img src={logo} alt="brand-logo" />
+          </div>
+          <h2 className="resetPasswordPageContainer__resetPasswordComponentContainer__heading">
             Reset Password
-          </Heading>
-          <Paragraph size={300} width="60%" marginLeft="20%" marginTop={20}>
+          </h2>
+          <p className="resetPasswordPageContainer__resetPasswordComponentContainer__info">
             Your current password has expired. Please create a new password.
-          </Paragraph>
-          <Pane position="relative">
-            <Pane width="10%" marginLeft="75%" position="absolute">
-              <Icon
-                icon={this.state.hidePassword ? "eye-off" : "eye-open"}
-                cursor="pointer"
-                marginX={-10}
-                marginY={32}
-                onMouseDown={e => this.setState({ hidePassword: false })}
-                onMouseUp={e => this.setState({ hidePassword: true })}
-              />
-            </Pane>
-            <TextInputField
-              label="Enter New Password"
+          </p>
+
+          <div className="resetPasswordPageContainer__resetPasswordComponentContainer__setPasswordInputContainer">
+            <label htmlFor="resetPasswordPageSetPasswordInput">
+              Choose a Password
+            </label>
+
+            <input
+              id="resetPasswordPageSetPasswordInput"
               placeholder="New Password"
               name="text-input-password"
-              width="60%"
-              marginLeft="20%"
-              marginTop={10}
-              marginBottom={10}
               value={this.state.newPassword}
               type={this.state.hidePassword ? "password" : "text"}
               onChange={e => this.setState({ newPassword: e.target.value })}
               onBlur={e => this.handlePasswordValidation(e)}
-              validationMessage={this.state.errors["newPassword"]}
             />
-          </Pane>
-          <Pane position="relative" paddingTop={0} marginTop={0}>
-            <Pane width="10%" marginLeft="75%" position="absolute">
-              <Icon
-                icon={this.state.hideConfirmPassword ? "eye-off" : "eye-open"}
-                cursor="pointer"
-                marginX={-10}
-                marginY={32}
-                onMouseDown={e => this.setState({ hideConfirmPassword: false })}
-                onMouseUp={e => this.setState({ hideConfirmPassword: true })}
-              />
-            </Pane>
-            <TextInputField
-              label="Confirm Password"
+            <span
+              className="resetPasswordPageContainer__resetPasswordComponentContainer__setPasswordInputContainer__passwordViewTogglerContainer"
+              onMouseDown={e => this.setState({ hidePassword: false })}
+              onMouseUp={e => this.setState({ hidePassword: true })}
+            >
+              {this.state.hidePassword ? <AiFillEyeInvisible /> : <AiFillEye />}
+            </span>
+          </div>
+          <p className="inputRequiredError">
+            {this.state.errors["newPassword"]}
+          </p>
+
+          <div className="resetPasswordPageContainer__resetPasswordComponentContainer__confirmPasswordInputContainer">
+            <label htmlFor="resetPassswordPageConfirmPasswordInput">
+              Confirm Password
+            </label>
+
+            <input
+              id="resetPassswordPageConfirmPasswordInput"
               placeholder="Confirm Password"
               name="text-input-confirm-password"
-              width="60%"
-              marginLeft="20%"
-              marginTop={10}
-              marginBottom={10}
               value={this.state.newConfirmPassword}
               type={this.state.hideConfirmPassword ? "password" : "text"}
               onChange={e =>
@@ -156,21 +137,31 @@ export class NewPasswordPage extends React.Component {
               onBlur={e => this.handlePasswordValidation(e)}
               validationMessage={this.state.errors["newConfirmPassword"]}
             />
-          </Pane>
-          <Button
-            width="40%"
-            marginLeft="30%"
-            marginBottom={10}
-            marginTop={20}
-            justifyContent="center"
-            appearance="primary"
+            <span
+              className="resetPasswordPageContainer__resetPasswordComponentContainer__confirmPasswordInputContainer__passwordViewTogglerContainer"
+              onMouseDown={e => this.setState({ hideConfirmPassword: false })}
+              onMouseUp={e => this.setState({ hideConfirmPassword: true })}
+            >
+              {this.state.hideConfirmPassword ? (
+                <AiFillEyeInvisible />
+              ) : (
+                <AiFillEye />
+              )}
+            </span>
+          </div>
+          <p className="inputRequiredError">
+            {this.state.errors["newConfirmPassword"]}
+          </p>
+
+          <button
+            className="resetPasswordPageContainer__resetPasswordComponentContainer__submitButton"
             intent="none"
             onClick={this.ChangeHandler}
           >
             Change Password
-          </Button>
-        </Pane>
-      </Pane>
+          </button>
+        </div>
+      </div>
     );
   }
 }
@@ -193,7 +184,4 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(NewPasswordPage);
+export default connect(mapStateToProps, mapDispatchToProps)(NewPasswordPage);

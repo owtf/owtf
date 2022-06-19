@@ -1,0 +1,138 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+//top navigation bar styles
+
+@mixin navbarTextMixin {
+  font-family: $font-family-3;
+  font-size: 1.8rem;
+  display: inline-block;
+  text-decoration: none;
+  color: $navbar-color-light;
+  text-align: center;
+  cursor: pointer;
+  padding: 2rem 1.2rem;
+  font-weight: 400;
+  margin: 0 0.3rem;
+}
+
+.navigationBar {
+  @include flexbox;
+  @include justify-content(space-between);
+  background-color: $navbar-background-color;
+  z-index: 9;
+  box-shadow: 0px 15px 25px -4px rgba(24, 24, 48, 0.25);
+
+  &__brandContainer {
+    margin-left: 5rem;
+    @include flexbox;
+    @include flex-direction(row);
+    @include align-self(center);
+
+    & img {
+      max-width: 4rem;
+      max-height: 4rem;
+      margin-left: 1rem;
+      opacity: 0.8;
+      position: relative;
+      top: 0.5rem;
+    }
+
+    &__link {
+      font-family: $font-family-6;
+      color: $navbar-brand-color;
+      font-size: 3.2rem;
+      font-weight: bold;
+      padding-top: 0.5rem;
+      letter-spacing: 0.1rem;
+
+      &:link,
+      &:hover,
+      &:active,
+      &:visited {
+        color: $navbar-brand-color;
+        text-decoration: none;
+      }
+    }
+  }
+
+  &__navLinksContainer {
+    @include flexbox;
+    @include justify-content(space-around);
+    margin-right: 5rem;
+
+    &__linksContainer {
+      @include flexbox;
+      @include flex-direction(row);
+      @include justify-content(space-between);
+      @include justify-content(center);
+      text-align: center;
+      align-items: center;
+
+      &__link {
+        @include navbarTextMixin;
+
+        &:hover,
+        &:active,
+        &:visited {
+          text-decoration: none;
+          background-color: $hover-background-2;
+          color: $navbar-color-light;
+        }
+      }
+
+      &__linkDropDownContainer {
+        margin: 0 1rem;
+        position: relative;
+
+        &__linkText {
+          @include flexbox;
+          @include justify-content(space-between);
+          color: $navbar-color-light;
+          font-size: 1.7rem;
+          align-items: center;
+          padding: 0.5rem 0.5rem;
+          cursor: pointer;
+
+          & span {
+            margin-left: 0.5rem;
+            position: relative;
+            top: 0.4rem;
+          }
+
+          & p {
+            @include navbarTextMixin;
+            margin-bottom: 0;
+            padding: 0.5rem 0.7rem;
+          }
+        }
+
+        &__droppedLinksContainer {
+          position: absolute;
+          width: 100%;
+          background-color: white;
+          box-shadow: 0px 15px 25px -4px rgba(30, 30, 60, 0.39);
+          border: 1px solid rgba(0, 0, 0, 0.148);
+          border-radius: 0 0 0.6rem 0.6rem;
+          overflow: hidden;
+          z-index: 9;
+
+          &__link a {
+            color: $navbar-color-dark;
+            font-size: 1.7rem;
+            padding: 1rem 0;
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+
+            &:hover {
+              color: $navbar-color-dark;
+              text-decoration: none;
+              background-color: $hover-dark;
+            }
+          }
+        }
+      }
+    }
+  }
+}

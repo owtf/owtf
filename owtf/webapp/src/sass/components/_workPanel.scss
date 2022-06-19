@@ -1,0 +1,75 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+.workerPanelComponentContainer {
+  @include flexbox;
+  @include justify-content(space-between);
+  @include flex-direction(row);
+  padding: 1rem 0;
+
+  &__progressbarContainer {
+    @include flexbox;
+    @include justify-content(center);
+    align-items: center;
+    width: 45%;
+  }
+
+  &__workerLegendContainer {
+    width: 55%;
+    height: 40rem;
+    overflow: scroll;
+    overflow-x: hidden;
+    padding: 0 1.5rem;
+    box-shadow: 0px 4px 24px -12px rgba(30, 30, 60, 0.23);
+  }
+}
+
+.workerPanelComponentContainer__workerLegendContainer {
+  &__workerComponentWrapper {
+    &__workerComponent {
+      &__workContainer {
+        @include flexbox;
+        @include justify-content(space-between);
+        @include flex-direction(row);
+        margin: 1rem auto;
+
+        & img {
+        }
+
+        & p {
+          font-size: 1.7rem;
+          font-family: $font-family-4;
+          margin: 0 1.5rem;
+          padding-top: 0.3rem;
+        }
+
+        & button {
+          box-shadow: 0px 15px 30px -4px rgba(30, 30, 60, 0.25);
+          -webkit-border-radius: 9;
+          -moz-border-radius: 9;
+          border-radius: 0.5rem;
+          font-size: 1.2rem;
+          font-family: $font-family-1;
+          color: $button-color-light;
+          font-size: 1.2rem;
+          background: $button-backgroundColor-1;
+          padding: 0.2rem 1.3rem;
+          text-decoration: none;
+          border: none;
+        }
+      }
+
+      &__workerLogContainer {
+        &__textArea {
+          border: none;
+          font-size: 1.3rem;
+          margin: 1rem 0;
+          outline: none;
+          background-color: $light-background-2;
+          padding: 0 0.3rem;
+          padding: 0.5rem 1rem;
+        }
+      }
+    }
+  }
+}

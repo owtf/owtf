@@ -1,0 +1,25 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-size: 62.5%;
+}
+
+::-webkit-scrollbar {
+  width: 0.8rem;
+}
+
+::-webkit-scrollbar-track {
+  background-color: $scrollbar-color-light;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $scrollbar-color-dark;
+  border-radius: 1.5rem;
+}

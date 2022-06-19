@@ -1,8 +1,8 @@
 import React from "react";
-import { Pane, Dialog, Paragraph, Button } from "evergreen-ui";
 import { Circle } from "rc-progress";
 import TimeAgo from "react-timeago";
 import PropTypes from "prop-types";
+import Dialog from "../../components/DialogBox/dialog";
 
 /**
  *  React Component for one entry of Worker Panel legend.
@@ -18,8 +18,26 @@ export class Worker extends React.Component {
 
     this.state = {
       showDialog: false,
-      dialogContent: "Nothing to show here!"
+      dialogContent: "Nothing to show here!",
+      isDialogOpened: false
     };
+
+    this.openDialog = this.openDialog.bind(this);
+    this.closeDialog = this.closeDialog.bind(this);
+  }
+
+  // Function responsible for opening the dialog box
+  openDialog() {
+    this.setState({
+      isDialogOpened: true
+    });
+  }
+
+  // Function responsible for closing the dialog box
+  closeDialog() {
+    this.setState({
+      isDialogOpened: false
+    });
   }
 
   /* Function resposible to make enteries for each worker in worker legend */
@@ -32,64 +50,42 @@ export class Worker extends React.Component {
           this.setState({ dialogContent: workerLogs });
         }
       }, 500);
-      this.setState({ showDialog: true });
+      this.setState({ isDialogOpened: true });
     };
     // This put the worker id with its currently running plugin in worker legend
     let Work;
     if (this.props.data.work.length > 0) {
       Work = (
-        <Pane
-          display="flex"
-          flexDirection="row"
-          alignItems="center"
-          justifyContent="center"
-        >
+        <div className="workerPanelComponentContainer__workerLegendContainer__workerComponentWrapper__workerComponent__workContainer">
           {/* Loading GIF if worker is busy */}
           <img
             className="workerpanel-labelimg"
             src={require("../../../public/img/Preloader.gif")}
           />
-          <Paragraph>
+          <p>
             {"Worker " +
               this.props.data.id +
               " - " +
               this.props.data.work[1].name +
               " ("}
             <TimeAgo date={this.props.data.start_time} />)
-          </Paragraph>
-          <Button
-            appearance="primary"
-            height={20}
-            onClick={() => this.setState({ showDialog: true })}
-          >
+          </p>
+          <button onClick={() => this.setState({ isDialogOpened: true })}>
             Log
-          </Button>
-        </Pane>
+          </button>
+        </div>
       );
     } else {
       Work = (
-        <Pane
-          display="flex"
-          flexDirection="row"
-          alignItems="center"
-          justifyContent="center"
-        >
+        <div className="workerPanelComponentContainer__workerLegendContainer__workerComponentWrapper__workerComponent__workContainer">
           {/* Constant image if worker is not busy */}
           <img
             className="workerpanel-labelimg"
             src={require("../../../public/img/not-running.png")}
           />
-          <Paragraph margin={10}>
-            {"Worker " + this.props.data.id + " - " + "Not Running "}
-          </Paragraph>
-          <Button
-            appearance="primary"
-            height={20}
-            onClick={() => getLog(this.props.data.name)}
-          >
-            Log
-          </Button>
-        </Pane>
+          <p>{"Worker " + this.props.data.id + " - " + "Not Running "}</p>
+          <button onClick={() => getLog(this.props.data.name)}>Log</button>
+        </div>
       );
     }
 
@@ -97,18 +93,30 @@ export class Worker extends React.Component {
   }
 
   render() {
+    const { isDialogOpened } = this.state;
+
     return (
-      <Pane data-test="workerComponent">
+      <div
+        className="workerPanelComponentContainer__workerLegendContainer__workerComponentWrapper__workerComponent"
+        data-test="workerComponent"
+      >
         {this.getWork()}
+
         <Dialog
-          isShown={this.state.showDialog}
           title="Worker-Log"
-          onCloseComplete={() => this.setState({ showDialog: false })}
-          hasFooter={false}
+          isDialogOpened={isDialogOpened}
+          onClose={this.closeDialog}
         >
-          {this.state.dialogContent}
+          <div className="workerPanelComponentContainer__workerLegendContainer__workerComponentWrapper__workerComponent__workerLogContainer">
+            <textarea
+              rows="20"
+              cols="50"
+              value={this.state.dialogContent}
+              disabled
+            ></textarea>
+          </div>
         </Dialog>
-      </Pane>
+      </div>
     );
   }
 }
@@ -169,7 +177,10 @@ export class WorkerLegend extends React.Component {
 
   render() {
     return (
-      <Pane data-test="workerLegendComponent">
+      <div
+        className="workerPanelComponentContainer__workerLegendContainer__workerComponentWrapper"
+        data-test="workerLegendComponent"
+      >
         {this.props.workerData.map(worker => {
           return (
             <Worker
@@ -180,7 +191,7 @@ export class WorkerLegend extends React.Component {
             />
           );
         })}
-      </Pane>
+      </div>
     );
   }
 }
@@ -247,9 +258,9 @@ export class ProgressBar extends React.Component {
   render() {
     return (
       <Circle
-        height={200}
+        height={280}
         percent={this.state.percent}
-        strokeWidth="6"
+        strokeWidth="5"
         strokeColor={this.state.color}
       />
     );
@@ -271,14 +282,17 @@ export default class WorkerPanel extends React.Component {
       pollInterval
     } = this.props;
     return (
-      <Pane display="flex" flexDirection="row" data-test="workerPanelComponent">
-        <Pane>
+      <div
+        className="workerPanelComponentContainer"
+        data-test="workerPanelComponent"
+      >
+        <div className="workerPanelComponentContainer__progressbarContainer">
           <ProgressBar
             pollInterval={pollInterval}
             progressData={progressData}
           />
-        </Pane>
-        <Pane marginLeft={100} justifyContent="center">
+        </div>
+        <div className="workerPanelComponentContainer__workerLegendContainer">
           {this.props.workerData ? (
             <WorkerLegend
               pollInterval={pollInterval}
@@ -287,8 +301,8 @@ export default class WorkerPanel extends React.Component {
               onFetchWorkerLogs={onFetchWorkerLogs}
             />
           ) : null}
-        </Pane>
-      </Pane>
+        </div>
+      </div>
     );
   }
 }

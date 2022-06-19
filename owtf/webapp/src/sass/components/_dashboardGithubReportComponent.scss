@@ -1,0 +1,132 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+@mixin inputContainerMixin {
+  @include flexbox;
+  @include flex-direction(column);
+  margin: 1.5rem 0;
+
+  &__label {
+    font-size: 1.5rem;
+    font-family: $font-family-1;
+  }
+
+  &__input {
+    padding: 0.8rem 0.5rem;
+    outline: none;
+    font-size: 1.2rem;
+    border: 1px solid rgba(0, 0, 0, 0.205);
+  }
+
+  &__textArea {
+    border: none;
+    font-size: 1.3rem;
+    margin: 1rem 0;
+    outline: none;
+    background-color: $light-background-2;
+    padding: 0 0.3rem;
+  }
+
+  &__requiredErrorContainer {
+    @include flexbox;
+    @include flex-direction(row);
+    margin: 1rem 0;
+
+    & svg {
+      height: 2rem;
+      width: 2rem;
+      color: $warning-red;
+    }
+
+    & p {
+      font-size: 1.2rem;
+      margin-left: 0.8rem;
+      color: $warning-red;
+    }
+  }
+}
+
+.githubReportComponentContainer {
+  &__reportButton {
+    @include buttonMixin($button-backgroundColor-4, $button-backgroundColor-5);
+  }
+
+  &__errorSelectionContainer {
+    @include flexbox;
+    @include flex-direction(row);
+    margin-bottom: 3.5rem;
+
+    & strong {
+      font-size: 1.5rem;
+      padding-top: 0.8rem;
+    }
+
+    &__dropdownMenuContainer {
+      width: 120px;
+      height: 34px;
+      border: 1px solid rgba(29, 29, 29, 0.199);
+      border-radius: 3px;
+      overflow: hidden;
+      background-color: $light-background-1;
+      margin-left: 1rem;
+
+      & select {
+        font-size: 1.4rem;
+        background: transparent;
+        width: 150px;
+        border: 1px solid #ccc;
+        height: 34px;
+        outline: none;
+        cursor: pointer;
+      }
+
+      & option {
+        font-size: 1.4rem;
+      }
+    }
+  }
+
+  &__selectedErrorContainer {
+    &__headingContainer {
+      & p {
+        color: $warning-red;
+        font-size: 1.4rem;
+      }
+    }
+
+    &__userNameInputContainer {
+      @include inputContainerMixin;
+    }
+
+    &__issueTitleInputContainer {
+      @include inputContainerMixin;
+    }
+
+    &__issueBodyContainer {
+      @include inputContainerMixin;
+    }
+
+    &__buttonContainer {
+      &__showIssueButton {
+        @include buttonMixin(
+          $button-backgroundColor-2,
+          $button-backgroundColor-3
+        );
+      }
+
+      &__deleteErrorButton {
+        @include buttonMixin(
+          $button-backgroundColor-4,
+          $button-backgroundColor-5
+        );
+      }
+
+      &__createIssueButton {
+        @include buttonMixin(
+          $button-backgroundColor-2,
+          $button-backgroundColor-3
+        );
+      }
+    }
+  }
+}

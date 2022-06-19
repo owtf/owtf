@@ -5,17 +5,12 @@
  */
 
 import React from "react";
-import {
-  Pane,
-  Button,
-  Dialog,
-  Textarea,
-  Label,
-  Paragraph,
-  SelectMenu,
-  Strong,
-  TextInputField
-} from "evergreen-ui";
+import { BsGithub } from "react-icons/bs";
+import { RiDeleteBin5Line } from "react-icons/ri";
+import { IoIosAddCircle } from "react-icons/io";
+import { RiErrorWarningFill } from "react-icons/ri";
+import Dialog from "../../components/DialogBox/dialog";
+
 import PropTypes from "prop-types";
 import "style.scss";
 import { API_BASE_ISSUE_URL } from "../../utils/constants";
@@ -31,8 +26,12 @@ export default class GithubReport extends React.Component {
       selectedError: -1,
       errorUser: "",
       errorTitle: "[Auto-Generated] Bug report from OWTF",
-      errorBody: ""
+      errorBody: "",
+      isDialogOpened: false
     };
+
+    this.openDialog = this.openDialog.bind(this);
+    this.closeDialog = this.closeDialog.bind(this);
   }
 
   /* Function resposible to open github issue */
@@ -46,157 +45,239 @@ export default class GithubReport extends React.Component {
     window.open(requestURL);
   }
 
+  // This function is responsible for opening the dialog box
+  openDialog() {
+    this.setState({
+      isDialogOpened: true
+    });
+  }
+
+  //This function is reponsible for closing the dialog box
+  closeDialog() {
+    this.setState({
+      isDialogOpened: false
+    });
+  }
+
   render() {
+    const { isDialogOpened } = this.state;
     const errorData = this.props.errors;
     return (
-      <Pane data-test="githubReportComponent">
-        <Button
-          className="pull-right"
-          appearance="primary"
-          intent="danger"
-          iconBefore="git-branch"
-          onClick={() => this.setState({ showDialog: true })}
+      <div
+        className="githubReportComponentContainer"
+        data-test="githubReportComponent"
+      >
+        <button
+          className="githubReportComponentContainer__reportButton pull-right"
+          onClick={() => this.setState({ isDialogOpened: true })}
         >
+          <span>
+            <BsGithub />
+          </span>
           Report Errors on GitHub
-        </Button>
-        <Dialog
-          isShown={this.state.showDialog}
-          title="Errors"
-          onCloseComplete={() => this.setState({ showDialog: false })}
-          hasFooter={false}
-        >
-          <Pane marginBottom={10}>
-            <Strong marginRight={10}>Select an Error:</Strong>
-            <SelectMenu
-              title="Select Error"
-              options={errorData.map((error, index) => ({
-                label: `Error ${error.id}`,
-                value: index.toString()
-              }))}
-              selected={this.state.selectedError.toString()}
-              onSelect={item =>
-                this.setState({
-                  selectedError: Number(item.value),
-                  errorBody: `#### OWTF Bug Report\n\n${
-                    errorData[Number(item.value)].traceback
-                  }`
-                })
-              }
-              closeOnSelect
-            >
-              <Button intent="danger">
-                {this.state.selectedError < 0
-                  ? "Select Error..."
-                  : "Error " + errorData[this.state.selectedError].id}
-              </Button>
-            </SelectMenu>
-          </Pane>
-          {this.state.selectedError >= 0 ? (
-            errorData[this.state.selectedError].reported ? (
-              <Pane>
-                <Pane alignItems="center">
-                  <Paragraph color="red">
-                    Issue is reported on github with following body
-                  </Paragraph>
-                </Pane>
-                <Label
-                  htmlFor={
-                    "error" + errorData[this.state.selectedError].id + "-body"
-                  }
-                  marginBottom={4}
-                  display="block"
+        </button>
+
+        <div className="dialogWrapper">
+          <Dialog
+            title="Errors"
+            isDialogOpened={isDialogOpened}
+            onClose={this.closeDialog}
+          >
+            <div className="githubReportComponentContainer__errorSelectionContainer">
+              <strong>Select an Error:</strong>
+
+              <div className="githubReportComponentContainer__errorSelectionContainer__dropdownMenuContainer">
+                <select
+                  value={this.state.selectedError.toString()}
+                  onChange={e => {
+                    this.setState({
+                      selectedError: Number(e.target.value),
+                      errorBody: `#### OWTF Bug Report\n\n${
+                        errorData[Number(e.target.value)].traceback
+                      }`
+                    });
+                  }}
                 >
-                  <Strong>Body*</Strong>
-                </Label>
-                <Textarea
-                  height={200}
-                  marginBottom={10}
-                  id={
-                    "error" + errorData[this.state.selectedError].id + "-body"
-                  }
-                  value={errorData[this.state.selectedError].traceback}
-                  disabled
-                />
-                <Pane className="pull-right">
-                  <Button
-                    iconBefore="git-branch"
-                    appearance="primary"
-                    marginRight={12}
-                    onClick={() => this.openGitHubIssue(errorData)}
-                  >
-                    Show issue on GitHub
-                  </Button>
-                  <Button
-                    iconBefore="trash"
-                    appearance="primary"
-                    intent="danger"
-                    onClick={() =>
-                      this.props.onDeleteError(
-                        errorData[this.state.selectedError].id
-                      )
-                    }
-                  >
-                    Delete error
-                  </Button>
-                </Pane>
-              </Pane>
-            ) : (
-              <Pane>
-                <TextInputField
-                  label="Your Github Username"
-                  placeholder="GitHub username"
-                  required
-                  value={this.state.errorUser}
-                  onChange={e => this.setState({ errorUser: e.target.value })}
-                  validationMessage="This field is required"
-                />
-                <TextInputField
-                  label="Title"
-                  required
-                  value={this.state.errorTitle}
-                  onChange={e => this.setState({ errorTitle: e.target.value })}
-                />
-                <Pane>
-                  <Label htmlFor="textarea-2">Body *</Label>
-                  <Textarea
-                    required
-                    value={this.state.errorBody}
-                    onChange={e => this.setState({ errorBody: e.target.value })}
-                    height={150}
-                  />
-                </Pane>
-                <Pane className="pull-right">
-                  <Button
-                    iconBefore="add"
-                    appearance="primary"
-                    intent="success"
-                    marginRight={12}
-                    onClick={() =>
-                      this.openGitHubIssue(
-                        errorData[this.state.selectedError].traceback
-                      )
-                    }
-                  >
-                    Create issue on GitHub
-                  </Button>
-                  <Button
-                    iconBefore="trash"
-                    appearance="primary"
-                    intent="danger"
-                    onClick={() =>
-                      this.props.onDeleteError(
-                        errorData[this.state.selectedError].id
-                      )
-                    }
-                  >
-                    Delete error
-                  </Button>
-                </Pane>
-              </Pane>
-            )
-          ) : null}
-        </Dialog>
-      </Pane>
+                  <option value={-1}>{"---Select Error---"}</option>
+
+                  {errorData.map((error, index) => {
+                    return (
+                      <option
+                        key="index"
+                        value={index.toString()}
+                      >{`Error ${error.id}`}</option>
+                    );
+                  })}
+                </select>
+              </div>
+            </div>
+
+            {this.state.selectedError >= 0 ? (
+              errorData[this.state.selectedError].reported ? (
+                <div className="githubReportComponentContainer__selectedErrorContainer">
+                  <div className="githubReportComponentContainer__selectedErrorContainer__headingContainer">
+                    <p>Issue is reported on github with following body</p>
+                  </div>
+
+                  <div className="githubReportComponentContainer__selectedErrorContainer__issueBodyContainer">
+                    <label
+                      className="githubReportComponentContainer__selectedErrorContainer__issueBodyContainer__label"
+                      htmlFor={
+                        "error" +
+                        errorData[this.state.selectedError].id +
+                        "-body"
+                      }
+                    >
+                      <strong>Body*</strong>
+                    </label>
+
+                    <textarea
+                      className="githubReportComponentContainer__selectedErrorContainer__issueBodyContainer__textArea"
+                      rows="10"
+                      cols="50"
+                      id={
+                        "error" +
+                        errorData[this.state.selectedError].id +
+                        "-body"
+                      }
+                      value={errorData[this.state.selectedError].traceback}
+                      disabled
+                    ></textarea>
+                  </div>
+
+                  <div className="githubReportComponentContainer__selectedErrorContainer__buttonContainer pull-right">
+                    <button
+                      className="githubReportComponentContainer__selectedErrorContainer__buttonContainer__showIssueButton"
+                      onClick={() => this.openGitHubIssue(errorData)}
+                    >
+                      <span>
+                        <BsGithub />
+                      </span>
+                      Show issue on GitHub
+                    </button>
+
+                    <button
+                      className="githubReportComponentContainer__selectedErrorContainer__buttonContainer__deleteErrorButton"
+                      onClick={() =>
+                        this.props.onDeleteError(
+                          errorData[this.state.selectedError].id
+                        )
+                      }
+                    >
+                      <span>
+                        <RiDeleteBin5Line />
+                      </span>
+                      Delete error
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div className="githubReportComponentContainer__selectedErrorContainer__userNameInputContainer">
+                    <label
+                      className="githubReportComponentContainer__selectedErrorContainer__userNameInputContainer__label"
+                      htmlFor="githubUserNameInputDashboard"
+                    >
+                      Your Github Username
+                    </label>
+                    <input
+                      className="githubReportComponentContainer__selectedErrorContainer__userNameInputContainer__input textInputField"
+                      id="githubUserNameInputDashboard"
+                      placeholder="GitHub username"
+                      type="text"
+                      value={this.state.errorUser}
+                      onChange={e =>
+                        this.setState({ errorUser: e.target.value })
+                      }
+                    />
+                    <div className="githubReportComponentContainer__selectedErrorContainer__userNameInputContainer__requiredErrorContainer">
+                      <RiErrorWarningFill />
+                      <p>This field is required</p>
+                    </div>
+                  </div>
+
+                  <div className="githubReportComponentContainer__selectedErrorContainer__issueTitleInputContainer">
+                    <label
+                      className="githubReportComponentContainer__selectedErrorContainer__issueTitleInputContainer__label"
+                      htmlFor="issueTitleInputDashboard"
+                    >
+                      Title
+                    </label>
+                    <input
+                      className="githubReportComponentContainer__selectedErrorContainer__issueTitleInputContainer__input textInputField"
+                      id="issueTitleInputDashboard"
+                      type="text"
+                      value={this.state.errorTitle}
+                      onChange={e =>
+                        this.setState({ errorTitle: e.target.value })
+                      }
+                    />
+                    <div className="githubReportComponentContainer__selectedErrorContainer__issueTitleInputContainer__requiredErrorContainer">
+                      <RiErrorWarningFill />
+                      <p>This field is required</p>
+                    </div>
+                  </div>
+
+                  <div className="githubReportComponentContainer__selectedErrorContainer__issueBodyContainer">
+                    <label
+                      className="githubReportComponentContainer__selectedErrorContainer__issueBodyContainer__label"
+                      htmlFor="issueBodyTextarea"
+                    >
+                      Body *
+                    </label>
+
+                    <textarea
+                      className="githubReportComponentContainer__selectedErrorContainer__issueBodyContainer__textArea"
+                      id="issueBodyTextarea"
+                      rows="10"
+                      cols="50"
+                      value={this.state.errorBody}
+                      onChange={e =>
+                        this.setState({ errorBody: e.target.value })
+                      }
+                    ></textarea>
+
+                    <div className="githubReportComponentContainer__selectedErrorContainer__issueBodyContainer__requiredErrorContainer">
+                      <RiErrorWarningFill />
+                      <p>This field is required</p>
+                    </div>
+                  </div>
+
+                  <div className="githubReportComponentContainer__selectedErrorContainer__buttonContainer pull-right">
+                    <button
+                      className="githubReportComponentContainer__selectedErrorContainer__buttonContainer__createIssueButton"
+                      onClick={() =>
+                        this.openGitHubIssue(
+                          errorData[this.state.selectedError].traceback
+                        )
+                      }
+                    >
+                      <span>
+                        <IoIosAddCircle />
+                      </span>
+                      Create issue on GitHub
+                    </button>
+
+                    <button
+                      className="githubReportComponentContainer__selectedErrorContainer__buttonContainer__deleteErrorButton"
+                      onClick={() =>
+                        this.props.onDeleteError(
+                          errorData[this.state.selectedError].id
+                        )
+                      }
+                    >
+                      <span>
+                        <RiDeleteBin5Line />
+                      </span>
+                      Delete error
+                    </button>
+                  </div>
+                </div>
+              )
+            ) : null}
+          </Dialog>
+        </div>
+      </div>
     );
   }
 }

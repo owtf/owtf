@@ -1,0 +1,30 @@
+@charset "UTF-8";
+// base imports
+
+@import "./base/resets.scss";
+
+//utility classes import
+@import "./abstracts/utilityClasses";
+
+//layout imports
+@import "./layout/layout.scss";
+@import "./layout/navbar.scss";
+
+//pages imports
+@import "./pages/welcomePage.scss";
+@import "./pages/dashboard";
+@import "./pages/targetsPage";
+@import "./pages/setttingsPage";
+@import "./pages/helpPage";
+@import "./pages/login";
+@import "./pages/signup";
+@import "./pages/forgotPassword";
+@import "./pages/otpPage";
+@import "./pages/newPassword";
+
+//components imports
+@import "./components/workPanel";
+@import "./components/dashboardGithubReportComponent";
+@import "./components/modal";
+@import "./components/configurationTabsNav";
+@import "./components/configurationTabsContent";

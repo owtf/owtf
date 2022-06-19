@@ -41,40 +41,40 @@
  */
 
 import React from "react";
-import { Bar } from 'react-chartjs-2';
+import { Bar } from "react-chartjs-2";
 
 export default class VulnerabilityPanel extends React.Component {
   render() {
-      const chartData = {
-        labels: this.props.panelData.map(severity => severity.label),
-        datasets:[
-          { 
-            label:'Severity',
-            data: this.props.panelData.map(severity => severity.value),
-            backgroundColor:[
-              '#800080',
-              '#c12e2a',
-              '#fc0',
-              '#337ab7',
-              '#b1d9f4',
-              '#32cd32',
-            ]
-          }
-        ]
-      }
+    const chartData = {
+      labels: this.props.panelData.map(severity => severity.label),
+      datasets: [
+        {
+          label: "Severity",
+          data: this.props.panelData.map(severity => severity.value),
+          backgroundColor: [
+            "#c275f5",
+            "#ff7a7a",
+            "#f2f67e",
+            "#a3d3ff",
+            "#53b0ee",
+            "#85D262 "
+          ]
+        }
+      ]
+    };
     return (
       <Bar
         data={chartData}
-        height={150}
+        height={270}
         options={{
-          title:{
-            display:false,
-            text:"Current Vulnerabilities",
-            fontSize:30
+          title: {
+            display: false,
+            text: "Current Vulnerabilities",
+            fontSize: 40
           },
-          legend:{
-            display:false,
-            position:"right"
+          legend: {
+            display: false,
+            position: "right"
           },
           maintainAspectRatio: false
         }}

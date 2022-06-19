@@ -6,15 +6,7 @@
  */
 
 import React from "react";
-import {
-  Pane,
-  Heading,
-  Button,
-  Textarea,
-  Icon,
-  Alert,
-  Spinner
-} from "evergreen-ui";
+import { Alert } from "evergreen-ui";
 import Sessions from "../Sessions/index";
 import Plugins from "../Plugins/index";
 import TargetsTable from "./TargetsTable";
@@ -22,6 +14,11 @@ import TargetsTable from "./TargetsTable";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
+import { FiTarget } from "react-icons/fi";
+import { FaHammer } from "react-icons/fa";
+import { FaDownload } from "react-icons/fa";
+import { BiError } from "react-icons/bi";
+
 import {
   makeSelectFetchError,
   makeSelectFetchLoading,
@@ -269,81 +266,88 @@ export class TargetsPage extends React.Component {
       resetTargetState: this.resetTargetState
     };
     return (
-      <Pane margin={20} data-test="targetsPageComponent">
+      <div data-test="targetsPageComponent">
         {this.renderAlert()}
-        <Pane
-          clearfix
-          display="flex"
-          flexDirection="row"
-          flexWrap="wrap"
-          justifyContent="center"
-          overflow="hidden"
-        >
-          <Pane id="add_targets" width="40%" margin={20}>
-            <Pane flexDirection="column">
-              <Heading size={700} color="#0788DE">
-                Add Targets
-              </Heading>
-              <Textarea
-                name="newTargetUrls"
-                placeholder="Input targets seperated by new line"
-                marginTop={10}
-                onChange={this.handleTargetUrlsChange}
-                value={this.state.newTargetUrls}
-              />
-              <Button
-                appearance="primary"
-                marginTop={10}
-                disabled={this.state.disabled}
-                onClick={this.addNewTargets}
-                data-test="addTargetButton"
-              >
-                Add Targets
-              </Button>
-              <Plugins {...PluginProps} />
-            </Pane>
-          </Pane>
-          <Pane margin={40} flex={1}>
-            <Pane display="flex" padding={16}>
-              <Pane flex={1} alignItems="center" display="flex">
-                <Heading size={700}>TARGETS</Heading>
-              </Pane>
-              <Pane marginRight={16}>
-                <Sessions />
-              </Pane>
-              <Pane>
-                <Button onClick={this.exportTargets}>
-                  <Icon icon="import" marginRight={10} />
-                  Export
-                </Button>
-                <Button
-                  appearance="primary"
-                  intent="success"
-                  onClick={this.handlePluginShow}
-                  data-test="pluginButton"
-                >
-                  <Icon icon="build" marginRight={10} />
-                  Run
-                </Button>
-              </Pane>
-            </Pane>
+        <div className="targetsPageContainer">
+          <div
+            id="add_targets"
+            className="targetsPageContainer__addTargetsContainer"
+          >
+            <h2 size={700} color="#0788DE">
+              Add Targets
+            </h2>
+            <textarea
+              name="newTargetUrls"
+              placeholder="Input targets seperated by new line"
+              rows="5"
+              cols="230"
+              onChange={this.handleTargetUrlsChange}
+              value={this.state.newTargetUrls}
+            />
+            <button
+              appearance="primary"
+              marginTop={10}
+              disabled={this.state.disabled}
+              onClick={this.addNewTargets}
+              data-test="addTargetButton"
+            >
+              <FiTarget />
+              Add Targets
+            </button>
+            <Plugins {...PluginProps} />
+          </div>
+
+          <div className="targetsPageContainer__targetsContainer">
+            <div className="targetsPageContainer__targetsContainer__toolbarContainer">
+              <div className="targetsPageContainer__targetsContainer__toolbarContainer__headingConatiner">
+                <h2>Targets</h2>
+              </div>
+
+              <div style={{ display: "flex" }}>
+                <div className="targetsPageContainer__targetsContainer__toolbarContainer__sessionsContainer">
+                  <Sessions />
+                </div>
+
+                <div classNames="targetsPageContainer__targetsContainer__toolbarContainer__buttonsContainer">
+                  <button
+                    className="targetsPageContainer__targetsContainer__toolbarContainer__buttonsContainer__exportButton"
+                    onClick={this.exportTargets}
+                  >
+                    <FaDownload />
+                    Export
+                  </button>
+
+                  <button
+                    className="targetsPageContainer__targetsContainer__toolbarContainer__buttonsContainer__runButton"
+                    onClick={this.handlePluginShow}
+                    data-test="pluginButton"
+                  >
+                    <FaHammer />
+                    Run
+                  </button>
+                </div>
+              </div>
+            </div>
             {fetchError !== false ? (
-              <p>Something went wrong, please try again!</p>
+              <div className="targetsPageContainer__targetsContainer__errorContainer">
+                <BiError />
+                <p>Something went wrong, please try again!</p>
+              </div>
             ) : null}
             {fetchLoading !== false ? (
-              <Pane
+              <div
                 display="flex"
                 alignItems="center"
                 justifyContent="center"
                 height={400}
               >
-                <Spinner size={64} />
-              </Pane>
+                Loading.standard();
+              </div>
             ) : null}
             {targets !== false ? <TargetsTable {...TargetsTableProps} /> : null}
-          </Pane>
-        </Pane>
-      </Pane>
+          </div>
+        </div>
+      </div>
     );
   }
 }
@@ -376,7 +380,4 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(TargetsPage);
+export default connect(mapStateToProps, mapDispatchToProps)(TargetsPage);

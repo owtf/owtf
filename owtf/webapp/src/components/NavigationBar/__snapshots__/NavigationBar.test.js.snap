@@ -1,106 +1,121 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`NavigationBar Component Should contain a Link component 1`] = `
-<Uncontrolled(Navbar)
-  bsStyle="default"
-  collapseOnSelect={true}
-  data-test="navbarTest"
-  inverse={true}
+<nav
+  className="navigationBar"
 >
-  <NavbarHeader>
-    <NavbarBrand>
-      <Link
-        replace={false}
-        to="/"
-      >
-        OWASP OWTF
-      </Link>
-    </NavbarBrand>
-    <NavbarToggle />
-  </NavbarHeader>
-  <NavMenu
-    links={
-      Array [
-        Object {
-          "linkTo": "/dashboard",
-          "text": "Dashboard",
-        },
-        Object {
-          "linkTo": "/targets",
-          "text": "Targets",
-        },
-      ]
-    }
-  />
-</Uncontrolled(Navbar)>
+  <div
+    className="navigationBar__brandContainer"
+  >
+    <Link
+      className="navigationBar__brandContainer__link"
+      replace={false}
+      to="/"
+    >
+      OWASP OWTF
+    </Link>
+    <img
+      alt="owtf logo"
+      src=""
+    />
+  </div>
+  <div
+    className="navigationBar__navLinksContainer"
+  >
+    <NavMenu
+      links={
+        Array [
+          Object {
+            "linkTo": "/dashboard",
+            "text": "Dashboard",
+          },
+          Object {
+            "linkTo": "/targets",
+            "text": "Targets",
+          },
+        ]
+      }
+    />
+  </div>
+</nav>
 `;
 
 exports[`NavigationBar Component Should contain a NavMenu children component 1`] = `
-<Uncontrolled(Navbar)
-  bsStyle="default"
-  collapseOnSelect={true}
-  data-test="navbarTest"
-  inverse={true}
+<nav
+  className="navigationBar"
 >
-  <NavbarHeader>
-    <NavbarBrand>
-      <Link
-        replace={false}
-        to="/"
-      >
-        OWASP OWTF
-      </Link>
-    </NavbarBrand>
-    <NavbarToggle />
-  </NavbarHeader>
-  <NavMenu
-    links={
-      Array [
-        Object {
-          "linkTo": "/dashboard",
-          "text": "Dashboard",
-        },
-        Object {
-          "linkTo": "/targets",
-          "text": "Targets",
-        },
-      ]
-    }
-  />
-</Uncontrolled(Navbar)>
+  <div
+    className="navigationBar__brandContainer"
+  >
+    <Link
+      className="navigationBar__brandContainer__link"
+      replace={false}
+      to="/"
+    >
+      OWASP OWTF
+    </Link>
+    <img
+      alt="owtf logo"
+      src=""
+    />
+  </div>
+  <div
+    className="navigationBar__navLinksContainer"
+  >
+    <NavMenu
+      links={
+        Array [
+          Object {
+            "linkTo": "/dashboard",
+            "text": "Dashboard",
+          },
+          Object {
+            "linkTo": "/targets",
+            "text": "Targets",
+          },
+        ]
+      }
+    />
+  </div>
+</nav>
 `;
 
 exports[`NavigationBar Component Should render without errors 1`] = `
-<Uncontrolled(Navbar)
-  bsStyle="default"
-  collapseOnSelect={true}
-  data-test="navbarTest"
-  inverse={true}
+<nav
+  className="navigationBar"
 >
-  <NavbarHeader>
-    <NavbarBrand>
-      <Link
-        replace={false}
-        to="/"
-      >
-        OWASP OWTF
-      </Link>
-    </NavbarBrand>
-    <NavbarToggle />
-  </NavbarHeader>
-  <NavMenu
-    links={
-      Array [
-        Object {
-          "linkTo": "/dashboard",
-          "text": "Dashboard",
-        },
-        Object {
-          "linkTo": "/targets",
-          "text": "Targets",
-        },
-      ]
-    }
-  />
-</Uncontrolled(Navbar)>
+  <div
+    className="navigationBar__brandContainer"
+  >
+    <Link
+      className="navigationBar__brandContainer__link"
+      replace={false}
+      to="/"
+    >
+      OWASP OWTF
+    </Link>
+    <img
+      alt="owtf logo"
+      src=""
+    />
+  </div>
+  <div
+    className="navigationBar__navLinksContainer"
+  >
+    <NavMenu
+      links={
+        Array [
+          Object {
+            "linkTo": "/dashboard",
+            "text": "Dashboard",
+          },
+          Object {
+            "linkTo": "/targets",
+            "text": "Targets",
+          },
+        ]
+      }
+    />
+  </div>
+</nav>
 `;

@@ -1,0 +1,125 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+@mixin dashboardHeadingMixin {
+  font-family: $font-family-4;
+  font-weight: 600;
+  color: $dark-background-1;
+  font-size: 2.3rem;
+  padding: 0 1rem;
+}
+
+@mixin dashboardContainerMixin {
+  margin: 4.5rem 0;
+  padding: 2rem 2rem;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.096);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: $light-background-1;
+
+  border: 1px solid rgba(0, 0, 0, 0.045);
+}
+
+@mixin spinnerContainerMixin {
+  @include flexbox;
+  @include justify-content(center);
+  margin: 3rem 0;
+}
+
+.dashboardContainer {
+  @include flexbox;
+  @include flex-direction(column);
+  padding-right: 5rem;
+  padding-left: 5rem;
+
+  &__headerContainer {
+    @include flexbox;
+    @include justify-content(space-between);
+    @include flex-direction(row);
+    padding: 1rem 2rem;
+    box-shadow: 0px 15px 25px -4px rgba(30, 30, 60, 0.25);
+    background-image: linear-gradient(
+      121.93844891667186deg,
+      rgba(73, 186, 242, 1) 26.142535849567096%,
+      rgba(72, 185, 241, 1) 26.142535849567096%,
+      rgb(8, 159, 214) 59.7362858495671%
+    );
+    margin-top: 2rem;
+    border-radius: 0.5rem;
+
+    &__headingContainer {
+      @include flexbox;
+      @include justify-content(flex-start);
+
+      & h2 {
+        font-family: $font-family-5;
+        color: $light-background-1;
+        font-size: 3.2rem;
+      }
+
+      & small {
+        font-family: $font-family-5;
+        color: $light-background-1;
+        font-size: 2rem;
+        margin-top: 2.4rem;
+        margin-left: 1rem;
+      }
+    }
+  }
+
+  &__vulnerabilitiesContainer {
+    @include dashboardContainerMixin;
+
+    &__heading {
+      @include dashboardHeadingMixin;
+    }
+
+    &__errorContainer {
+      @include errorContainerMixin;
+    }
+
+    &__spinnerContainer {
+      @include spinnerContainerMixin;
+    }
+  }
+
+  &__sectionsContainer {
+    @include flexbox;
+    @include flex-direction(row);
+    @include justify-content(space-between);
+
+    &__workersContainer {
+      @include dashboardContainerMixin;
+      width: 50%;
+
+      &__heading {
+        @include dashboardHeadingMixin;
+      }
+
+      &__errorContainer {
+        @include errorContainerMixin;
+      }
+
+      &__spinnerContainer {
+        @include spinnerContainerMixin;
+      }
+    }
+
+    &__previousTargetsAnalyticsContainer {
+      @include dashboardContainerMixin;
+      width: 40%;
+
+      &__heading {
+        @include dashboardHeadingMixin;
+      }
+
+      &__errorContainer {
+        @include errorContainerMixin;
+      }
+
+      &__spinnerContainer {
+        @include spinnerContainerMixin;
+      }
+    }
+  }
+}

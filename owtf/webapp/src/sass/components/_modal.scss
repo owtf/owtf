@@ -1,0 +1,88 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+.dialogContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999999999;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  outline: 0;
+  background-color: $modal-background-color;
+
+  &__dialog {
+    position: relative;
+    width: auto;
+    pointer-events: none;
+    font-size: 1.4rem;
+  }
+
+  @media (min-width: 576px) {
+    &__dialog {
+      max-width: 50rem;
+      margin: 10rem auto;
+    }
+  }
+
+  &__content {
+    position: relative;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    width: 100%;
+    pointer-events: auto;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    outline: 0;
+    padding: 1rem 2rem 2rem 2rem;
+    border-radius: 1rem;
+  }
+
+  &__header {
+    font-family: $font-family-3;
+
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-align: start;
+    align-items: flex-start;
+    -ms-flex-pack: justify;
+    justify-content: space-between;
+    border-bottom: 1px solid #dee2e6;
+    border-top-left-radius: calc(0.3rem - 1px);
+    border-top-right-radius: calc(0.3rem - 1px);
+    margin: 1rem 0 2rem 0;
+    padding-bottom: 0.5rem;
+    align-items: center;
+
+    & h2 {
+      font-size: 1.8rem;
+      margin: 0;
+      font-weight: 600;
+      color: $modal-color-dark;
+      align-items: center;
+    }
+
+    & button {
+      border: none;
+      background-color: transparent;
+
+      & svg {
+        height: 2.5rem;
+        width: 2.5rem;
+      }
+    }
+  }
+
+  &__transition-appear {
+    transition: transform 300ms;
+    transform: translateY(-100%);
+  }
+
+  &__transition-appear-active {
+    transform: translateY(0);
+  }
+}

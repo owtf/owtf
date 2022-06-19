@@ -1,115 +1,102 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Targets Page component Testing dumb TargetPage component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
   data-test="targetsPageComponent"
-  margin={20}
 >
-  <withTheme(Pane)
-    clearfix={true}
-    display="flex"
-    flexDirection="row"
-    flexWrap="wrap"
-    justifyContent="center"
-    overflow="hidden"
+  <div
+    className="targetsPageContainer"
   >
-    <withTheme(Pane)
+    <div
+      className="targetsPageContainer__addTargetsContainer"
       id="add_targets"
-      margin={20}
-      width="40%"
     >
-      <withTheme(Pane)
-        flexDirection="column"
+      <h2
+        color="#0788DE"
+        size={700}
       >
-        <withTheme(Heading)
-          color="#0788DE"
-          size={700}
-        >
-          Add Targets
-        </withTheme(Heading)>
-        <withTheme(Textarea)
-          marginTop={10}
-          name="newTargetUrls"
-          onChange={[Function]}
-          placeholder="Input targets seperated by new line"
-          value=""
-        />
-        <withTheme(Button)
-          appearance="primary"
-          data-test="addTargetButton"
-          disabled={false}
-          marginTop={10}
-          onClick={[Function]}
-        >
-          Add Targets
-        </withTheme(Button)>
-        <Connect(Plugins)
-          handleAlertMsg={[Function]}
-          handlePluginClose={[Function]}
-          pluginShow={false}
-          resetTargetState={[Function]}
-          selectedTargets={Array []}
-        />
-      </withTheme(Pane)>
-    </withTheme(Pane)>
-    <withTheme(Pane)
-      flex={1}
-      margin={40}
+        Add Targets
+      </h2>
+      <textarea
+        cols="230"
+        name="newTargetUrls"
+        onChange={[Function]}
+        placeholder="Input targets seperated by new line"
+        rows="5"
+        value=""
+      />
+      <button
+        appearance="primary"
+        data-test="addTargetButton"
+        disabled={false}
+        marginTop={10}
+        onClick={[Function]}
+      >
+        <FiTarget />
+        Add Targets
+      </button>
+      <Connect(Plugins)
+        handleAlertMsg={[Function]}
+        handlePluginClose={[Function]}
+        pluginShow={false}
+        resetTargetState={[Function]}
+        selectedTargets={Array []}
+      />
+    </div>
+    <div
+      className="targetsPageContainer__targetsContainer"
     >
-      <withTheme(Pane)
-        display="flex"
-        padding={16}
+      <div
+        className="targetsPageContainer__targetsContainer__toolbarContainer"
       >
-        <withTheme(Pane)
-          alignItems="center"
-          display="flex"
-          flex={1}
+        <div
+          className="targetsPageContainer__targetsContainer__toolbarContainer__headingConatiner"
         >
-          <withTheme(Heading)
-            size={700}
-          >
-            TARGETS
-          </withTheme(Heading)>
-        </withTheme(Pane)>
-        <withTheme(Pane)
-          marginRight={16}
+          <h2>
+            Targets
+          </h2>
+        </div>
+        <div
+          style={
+            Object {
+              "display": "flex",
+            }
+          }
         >
-          <Connect(Sessions) />
-        </withTheme(Pane)>
-        <withTheme(Pane)>
-          <withTheme(Button)
-            onClick={[Function]}
+          <div
+            className="targetsPageContainer__targetsContainer__toolbarContainer__sessionsContainer"
           >
-            <withTheme(Icon)
-              icon="import"
-              marginRight={10}
-            />
-            Export
-          </withTheme(Button)>
-          <withTheme(Button)
-            appearance="primary"
-            data-test="pluginButton"
-            intent="success"
-            onClick={[Function]}
+            <Connect(Sessions) />
+          </div>
+          <div
+            classNames="targetsPageContainer__targetsContainer__toolbarContainer__buttonsContainer"
           >
-            <withTheme(Icon)
-              icon="build"
-              marginRight={10}
-            />
-            Run
-          </withTheme(Button)>
-        </withTheme(Pane)>
-      </withTheme(Pane)>
-      <withTheme(Pane)
+            <button
+              className="targetsPageContainer__targetsContainer__toolbarContainer__buttonsContainer__exportButton"
+              onClick={[Function]}
+            >
+              <FaDownload />
+              Export
+            </button>
+            <button
+              className="targetsPageContainer__targetsContainer__toolbarContainer__buttonsContainer__runButton"
+              data-test="pluginButton"
+              onClick={[Function]}
+            >
+              <FaHammer />
+              Run
+            </button>
+          </div>
+        </div>
+      </div>
+      <div
         alignItems="center"
         display="flex"
         height={400}
         justifyContent="center"
       >
-        <withTheme(Spinner)
-          size={64}
-        />
-      </withTheme(Pane)>
+        Loading.standard();
+      </div>
       <Connect(TargetsTable)
         getCurrentSession={[Function]}
         handleAlertMsg={[Function]}
@@ -117,9 +104,9 @@ exports[`Targets Page component Testing dumb TargetPage component Should render 
         targets={Array []}
         updateSelectedTargets={[Function]}
       />
-    </withTheme(Pane)>
-  </withTheme(Pane)>
-</withTheme(Pane)>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`Targets Page component Testing dumb TargetsTable component Should render without errors 1`] = `
@@ -134,7 +121,16 @@ exports[`Targets Page component Testing dumb TargetsTable component Should rende
     <SearchTableHeaderCell
       flexGrow={3}
       flexShrink={0}
-      icon="search"
+      icon={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "compare": null,
+          "type": Object {
+            "$$typeof": Symbol(react.forward_ref),
+            "render": [Function],
+          },
+        }
+      }
       onChange={[Function]}
       placeholder="URL"
       spellCheck={true}

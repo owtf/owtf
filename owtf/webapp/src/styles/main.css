@@ -1,0 +1,2276 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-size: 62.5%;
+}
+
+::-webkit-scrollbar {
+  width: 0.8rem;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #ececec;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #bbb9b9;
+  border-radius: 1.5rem;
+}
+
+.activeNavLink {
+  text-decoration: none !important;
+  background-color: rgba(243, 239, 239, 0.164);
+  color: #e0e0e0e3 !important;
+}
+
+.errorContainer {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-self: center;
+  text-align: center;
+  align-items: center;
+  margin: 5rem 0;
+}
+
+.errorContainer svg {
+  min-height: 5rem;
+  min-width: 5rem;
+  color: #5e5d5d;
+}
+
+.errorContainer p {
+  font-size: 1.8rem;
+  font-family: "Inter", sans-serif;
+  color: #303030;
+  padding: 2rem 0;
+}
+
+.selectedTab {
+  background-color: rgba(0, 0, 0, 0.158);
+}
+
+.inputRequiredError {
+  font-size: 1.4rem;
+  color: red;
+  text-align: left;
+  font-family: "Farro", sans-serif;
+}
+
+.navigationBar {
+  display: flex;
+  justify-content: space-between;
+  background-color: #363636;
+  z-index: 9;
+  box-shadow: 0px 15px 25px -4px rgba(24, 24, 48, 0.25);
+}
+
+.navigationBar__brandContainer {
+  margin-left: 5rem;
+  display: flex;
+  flex-direction: row;
+  align-self: center;
+}
+
+.navigationBar__brandContainer img {
+  max-width: 4rem;
+  max-height: 4rem;
+  margin-left: 1rem;
+  opacity: 0.8;
+  position: relative;
+  top: 0.5rem;
+}
+
+.navigationBar__brandContainer__link {
+  font-family: "Bebas Neue", sans-serif;
+  color: #0e910e;
+  font-size: 3.2rem;
+  font-weight: bold;
+  padding-top: 0.5rem;
+  letter-spacing: 0.1rem;
+}
+
+.navigationBar__brandContainer__link:link,
+.navigationBar__brandContainer__link:hover,
+.navigationBar__brandContainer__link:active,
+.navigationBar__brandContainer__link:visited {
+  color: #0e910e;
+  text-decoration: none;
+}
+
+.navigationBar__navLinksContainer {
+  display: flex;
+  justify-content: space-around;
+  margin-right: 5rem;
+}
+
+.navigationBar__navLinksContainer__linksContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+}
+
+.navigationBar__navLinksContainer__linksContainer__link {
+  font-family: "Heebo", sans-serif;
+  font-size: 1.8rem;
+  display: inline-block;
+  text-decoration: none;
+  color: #e0e0e0e3;
+  text-align: center;
+  cursor: pointer;
+  padding: 2rem 1.2rem;
+  font-weight: 400;
+  margin: 0 0.3rem;
+}
+
+.navigationBar__navLinksContainer__linksContainer__link:hover,
+.navigationBar__navLinksContainer__linksContainer__link:active,
+.navigationBar__navLinksContainer__linksContainer__link:visited {
+  text-decoration: none;
+  background-color: rgba(243, 239, 239, 0.164);
+  color: #e0e0e0e3;
+}
+
+.navigationBar__navLinksContainer__linksContainer__linkDropDownContainer {
+  margin: 0 1rem;
+  position: relative;
+}
+
+.navigationBar__navLinksContainer__linksContainer__linkDropDownContainer__linkText {
+  display: flex;
+  justify-content: space-between;
+  color: #e0e0e0e3;
+  font-size: 1.7rem;
+  align-items: center;
+  padding: 0.5rem 0.5rem;
+  cursor: pointer;
+}
+
+.navigationBar__navLinksContainer__linksContainer__linkDropDownContainer__linkText
+  span {
+  margin-left: 0.5rem;
+  position: relative;
+  top: 0.4rem;
+}
+
+.navigationBar__navLinksContainer__linksContainer__linkDropDownContainer__linkText
+  p {
+  font-family: "Heebo", sans-serif;
+  font-size: 1.8rem;
+  display: inline-block;
+  text-decoration: none;
+  color: #e0e0e0e3;
+  text-align: center;
+  cursor: pointer;
+  padding: 2rem 1.2rem;
+  font-weight: 400;
+  margin: 0 0.3rem;
+  margin-bottom: 0;
+  padding: 0.5rem 0.7rem;
+}
+
+.navigationBar__navLinksContainer__linksContainer__linkDropDownContainer__droppedLinksContainer {
+  position: absolute;
+  width: 100%;
+  background-color: white;
+  box-shadow: 0px 15px 25px -4px rgba(30, 30, 60, 0.39);
+  border: 1px solid rgba(0, 0, 0, 0.148);
+  border-radius: 0 0 0.6rem 0.6rem;
+  overflow: hidden;
+  z-index: 9;
+}
+
+.navigationBar__navLinksContainer__linksContainer__linkDropDownContainer__droppedLinksContainer__link
+  a {
+  color: #302f2f;
+  font-size: 1.7rem;
+  padding: 1rem 0;
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+}
+
+.navigationBar__navLinksContainer__linksContainer__linkDropDownContainer__droppedLinksContainer__link
+  a:hover {
+  color: #302f2f;
+  text-decoration: none;
+  background-color: #e6e6e6;
+}
+
+.welcomePageContainer {
+  height: 100vh;
+  display: flow-root;
+}
+
+.welcomePageContainer__infoLogoContainer {
+  display: flex;
+  justify-content: center;
+  color: #e0e0e0e3;
+  background-color: #57b6fa;
+  height: 80%;
+  clip-path: polygon(0 0, 100% 0, 100% 75%, 0 100%);
+}
+
+.welcomePageContainer__infoLogoContainer__info {
+  background-color: transparent;
+  width: 35%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.welcomePageContainer__infoLogoContainer__info p {
+  font-family: "Source Sans Pro", sans-serif;
+  font-size: 2.2rem;
+  margin-top: 2rem;
+  color: #fdfcfc;
+}
+
+.welcomePageContainer__infoLogoContainer__info h1 {
+  font-family: "Farro", sans-serif;
+  font-size: 6rem;
+  font-weight: bold;
+  color: #fdfcfc;
+}
+
+.welcomePageContainer__infoLogoContainer__logo {
+  background-color: transparent;
+  width: 35%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.welcomePageContainer__infoLogoContainer__logo__container {
+  text-align: center;
+}
+
+.welcomePageContainer__infoLogoContainer__logo__container img {
+  border-radius: 45%;
+  opacity: 0.5;
+  margin-bottom: 5rem;
+}
+
+.welcomePageContainer__infoLogoContainer__loginButton {
+  margin: 2rem 0;
+  padding: 1rem 0;
+}
+
+.welcomePageContainer__infoLogoContainer__loginButton a {
+  box-shadow: 0px 15px 30px -4px rgba(30, 30, 60, 0.25);
+  border-radius: 9px;
+  font-size: 600;
+  font-family: "OpenSans", sans-serif;
+  color: #666666;
+  font-size: 20px;
+  background: #f0f0f0;
+  padding: 14px 27px 15px 28px;
+  text-decoration: none;
+}
+
+.welcomePageContainer__infoLogoContainer__loginButton a:hover {
+  background: #e6e6e6;
+  text-decoration: none;
+}
+
+.dashboardContainer {
+  display: flex;
+  flex-direction: column;
+  padding-right: 5rem;
+  padding-left: 5rem;
+}
+
+.dashboardContainer__headerContainer {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  padding: 1rem 2rem;
+  box-shadow: 0px 15px 25px -4px rgba(30, 30, 60, 0.25);
+  background-image: linear-gradient(
+    121.93845deg,
+    #49baf2 26.14254%,
+    #48b9f1 26.14254%,
+    #089fd6 59.73629%
+  );
+  margin-top: 2rem;
+  border-radius: 0.5rem;
+}
+
+.dashboardContainer__headerContainer__headingContainer {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.dashboardContainer__headerContainer__headingContainer h2 {
+  font-family: "Source Sans Pro", sans-serif;
+  color: #fdfcfc;
+  font-size: 3.2rem;
+}
+
+.dashboardContainer__headerContainer__headingContainer small {
+  font-family: "Source Sans Pro", sans-serif;
+  color: #fdfcfc;
+  font-size: 2rem;
+  margin-top: 2.4rem;
+  margin-left: 1rem;
+}
+
+.dashboardContainer__vulnerabilitiesContainer {
+  margin: 4.5rem 0;
+  padding: 2rem 2rem;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.096);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: #fdfcfc;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+}
+
+.dashboardContainer__vulnerabilitiesContainer__heading {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  color: #5e5d5d;
+  font-size: 2.3rem;
+  padding: 0 1rem;
+}
+
+.dashboardContainer__vulnerabilitiesContainer__errorContainer {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-self: center;
+  text-align: center;
+  align-items: center;
+  margin: 5rem 0;
+}
+
+.dashboardContainer__vulnerabilitiesContainer__errorContainer svg {
+  min-height: 5rem;
+  min-width: 5rem;
+  color: #5e5d5d;
+}
+
+.dashboardContainer__vulnerabilitiesContainer__errorContainer p {
+  font-size: 1.8rem;
+  font-family: "Inter", sans-serif;
+  color: #303030;
+  padding: 2rem 0;
+}
+
+.dashboardContainer__vulnerabilitiesContainer__spinnerContainer {
+  display: flex;
+  justify-content: center;
+  margin: 3rem 0;
+}
+
+.dashboardContainer__sectionsContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.dashboardContainer__sectionsContainer__workersContainer {
+  margin: 4.5rem 0;
+  padding: 2rem 2rem;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.096);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: #fdfcfc;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+  width: 50%;
+}
+
+.dashboardContainer__sectionsContainer__workersContainer__heading {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  color: #5e5d5d;
+  font-size: 2.3rem;
+  padding: 0 1rem;
+}
+
+.dashboardContainer__sectionsContainer__workersContainer__errorContainer {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-self: center;
+  text-align: center;
+  align-items: center;
+  margin: 5rem 0;
+}
+
+.dashboardContainer__sectionsContainer__workersContainer__errorContainer svg {
+  min-height: 5rem;
+  min-width: 5rem;
+  color: #5e5d5d;
+}
+
+.dashboardContainer__sectionsContainer__workersContainer__errorContainer p {
+  font-size: 1.8rem;
+  font-family: "Inter", sans-serif;
+  color: #303030;
+  padding: 2rem 0;
+}
+
+.dashboardContainer__sectionsContainer__workersContainer__spinnerContainer {
+  display: flex;
+  justify-content: center;
+  margin: 3rem 0;
+}
+
+.dashboardContainer__sectionsContainer__previousTargetsAnalyticsContainer {
+  margin: 4.5rem 0;
+  padding: 2rem 2rem;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.096);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: #fdfcfc;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+  width: 40%;
+}
+
+.dashboardContainer__sectionsContainer__previousTargetsAnalyticsContainer__heading {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  color: #5e5d5d;
+  font-size: 2.3rem;
+  padding: 0 1rem;
+}
+
+.dashboardContainer__sectionsContainer__previousTargetsAnalyticsContainer__errorContainer {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-self: center;
+  text-align: center;
+  align-items: center;
+  margin: 5rem 0;
+}
+
+.dashboardContainer__sectionsContainer__previousTargetsAnalyticsContainer__errorContainer
+  svg {
+  min-height: 5rem;
+  min-width: 5rem;
+  color: #5e5d5d;
+}
+
+.dashboardContainer__sectionsContainer__previousTargetsAnalyticsContainer__errorContainer
+  p {
+  font-size: 1.8rem;
+  font-family: "Inter", sans-serif;
+  color: #303030;
+  padding: 2rem 0;
+}
+
+.dashboardContainer__sectionsContainer__previousTargetsAnalyticsContainer__spinnerContainer {
+  display: flex;
+  justify-content: center;
+  margin: 3rem 0;
+}
+
+.targetsPageContainer {
+  padding-right: 5rem;
+  padding-left: 5rem;
+}
+
+.targetsPageContainer__addTargetsContainer {
+  margin: 5rem 0;
+  display: flex;
+  flex-direction: column;
+  margin: 4rem 0;
+  padding: 2rem 2rem;
+  box-shadow: 10px 10px 30px -4px rgba(30, 30, 60, 0.092);
+  border-radius: 0.5rem;
+  background-color: #fdfcfc;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+}
+
+.targetsPageContainer__addTargetsContainer h2 {
+  font-family: "Farro", sans-serif;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #4e4e4e;
+  margin: 2rem 0;
+}
+
+.targetsPageContainer__addTargetsContainer textarea {
+  border: none;
+  font-size: 1.8rem;
+  margin: 1.5rem 0;
+  outline: none;
+  background-color: #f3f2f2;
+  padding: 1.8rem 1rem;
+  color: #646464;
+  border-radius: 0.5rem;
+}
+
+.targetsPageContainer__addTargetsContainer button {
+  margin: 1rem 0;
+  background: #2faff8;
+  background-image: linear-gradient(to bottom, #2faff8, #0d96e6);
+  border-radius: 0.8rem;
+  font-family: "Heebo", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.03rem;
+  color: #f0f0f0;
+  font-size: 1.5rem;
+  padding: 1rem 1.2rem 1rem 1.2rem;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 1.5rem 3.2rem -1.3rem rgba(30, 30, 60, 0.25);
+  width: 15rem;
+}
+
+.targetsPageContainer__addTargetsContainer button:disabled {
+  background-image: linear-gradient(to bottom, grey, grey);
+}
+
+.targetsPageContainer__addTargetsContainer button svg {
+  position: relative;
+  top: 0.3rem;
+  height: 2rem;
+  width: 2.5rem;
+  margin-right: 0.5rem;
+}
+
+.targetsPageContainer__targetsContainer {
+  display: flex;
+  flex-direction: column;
+  margin: 4rem 0;
+  padding: 2rem 2rem;
+  box-shadow: 10px 10px 30px -4px rgba(30, 30, 60, 0.092);
+  border-radius: 0.5rem;
+  background-color: #fdfcfc;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+}
+
+.targetsPageContainer__targetsContainer__toolbarContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.targetsPageContainer__targetsContainer__toolbarContainer__headingConatiner h2 {
+  font-family: "Farro", sans-serif;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #4e4e4e;
+  margin: 2rem 0;
+  align-items: center;
+}
+
+.targetsPageContainer__targetsContainer__toolbarContainer__sessionsContainer {
+  margin: 0 2rem;
+  align-items: center;
+}
+
+.targetsPageContainer__targetsContainer__toolbarContainer__buttonsContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin: 0 2rem;
+  align-items: center;
+}
+
+.targetsPageContainer__targetsContainer__toolbarContainer__buttonsContainer__exportButton {
+  margin: 0 1rem;
+  background: #2faff8;
+  background-image: linear-gradient(to bottom, #2faff8, #0d96e6);
+  border-radius: 0.8rem;
+  font-family: "Heebo", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.03rem;
+  color: #f0f0f0;
+  font-size: 1.5rem;
+  padding: 1rem 0.7rem 1rem 0.7rem;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 1.5rem 3.2rem -1.3rem rgba(30, 30, 60, 0.25);
+  width: 15rem;
+}
+
+.targetsPageContainer__targetsContainer__toolbarContainer__buttonsContainer__exportButton:disabled {
+  background-image: linear-gradient(to bottom, grey, grey);
+}
+
+.targetsPageContainer__targetsContainer__toolbarContainer__buttonsContainer__exportButton
+  svg {
+  position: relative;
+  top: 0.3rem;
+  height: 2rem;
+  width: 2.5rem;
+  margin-right: 0.5rem;
+}
+
+.targetsPageContainer__targetsContainer__toolbarContainer__buttonsContainer__runButton {
+  margin: 0 1rem;
+  background: #6dd84a;
+  background-image: linear-gradient(to bottom, #6dd84a, #58c458);
+  border-radius: 0.8rem;
+  font-family: "Heebo", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.03rem;
+  color: #f0f0f0;
+  font-size: 1.5rem;
+  padding: 1rem 0.7rem 1rem 0.7rem;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 1.5rem 3.2rem -1.3rem rgba(30, 30, 60, 0.25);
+  width: 15rem;
+}
+
+.targetsPageContainer__targetsContainer__toolbarContainer__buttonsContainer__runButton:disabled {
+  background-image: linear-gradient(to bottom, grey, grey);
+}
+
+.targetsPageContainer__targetsContainer__toolbarContainer__buttonsContainer__runButton
+  svg {
+  position: relative;
+  top: 0.3rem;
+  height: 2rem;
+  width: 2.5rem;
+  margin-right: 0.5rem;
+}
+
+.targetsPageContainer__targetsContainer__errorContainer {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-self: center;
+  text-align: center;
+  align-items: center;
+  margin: 5rem 0;
+}
+
+.targetsPageContainer__targetsContainer__errorContainer svg {
+  min-height: 5rem;
+  min-width: 5rem;
+  color: #5e5d5d;
+}
+
+.targetsPageContainer__targetsContainer__errorContainer p {
+  font-size: 1.8rem;
+  font-family: "Inter", sans-serif;
+  color: #303030;
+  padding: 2rem 0;
+}
+
+.settingsContainer {
+  display: flex;
+  flex-direction: column;
+  margin: 4rem 3rem;
+  padding: 2rem 2rem;
+}
+
+.settingsContainer__headingContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.settingsContainer__headingContainer h2 {
+  font-family: "Farro", sans-serif;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #4e4e4e;
+  margin: 0 0;
+  padding: 1.5rem 1.8rem;
+}
+
+.settingsContainer__headingContainer button {
+  margin: 0 1rem;
+  background: #2faff8;
+  background-image: linear-gradient(to bottom, #2faff8, #0d96e6);
+  border-radius: 0.8rem;
+  font-family: "Heebo", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.03rem;
+  color: #f0f0f0;
+  font-size: 1.5rem;
+  padding: 1rem 0.7rem 1rem 0.7rem;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 1.5rem 3.2rem -1.3rem rgba(30, 30, 60, 0.25);
+  width: 20rem;
+}
+
+.settingsContainer__headingContainer button:disabled {
+  background-image: linear-gradient(to bottom, grey, grey);
+}
+
+.settingsContainer__headingContainer button svg {
+  position: relative;
+  top: 0.3rem;
+  height: 2rem;
+  width: 2.5rem;
+  margin-right: 0.5rem;
+}
+
+.helpPageContainer {
+  padding: 5rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  row-gap: 3rem;
+  column-gap: 5rem;
+}
+
+.helpPageContainer__exploitationContainer {
+  display: inline-block;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.096);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: #fdfcfc;
+  padding: 0 0 2rem 0;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+  transition: all 0.3s;
+}
+
+.helpPageContainer__exploitationContainer:hover {
+  transform: scale(1.02);
+}
+
+.helpPageContainer__exploitationContainer__headingContainer {
+  display: flex;
+  flex-direction: row;
+  margin: 0.5rem 0;
+  margin-top: 0;
+  padding: 1.5rem 3rem;
+  font-family: "Farro", sans-serif;
+  color: #5e5d5d;
+}
+
+.helpPageContainer__exploitationContainer__headingContainer h2 {
+  margin: 0 1rem;
+  font-size: 2.5rem;
+  align-items: center;
+  padding-top: 0.5rem;
+}
+
+.helpPageContainer__exploitationContainer__headingContainer span svg {
+  height: 3.2rem;
+  width: 3.2rem;
+}
+
+.helpPageContainer__exploitationContainer__linksContainer ul {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 1rem 5rem;
+}
+
+.helpPageContainer__exploitationContainer__linksContainer ul li {
+  list-style: circle;
+  margin: 0.5rem 0;
+}
+
+.helpPageContainer__exploitationContainer__linksContainer ul li a {
+  display: inline-block;
+  font-size: 1.9rem;
+}
+
+.helpPageContainer__methodologyContainer {
+  display: inline-block;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.096);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: #fdfcfc;
+  padding: 0 0 2rem 0;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+  transition: all 0.3s;
+}
+
+.helpPageContainer__methodologyContainer:hover {
+  transform: scale(1.02);
+}
+
+.helpPageContainer__methodologyContainer__headingContainer {
+  display: flex;
+  flex-direction: row;
+  margin: 0.5rem 0;
+  margin-top: 0;
+  padding: 1.5rem 3rem;
+  font-family: "Farro", sans-serif;
+  color: #5e5d5d;
+}
+
+.helpPageContainer__methodologyContainer__headingContainer h2 {
+  margin: 0 1rem;
+  font-size: 2.5rem;
+  align-items: center;
+  padding-top: 0.5rem;
+}
+
+.helpPageContainer__methodologyContainer__headingContainer span svg {
+  height: 3.2rem;
+  width: 3.2rem;
+}
+
+.helpPageContainer__methodologyContainer__linksContainer ul {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 1rem 5rem;
+}
+
+.helpPageContainer__methodologyContainer__linksContainer ul li {
+  list-style: circle;
+  margin: 0.5rem 0;
+}
+
+.helpPageContainer__methodologyContainer__linksContainer ul li a {
+  display: inline-block;
+  font-size: 1.9rem;
+}
+
+.helpPageContainer__calculatorsContainer {
+  display: inline-block;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.096);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: #fdfcfc;
+  padding: 0 0 2rem 0;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+  transition: all 0.3s;
+}
+
+.helpPageContainer__calculatorsContainer:hover {
+  transform: scale(1.02);
+}
+
+.helpPageContainer__calculatorsContainer__headingContainer {
+  display: flex;
+  flex-direction: row;
+  margin: 0.5rem 0;
+  margin-top: 0;
+  padding: 1.5rem 3rem;
+  font-family: "Farro", sans-serif;
+  color: #5e5d5d;
+}
+
+.helpPageContainer__calculatorsContainer__headingContainer h2 {
+  margin: 0 1rem;
+  font-size: 2.5rem;
+  align-items: center;
+  padding-top: 0.5rem;
+}
+
+.helpPageContainer__calculatorsContainer__headingContainer span svg {
+  height: 3.2rem;
+  width: 3.2rem;
+}
+
+.helpPageContainer__calculatorsContainer__linksContainer ul {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 1rem 5rem;
+}
+
+.helpPageContainer__calculatorsContainer__linksContainer ul li {
+  list-style: circle;
+  margin: 0.5rem 0;
+}
+
+.helpPageContainer__calculatorsContainer__linksContainer ul li a {
+  display: inline-block;
+  font-size: 1.9rem;
+}
+
+.helpPageContainer__testLearnContainer {
+  display: inline-block;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.096);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: #fdfcfc;
+  padding: 0 0 2rem 0;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+  transition: all 0.3s;
+}
+
+.helpPageContainer__testLearnContainer:hover {
+  transform: scale(1.02);
+}
+
+.helpPageContainer__testLearnContainer__headingContainer {
+  display: flex;
+  flex-direction: row;
+  margin: 0.5rem 0;
+  margin-top: 0;
+  padding: 1.5rem 3rem;
+  font-family: "Farro", sans-serif;
+  color: #5e5d5d;
+}
+
+.helpPageContainer__testLearnContainer__headingContainer h2 {
+  margin: 0 1rem;
+  font-size: 2.5rem;
+  align-items: center;
+  padding-top: 0.5rem;
+}
+
+.helpPageContainer__testLearnContainer__headingContainer span svg {
+  height: 3.2rem;
+  width: 3.2rem;
+}
+
+.helpPageContainer__testLearnContainer__linksContainer ul {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 1rem 5rem;
+}
+
+.helpPageContainer__testLearnContainer__linksContainer ul li {
+  list-style: circle;
+  margin: 0.5rem 0;
+}
+
+.helpPageContainer__testLearnContainer__linksContainer ul li a {
+  display: inline-block;
+  font-size: 1.9rem;
+}
+
+.helpPageContainer__helpLinksContainer {
+  display: inline-block;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.096);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: #fdfcfc;
+  padding: 0 0 2rem 0;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+  transition: all 0.3s;
+}
+
+.helpPageContainer__helpLinksContainer:hover {
+  transform: scale(1.02);
+}
+
+.helpPageContainer__helpLinksContainer__headingContainer {
+  display: flex;
+  flex-direction: row;
+  margin: 0.5rem 0;
+  margin-top: 0;
+  padding: 1.5rem 3rem;
+  font-family: "Farro", sans-serif;
+  color: #5e5d5d;
+}
+
+.helpPageContainer__helpLinksContainer__headingContainer h2 {
+  margin: 0 1rem;
+  font-size: 2.5rem;
+  align-items: center;
+  padding-top: 0.5rem;
+}
+
+.helpPageContainer__helpLinksContainer__headingContainer span svg {
+  height: 3.2rem;
+  width: 3.2rem;
+}
+
+.helpPageContainer__helpLinksContainer__linksWrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.helpPageContainer__helpLinksContainer__linksWrapper__linksContainer ul {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 1rem 5rem;
+}
+
+.helpPageContainer__helpLinksContainer__linksWrapper__linksContainer ul li {
+  list-style: circle;
+  margin: 0.5rem 0;
+}
+
+.helpPageContainer__helpLinksContainer__linksWrapper__linksContainer ul li a {
+  display: inline-block;
+  font-size: 1.9rem;
+}
+
+.loginPageContainer {
+  text-align: center;
+}
+
+.loginPageContainer__loginComponentContainer {
+  display: inline-block;
+  min-width: 50rem;
+  margin: 5rem auto;
+  padding: 2rem 5rem;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.164);
+  border-radius: 0.9rem;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+}
+
+.loginPageContainer__loginComponentContainer__brandLogoContainer img {
+  height: 6rem;
+  width: 6rem;
+  opacity: 0.75;
+}
+
+.loginPageContainer__loginComponentContainer__heading {
+  font-size: 2.5rem;
+  font-family: "Source Sans Pro", sans-serif;
+  margin: 2.5rem 0;
+  margin-bottom: 6rem;
+  font-weight: bold;
+  color: #4e4e4e;
+}
+
+.loginPageContainer__loginComponentContainer__userNameInputContainer {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin: 4rem 0;
+}
+
+.loginPageContainer__loginComponentContainer__userNameInputContainer label {
+  align-items: flex-start;
+  font-size: 1.7rem;
+  font-family: "Source Sans Pro", sans-serif;
+  color: #4e4e4e;
+}
+
+.loginPageContainer__loginComponentContainer__userNameInputContainer input {
+  font-family: "Source Sans Pro", sans-serif;
+  padding: 1.5rem 1rem;
+  margin: 1rem 0;
+  font-size: 1.7rem;
+  outline: none;
+  border: 1px solid rgba(0, 0, 0, 0.103);
+  border-radius: 0.5rem;
+}
+
+.loginPageContainer__loginComponentContainer__passwordInputContainer {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin: 4rem 0;
+  position: relative;
+}
+
+.loginPageContainer__loginComponentContainer__passwordInputContainer label {
+  align-items: flex-start;
+  font-size: 1.7rem;
+  font-family: "Source Sans Pro", sans-serif;
+  color: #4e4e4e;
+}
+
+.loginPageContainer__loginComponentContainer__passwordInputContainer input {
+  font-family: "Source Sans Pro", sans-serif;
+  padding: 1.5rem 1rem;
+  margin: 1rem 0;
+  font-size: 1.7rem;
+  outline: none;
+  border: 1px solid rgba(0, 0, 0, 0.103);
+  border-radius: 0.5rem;
+}
+
+.loginPageContainer__loginComponentContainer__passwordInputContainer__passwordViewTogglerContainer {
+  display: inline-block;
+  position: absolute;
+  right: 7.5%;
+  transform: translateY(-50%);
+  top: 63%;
+  height: 2rem;
+  width: 2rem;
+}
+
+.loginPageContainer__loginComponentContainer__passwordInputContainer__passwordViewTogglerContainer:hover {
+  cursor: pointer;
+}
+
+.loginPageContainer__loginComponentContainer__passwordInputContainer__passwordViewTogglerContainer
+  svg {
+  height: 100%;
+  width: 100%;
+}
+
+.loginPageContainer__loginComponentContainer__submitButton {
+  margin: 1rem 0;
+  background: #2faff8;
+  background-image: linear-gradient(to bottom, #2faff8, #0d96e6);
+  border-radius: 0.5rem;
+  font-family: "Heebo", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.03rem;
+  color: #f0f0f0;
+  font-size: 1.6rem;
+  padding: 1.7rem 0 1.7rem 0;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 1.5rem 3.2rem -1.3rem rgba(30, 30, 60, 0.25);
+  width: 100%;
+}
+
+.loginPageContainer__loginComponentContainer__submitButton:disabled {
+  background-image: linear-gradient(to bottom, grey, grey);
+}
+
+.loginPageContainer__loginComponentContainer__submitButton svg {
+  position: relative;
+  top: 0.3rem;
+  height: 2rem;
+  width: 2.5rem;
+  margin-right: 0.5rem;
+}
+
+.loginPageContainer__loginComponentContainer__forgotPasswordLinkContainer {
+  margin: 2rem auto;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.loginPageContainer__loginComponentContainer__forgotPasswordLinkContainer a {
+  font-family: "Source Sans Pro", sans-serif;
+  font-size: 1.8rem;
+}
+
+.loginPageContainer__loginComponentContainer__signupLinkContainer {
+  margin: 2rem auto;
+  font-family: "Heebo", sans-serif;
+  font-size: 1.6rem;
+}
+
+.loginPageContainer__loginComponentContainer__signupLinkContainer a {
+  font-family: "Source Sans Pro", sans-serif;
+  font-size: 1.8rem;
+}
+
+.signupPageContainer {
+  text-align: center;
+}
+
+.signupPageContainer__signupComponentContainer {
+  display: inline-block;
+  min-width: 50rem;
+  margin: 3rem auto;
+  padding: 2rem 5rem;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.164);
+  border-radius: 0.9rem;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+}
+
+.signupPageContainer__signupComponentContainer__brandLogoContainer img {
+  height: 6rem;
+  width: 6rem;
+  opacity: 0.75;
+}
+
+.signupPageContainer__signupComponentContainer__heading {
+  font-size: 2.5rem;
+  font-family: "Source Sans Pro", sans-serif;
+  margin: 2.5rem 0;
+  margin-bottom: 6rem;
+  font-weight: bold;
+  color: #4e4e4e;
+}
+
+.signupPageContainer__signupComponentContainer__userNameInputContainer {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin: 2.5rem 0 0.5rem 0;
+}
+
+.signupPageContainer__signupComponentContainer__userNameInputContainer label {
+  align-items: flex-start;
+  font-size: 1.7rem;
+  font-family: "Source Sans Pro", sans-serif;
+  color: #4e4e4e;
+}
+
+.signupPageContainer__signupComponentContainer__userNameInputContainer input {
+  font-family: "Source Sans Pro", sans-serif;
+  padding: 1.5rem 1rem;
+  margin: 0.6rem 0;
+  font-size: 1.7rem;
+  outline: none;
+  border: 1px solid rgba(0, 0, 0, 0.103);
+  border-radius: 0.5rem;
+}
+
+.signupPageContainer__signupComponentContainer__emailInputContainer {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin: 2.5rem 0 0.5rem 0;
+}
+
+.signupPageContainer__signupComponentContainer__emailInputContainer label {
+  align-items: flex-start;
+  font-size: 1.7rem;
+  font-family: "Source Sans Pro", sans-serif;
+  color: #4e4e4e;
+}
+
+.signupPageContainer__signupComponentContainer__emailInputContainer input {
+  font-family: "Source Sans Pro", sans-serif;
+  padding: 1.5rem 1rem;
+  margin: 0.6rem 0;
+  font-size: 1.7rem;
+  outline: none;
+  border: 1px solid rgba(0, 0, 0, 0.103);
+  border-radius: 0.5rem;
+}
+
+.signupPageContainer__signupComponentContainer__setPasswordInputContainer {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin: 2.5rem 0 0.5rem 0;
+  position: relative;
+}
+
+.signupPageContainer__signupComponentContainer__setPasswordInputContainer
+  label {
+  align-items: flex-start;
+  font-size: 1.7rem;
+  font-family: "Source Sans Pro", sans-serif;
+  color: #4e4e4e;
+}
+
+.signupPageContainer__signupComponentContainer__setPasswordInputContainer
+  input {
+  font-family: "Source Sans Pro", sans-serif;
+  padding: 1.5rem 1rem;
+  margin: 0.6rem 0;
+  font-size: 1.7rem;
+  outline: none;
+  border: 1px solid rgba(0, 0, 0, 0.103);
+  border-radius: 0.5rem;
+}
+
+.signupPageContainer__signupComponentContainer__setPasswordInputContainer__passwordViewTogglerContainer {
+  display: inline-block;
+  position: absolute;
+  right: 7.5%;
+  transform: translateY(-50%);
+  top: 63%;
+  height: 2rem;
+  width: 2rem;
+}
+
+.signupPageContainer__signupComponentContainer__setPasswordInputContainer__passwordViewTogglerContainer:hover {
+  cursor: pointer;
+}
+
+.signupPageContainer__signupComponentContainer__setPasswordInputContainer__passwordViewTogglerContainer
+  svg {
+  height: 100%;
+  width: 100%;
+}
+
+.signupPageContainer__signupComponentContainer__setPasswordInputContainer p {
+  font-size: 1.4rem;
+  color: #4e4e4e;
+  margin-top: 0.5rem;
+}
+
+.signupPageContainer__signupComponentContainer__confirmPasswordInputContainer {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin: 2.5rem 0 0.5rem 0;
+  position: relative;
+}
+
+.signupPageContainer__signupComponentContainer__confirmPasswordInputContainer
+  label {
+  align-items: flex-start;
+  font-size: 1.7rem;
+  font-family: "Source Sans Pro", sans-serif;
+  color: #4e4e4e;
+}
+
+.signupPageContainer__signupComponentContainer__confirmPasswordInputContainer
+  input {
+  font-family: "Source Sans Pro", sans-serif;
+  padding: 1.5rem 1rem;
+  margin: 0.6rem 0;
+  font-size: 1.7rem;
+  outline: none;
+  border: 1px solid rgba(0, 0, 0, 0.103);
+  border-radius: 0.5rem;
+}
+
+.signupPageContainer__signupComponentContainer__confirmPasswordInputContainer__passwordViewTogglerContainer {
+  display: inline-block;
+  position: absolute;
+  right: 7.5%;
+  transform: translateY(-50%);
+  top: 63%;
+  height: 2rem;
+  width: 2rem;
+}
+
+.signupPageContainer__signupComponentContainer__confirmPasswordInputContainer__passwordViewTogglerContainer:hover {
+  cursor: pointer;
+}
+
+.signupPageContainer__signupComponentContainer__confirmPasswordInputContainer__passwordViewTogglerContainer
+  svg {
+  height: 100%;
+  width: 100%;
+}
+
+.signupPageContainer__signupComponentContainer__submitButton {
+  margin: 1.5rem 0;
+  background: #2faff8;
+  background-image: linear-gradient(to bottom, #2faff8, #0d96e6);
+  border-radius: 0.5rem;
+  font-family: "Heebo", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.03rem;
+  color: #f0f0f0;
+  font-size: 1.6rem;
+  padding: 1.7rem 0 1.7rem 0;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 1.5rem 3.2rem -1.3rem rgba(30, 30, 60, 0.25);
+  width: 100%;
+}
+
+.signupPageContainer__signupComponentContainer__submitButton:disabled {
+  background-image: linear-gradient(to bottom, grey, grey);
+}
+
+.signupPageContainer__signupComponentContainer__submitButton svg {
+  position: relative;
+  top: 0.3rem;
+  height: 2rem;
+  width: 2.5rem;
+  margin-right: 0.5rem;
+}
+
+.signupPageContainer__signupComponentContainer__forgotPasswordLinkContainer {
+  margin: 2rem auto;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.signupPageContainer__signupComponentContainer__forgotPasswordLinkContainer a {
+  font-family: "Source Sans Pro", sans-serif;
+  font-size: 1.8rem;
+}
+
+.signupPageContainer__signupComponentContainer__loginLinkContainer {
+  margin: 2rem auto;
+  font-family: "Heebo", sans-serif;
+  font-size: 1.6rem;
+}
+
+.signupPageContainer__signupComponentContainer__loginLinkContainer a {
+  font-family: "Source Sans Pro", sans-serif;
+  font-size: 1.8rem;
+}
+
+.forgotPasswordPageContainer {
+  text-align: center;
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer {
+  display: inline-block;
+  min-width: 50rem;
+  margin: 3.2rem auto;
+  padding: 2rem 5rem;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.164);
+  border-radius: 0.9rem;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__brandLogoContainer
+  img {
+  height: 6rem;
+  width: 6rem;
+  opacity: 0.75;
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__heading {
+  font-size: 2.5rem;
+  font-family: "Source Sans Pro", sans-serif;
+  margin: 2.5rem 0;
+  margin-bottom: 6rem;
+  font-weight: bold;
+  color: #4e4e4e;
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__info {
+  font-size: 1.5rem;
+  color: #4e4e4e;
+  margin: 1rem 0;
+  text-align: left;
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__userNameEmailInputContainer {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin: 2.5rem 0 0.5rem 0;
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__userNameEmailInputContainer
+  label {
+  align-items: flex-start;
+  font-size: 1.7rem;
+  font-family: "Source Sans Pro", sans-serif;
+  color: #4e4e4e;
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__userNameEmailInputContainer
+  input {
+  font-family: "Source Sans Pro", sans-serif;
+  padding: 1.5rem 1rem;
+  margin: 0.6rem 0;
+  font-size: 1.7rem;
+  outline: none;
+  border: 1px solid rgba(0, 0, 0, 0.103);
+  border-radius: 0.5rem;
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__submitButton {
+  margin: 1.5rem 0;
+  background: #2faff8;
+  background-image: linear-gradient(to bottom, #2faff8, #0d96e6);
+  border-radius: 0.5rem;
+  font-family: "Heebo", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.03rem;
+  color: #f0f0f0;
+  font-size: 1.6rem;
+  padding: 1.7rem 0 1.7rem 0;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 1.5rem 3.2rem -1.3rem rgba(30, 30, 60, 0.25);
+  width: 100%;
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__submitButton:disabled {
+  background-image: linear-gradient(to bottom, grey, grey);
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__submitButton
+  svg {
+  position: relative;
+  top: 0.3rem;
+  height: 2rem;
+  width: 2.5rem;
+  margin-right: 0.5rem;
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__goBackLinkContainer {
+  margin: 2rem auto;
+  font-family: "Heebo", sans-serif;
+  font-size: 1.6rem;
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__goBackLinkContainer
+  a {
+  font-family: "Source Sans Pro", sans-serif;
+  font-size: 1.8rem;
+}
+
+.inputRequiredError {
+  font-size: 1.4rem;
+  color: red;
+  text-align: left;
+  font-family: "Farro", sans-serif;
+}
+
+.otpPageContainer {
+  text-align: center;
+}
+
+.otpPageContainer__otpComponentContainer {
+  display: inline-block;
+  min-width: 50rem;
+  margin: 3.2rem auto;
+  padding: 2rem 5rem;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.164);
+  border-radius: 0.9rem;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+}
+
+.otpPageContainer__otpComponentContainer__brandLogoContainer img {
+  height: 6rem;
+  width: 6rem;
+  opacity: 0.75;
+}
+
+.otpPageContainer__otpComponentContainer__heading {
+  font-size: 2.5rem;
+  font-family: "Source Sans Pro", sans-serif;
+  margin: 2.5rem 0 1.5rem 0;
+  margin-bottom: 6rem;
+  font-weight: bold;
+  color: #4e4e4e;
+}
+
+.otpPageContainer__otpComponentContainer__info {
+  font-size: 1.5rem;
+  color: #4e4e4e;
+  margin: 1rem 0;
+  text-align: left;
+}
+
+.otpPageContainer__otpComponentContainer__otpInputContainer {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin: 2.5rem 0 0.5rem 0;
+}
+
+.otpPageContainer__otpComponentContainer__otpInputContainer label {
+  align-items: flex-start;
+  font-size: 1.7rem;
+  font-family: "Source Sans Pro", sans-serif;
+  color: #4e4e4e;
+}
+
+.otpPageContainer__otpComponentContainer__otpInputContainer input {
+  font-family: "Source Sans Pro", sans-serif;
+  padding: 1.5rem 1rem;
+  margin: 0.6rem 0;
+  font-size: 1.7rem;
+  outline: none;
+  border: 1px solid rgba(0, 0, 0, 0.103);
+  border-radius: 0.5rem;
+}
+
+.otpPageContainer__otpComponentContainer__submitButton {
+  margin: 1.5rem 0;
+  background: #2faff8;
+  background-image: linear-gradient(to bottom, #2faff8, #0d96e6);
+  border-radius: 0.5rem;
+  font-family: "Heebo", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.03rem;
+  color: #f0f0f0;
+  font-size: 1.6rem;
+  padding: 1.7rem 0 1.7rem 0;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 1.5rem 3.2rem -1.3rem rgba(30, 30, 60, 0.25);
+  width: 100%;
+}
+
+.otpPageContainer__otpComponentContainer__submitButton:disabled {
+  background-image: linear-gradient(to bottom, grey, grey);
+}
+
+.otpPageContainer__otpComponentContainer__submitButton svg {
+  position: relative;
+  top: 0.3rem;
+  height: 2rem;
+  width: 2.5rem;
+  margin-right: 0.5rem;
+}
+
+.otpPageContainer__otpComponentContainer__linksContainer {
+  display: flex;
+  justify-content: space-between;
+}
+
+.otpPageContainer__otpComponentContainer__linksContainer p {
+  margin: 2rem 0;
+  font-family: "Heebo", sans-serif;
+  font-size: 1.6rem;
+}
+
+.otpPageContainer__otpComponentContainer__linksContainer p a {
+  font-family: "Source Sans Pro", sans-serif;
+  font-size: 1.8rem;
+  text-decoration: underline;
+}
+
+.resetPasswordPageContainer {
+  text-align: center;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer {
+  display: inline-block;
+  min-width: 50rem;
+  margin: 3rem auto;
+  padding: 2rem 5rem;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.164);
+  border-radius: 0.9rem;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__brandLogoContainer
+  img {
+  height: 6rem;
+  width: 6rem;
+  opacity: 0.75;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__heading {
+  font-size: 2.5rem;
+  font-family: "Source Sans Pro", sans-serif;
+  margin: 2.5rem 0;
+  margin-bottom: 6rem;
+  font-weight: bold;
+  color: #4e4e4e;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__info {
+  font-size: 1.5rem;
+  color: #4e4e4e;
+  margin: 1rem 0;
+  text-align: left;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__setPasswordInputContainer {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin: 2.5rem 0 0.5rem 0;
+  position: relative;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__setPasswordInputContainer
+  label {
+  align-items: flex-start;
+  font-size: 1.7rem;
+  font-family: "Source Sans Pro", sans-serif;
+  color: #4e4e4e;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__setPasswordInputContainer
+  input {
+  font-family: "Source Sans Pro", sans-serif;
+  padding: 1.5rem 1rem;
+  margin: 0.6rem 0;
+  font-size: 1.7rem;
+  outline: none;
+  border: 1px solid rgba(0, 0, 0, 0.103);
+  border-radius: 0.5rem;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__setPasswordInputContainer__passwordViewTogglerContainer {
+  display: inline-block;
+  position: absolute;
+  right: 7.5%;
+  transform: translateY(-50%);
+  top: 63%;
+  height: 2rem;
+  width: 2rem;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__setPasswordInputContainer__passwordViewTogglerContainer:hover {
+  cursor: pointer;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__setPasswordInputContainer__passwordViewTogglerContainer
+  svg {
+  height: 100%;
+  width: 100%;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__setPasswordInputContainer
+  p {
+  font-size: 1.4rem;
+  color: #4e4e4e;
+  margin-top: 0.5rem;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__confirmPasswordInputContainer {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin: 2.5rem 0 0.5rem 0;
+  position: relative;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__confirmPasswordInputContainer
+  label {
+  align-items: flex-start;
+  font-size: 1.7rem;
+  font-family: "Source Sans Pro", sans-serif;
+  color: #4e4e4e;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__confirmPasswordInputContainer
+  input {
+  font-family: "Source Sans Pro", sans-serif;
+  padding: 1.5rem 1rem;
+  margin: 0.6rem 0;
+  font-size: 1.7rem;
+  outline: none;
+  border: 1px solid rgba(0, 0, 0, 0.103);
+  border-radius: 0.5rem;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__confirmPasswordInputContainer__passwordViewTogglerContainer {
+  display: inline-block;
+  position: absolute;
+  right: 7.5%;
+  transform: translateY(-50%);
+  top: 63%;
+  height: 2rem;
+  width: 2rem;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__confirmPasswordInputContainer__passwordViewTogglerContainer:hover {
+  cursor: pointer;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__confirmPasswordInputContainer__passwordViewTogglerContainer
+  svg {
+  height: 100%;
+  width: 100%;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__submitButton {
+  margin: 1.5rem 0;
+  background: #2faff8;
+  background-image: linear-gradient(to bottom, #2faff8, #0d96e6);
+  border-radius: 0.5rem;
+  font-family: "Heebo", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.03rem;
+  color: #f0f0f0;
+  font-size: 1.6rem;
+  padding: 1.7rem 0 1.7rem 0;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 1.5rem 3.2rem -1.3rem rgba(30, 30, 60, 0.25);
+  width: 100%;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__submitButton:disabled {
+  background-image: linear-gradient(to bottom, grey, grey);
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__submitButton svg {
+  position: relative;
+  top: 0.3rem;
+  height: 2rem;
+  width: 2.5rem;
+  margin-right: 0.5rem;
+}
+
+.workerPanelComponentContainer {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  padding: 1rem 0;
+}
+
+.workerPanelComponentContainer__progressbarContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 45%;
+}
+
+.workerPanelComponentContainer__workerLegendContainer {
+  width: 55%;
+  height: 40rem;
+  overflow: scroll;
+  overflow-x: hidden;
+  padding: 0 1.5rem;
+  box-shadow: 0px 4px 24px -12px rgba(30, 30, 60, 0.23);
+}
+
+.workerPanelComponentContainer__workerLegendContainer__workerComponentWrapper__workerComponent__workContainer {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  margin: 1rem auto;
+}
+
+.workerPanelComponentContainer__workerLegendContainer__workerComponentWrapper__workerComponent__workContainer
+  p {
+  font-size: 1.7rem;
+  font-family: "Inter", sans-serif;
+  margin: 0 1.5rem;
+  padding-top: 0.3rem;
+}
+
+.workerPanelComponentContainer__workerLegendContainer__workerComponentWrapper__workerComponent__workContainer
+  button {
+  box-shadow: 0px 15px 30px -4px rgba(30, 30, 60, 0.25);
+  border-radius: 0.5rem;
+  font-size: 1.2rem;
+  font-family: "OpenSans", sans-serif;
+  color: #f0f0f0;
+  font-size: 1.2rem;
+  background: #1882ce;
+  padding: 0.2rem 1.3rem;
+  text-decoration: none;
+  border: none;
+}
+
+.workerPanelComponentContainer__workerLegendContainer__workerComponentWrapper__workerComponent__workerLogContainer__textArea {
+  border: none;
+  font-size: 1.3rem;
+  margin: 1rem 0;
+  outline: none;
+  background-color: rgba(243, 239, 239, 0.616);
+  padding: 0 0.3rem;
+  padding: 0.5rem 1rem;
+}
+
+.githubReportComponentContainer__reportButton {
+  margin: 0.5rem 1rem;
+  background: #ff6d6d;
+  background-image: linear-gradient(to bottom, #ff6d6d, #f85252);
+  border-radius: 0.8rem;
+  font-family: "Heebo", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.03rem;
+  color: #f0f0f0;
+  font-size: 1.2rem;
+  padding: 0.8rem 1.7rem 1.2em 1.7rem;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 1.5rem 3.2rem -1.3rem rgba(30, 30, 60, 0.25);
+}
+
+.githubReportComponentContainer__reportButton span {
+  margin: 0 0.5rem;
+}
+
+.githubReportComponentContainer__reportButton span svg {
+  position: relative;
+  top: 0.5rem;
+  height: 2rem;
+  width: 2.5rem;
+}
+
+.githubReportComponentContainer__reportButton:hover {
+  text-decoration: none;
+}
+
+.githubReportComponentContainer__errorSelectionContainer {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 3.5rem;
+}
+
+.githubReportComponentContainer__errorSelectionContainer strong {
+  font-size: 1.5rem;
+  padding-top: 0.8rem;
+}
+
+.githubReportComponentContainer__errorSelectionContainer__dropdownMenuContainer {
+  width: 120px;
+  height: 34px;
+  border: 1px solid rgba(29, 29, 29, 0.199);
+  border-radius: 3px;
+  overflow: hidden;
+  background-color: #fdfcfc;
+  margin-left: 1rem;
+}
+
+.githubReportComponentContainer__errorSelectionContainer__dropdownMenuContainer
+  select {
+  font-size: 1.4rem;
+  background: transparent;
+  width: 150px;
+  border: 1px solid #ccc;
+  height: 34px;
+  outline: none;
+  cursor: pointer;
+}
+
+.githubReportComponentContainer__errorSelectionContainer__dropdownMenuContainer
+  option {
+  font-size: 1.4rem;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__headingContainer p {
+  color: red;
+  font-size: 1.4rem;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__userNameInputContainer {
+  display: flex;
+  flex-direction: column;
+  margin: 1.5rem 0;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__userNameInputContainer__label {
+  font-size: 1.5rem;
+  font-family: "OpenSans", sans-serif;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__userNameInputContainer__input {
+  padding: 0.8rem 0.5rem;
+  outline: none;
+  font-size: 1.2rem;
+  border: 1px solid rgba(0, 0, 0, 0.205);
+}
+
+.githubReportComponentContainer__selectedErrorContainer__userNameInputContainer__textArea {
+  border: none;
+  font-size: 1.3rem;
+  margin: 1rem 0;
+  outline: none;
+  background-color: rgba(243, 239, 239, 0.616);
+  padding: 0 0.3rem;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__userNameInputContainer__requiredErrorContainer {
+  display: flex;
+  flex-direction: row;
+  margin: 1rem 0;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__userNameInputContainer__requiredErrorContainer
+  svg {
+  height: 2rem;
+  width: 2rem;
+  color: red;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__userNameInputContainer__requiredErrorContainer
+  p {
+  font-size: 1.2rem;
+  margin-left: 0.8rem;
+  color: red;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__issueTitleInputContainer {
+  display: flex;
+  flex-direction: column;
+  margin: 1.5rem 0;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__issueTitleInputContainer__label {
+  font-size: 1.5rem;
+  font-family: "OpenSans", sans-serif;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__issueTitleInputContainer__input {
+  padding: 0.8rem 0.5rem;
+  outline: none;
+  font-size: 1.2rem;
+  border: 1px solid rgba(0, 0, 0, 0.205);
+}
+
+.githubReportComponentContainer__selectedErrorContainer__issueTitleInputContainer__textArea {
+  border: none;
+  font-size: 1.3rem;
+  margin: 1rem 0;
+  outline: none;
+  background-color: rgba(243, 239, 239, 0.616);
+  padding: 0 0.3rem;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__issueTitleInputContainer__requiredErrorContainer {
+  display: flex;
+  flex-direction: row;
+  margin: 1rem 0;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__issueTitleInputContainer__requiredErrorContainer
+  svg {
+  height: 2rem;
+  width: 2rem;
+  color: red;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__issueTitleInputContainer__requiredErrorContainer
+  p {
+  font-size: 1.2rem;
+  margin-left: 0.8rem;
+  color: red;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__issueBodyContainer {
+  display: flex;
+  flex-direction: column;
+  margin: 1.5rem 0;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__issueBodyContainer__label {
+  font-size: 1.5rem;
+  font-family: "OpenSans", sans-serif;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__issueBodyContainer__input {
+  padding: 0.8rem 0.5rem;
+  outline: none;
+  font-size: 1.2rem;
+  border: 1px solid rgba(0, 0, 0, 0.205);
+}
+
+.githubReportComponentContainer__selectedErrorContainer__issueBodyContainer__textArea {
+  border: none;
+  font-size: 1.3rem;
+  margin: 1rem 0;
+  outline: none;
+  background-color: rgba(243, 239, 239, 0.616);
+  padding: 0 0.3rem;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__issueBodyContainer__requiredErrorContainer {
+  display: flex;
+  flex-direction: row;
+  margin: 1rem 0;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__issueBodyContainer__requiredErrorContainer
+  svg {
+  height: 2rem;
+  width: 2rem;
+  color: red;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__issueBodyContainer__requiredErrorContainer
+  p {
+  font-size: 1.2rem;
+  margin-left: 0.8rem;
+  color: red;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__buttonContainer__showIssueButton {
+  margin: 0.5rem 1rem;
+  background: #2faff8;
+  background-image: linear-gradient(to bottom, #2faff8, #0d96e6);
+  border-radius: 0.8rem;
+  font-family: "Heebo", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.03rem;
+  color: #f0f0f0;
+  font-size: 1.2rem;
+  padding: 0.8rem 1.7rem 1.2em 1.7rem;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 1.5rem 3.2rem -1.3rem rgba(30, 30, 60, 0.25);
+}
+
+.githubReportComponentContainer__selectedErrorContainer__buttonContainer__showIssueButton
+  span {
+  margin: 0 0.5rem;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__buttonContainer__showIssueButton
+  span
+  svg {
+  position: relative;
+  top: 0.5rem;
+  height: 2rem;
+  width: 2.5rem;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__buttonContainer__showIssueButton:hover {
+  text-decoration: none;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__buttonContainer__deleteErrorButton {
+  margin: 0.5rem 1rem;
+  background: #ff6d6d;
+  background-image: linear-gradient(to bottom, #ff6d6d, #f85252);
+  border-radius: 0.8rem;
+  font-family: "Heebo", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.03rem;
+  color: #f0f0f0;
+  font-size: 1.2rem;
+  padding: 0.8rem 1.7rem 1.2em 1.7rem;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 1.5rem 3.2rem -1.3rem rgba(30, 30, 60, 0.25);
+}
+
+.githubReportComponentContainer__selectedErrorContainer__buttonContainer__deleteErrorButton
+  span {
+  margin: 0 0.5rem;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__buttonContainer__deleteErrorButton
+  span
+  svg {
+  position: relative;
+  top: 0.5rem;
+  height: 2rem;
+  width: 2.5rem;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__buttonContainer__deleteErrorButton:hover {
+  text-decoration: none;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__buttonContainer__createIssueButton {
+  margin: 0.5rem 1rem;
+  background: #2faff8;
+  background-image: linear-gradient(to bottom, #2faff8, #0d96e6);
+  border-radius: 0.8rem;
+  font-family: "Heebo", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.03rem;
+  color: #f0f0f0;
+  font-size: 1.2rem;
+  padding: 0.8rem 1.7rem 1.2em 1.7rem;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 1.5rem 3.2rem -1.3rem rgba(30, 30, 60, 0.25);
+}
+
+.githubReportComponentContainer__selectedErrorContainer__buttonContainer__createIssueButton
+  span {
+  margin: 0 0.5rem;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__buttonContainer__createIssueButton
+  span
+  svg {
+  position: relative;
+  top: 0.5rem;
+  height: 2rem;
+  width: 2.5rem;
+}
+
+.githubReportComponentContainer__selectedErrorContainer__buttonContainer__createIssueButton:hover {
+  text-decoration: none;
+}
+
+.dialogContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999999999;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  outline: 0;
+  background-color: rgba(8, 8, 8, 0.795);
+}
+
+.dialogContainer__dialog {
+  position: relative;
+  width: auto;
+  pointer-events: none;
+  font-size: 1.4rem;
+}
+
+@media (min-width: 576px) {
+  .dialogContainer__dialog {
+    max-width: 50rem;
+    margin: 10rem auto;
+  }
+}
+
+.dialogContainer__content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  pointer-events: auto;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  outline: 0;
+  padding: 1rem 2rem 2rem 2rem;
+  border-radius: 1rem;
+}
+
+.dialogContainer__header {
+  font-family: "Heebo", sans-serif;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid #dee2e6;
+  border-top-left-radius: calc(0.3rem - 1px);
+  border-top-right-radius: calc(0.3rem - 1px);
+  margin: 1rem 0 2rem 0;
+  padding-bottom: 0.5rem;
+  align-items: center;
+}
+
+.dialogContainer__header h2 {
+  font-size: 1.8rem;
+  margin: 0;
+  font-weight: 600;
+  color: #3a3a3a;
+  align-items: center;
+}
+
+.dialogContainer__header button {
+  border: none;
+  background-color: transparent;
+}
+
+.dialogContainer__header button svg {
+  height: 2.5rem;
+  width: 2.5rem;
+}
+
+.dialogContainer__transition-appear {
+  transition: transform 300ms;
+  transform: translateY(-100%);
+}
+
+.dialogContainer__transition-appear-active {
+  transform: translateY(0);
+}
+
+.configurationTabsNavContainer {
+  margin: 4rem 0.5rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  box-shadow: 10px 10px 30px -4px rgba(30, 30, 60, 0.092);
+  border-radius: 0.5rem;
+  background-color: #fdfcfc;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+  padding: 3rem 0;
+}
+
+.configurationTabsNavContainer span {
+  font-size: 1.7rem;
+  font-family: "Farro", sans-serif;
+  padding: 1.5rem 1.8rem;
+  margin-right: 3rem;
+}
+
+.configurationTabsNavContainer span:hover {
+  cursor: pointer;
+  background-color: rgba(117, 117, 117, 0.26);
+}
+
+.configurationTabsContentContainer {
+  box-shadow: 10px 10px 30px -4px rgba(30, 30, 60, 0.092);
+  border-radius: 0.5rem;
+  background-color: #fdfcfc;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+}
+
+.configurationTabsContentContainer__tabContainer {
+  display: flex;
+  flex-direction: column;
+  margin: 2.5rem 0;
+}
+
+.configurationTabsContentContainer__tabContainer label {
+  font-size: 1.5rem;
+  font-family: "Inter", sans-serif;
+  padding: 0.8rem 2rem;
+  color: #4e4e4e;
+}
+
+.configurationTabsContentContainer__tabContainer input {
+  font-family: "Source Sans Pro", sans-serif;
+  border: 1px solid rgba(80, 80, 80, 0.185);
+  border-radius: 0.8rem;
+  padding: 1rem 1.5rem;
+  margin: 0.5rem 2rem;
+  font-size: 1.5rem;
+  outline: none;
+}
+/*# sourceMappingURL=main.css.map */

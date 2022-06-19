@@ -1,0 +1,26 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+.configurationTabsNavContainer {
+  margin: 4rem 0.5rem;
+  @include flexbox;
+  @include flex-direction(row);
+  @include justify-content(flex-start);
+  box-shadow: 10px 10px 30px -4px rgba(30, 30, 60, 0.092);
+  border-radius: 0.5rem;
+  background-color: $light-background-1;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+  padding: 3rem 0;
+
+  & span {
+    font-size: 1.7rem;
+    font-family: $font-family-2;
+    padding: 1.5rem 1.8rem;
+    margin-right: 3rem;
+
+    &:hover {
+      cursor: pointer;
+      background-color: $hover-backgroundColor;
+    }
+  }
+}

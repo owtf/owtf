@@ -10,8 +10,7 @@
  */
 
 import React from "react";
-import { Pane, Heading, Small, toaster, Spinner, Paragraph } from "evergreen-ui";
-import { Breadcrumb } from "react-bootstrap";
+import { toaster, Spinner } from "evergreen-ui";
 import Chart from "./Chart";
 import WorkerPanel from "./WorkerPanel";
 import VulnerabilityPanel from "./Panel";
@@ -19,6 +18,8 @@ import GitHubReport from "./GithubReport";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
+import { BiError } from "react-icons/bi";
+
 import {
   makeSelectFetchError,
   makeSelectFetchLoading,
@@ -30,17 +31,27 @@ import {
   makeSelectFetchSeverity,
   makeSelectTargetSeverityLoading,
   makeSelectTargetSeverityError,
-  makeSelectFetchTargetSeverity,
+  makeSelectFetchTargetSeverity
 } from "./selectors";
 import {
   makeSelectFetchWorkers,
   makeSelectWorkerProgressLoading,
   makeSelectWorkerProgressError,
   makeSelectFetchWorkerProgress,
-  makeSelectFetchWorkerLogs,
+  makeSelectFetchWorkerLogs
 } from "../WorkersPage/selectors";
-import { loadErrors, createError, deleteError, loadSeverity, loadTargetSeverity } from "./actions";
-import { loadWorkers, loadWorkerProgress, loadWorkerLogs } from "../WorkersPage/actions";
+import {
+  loadErrors,
+  createError,
+  deleteError,
+  loadSeverity,
+  loadTargetSeverity
+} from "./actions";
+import {
+  loadWorkers,
+  loadWorkerProgress,
+  loadWorkerLogs
+} from "../WorkersPage/actions";
 
 const POLLINTERVAL = 13000;
 
@@ -88,128 +99,95 @@ export class Dashboard extends React.Component {
   render() {
     const GitHubReportProps = {
       errors: this.props.errors,
-      onDeleteError: this.props.onDeleteError,
+      onDeleteError: this.props.onDeleteError
     };
     return (
-      <Pane
-        paddingRight={50}
-        paddingLeft={50}
-        display="flex"
-        flexDirection="column"
-        data-test="dashboardComponent"
-      >
-        <Breadcrumb>
-          <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-          <Breadcrumb.Item active href="/dashboard/">
-            Dashboard
-          </Breadcrumb.Item>
-        </Breadcrumb>
-        <Pane display="flex" flexDirection="row" alignItems="center">
-          <Heading size={900}>Welcome to OWTF</Heading>
-          <Small marginTop={10}>, this is your dashboard</Small>
-          <Pane flex={1}>
+      <div className="dashboardContainer" data-test="dashboardComponent">
+        <div className="dashboardContainer__headerContainer">
+          <div className="dashboardContainer__headerContainer__headingContainer">
+            <h2>Welcome to OWTF,</h2>
+            <small>this is your dashboard</small>
+          </div>
+
+          <div className="dashboardContainer__dashboardHeaderContainer__reportButtonContainer">
             {this.props.errors !== false ? (
               <GitHubReport {...GitHubReportProps} />
             ) : null}
-          </Pane>
-        </Pane>
-        <Pane marginTop={20} padding={20}>
-          <Heading size={700}>Current Vulnerabilities</Heading>
+          </div>
+        </div>
+
+        <div className="dashboardContainer__vulnerabilitiesContainer">
+          <h2 className="dashboardContainer__vulnerabilitiesContainer__heading">
+            Current Vulnerabilities
+          </h2>
           <hr />
           {this.props.severityError !== false ? (
-            <Pane
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              height={200}
-            >
-              <Paragraph size={500}>
-                Something went wrong, please try again!
-              </Paragraph>
-            </Pane>
-          ) : null }
+            <div className="dashboardContainer__vulnerabilitiesContainer__errorContainer">
+              <BiError />
+              <p>Something went wrong, please try again!</p>
+            </div>
+          ) : null}
           {this.props.severityLoading ? (
-            <Pane
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            height={200}
-          >
-            <Spinner />
-          </Pane>
-          ) : null }
-          { this.props.severity !== false ? (
+            <div className="dashboardContainer__vulnerabilitiesContainer__spinnerContainer">
+              <Spinner />
+            </div>
+          ) : null}
+          {this.props.severity !== false ? (
             <VulnerabilityPanel panelData={this.props.severity} />
           ) : null}
-        </Pane>
-        <Pane
-          display="flex"
-          flexDirection="row"
-          height={220}
-        >
-          <Pane marginTop={20} paddingLeft={20} width="50%">
-            <Heading size={700}>Previous Targets Analytics</Heading>
+        </div>
+
+        <div className="dashboardContainer__sectionsContainer">
+          <div className="dashboardContainer__sectionsContainer__workersContainer">
+            <h2 className="dashboardContainer__sectionsContainer__workersContainer__heading">
+              Worker Panel
+            </h2>
+            <hr />
+            {this.props.workerProgressError !== false ? (
+              <div className="dashboardContainer__sectionsContainer__workersContainer__errorContainer">
+                <BiError />
+                <p>Something went wrong, please try again!</p>
+              </div>
+            ) : null}
+            {this.props.workerProgressLoading ? (
+              <div className="dashboardContainer__sectionsContainer__workersContainer__spinnerContainer">
+                <Spinner />
+              </div>
+            ) : null}
+            {this.props.workerProgress !== false ? (
+              <WorkerPanel
+                progressData={this.props.workerProgress}
+                workerData={this.props.workers}
+                workerLogs={this.props.workerLogs}
+                onFetchWorkerLogs={this.props.onFetchWorkerLogs}
+                pollInterval={POLLINTERVAL}
+              />
+            ) : null}
+          </div>
+
+          <div className="dashboardContainer__sectionsContainer__previousTargetsAnalyticsContainer">
+            <h2 className="dashboardContainer__sectionsContainer__previousTargetsAnalyticsContainer__heading">
+              Previous Targets Analytics
+            </h2>
+
             <hr />
             {this.props.targetSeverityError !== false ? (
-              <Pane
-                display="flex"
-                alignItems="center"
-                height={200}
-              >
-                <Paragraph size={500}>
-                  Something went wrong, please try again!
-                </Paragraph>
-              </Pane>
-            ) : null }
+              <div className="dashboardContainer__sectionsContainer__previousTargetsAnalyticsContainer__errorContainer">
+                <BiError />
+                <p>Something went wrong, please try again!</p>
+              </div>
+            ) : null}
             {this.props.targetSeverityLoading ? (
-              <Pane
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                height={200}
-              >
+              <div className="dashboardContainer__sectionsContainer__previousTargetsAnalyticsContainer__spinnerContainer">
                 <Spinner />
-              </Pane>
-            ) : null }
+              </div>
+            ) : null}
             {this.props.targetSeverity !== false ? (
               <Chart chartData={this.props.targetSeverity.data} />
             ) : null}
-          </Pane>
-          <Pane marginTop={20} paddingRight={20} width="50%">
-            <Heading size={700}>Worker Panel</Heading>
-            <hr />
-            {this.props.workerProgressError !== false ? (
-              <Pane
-                display="flex"
-                alignItems="center"
-                height={200}
-              >
-                <Paragraph size={500}>
-                  Something went wrong, please try again!
-                </Paragraph>
-              </Pane>
-            ) : null }
-            {this.props.workerProgressLoading ? (
-              <Pane
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                height={200}
-              >
-                <Spinner />
-              </Pane>
-            ) : null }
-            {this.props.workerProgress !== false ? (
-              <WorkerPanel 
-                progressData={this.props.workerProgress} 
-                workerData={this.props.workers} 
-                workerLogs={this.props.workerLogs}
-                onFetchWorkerLogs={this.props.onFetchWorkerLogs}
-                pollInterval={POLLINTERVAL} />
-            ) : null}
-          </Pane>
-        </Pane>
-      </Pane>
+          </div>
+        </div>
+      </div>
     );
   }
 }
@@ -237,7 +215,7 @@ Dashboard.propTypes = {
   onFetchTargetSeverity: PropTypes.func,
   onFetchWorkers: PropTypes.func,
   onFetchWorkerProgress: PropTypes.func,
-  onFetchWorkerLogs: PropTypes.func,
+  onFetchWorkerLogs: PropTypes.func
 };
 
 const mapStateToProps = createStructuredSelector({
@@ -256,7 +234,7 @@ const mapStateToProps = createStructuredSelector({
   workerProgressLoading: makeSelectWorkerProgressLoading,
   workerProgressError: makeSelectWorkerProgressError,
   workers: makeSelectFetchWorkers,
-  workerLogs: makeSelectFetchWorkerLogs,  
+  workerLogs: makeSelectFetchWorkerLogs
 });
 
 const mapDispatchToProps = dispatch => {
@@ -268,11 +246,8 @@ const mapDispatchToProps = dispatch => {
     onFetchTargetSeverity: () => dispatch(loadTargetSeverity()),
     onFetchWorkerProgress: () => dispatch(loadWorkerProgress()),
     onFetchWorkers: () => dispatch(loadWorkers()),
-    onFetchWorkerLogs: (name, lines) => dispatch(loadWorkerLogs(name, lines)),
+    onFetchWorkerLogs: (name, lines) => dispatch(loadWorkerLogs(name, lines))
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Dashboard);
+export default connect(mapStateToProps, mapDispatchToProps)(Dashboard);

@@ -2,7 +2,11 @@
  * HelpPage
  */
 import React from "react";
-import { Pane, Text, Heading, Icon } from "evergreen-ui";
+import { RiBookletFill } from "react-icons/ri";
+import { BsCalculator } from "react-icons/bs";
+import { GoSearch } from "react-icons/go";
+import { IoHelpCircleSharp } from "react-icons/io5";
+import { BiMenuAltLeft } from "react-icons/bi";
 
 export default class Help extends React.Component {
   // Since state and props are static,
@@ -114,28 +118,19 @@ export default class Help extends React.Component {
     ];
 
     return (
-      <Pane
-        clearfix
-        display="flex"
-        flexDirection="row"
-        flexWrap="wrap"
-        justifyContent="center"
-        data-test="helpComponent"
-      >
-        <Pane
-          elevation={1}
-          width={350}
-          margin={20}
-          display="flex"
-          flexDirection="column"
+      <div className="helpPageContainer" data-test="helpComponent">
+        <div
+          className="helpPageContainer__exploitationContainer"
           data-test="helpBox"
         >
-          <Heading height={40} background="#e1eaea">
-            <Pane margin={10}>
-              <Icon icon="search" /> Exploitation{" "}
-            </Pane>
-          </Heading>
-          <Text margin={20}>
+          <div className="helpPageContainer__exploitationContainer__headingContainer">
+            <span>
+              <GoSearch />
+            </span>
+            <h2>Exploitation</h2>
+          </div>
+
+          <div className="helpPageContainer__exploitationContainer__linksContainer">
             <ul>
               {exploitationLinks.map(obj => (
                 <li key={obj.id}>
@@ -145,22 +140,21 @@ export default class Help extends React.Component {
                 </li>
               ))}
             </ul>
-          </Text>
-        </Pane>
-        <Pane
-          elevation={1}
-          width={350}
-          margin={20}
-          display="flex"
-          flexDirection="column"
+          </div>
+        </div>
+
+        <div
+          className="helpPageContainer__methodologyContainer"
           data-test="helpBox"
         >
-          <Heading height={40} background="#e1eaea">
-            <Pane margin={10}>
-              <Icon icon="horizontal-bar-chart-desc" /> Methodology{" "}
-            </Pane>
-          </Heading>
-          <Text margin={20}>
+          <div className="helpPageContainer__methodologyContainer__headingContainer">
+            <span>
+              <BiMenuAltLeft />
+            </span>
+            <h2>Methodology</h2>
+          </div>
+
+          <div className="helpPageContainer__methodologyContainer__linksContainer">
             <ul>
               {methodologyLinks.map(obj => (
                 <li key={obj.id}>
@@ -170,22 +164,21 @@ export default class Help extends React.Component {
                 </li>
               ))}
             </ul>
-          </Text>
-        </Pane>
-        <Pane
-          elevation={1}
-          width={350}
-          margin={20}
-          display="flex"
-          flexDirection="column"
+          </div>
+        </div>
+
+        <div
+          className="helpPageContainer__calculatorsContainer"
           data-test="helpBox"
         >
-          <Heading height={40} background="#e1eaea">
-            <Pane margin={10}>
-              <Icon icon="calculator" /> Calculators{" "}
-            </Pane>
-          </Heading>
-          <Text margin={20}>
+          <div className="helpPageContainer__calculatorsContainer__headingContainer">
+            <span>
+              <BsCalculator />
+            </span>
+            <h2>Calculators</h2>
+          </div>
+
+          <div className="helpPageContainer__calculatorsContainer__linksContainer">
             <ul>
               {calculatorLinks.map(obj => (
                 <li key={obj.id}>
@@ -195,22 +188,21 @@ export default class Help extends React.Component {
                 </li>
               ))}
             </ul>
-          </Text>
-        </Pane>
-        <Pane
-          elevation={1}
-          width={500}
-          margin={20}
-          display="flex"
-          flexDirection="column"
+          </div>
+        </div>
+
+        <div
+          className="helpPageContainer__testLearnContainer"
           data-test="helpBox"
         >
-          <Heading height={40} background="#e1eaea">
-            <Pane margin={10}>
-              <Icon icon="book" /> Test/Learn{" "}
-            </Pane>
-          </Heading>
-          <Text margin={20}>
+          <div className="helpPageContainer__testLearnContainer__headingContainer">
+            <span>
+              <RiBookletFill />
+            </span>
+            <h2>Test/Learn</h2>
+          </div>
+
+          <div className="helpPageContainer__testLearnContainer__linksContainer">
             <ul>
               {learnTestLinks.map(obj => (
                 <li key={obj.id}>
@@ -220,76 +212,71 @@ export default class Help extends React.Component {
                 </li>
               ))}
             </ul>
-          </Text>
-        </Pane>
-        <Pane
-          elevation={1}
-          width={600}
-          margin={20}
-          display="flex"
-          flexDirection="column"
+          </div>
+        </div>
+
+        <div
+          className="helpPageContainer__helpLinksContainer"
           data-test="helpBox"
         >
-          <Heading height={40} background="#e1eaea">
-            <Pane margin={10}>
-              <Icon icon="help" /> OWTF Help Links{" "}
-            </Pane>
-          </Heading>
-          <Pane display="flex" flexDirection="row">
-            <Pane display="flex" flexDirection="column">
-              <Text margin={20}>
-                <ul>
-                  {owtfHelpLinks[0].map(obj => (
-                    <li key={obj.id}>
-                      <a
-                        href={obj.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {obj.text}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </Text>
-            </Pane>
-            <Pane display="flex" flexDirection="column">
-              <Text margin={20}>
-                <ul>
-                  {owtfHelpLinks[1].map(obj => (
-                    <li key={obj.id}>
-                      <a
-                        href={obj.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {obj.text}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </Text>
-            </Pane>
-            <Pane display="flex" flexDirection="column">
-              <Text margin={20}>
-                <ul>
-                  {owtfHelpLinks[2].map(obj => (
-                    <li key={obj.id}>
-                      <a
-                        href={obj.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {obj.text}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </Text>
-            </Pane>
-          </Pane>
-        </Pane>
-      </Pane>
+          <div className="helpPageContainer__helpLinksContainer__headingContainer">
+            <span>
+              <IoHelpCircleSharp />
+            </span>
+            <h2>OWTF Help Links</h2>
+          </div>
+
+          <div className="helpPageContainer__helpLinksContainer__linksWrapper">
+            <div className="helpPageContainer__helpLinksContainer__linksWrapper__linksContainer">
+              <ul>
+                {owtfHelpLinks[0].map(obj => (
+                  <li key={obj.id}>
+                    <a
+                      href={obj.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {obj.text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="helpPageContainer__helpLinksContainer__linksWrapper__linksContainer">
+              <ul>
+                {owtfHelpLinks[1].map(obj => (
+                  <li key={obj.id}>
+                    <a
+                      href={obj.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {obj.text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="helpPageContainer__helpLinksContainer__linksWrapper__linksContainer">
+              <ul>
+                {owtfHelpLinks[2].map(obj => (
+                  <li key={obj.id}>
+                    <a
+                      href={obj.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {obj.text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 }

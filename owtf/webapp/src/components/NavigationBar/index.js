@@ -3,75 +3,120 @@
  */
 
 import React, { Component } from "react";
-import { Link } from "react-router-dom";
-import { LinkContainer } from "react-router-bootstrap";
-import { Navbar, NavItem, Nav, NavDropdown, MenuItem } from "react-bootstrap";
+import { Link, NavLink } from "react-router-dom";
+import { BsFillCaretDownFill } from "react-icons/bs";
+import logo from "../../../public/img/logo.png";
 
 export default class NavigationBar extends Component {
   render() {
     return (
-      <Navbar inverse collapseOnSelect data-test="navbarTest">
-        <Navbar.Header>
-          <Navbar.Brand>
-            <Link to={this.props.brand.linkTo}>{this.props.brand.text}</Link>
-          </Navbar.Brand>
-          <Navbar.Toggle />
-        </Navbar.Header>
-        <NavMenu links={this.props.links} />
-      </Navbar>
+      <nav className="navigationBar">
+        <div className="navigationBar__brandContainer">
+          <Link
+            className="navigationBar__brandContainer__link"
+            to={this.props.brand.linkTo}
+          >
+            {this.props.brand.text}
+          </Link>
+          <img src={logo} alt="owtf logo" />
+        </div>
+        <div className="navigationBar__navLinksContainer">
+          <NavMenu links={this.props.links} />
+        </div>
+      </nav>
     );
   }
 }
 
 export class NavMenu extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      isMenuDropped: false
+    };
+
+    this.handleDropDown = this.handleDropDown.bind(this);
+  }
+
+  /* Function resposible for toggling the dropdown menu on click */
+  handleDropDown() {
+    this.setState((state, props) => ({
+      isMenuDropped: !state.isMenuDropped
+    }));
+  }
+
   render() {
+    const { isMenuDropped } = this.state;
+
     const links = this.props.links.map((link, index) => {
       if (link.dropdown) {
         return (
-          <NavLinkDropdown
+          <div
+            className="navigationBar__navLinksContainer__linksContainer__linkDropDownContainer"
             key={index}
-            index={index}
-            links={link.links}
-            text={link.text}
-          />
+          >
+            <div
+              className="navigationBar__navLinksContainer__linksContainer__linkDropDownContainer__linkText"
+              onClick={this.handleDropDown}
+            >
+              <p>{link.text}</p>
+              <span>
+                <BsFillCaretDownFill />
+              </span>
+            </div>
+
+            {isMenuDropped && (
+              <NavLinkDropdown
+                index={index}
+                links={link.links}
+                text={link.text}
+                toggle={this.handleDropDown}
+              />
+            )}
+          </div>
         );
       }
 
       return (
-        <LinkContainer key={index} to={link.linkTo}>
-          <NavItem key={link.text} eventKey={index}>
-            {link.text}
-          </NavItem>
-        </LinkContainer>
+        <NavLink
+          className="navigationBar__navLinksContainer__linksContainer__link"
+          activeClassName="activeNavLink"
+          key={index}
+          to={link.linkTo}
+        >
+          {link.text}
+        </NavLink>
       );
     });
     return (
-      <Navbar.Collapse>
-        <Nav pullRight>{links}</Nav>
-      </Navbar.Collapse>
+      <div className="navigationBar__navLinksContainer__linksContainer">
+        <>{links}</>
+      </div>
     );
   }
 }
 
 export class NavLinkDropdown extends Component {
   render() {
+    const handleDropDown = this.props.toggle;
+
     const links = this.props.links.map(function(link, index) {
       return (
-        <LinkContainer key={link.text} to={link.linkTo}>
-          <MenuItem key={link.text} eventKey={index + index * 0.1}>
+        <div
+          className="navigationBar__navLinksContainer__linksContainer__linkDropDownContainer__droppedLinksContainer__link"
+          key={link.text}
+        >
+          <Link to={link.linkTo} onClick={() => handleDropDown()}>
             {link.text}
-          </MenuItem>
-        </LinkContainer>
+          </Link>
+        </div>
       );
     });
     return (
-      <NavDropdown
-        eventKey={this.props.index}
-        title={this.props.text}
-        id="basic-nav-dropdown"
-      >
+      <div className="navigationBar__navLinksContainer__linksContainer__linkDropDownContainer__droppedLinksContainer">
         {links}
-      </NavDropdown>
+      </div>
     );
   }
 }
