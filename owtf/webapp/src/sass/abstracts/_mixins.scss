@@ -1,0 +1,349 @@
+// --------------------Flexbox mixins---------------------------------
+
+// Flexbox display
+@mixin flexbox {
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+}
+
+// Inline flex display
+@mixin inline-flex {
+  display: -webkit-inline-box;
+  display: -moz-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+}
+
+// The 'flex' shorthand
+// - applies to: flex items
+// <positive-number>, initial, auto, or none
+@mixin flex($fg: 1, $fs: 0, $fb: auto) {
+  // Set a variable to be used by box-flex properties
+  $fg-boxflex: $fg;
+
+  // Box-Flex only supports a flex-grow value so lets grab the
+  // first item in the list and just return that.
+  @if type-of($fg) == "list" {
+    $fg-boxflex: nth($fg, 1);
+  }
+
+  -webkit-box: $fg-boxflex;
+  -moz-box: $fg-boxflex;
+  -webkit-flex: $fg $fs $fb;
+  -ms-flex: $fg $fs $fb;
+  flex: $fg $fs $fb;
+}
+
+// Flex Flow Direction
+// - applies to: flex containers
+// row (default) | row-reverse | column | column-reverse
+@mixin flex-direction($direction: row) {
+  @if $direction ==row-reverse {
+    -webkit-box-direction: reverse;
+    -webkit-box-orient: horizontal;
+    -moz-box-direction: reverse;
+    -moz-box-orient: horizontal;
+  } @else if $direction ==column {
+    -webkit-box-direction: normal;
+    -webkit-box-orient: vertical;
+    -moz-box-direction: normal;
+    -moz-box-orient: vertical;
+  } @else if $direction ==column-reverse {
+    -webkit-box-direction: reverse;
+    -webkit-box-orient: vertical;
+    -moz-box-direction: reverse;
+    -moz-box-orient: vertical;
+  } @else {
+    -webkit-box-direction: normal;
+    -webkit-box-orient: horizontal;
+    -moz-box-direction: normal;
+    -moz-box-orient: horizontal;
+  }
+
+  -webkit-flex-direction: $direction;
+  -ms-flex-direction: $direction;
+  flex-direction: $direction;
+}
+
+// Flex Line Wrapping
+// - applies to: flex containers
+// nowrap | wrap | wrap-reverse
+@mixin flex-wrap($value: nowrap) {
+  // No Webkit/FF Box fallback.
+  -webkit-flex-wrap: $value;
+
+  @if $value ==nowrap {
+    -ms-flex-wrap: none;
+  } @else {
+    -ms-flex-wrap: $value;
+  }
+
+  flex-wrap: $value;
+}
+
+// Flex Direction and Wrap
+// - applies to: flex containers
+// <flex-direction> || <flex-wrap>
+@mixin flex-flow(
+  $values: (
+    row nowrap
+  )
+) {
+  // No Webkit/FF Box fallback.
+  -webkit-flex-flow: $values;
+  -ms-flex-flow: $values;
+  flex-flow: $values;
+}
+
+// Display Order
+// - applies to: flex items
+// <integer>
+@mixin order($int: 0) {
+  -webkit-box-ordinal-group: $int + 1;
+  -moz-box-ordinal-group: $int + 1;
+  -webkit-order: $int;
+  -ms-flex-order: $int;
+  order: $int;
+}
+
+// Flex grow factor
+// - applies to: flex items
+// <number>
+@mixin flex-grow($int: 1) {
+  -webkit-box-flex: $int;
+  -moz-box-flex: $int;
+  -webkit-flex-grow: $int;
+  -ms-flex: $int;
+  flex-grow: $int;
+}
+
+// Flex shrink
+// - applies to: flex item shrink factor
+// <number>
+@mixin flex-shrink($int: 0) {
+  -webkit-flex-shrink: $int;
+  -moz-flex-shrink: $int;
+  -ms-flex: $int;
+  flex-shrink: $int;
+}
+
+// Flex basis
+// - the initial main size of the flex item
+// - applies to: flex itemsnitial main size of the flex item
+// <width>
+@mixin flex-basis($value: auto) {
+  -webkit-flex-basis: $value;
+  flex-basis: $value;
+}
+
+// Axis Alignment
+// - applies to: flex containers
+// flex-start | flex-end | center | space-between | space-around
+@mixin justify-content($value: flex-start) {
+  @if $value ==flex-start {
+    -webkit-box-pack: start;
+    -moz-box-pack: start;
+    -ms-flex-pack: start;
+  } @else if $value ==flex-end {
+    -webkit-box-pack: end;
+    -moz-box-pack: end;
+    -ms-flex-pack: end;
+  } @else if $value ==space-between {
+    -webkit-box-pack: justify;
+    -moz-box-pack: justify;
+    -ms-flex-pack: justify;
+  } @else if $value ==space-around {
+    -ms-flex-pack: distribute;
+  } @else {
+    -webkit-box-pack: $value;
+    -moz-box-pack: $value;
+    -ms-flex-pack: $value;
+  }
+
+  -webkit-justify-content: $value;
+  justify-content: $value;
+}
+
+// Cross-axis Alignment
+// - applies to: flex items
+// auto | flex-start | flex-end | center | baseline | stretch
+@mixin align-self($value: auto) {
+  // No Webkit Box Fallback.
+  -webkit-align-self: $value;
+
+  @if $value ==flex-start {
+    -ms-flex-item-align: start;
+  } @else if $value ==flex-end {
+    -ms-flex-item-align: end;
+  } @else {
+    -ms-flex-item-align: $value;
+  }
+
+  align-self: $value;
+}
+
+//button mixins
+
+@mixin buttonMixin($color-1, $color-2) {
+  margin: 0.5rem 1rem;
+  background: $color-1;
+  background-image: -webkit-linear-gradient(top, $color-1, $color-2);
+  background-image: -moz-linear-gradient(top, $color-1, $color-2);
+  background-image: -ms-linear-gradient(top, $color-1, $color-2);
+  background-image: -o-linear-gradient(top, $color-1, $color-2);
+  background-image: linear-gradient(to bottom, $color-1, $color-2);
+  -webkit-border-radius: 8;
+  -moz-border-radius: 8;
+  border-radius: 0.8rem;
+  font-family: $font-family-3;
+  font-weight: bold;
+  letter-spacing: 0.03rem;
+  color: $button-color-light;
+  font-size: 1.2rem;
+  padding: 0.8rem 1.7rem 1.2em 1.7rem;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 1.5rem 3.2rem -1.3rem rgba(30, 30, 60, 0.25);
+
+  & span {
+    margin: 0 0.5rem;
+
+    svg {
+      position: relative;
+      top: 0.5rem;
+      height: 2rem;
+      width: 2.5rem;
+    }
+  }
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+@mixin buttonMixinCustom(
+  $color-1,
+  $color-2,
+  $font-size,
+  $width: 100%,
+  $padding-top: 1.2rem,
+  $padding-bottom: 1.2rem,
+  $padding-left: 1.7rem,
+  $padding-right: 1.7rem,
+  $border-radius: 0.8rem,
+  $margin-top-bottom: 0,
+  $margin-left-right: 0,
+  $color-disabled: grey
+) {
+  margin: $margin-top-bottom $margin-left-right;
+  background: $color-1;
+  background-image: -webkit-linear-gradient(top, $color-1, $color-2);
+  background-image: -moz-linear-gradient(top, $color-1, $color-2);
+  background-image: -ms-linear-gradient(top, $color-1, $color-2);
+  background-image: -o-linear-gradient(top, $color-1, $color-2);
+  background-image: linear-gradient(to bottom, $color-1, $color-2);
+  -webkit-border-radius: 8;
+  -moz-border-radius: 8;
+  border-radius: $border-radius;
+  font-family: $font-family-3;
+  font-weight: bold;
+  letter-spacing: 0.03rem;
+  color: $button-color-light;
+  font-size: $font-size;
+  padding: $padding-top $padding-right $padding-bottom $padding-left;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 1.5rem 3.2rem -1.3rem rgba(30, 30, 60, 0.25);
+  width: $width;
+
+  &:disabled {
+    background-image: -webkit-linear-gradient(
+      top,
+      $color-disabled,
+      $color-disabled
+    );
+    background-image: -moz-linear-gradient(
+      top,
+      $color-disabled,
+      $color-disabled
+    );
+    background-image: -ms-linear-gradient(
+      top,
+      $color-disabled,
+      $color-disabled
+    );
+    background-image: -o-linear-gradient(top, $color-disabled, $color-disabled);
+    background-image: linear-gradient(
+      to bottom,
+      $color-disabled,
+      $color-disabled
+    );
+  }
+
+  svg {
+    position: relative;
+    top: 0.3rem;
+    height: 2rem;
+    width: 2.5rem;
+    margin-right: 0.5rem;
+  }
+}
+
+//error container mixin
+
+@mixin errorContainerMixin {
+  @include flexbox;
+  @include justify-content(center);
+  @include flex-direction(column);
+  @include align-self(center);
+  text-align: center;
+  align-items: center;
+  margin: 5rem 0;
+
+  & svg {
+    min-height: 5rem;
+    min-width: 5rem;
+    color: $dark-background-1;
+  }
+
+  & p {
+    font-size: 1.8rem;
+    font-family: $font-family-4;
+    color: $dark-background-2;
+    padding: 2rem 0;
+  }
+}
+
+//breakpoint Mixins
+
+// Small devices
+@mixin sm {
+  @media (max-width: #{$screen-sm-max}) {
+    @content;
+  }
+}
+
+// Medium devices
+@mixin md {
+  @media (max-width: #{$screen-md-max}) {
+    @content;
+  }
+}
+
+// Large devices
+@mixin lg {
+  @media (max-width: #{$screen-lg-max}) {
+    @content;
+  }
+}
+
+// Extra large devices
+@mixin xl {
+  @media (max-width: #{$screen-xl-max}) {
+    @content;
+  }
+}

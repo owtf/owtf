@@ -1,26 +1,45 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <title>OWASP OWTF</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+      integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+      crossorigin="anonymous"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Farro:wght@300&family=Heebo:wght@300;400&family=Inter:wght@100;200&family=Source+Sans+Pro&display=swap"
+      rel="stylesheet"
+    />
   </head>
-    <body>
+
+  <body>
     <!-- Display a message if JS has been disabled on the browser. -->
-    <noscript>If you're seeing this message, that means <strong>JavaScript has been disabled on your browser</strong>, please <strong>enable JS</strong> to make this app work.</noscript>
+    <noscript
+      >If you're seeing this message, that means
+      <strong>JavaScript has been disabled on your browser</strong>, please
+      <strong>enable JS</strong> to make this app work.</noscript
+    >
 
     <!-- The app hooks into this div -->
+
     <div id="root">
       <div id="application_loading"></div>
     </div>
+
     <script>
-      setTimeout(function () {
-        const loadingBlock = document.getElementById("application_loading")
+      setTimeout(function() {
+        const loadingBlock = document.getElementById("application_loading");
         if (loadingBlock) {
-          loadingBlock.innerHTML = '<div style="height: 100vh; display: flex; align-items: center; justify-content: center; font-family: Helvetica-Neue, Helevetica, sans-serif; font-size: 24px; font-weight: 700;">Loading application...</div>'
+          loadingBlock.innerHTML =
+            '<div style="height: 100vh; display: flex; align-items: center; justify-content: center; font-family: Helvetica-Neue, Helevetica, sans-serif; font-size: 24px; font-weight: 700;">Loading application...</div>';
         }
-      }, 500)
+      }, 500);
     </script>
     <!-- A lot of magic happens in this file. HtmlWebpackPlugin automatically includes all assets (e.g. bundle.js, main.css) with the correct HTML tags, which is why they are missing in this HTML file. Don't add any assets here! (Check out the webpack config files in ../webpack for details) -->
   </body>
