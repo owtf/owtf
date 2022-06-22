@@ -80,7 +80,7 @@ exports[`Targets Page component Testing dumb TargetPage component Should render 
           <withTheme(Button)
             onClick={[Function]}
           >
-            <withTheme(Icon)
+            <Icon
               icon="import"
               marginRight={10}
             />
@@ -92,7 +92,7 @@ exports[`Targets Page component Testing dumb TargetPage component Should render 
             intent="success"
             onClick={[Function]}
           >
-            <withTheme(Icon)
+            <Icon
               icon="build"
               marginRight={10}
             />
@@ -134,7 +134,16 @@ exports[`Targets Page component Testing dumb TargetsTable component Should rende
     <SearchTableHeaderCell
       flexGrow={3}
       flexShrink={0}
-      icon="search"
+      icon={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "compare": null,
+          "type": Object {
+            "$$typeof": Symbol(react.forward_ref),
+            "render": [Function],
+          },
+        }
+      }
       onChange={[Function]}
       placeholder="URL"
       spellCheck={true}
