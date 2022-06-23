@@ -39,7 +39,7 @@ exports[`LoginPage component Testing dumb login component Should render without 
         position="absolute"
         width="10%"
       >
-        <Icon
+        <withTheme(Icon)
           cursor="pointer"
           icon="eye-off"
           marginX={-10}

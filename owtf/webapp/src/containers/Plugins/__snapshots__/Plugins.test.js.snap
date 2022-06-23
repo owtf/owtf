@@ -18,16 +18,7 @@ exports[`Plugins componemt Testing Plugins Table component Should render without
     </TableHeaderCell>
     <SearchTableHeaderCell
       flex="none"
-      icon={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "compare": null,
-          "type": Object {
-            "$$typeof": Symbol(react.forward_ref),
-            "render": [Function],
-          },
-        }
-      }
+      icon="search"
       onChange={[Function]}
       placeholder="Code"
       spellCheck={true}
@@ -36,16 +27,7 @@ exports[`Plugins componemt Testing Plugins Table component Should render without
     />
     <SearchTableHeaderCell
       flex="none"
-      icon={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "compare": null,
-          "type": Object {
-            "$$typeof": Symbol(react.forward_ref),
-            "render": [Function],
-          },
-        }
-      }
+      icon="search"
       onChange={[Function]}
       placeholder="Name"
       spellCheck={true}
@@ -54,16 +36,7 @@ exports[`Plugins componemt Testing Plugins Table component Should render without
     />
     <SearchTableHeaderCell
       flex="none"
-      icon={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "compare": null,
-          "type": Object {
-            "$$typeof": Symbol(react.forward_ref),
-            "render": [Function],
-          },
-        }
-      }
+      icon="search"
       onChange={[Function]}
       placeholder="Type"
       spellCheck={true}
@@ -72,16 +45,7 @@ exports[`Plugins componemt Testing Plugins Table component Should render without
     />
     <SearchTableHeaderCell
       flex="none"
-      icon={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "compare": null,
-          "type": Object {
-            "$$typeof": Symbol(react.forward_ref),
-            "render": [Function],
-          },
-        }
-      }
+      icon="search"
       onChange={[Function]}
       placeholder="Group"
       spellCheck={true}
@@ -90,16 +54,7 @@ exports[`Plugins componemt Testing Plugins Table component Should render without
     />
     <SearchTableHeaderCell
       flex="none"
-      icon={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "compare": null,
-          "type": Object {
-            "$$typeof": Symbol(react.forward_ref),
-            "render": [Function],
-          },
-        }
-      }
+      icon="search"
       onChange={[Function]}
       placeholder="Help"
       spellCheck={true}

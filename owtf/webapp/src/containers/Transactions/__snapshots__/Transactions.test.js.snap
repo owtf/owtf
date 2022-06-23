@@ -152,48 +152,21 @@ exports[`Transactions Page componemt Testing Transaction Table component Should 
         <SearchTableHeaderCell
           flexGrow={3}
           flexShrink={0}
-          icon={
-            Object {
-              "$$typeof": Symbol(react.memo),
-              "compare": null,
-              "type": Object {
-                "$$typeof": Symbol(react.forward_ref),
-                "render": [Function],
-              },
-            }
-          }
+          icon="search"
           onChange={[Function]}
           placeholder="URL"
           spellCheck={true}
           value=""
         />
         <SearchTableHeaderCell
-          icon={
-            Object {
-              "$$typeof": Symbol(react.memo),
-              "compare": null,
-              "type": Object {
-                "$$typeof": Symbol(react.forward_ref),
-                "render": [Function],
-              },
-            }
-          }
+          icon="search"
           onChange={[Function]}
           placeholder="Method"
           spellCheck={true}
           value=""
         />
         <SearchTableHeaderCell
-          icon={
-            Object {
-              "$$typeof": Symbol(react.memo),
-              "compare": null,
-              "type": Object {
-                "$$typeof": Symbol(react.forward_ref),
-                "render": [Function],
-              },
-            }
-          }
+          icon="search"
           onChange={[Function]}
           placeholder="Status"
           spellCheck={true}

@@ -24,7 +24,7 @@ exports[`HelpPage component Should render without errors 1`] = `
       <withTheme(Pane)
         margin={10}
       >
-        <Icon
+        <withTheme(Icon)
           icon="search"
         />
          Exploitation
@@ -97,7 +97,7 @@ exports[`HelpPage component Should render without errors 1`] = `
       <withTheme(Pane)
         margin={10}
       >
-        <Icon
+        <withTheme(Icon)
           icon="horizontal-bar-chart-desc"
         />
          Methodology
@@ -159,7 +159,7 @@ exports[`HelpPage component Should render without errors 1`] = `
       <withTheme(Pane)
         margin={10}
       >
-        <Icon
+        <withTheme(Icon)
           icon="calculator"
         />
          Calculators
@@ -210,7 +210,7 @@ exports[`HelpPage component Should render without errors 1`] = `
       <withTheme(Pane)
         margin={10}
       >
-        <Icon
+        <withTheme(Icon)
           icon="book"
         />
          Test/Learn
@@ -272,7 +272,7 @@ exports[`HelpPage component Should render without errors 1`] = `
       <withTheme(Pane)
         margin={10}
       >
-        <Icon
+        <withTheme(Icon)
           icon="help"
         />
          OWTF Help Links
