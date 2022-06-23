@@ -14,7 +14,16 @@ exports[`Sessions componemt Testing Session Table component Should render withou
     />
     <SearchTableHeaderCell
       flex="none"
-      icon="search"
+      icon={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "compare": null,
+          "type": Object {
+            "$$typeof": Symbol(react.forward_ref),
+            "render": [Function],
+          },
+        }
+      }
       onChange={[Function]}
       placeholder="Session name"
       spellCheck={true}

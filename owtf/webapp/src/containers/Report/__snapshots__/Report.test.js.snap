@@ -80,7 +80,7 @@ exports[`Report page component Testing Collapse component Should render without 
             href=" https://www.owasp.org/index.php/"
             title="More information"
           >
-            <withTheme(Icon)
+            <Icon
               icon="lightbulb"
             />
           </withTheme(Link)>
@@ -546,7 +546,7 @@ exports[`Report page component Testing dumb SideFilters component Should render 
       key="filter"
       onSelect={[Function]}
     >
-      <withTheme(Icon)
+      <Icon
         color="info"
         icon="filter"
         marginRight={10}
@@ -562,7 +562,7 @@ exports[`Report page component Testing dumb SideFilters component Should render 
       key="refresh"
       onSelect={[MockFunction]}
     >
-      <withTheme(Icon)
+      <Icon
         color="success"
         icon="refresh"
         marginRight={10}
@@ -578,7 +578,7 @@ exports[`Report page component Testing dumb SideFilters component Should render 
       key="plugins"
       onSelect={[Function]}
     >
-      <withTheme(Icon)
+      <Icon
         color="danger"
         icon="fork"
         marginRight={10}
@@ -593,7 +593,7 @@ exports[`Report page component Testing dumb SideFilters component Should render 
       justifyContent="left"
       key="sessions"
     >
-      <withTheme(Icon)
+      <Icon
         color="warning"
         icon="flag"
         marginRight={10}
@@ -629,7 +629,7 @@ exports[`Report page component Testing dumb SideFilters component Should render 
         justifyContent="left"
         key="export"
       >
-        <withTheme(Icon)
+        <Icon
           icon="export"
           marginRight={10}
         />
@@ -638,7 +638,7 @@ exports[`Report page component Testing dumb SideFilters component Should render 
         >
           Export Report
         </withTheme(Text)>
-        <withTheme(Icon)
+        <Icon
           icon="caret-down"
           marginLeft={5}
         />

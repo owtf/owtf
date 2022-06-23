@@ -29,7 +29,16 @@ exports[`Dashboard component Testing GithubReport component Should render withou
       </Strong>
       <SelectMenu
         closeOnSelect={true}
-        filterIcon="search"
+        filterIcon={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": Object {
+              "$$typeof": Symbol(react.forward_ref),
+              "render": [Function],
+            },
+          }
+        }
         filterPlaceholder="Filter..."
         height={248}
         isMultiSelect={false}
