@@ -1,0 +1,15 @@
+@charset "UTF-8";
+// base imports
+
+@import "./base/resets.scss";
+
+//utility classes import
+@import "./abstracts/utilityClasses";
+
+//layout imports
+@import "./layout/layout.scss";
+@import "./layout/navbar.scss";
+
+//pages imports
+@import "./pages/welcomePage";
+@import "./pages/login";
