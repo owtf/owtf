@@ -1,0 +1,162 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+.welcomePageContainer {
+  height: 100vh;
+  display: flow-root;
+
+  &__infoLogoContainer {
+    @include flexbox;
+    @include justify-content(center);
+    color: $navbar-color-light;
+    background-color: $theme-color-1;
+    height: 80%;
+    clip-path: polygon(0 0, 100% 0, 100% 75%, 0 100%);
+
+    &__info {
+      background-color: transparent;
+      width: 35%;
+      @include flexbox;
+      @include flex-direction(column);
+      @include justify-content(center);
+      z-index: 2;
+      & p {
+        font-family: $font-family-5;
+        font-size: 2.2rem;
+        margin-top: 2rem;
+        color: $light-background-1;
+
+        @include xl {
+          font-size: 1.8rem;
+        }
+
+        @include md {
+          margin-top: 0.5rem;
+        }
+
+        @include sm {
+          font-size: 1.5rem;
+          text-align: center;
+        }
+      }
+
+      & h1 {
+        font-family: $font-family-2;
+        font-size: 6rem;
+        font-weight: bold;
+        color: $light-background-1;
+
+        @include xl {
+          font-size: 4rem;
+        }
+
+        @include sm {
+          font-size: 2.8rem;
+          text-align: center;
+        }
+      }
+
+      @include lg {
+        width: 40%;
+      }
+
+      @include md {
+        text-align: center;
+        width: 60%;
+        margin: 34rem auto;
+      }
+
+      @include sm {
+        width: 80%;
+        margin: 24rem auto;
+      }
+    }
+
+    &__logo {
+      background-color: transparent;
+      width: 35%;
+      @include flexbox;
+      @include flex-direction(column);
+      @include justify-content(center);
+      z-index: 1;
+      &__container {
+        text-align: center;
+
+        & img {
+          border-radius: 45%;
+          opacity: 0.5;
+          margin-bottom: 5rem;
+
+          @include md {
+            width: 100%;
+          }
+          @include sm {
+            height: 100%;
+            width: 100%;
+          }
+        }
+
+        @include sm {
+          height: 100%;
+          width: 100%;
+        }
+      }
+
+      @include md {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translate(-50%, 0);
+        margin: 10rem auto;
+      }
+
+      @include sm {
+        margin: 10rem auto;
+        height: 18.5rem;
+        width: 18.5rem;
+      }
+    }
+
+    &__loginButton {
+      margin: 2rem 0;
+      padding: 1rem 0;
+
+      & a {
+        box-shadow: 0px 15px 30px -4px rgba(30, 30, 60, 0.25);
+        -webkit-border-radius: 9;
+        -moz-border-radius: 9;
+        border-radius: 9px;
+        font-size: 600;
+        font-family: $font-family-1;
+        color: $button-color-dark;
+        font-size: 20px;
+        background: $button-color-light;
+        padding: 14px 27px 15px 28px;
+        text-decoration: none;
+
+        &:hover {
+          background: $hover-dark;
+          text-decoration: none;
+        }
+
+        @include md {
+          font-size: 16px;
+          padding: 12px 23px;
+        }
+      }
+    }
+
+    @include lg {
+      @include justify-content(space-around);
+    }
+    @include md {
+      @include flex-direction(column);
+      @include justify-content(flex-start);
+    }
+
+    @include md {
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+      height: 100%;
+    }
+  }
+}
