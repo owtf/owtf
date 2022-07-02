@@ -624,4 +624,203 @@ body {
     height: 100%;
   }
 }
+
+.loginPageContainer {
+  text-align: center;
+}
+
+.loginPageContainer__loginComponentContainer {
+  display: inline-block;
+  min-width: 50rem;
+  margin: 5rem auto;
+  padding: 2rem 5rem;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.164);
+  border-radius: 0.9rem;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+}
+
+@media (max-width: 576px) {
+  .loginPageContainer__loginComponentContainer {
+    min-width: 100%;
+    padding: 2rem 2rem;
+    margin: 1rem auto;
+    border: none;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .loginPageContainer__loginComponentContainer {
+    padding: 1rem 2rem;
+  }
+}
+
+.loginPageContainer__loginComponentContainer__brandLogoContainer img {
+  height: 6rem;
+  width: 6rem;
+  opacity: 0.75;
+}
+
+.loginPageContainer__loginComponentContainer__heading {
+  font-size: 2.5rem;
+  font-family: "Source Sans Pro", sans-serif;
+  margin: 2.5rem 0;
+  margin-bottom: 6rem;
+  font-weight: bold;
+  color: #4e4e4e;
+}
+
+@media (max-width: 992px) {
+  .loginPageContainer__loginComponentContainer__heading {
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .loginPageContainer__loginComponentContainer__heading {
+    font-size: 2rem;
+    margin-bottom: 4.5rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .loginPageContainer__loginComponentContainer__heading {
+    margin: 2rem 0;
+    margin-bottom: 4rem;
+    padding: 1rem 1rem;
+  }
+}
+
+.loginPageContainer__loginComponentContainer__userNameInputContainer {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin: 4rem 0;
+}
+
+.loginPageContainer__loginComponentContainer__userNameInputContainer label {
+  align-items: flex-start;
+  font-size: 1.7rem;
+  font-family: "Source Sans Pro", sans-serif;
+  color: #4e4e4e;
+}
+
+.loginPageContainer__loginComponentContainer__userNameInputContainer input {
+  font-family: "Source Sans Pro", sans-serif;
+  padding: 1.5rem 1rem;
+  margin: 1rem 0;
+  font-size: 1.7rem;
+  outline: none;
+  border: 1px solid rgba(0, 0, 0, 0.103);
+  border-radius: 0.5rem;
+}
+
+@media (max-width: 576px) {
+  .loginPageContainer__loginComponentContainer__userNameInputContainer {
+    margin: 2.5rem 0;
+  }
+}
+
+.loginPageContainer__loginComponentContainer__passwordInputContainer {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin: 4rem 0;
+  position: relative;
+}
+
+.loginPageContainer__loginComponentContainer__passwordInputContainer label {
+  align-items: flex-start;
+  font-size: 1.7rem;
+  font-family: "Source Sans Pro", sans-serif;
+  color: #4e4e4e;
+}
+
+.loginPageContainer__loginComponentContainer__passwordInputContainer input {
+  font-family: "Source Sans Pro", sans-serif;
+  padding: 1.5rem 1rem;
+  margin: 1rem 0;
+  font-size: 1.7rem;
+  outline: none;
+  border: 1px solid rgba(0, 0, 0, 0.103);
+  border-radius: 0.5rem;
+}
+
+@media (max-width: 576px) {
+  .loginPageContainer__loginComponentContainer__passwordInputContainer {
+    margin: 2.5rem 0;
+  }
+}
+
+.loginPageContainer__loginComponentContainer__passwordInputContainer__passwordViewTogglerContainer {
+  display: inline-block;
+  position: absolute;
+  right: 7.5%;
+  transform: translateY(-50%);
+  top: 63%;
+  height: 2rem;
+  width: 2rem;
+}
+
+.loginPageContainer__loginComponentContainer__passwordInputContainer__passwordViewTogglerContainer:hover {
+  cursor: pointer;
+}
+
+.loginPageContainer__loginComponentContainer__passwordInputContainer__passwordViewTogglerContainer
+  svg {
+  height: 100%;
+  width: 100%;
+}
+
+.loginPageContainer__loginComponentContainer__submitButton {
+  margin: 1rem 0;
+  background: #2faff8;
+  background-image: linear-gradient(to bottom, #2faff8, #0d96e6);
+  border-radius: 0.5rem;
+  font-family: "Heebo", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.03rem;
+  color: #f0f0f0;
+  font-size: 1.6rem;
+  padding: 1.7rem 0 1.7rem 0;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 1.5rem 3.2rem -1.3rem rgba(30, 30, 60, 0.25);
+  width: 100%;
+}
+
+.loginPageContainer__loginComponentContainer__submitButton:disabled {
+  background-image: linear-gradient(to bottom, grey, grey);
+}
+
+.loginPageContainer__loginComponentContainer__submitButton svg {
+  position: relative;
+  top: 0.3rem;
+  height: 2rem;
+  width: 2.5rem;
+  margin-right: 0.5rem;
+}
+
+.loginPageContainer__loginComponentContainer__forgotPasswordLinkContainer {
+  margin: 2rem auto;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.loginPageContainer__loginComponentContainer__forgotPasswordLinkContainer a {
+  font-family: "Source Sans Pro", sans-serif;
+  font-size: 1.8rem;
+}
+
+.loginPageContainer__loginComponentContainer__signupLinkContainer {
+  margin: 2rem auto;
+  font-family: "Heebo", sans-serif;
+  font-size: 1.6rem;
+}
+
+.loginPageContainer__loginComponentContainer__signupLinkContainer a {
+  font-family: "Source Sans Pro", sans-serif;
+  font-size: 1.8rem;
+}
 /*# sourceMappingURL=main.css.map */
