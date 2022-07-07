@@ -3,17 +3,11 @@
  * Handles forgot password for the user
  */
 import React from "react";
-import {
-  Pane,
-  Heading,
-  Button,
-  Paragraph,
-  Link,
-  TextInputField
-} from "evergreen-ui";
+import { Link } from "react-router-dom";
 import { forgotPasswordEmailStart } from "./actions";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
+import logo from "../../../public/img/logo.png";
 
 export class ForgotPasswordPage extends React.Component {
   constructor(props, context) {
@@ -54,58 +48,50 @@ export class ForgotPasswordPage extends React.Component {
 
   render() {
     return (
-      <Pane marginY={100} data-test="forgotPasswordPageComponent">
-        <Pane
-          justifyContent="center"
-          width="35%"
-          elevation={1}
-          margin="auto"
-          padding={5}
-        >
-          <Heading
-            size={700}
-            textAlign="center"
-            marginBottom={20}
-            paddingTop={20}
-          >
+      <div
+        className="forgotPasswordPageContainer"
+        data-test="forgotPasswordPageComponent"
+      >
+        <div className="forgotPasswordPageContainer__forgotPasswordComponentContainer">
+          <div className="forgotPasswordPageContainer__forgotPasswordComponentContainer__brandLogoContainer">
+            <img src={logo} alt="brand-logo" />
+          </div>
+          <h2 className="forgotPasswordPageContainer__forgotPasswordComponentContainer__heading">
             Forgot Password?
-          </Heading>
-          <Paragraph width="60%" marginLeft="20%" marginRight="20%" size={300}>
+          </h2>
+          <p className="forgotPasswordPageContainer__forgotPasswordComponentContainer__info">
             Reset password in 2 quick steps.
-          </Paragraph>
-          <TextInputField
-            label="Enter your Username / Email Address"
-            placeholder="Username / Email"
-            width="60%"
-            marginLeft="20%"
-            name="text-input-email-or-username"
-            marginBottom={20}
-            marginTop={10}
-            value={this.state.emailOrUsername}
-            onChange={e => this.setState({ emailOrUsername: e.target.value })}
-            validationMessage={
-              this.state.emailError ? this.state.emailError : null
-            }
-          />
-          <Button
-            width="40%"
-            marginLeft="30%"
-            marginBottom={10}
-            justifyContent="center"
-            appearance="primary"
+          </p>
+          <div className="forgotPasswordPageContainer__forgotPasswordComponentContainer__userNameEmailInputContainer">
+            <label htmlFor="forgotPasswordInput">
+              Enter your Username / Email Address
+            </label>
+            <input
+              type="text"
+              id="forgotPasswordInput"
+              placeholder="Username / Email"
+              name="text-input-email-or-username"
+              value={this.state.emailOrUsername}
+              onChange={e => this.setState({ emailOrUsername: e.target.value })}
+              onBlur={e => this.handleEmailValidation(e)}
+            />
+          </div>
+          <p className="inputRequiredError">{this.state.emailError}</p>
+
+          <button
+            className="forgotPasswordPageContainer__forgotPasswordComponentContainer__submitButton"
             intent="none"
             onClick={e => this.resetHandler(e)}
             disabled={this.state.emailError ? true : false}
           >
             Reset Password
-          </Button>
-          <Paragraph width="10%" marginLeft="45%" size={300}>
-            <Link href="/login" justifyContent="center">
-              Back
-            </Link>
-          </Paragraph>
-        </Pane>
-      </Pane>
+          </button>
+
+          <div className="forgotPasswordPageContainer__forgotPasswordComponentContainer__goBackLinkContainer">
+            <Link to="/login">Back</Link>
+          </div>
+        </div>
+      </div>
     );
   }
 }
@@ -121,7 +107,4 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-export default connect(
-  null,
-  mapDispatchToProps
-)(ForgotPasswordPage);
+export default connect(null, mapDispatchToProps)(ForgotPasswordPage);

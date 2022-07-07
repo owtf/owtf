@@ -1113,4 +1113,160 @@ body {
   font-family: "Source Sans Pro", sans-serif;
   font-size: 1.8rem;
 }
+
+.forgotPasswordPageContainer {
+  text-align: center;
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer {
+  display: inline-block;
+  min-width: 50rem;
+  margin: 3.2rem auto;
+  padding: 2rem 5rem;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.164);
+  border-radius: 0.9rem;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+}
+
+@media (max-width: 576px) {
+  .forgotPasswordPageContainer__forgotPasswordComponentContainer {
+    min-width: 100%;
+    padding: 2rem 2rem;
+    margin: 1rem auto;
+    border: none;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .forgotPasswordPageContainer__forgotPasswordComponentContainer {
+    padding: 1rem 2rem;
+  }
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__brandLogoContainer
+  img {
+  height: 6rem;
+  width: 6rem;
+  opacity: 0.75;
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__heading {
+  font-size: 2.5rem;
+  font-family: "Source Sans Pro", sans-serif;
+  margin: 2.5rem 0;
+  margin-bottom: 6rem;
+  font-weight: bold;
+  color: #4e4e4e;
+}
+
+@media (max-width: 992px) {
+  .forgotPasswordPageContainer__forgotPasswordComponentContainer__heading {
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .forgotPasswordPageContainer__forgotPasswordComponentContainer__heading {
+    font-size: 2rem;
+    margin-bottom: 4.5rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .forgotPasswordPageContainer__forgotPasswordComponentContainer__heading {
+    margin: 2rem 0;
+    margin-bottom: 4rem;
+    padding: 1rem 1rem;
+  }
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__info {
+  font-size: 1.5rem;
+  color: #4e4e4e;
+  margin: 1rem 0;
+  text-align: left;
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__userNameEmailInputContainer {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin: 2.5rem 0 0.5rem 0;
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__userNameEmailInputContainer
+  label {
+  align-items: flex-start;
+  font-size: 1.7rem;
+  font-family: "Source Sans Pro", sans-serif;
+  color: #4e4e4e;
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__userNameEmailInputContainer
+  input {
+  font-family: "Source Sans Pro", sans-serif;
+  padding: 1.5rem 1rem;
+  margin: 0.6rem 0;
+  font-size: 1.7rem;
+  outline: none;
+  border: 1px solid rgba(0, 0, 0, 0.103);
+  border-radius: 0.5rem;
+}
+
+@media (max-width: 576px) {
+  .forgotPasswordPageContainer__forgotPasswordComponentContainer__userNameEmailInputContainer {
+    margin: 2.5rem 0;
+  }
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__submitButton {
+  margin: 1.5rem 0;
+  background: #2faff8;
+  background-image: linear-gradient(to bottom, #2faff8, #0d96e6);
+  border-radius: 0.5rem;
+  font-family: "Heebo", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.03rem;
+  color: #f0f0f0;
+  font-size: 1.6rem;
+  padding: 1.7rem 0 1.7rem 0;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 1.5rem 3.2rem -1.3rem rgba(30, 30, 60, 0.25);
+  width: 100%;
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__submitButton:disabled {
+  background-image: linear-gradient(to bottom, grey, grey);
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__submitButton
+  svg {
+  position: relative;
+  top: 0.3rem;
+  height: 2rem;
+  width: 2.5rem;
+  margin-right: 0.5rem;
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__goBackLinkContainer {
+  margin: 2rem auto;
+  font-family: "Heebo", sans-serif;
+  font-size: 1.6rem;
+}
+
+.forgotPasswordPageContainer__forgotPasswordComponentContainer__goBackLinkContainer
+  a {
+  font-family: "Source Sans Pro", sans-serif;
+  font-size: 1.8rem;
+}
+
+.inputRequiredError {
+  font-size: 1.4rem;
+  color: red;
+  text-align: left;
+  font-family: "Farro", sans-serif;
+}
 /*# sourceMappingURL=main.css.map */
