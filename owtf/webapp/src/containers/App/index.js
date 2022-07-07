@@ -8,7 +8,6 @@
 
 import React from "react";
 import { Switch, Route, Router, Redirect } from "react-router-dom";
-
 import NavigationBar from "components/NavigationBar";
 import WelcomePage from "containers/WelcomePage/Loadable";
 import Dashboard from "containers/Dashboard/Loadable";
@@ -38,6 +37,7 @@ import {
   makeSelectLoginIsAuthenticated,
   makeSelectLoginUsername
 } from "../LoginPage/selectors";
+import "../../styles/main.css";
 
 export class App extends React.Component {
   constructor(props, context) {
@@ -194,7 +194,4 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(App);
+export default connect(mapStateToProps, mapDispatchToProps)(App);

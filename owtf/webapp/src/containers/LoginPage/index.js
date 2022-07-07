@@ -4,18 +4,14 @@
  */
 
 import React from "react";
-import {
-  Pane,
-  Heading,
-  Button,
-  Link,
-  Paragraph,
-  TextInputField,
-  Icon
-} from "evergreen-ui";
+import { Link } from "react-router-dom";
 import { loginStart } from "./actions";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
+import { AiFillEyeInvisible } from "react-icons/ai";
+import { AiFillEye } from "react-icons/ai";
+
+import logo from "../../../public/img/logo.png";
 
 export class LoginPage extends React.Component {
   constructor(props, context) {
@@ -37,77 +33,66 @@ export class LoginPage extends React.Component {
 
   render() {
     return (
-      <Pane marginY={100} data-test="loginPageComponent">
-        <Pane
-          justifyContent="center"
-          width="35%"
-          elevation={1}
-          margin="auto"
-          padding={5}
-        >
-          <Heading
-            size={700}
-            textAlign="center"
-            marginBottom={20}
-            paddingTop={20}
-          >
-            Login
-          </Heading>
-          <TextInputField
-            label="Your Username / Email Address"
-            placeholder="Username / Email"
-            width="60%"
-            marginLeft="20%"
-            marginBottom={20}
-            value={this.state.emailOrUsername}
-            onChange={e => this.setState({ emailOrUsername: e.target.value })}
-          />
-          <Pane position="relative">
-            <Pane width="10%" marginLeft="75%" position="absolute">
-              <Icon
-                icon={this.state.hidePassword ? "eye-off" : "eye-open"}
-                cursor="pointer"
-                marginX={-10}
-                marginY={32}
-                onMouseDown={e => this.setState({ hidePassword: false })}
-                onMouseUp={e => this.setState({ hidePassword: true })}
-              />
-            </Pane>
-            <TextInputField
-              label="Your Password"
+      <div className="loginPageContainer" data-test="loginPageComponent">
+        <div className="loginPageContainer__loginComponentContainer">
+          <div className="loginPageContainer__loginComponentContainer__brandLogoContainer">
+            <img src={logo} alt="brand-logo" />
+          </div>
+          <h2 className="loginPageContainer__loginComponentContainer__heading">
+            Login with an OWTF Account
+          </h2>
+
+          <div className="loginPageContainer__loginComponentContainer__userNameInputContainer">
+            <label htmlFor="loginPageUserNameInput">
+              Your Username / Email Address
+            </label>
+
+            <input
+              id="loginPageUserNameInput"
+              type="text"
+              placeholder="Username / Email"
+              value={this.state.emailOrUsername}
+              onChange={e => this.setState({ emailOrUsername: e.target.value })}
+            />
+          </div>
+
+          <div className="loginPageContainer__loginComponentContainer__passwordInputContainer">
+            <label htmlFor="loginPagePasswordInput">Your Password</label>
+
+            <input
+              id="loginPagePasswordInput"
               placeholder="Password"
-              width="60%"
-              marginLeft="20%"
-              marginBottom={10}
               value={this.state.password}
               type={this.state.hidePassword ? "password" : "text"}
               onChange={e => this.setState({ password: e.target.value })}
             />
-          </Pane>
-          <Paragraph width="60%" marginLeft="20%" marginBottom={10}>
-            <Link href="/forgot-password/email">Forgot Password?</Link>
-          </Paragraph>
-          <Button
-            width="20%"
-            marginLeft="40%"
-            justifyContent="center"
-            appearance="primary"
+
+            <span
+              className="loginPageContainer__loginComponentContainer__passwordInputContainer__passwordViewTogglerContainer"
+              onMouseDown={e => this.setState({ hidePassword: false })}
+              onMouseUp={e => this.setState({ hidePassword: true })}
+            >
+              {this.state.hidePassword ? <AiFillEyeInvisible /> : <AiFillEye />}
+            </span>
+          </div>
+
+          <div className="loginPageContainer__loginComponentContainer__forgotPasswordLinkContainer">
+            <Link to="/forgot-password/email">Forgot Password?</Link>
+          </div>
+
+          <button
+            className="loginPageContainer__loginComponentContainer__submitButton"
             intent="none"
             onClick={this.onLoginHandler}
           >
             LOGIN
-          </Button>
-          <Paragraph
-            size={300}
-            width="60%"
-            marginLeft="20%"
-            marginTop={10}
-            marginBottom={10}
-          >
-            New to OWTF? <Link href="/signup">Join now</Link>
-          </Paragraph>
-        </Pane>
-      </Pane>
+          </button>
+
+          <div className="loginPageContainer__loginComponentContainer__signupLinkContainer">
+            New to OWTF? <Link to="/signup">Join now</Link>
+          </div>
+        </div>
+      </div>
     );
   }
 }
@@ -123,7 +108,4 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-export default connect(
-  null,
-  mapDispatchToProps
-)(LoginPage);
+export default connect(null, mapDispatchToProps)(LoginPage);

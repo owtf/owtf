@@ -5,20 +5,13 @@
  */
 
 import React from "react";
-import {
-  Pane,
-  Heading,
-  Button,
-  Paragraph,
-  Link,
-  TextInputField,
-  toaster,
-  Icon,
-  Text
-} from "evergreen-ui";
+import { Link } from "react-router-dom";
 import { signupStart } from "./actions";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
+import logo from "../../../public/img/logo.png";
+import { AiFillEyeInvisible } from "react-icons/ai";
+import { AiFillEye } from "react-icons/ai";
 
 export class SignupPage extends React.Component {
   constructor(props, context) {
@@ -118,123 +111,132 @@ export class SignupPage extends React.Component {
 
   render() {
     return (
-      <Pane marginY={60} data-test="signupPageComponent">
-        <Pane
-          justifyContent="center"
-          width="35%"
-          elevation={1}
-          margin="auto"
-          padding={5}
-        >
-          <Heading
-            size={700}
-            textAlign="center"
-            marginBottom={20}
-            paddingTop={20}
-          >
-            Signup
-          </Heading>
-          <TextInputField
-            label="Your OWTF Username"
-            placeholder="Username"
-            width="60%"
-            marginLeft="20%"
-            marginBottom={10}
-            name="text-input-name"
-            value={this.state.username}
-            onChange={e => this.setState({ username: e.target.value })}
-            onBlur={e => this.handleValidation(e)}
-            validationMessage={this.state.errors["username"]}
-          />
-          <TextInputField
-            label="Email Address"
-            placeholder="Email"
-            width="60%"
-            marginLeft="20%"
-            marginBottom={10}
-            name="text-input-email"
-            value={this.state.email}
-            onChange={e => this.setState({ email: e.target.value })}
-            onBlur={e => this.handleValidation(e)}
-            validationMessage={this.state.errors["email"]}
-          />
-          <Pane position="relative">
-            <Pane width="10%" marginLeft="75%" position="absolute">
-              <Icon
-                icon={this.state.hidePassword ? "eye-off" : "eye-open"}
-                cursor="pointer"
-                marginX={-10}
-                marginY={32}
+      <>
+        <div className="signupPageContainer" data-test="signupPageComponent">
+          <div className="signupPageContainer__signupComponentContainer">
+            <div className="signupPageContainer__signupComponentContainer__brandLogoContainer">
+              <img src={logo} alt="brand-logo" />
+            </div>
+            <h2 className="signupPageContainer__signupComponentContainer__heading">
+              Create an OWTF Account
+            </h2>
+
+            <div className="signupPageContainer__signupComponentContainer__userNameInputContainer">
+              <label htmlFor="signupPageUsernameInput">
+                Your OWTF Username
+              </label>
+
+              <input
+                id="signupPageUsernameInput"
+                type="text"
+                placeholder="Username"
+                name="text-input-name"
+                value={this.state.username}
+                onChange={e => this.setState({ username: e.target.value })}
+                onBlur={e => this.handleValidation(e)}
+              />
+            </div>
+            <p className="inputRequiredError">
+              {this.state.errors["username"]}
+            </p>
+
+            <div className="signupPageContainer__signupComponentContainer__emailInputContainer">
+              <label htmlFor="signupPageEmailInput">Email</label>
+
+              <input
+                id="signupEmailInput"
+                type="email"
+                placeholder="Email"
+                name="text-input-email"
+                value={this.state.email}
+                onChange={e => this.setState({ email: e.target.value })}
+                onBlur={e => this.handleValidation(e)}
+              />
+            </div>
+            <p className="inputRequiredError">{this.state.errors["email"]}</p>
+
+            <div className="signupPageContainer__signupComponentContainer__setPasswordInputContainer">
+              <label htmlFor="signupPageSetPasswordInput">
+                Choose a Password
+              </label>
+
+              <input
+                id="signupPageSetPasswordInput"
+                placeholder="Password"
+                name="text-input-password"
+                value={this.state.password}
+                type={this.state.hidePassword ? "password" : "text"}
+                onChange={e => this.setState({ password: e.target.value })}
+                onBlur={e => this.handleValidation(e)}
+              />
+              <span
+                className="signupPageContainer__signupComponentContainer__setPasswordInputContainer__passwordViewTogglerContainer"
                 onMouseDown={e => this.setState({ hidePassword: false })}
                 onMouseUp={e => this.setState({ hidePassword: true })}
+              >
+                {this.state.hidePassword ? (
+                  <AiFillEyeInvisible />
+                ) : (
+                  <AiFillEye />
+                )}
+              </span>
+            </div>
+            <p className="inputRequiredError">
+              {this.state.errors["password"]}
+            </p>
+
+            <div className="signupPageContainer__signupComponentContainer__confirmPasswordInputContainer">
+              <label htmlFor="signupPageConfirmPasswordInput">
+                Confirm Password
+              </label>
+
+              <input
+                id="signupPageConfirmPasswordInput"
+                placeholder="Confirm Password"
+                name="text-input-confirm-password"
+                value={this.state.confirmPassword}
+                type={this.state.hideConfirmPassword ? "password" : "text"}
+                onChange={e =>
+                  this.setState({ confirmPassword: e.target.value })
+                }
+                onBlur={e => this.handleValidation(e)}
               />
-            </Pane>
-            <TextInputField
-              label="Choose a Password"
-              hint="Must have capital, small, number & special chars"
-              placeholder="Password"
-              width="60%"
-              marginLeft="20%"
-              name="text-input-password"
-              value={this.state.password}
-              type={this.state.hidePassword ? "password" : "text"}
-              onChange={e => this.setState({ password: e.target.value })}
-              onBlur={e => this.handleValidation(e)}
-              validationMessage={this.state.errors["password"]}
-              marginBottom={5}
-            />
-          </Pane>
-          <Pane position="relative" paddingTop={0} marginTop={0}>
-            <Pane width="10%" marginLeft="75%" position="absolute">
-              <Icon
-                icon={this.state.hideConfirmPassword ? "eye-off" : "eye-open"}
-                cursor="pointer"
-                marginX={-10}
-                marginY={32}
+              <span
+                className="signupPageContainer__signupComponentContainer__confirmPasswordInputContainer__passwordViewTogglerContainer"
                 onMouseDown={e => this.setState({ hideConfirmPassword: false })}
                 onMouseUp={e => this.setState({ hideConfirmPassword: true })}
-              />
-            </Pane>
-            <TextInputField
-              label="Confirm Password"
-              placeholder="Confirm Password"
-              width="60%"
-              marginLeft="20%"
-              name="text-input-confirm-password"
-              value={this.state.confirmPassword}
-              type={this.state.hideConfirmPassword ? "password" : "text"}
-              onChange={e => this.setState({ confirmPassword: e.target.value })}
-              onBlur={e => this.handleValidation(e)}
-              validationMessage={this.state.errors["confirmPassword"]}
-            />
-          </Pane>
-          <Button
-            width="20%"
-            marginLeft="40%"
-            justifyContent="center"
-            appearance="primary"
-            intent="none"
-            onClick={this.onSignupHandler}
-            disabled={
-              Object.keys(this.state.errors).length === 0 &&
-              this.state.errors.constructor === Object
-                ? false
-                : true
-            }
-          >
-            SIGNUP
-          </Button>
-          <Paragraph
-            size={300}
-            width="60%"
-            marginLeft="20%"
-            marginTop={10}
-            marginBottom={10}
-          >
-            Already have an account? <Link href="/login">Login</Link>
-          </Paragraph>
-        </Pane>
-      </Pane>
+              >
+                {this.state.hideConfirmPassword ? (
+                  <AiFillEyeInvisible />
+                ) : (
+                  <AiFillEye />
+                )}
+              </span>
+            </div>
+            <p className="inputRequiredError">
+              {this.state.errors["confirmPassword"]}
+            </p>
+
+            <button
+              className="signupPageContainer__signupComponentContainer__submitButton"
+              intent="none"
+              onClick={this.onSignupHandler}
+              disabled={
+                Object.keys(this.state.errors).length === 0 &&
+                this.state.errors.constructor === Object
+                  ? false
+                  : true
+              }
+            >
+              SIGNUP
+            </button>
+
+            <div className="signupPageContainer__signupComponentContainer__loginLinkContainer">
+              Already have an account? <Link to="/login">Login</Link>
+            </div>
+          </div>
+        </div>
+      </>
     );
   }
 }
@@ -250,7 +252,4 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-export default connect(
-  null,
-  mapDispatchToProps
-)(SignupPage);
+export default connect(null, mapDispatchToProps)(SignupPage);
