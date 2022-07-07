@@ -47,13 +47,13 @@ describe("ForgotPasswordPage component", () => {
         emailOrUsername: "",
         emailError: ""
       });
-      const pane = wrapper.find("withTheme(Pane)");
-      const heading = wrapper.find("withTheme(Heading)");
-      const textInputField = wrapper.find("TextInputField");
-      const paragraph = wrapper.find("withTheme(Paragraph)");
-      const button = wrapper.find("withTheme(Button)");
+      const div = wrapper.find("div");
+      const heading = wrapper.find("h2");
+      const textInputField = wrapper.find("input");
+      const paragraph = wrapper.find("p");
+      const button = wrapper.find("button");
 
-      expect(pane.length).toBe(2);
+      expect(div.length).toBe(5);
       expect(heading.length).toBe(1);
       expect(heading.at(0).props().children).toEqual("Forgot Password?");
       expect(textInputField.length).toBe(1);
@@ -61,7 +61,7 @@ describe("ForgotPasswordPage component", () => {
       expect(paragraph.at(0).props().children).toEqual(
         "Reset password in 2 quick steps."
       );
-      expect(paragraph.at(1).props().children.props.children).toEqual("Back");
+      expect(div.at(4).props().children.props.children).toEqual("Back");
       expect(button.length).toBe(1);
       expect(button.at(0).props().children).toEqual("Reset Password");
       expect(button.at(0).props().disabled).toEqual(false);
@@ -69,7 +69,7 @@ describe("ForgotPasswordPage component", () => {
 
     it("Should update state on TextInputField change event", () => {
       const emailOrUsername = "test_user@test.com";
-      const textInputField = wrapper.find("TextInputField").at(0);
+      const textInputField = wrapper.find("input").at(0);
       const event = {
         preventDefault() {},
         target: { value: emailOrUsername, name: "text-input-email-or-username" }
@@ -81,7 +81,7 @@ describe("ForgotPasswordPage component", () => {
 
     it("Should call onReset on reset password button click", () => {
       expect(props.onReset.mock.calls.length).toBe(0);
-      const resetPasswordButton = wrapper.find("withTheme(Button)");
+      const resetPasswordButton = wrapper.find("button");
       resetPasswordButton.simulate("click");
       expect(props.onReset.mock.calls.length).toBe(1);
     });
