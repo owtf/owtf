@@ -1438,4 +1438,227 @@ body {
     justify-content: space-between;
   }
 }
+
+.resetPasswordPageContainer {
+  text-align: center;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer {
+  display: inline-block;
+  min-width: 50rem;
+  margin: 3rem auto;
+  padding: 2rem 5rem;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.164);
+  border-radius: 0.9rem;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+}
+
+@media (max-width: 576px) {
+  .resetPasswordPageContainer__resetPasswordComponentContainer {
+    min-width: 100%;
+    padding: 2rem 2rem;
+    margin: 1rem auto;
+    border: none;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .resetPasswordPageContainer__resetPasswordComponentContainer {
+    padding: 1rem 2rem;
+  }
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__brandLogoContainer
+  img {
+  height: 6rem;
+  width: 6rem;
+  opacity: 0.75;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__heading {
+  font-size: 2.5rem;
+  font-family: "Source Sans Pro", sans-serif;
+  margin: 2.5rem 0;
+  margin-bottom: 6rem;
+  font-weight: bold;
+  color: #4e4e4e;
+}
+
+@media (max-width: 992px) {
+  .resetPasswordPageContainer__resetPasswordComponentContainer__heading {
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .resetPasswordPageContainer__resetPasswordComponentContainer__heading {
+    font-size: 2rem;
+    margin-bottom: 3.5rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .resetPasswordPageContainer__resetPasswordComponentContainer__heading {
+    margin: 2rem 0;
+    margin-bottom: 2.5rem;
+    padding: 1rem 1rem;
+  }
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__info {
+  font-size: 1.5rem;
+  color: #4e4e4e;
+  margin: 1rem 0;
+  text-align: left;
+}
+
+@media (max-width: 360px) {
+  .resetPasswordPageContainer__resetPasswordComponentContainer__info {
+    text-align: center;
+  }
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__setPasswordInputContainer {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin: 2.5rem 0 0.5rem 0;
+  position: relative;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__setPasswordInputContainer
+  label {
+  align-items: flex-start;
+  font-size: 1.7rem;
+  font-family: "Source Sans Pro", sans-serif;
+  color: #4e4e4e;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__setPasswordInputContainer
+  input {
+  font-family: "Source Sans Pro", sans-serif;
+  padding: 1.5rem 1rem;
+  margin: 0.6rem 0;
+  font-size: 1.7rem;
+  outline: none;
+  border: 1px solid rgba(0, 0, 0, 0.103);
+  border-radius: 0.5rem;
+}
+
+@media (max-width: 576px) {
+  .resetPasswordPageContainer__resetPasswordComponentContainer__setPasswordInputContainer {
+    margin: 2.5rem 0;
+  }
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__setPasswordInputContainer__passwordViewTogglerContainer {
+  display: inline-block;
+  position: absolute;
+  right: 7.5%;
+  transform: translateY(-50%);
+  top: 63%;
+  height: 2rem;
+  width: 2rem;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__setPasswordInputContainer__passwordViewTogglerContainer:hover {
+  cursor: pointer;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__setPasswordInputContainer__passwordViewTogglerContainer
+  svg {
+  height: 100%;
+  width: 100%;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__setPasswordInputContainer
+  p {
+  font-size: 1.4rem;
+  color: #4e4e4e;
+  margin-top: 0.5rem;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__confirmPasswordInputContainer {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin: 2.5rem 0 0.5rem 0;
+  position: relative;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__confirmPasswordInputContainer
+  label {
+  align-items: flex-start;
+  font-size: 1.7rem;
+  font-family: "Source Sans Pro", sans-serif;
+  color: #4e4e4e;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__confirmPasswordInputContainer
+  input {
+  font-family: "Source Sans Pro", sans-serif;
+  padding: 1.5rem 1rem;
+  margin: 0.6rem 0;
+  font-size: 1.7rem;
+  outline: none;
+  border: 1px solid rgba(0, 0, 0, 0.103);
+  border-radius: 0.5rem;
+}
+
+@media (max-width: 576px) {
+  .resetPasswordPageContainer__resetPasswordComponentContainer__confirmPasswordInputContainer {
+    margin: 2.5rem 0;
+  }
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__confirmPasswordInputContainer__passwordViewTogglerContainer {
+  display: inline-block;
+  position: absolute;
+  right: 7.5%;
+  transform: translateY(-50%);
+  top: 63%;
+  height: 2rem;
+  width: 2rem;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__confirmPasswordInputContainer__passwordViewTogglerContainer:hover {
+  cursor: pointer;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__confirmPasswordInputContainer__passwordViewTogglerContainer
+  svg {
+  height: 100%;
+  width: 100%;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__submitButton {
+  margin: 1.5rem 0;
+  background: #2faff8;
+  background-image: linear-gradient(to bottom, #2faff8, #0d96e6);
+  border-radius: 0.5rem;
+  font-family: "Heebo", sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.03rem;
+  color: #f0f0f0;
+  font-size: 1.6rem;
+  padding: 1.7rem 0 1.7rem 0;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 1.5rem 3.2rem -1.3rem rgba(30, 30, 60, 0.25);
+  width: 100%;
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__submitButton:disabled {
+  background-image: linear-gradient(to bottom, grey, grey);
+}
+
+.resetPasswordPageContainer__resetPasswordComponentContainer__submitButton svg {
+  position: relative;
+  top: 0.3rem;
+  height: 2rem;
+  width: 2.5rem;
+  margin-right: 0.5rem;
+}
 /*# sourceMappingURL=main.css.map */
