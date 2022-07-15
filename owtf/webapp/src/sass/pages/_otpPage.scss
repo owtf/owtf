@@ -1,0 +1,152 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+@mixin inputContainerMixin {
+  @include flexbox;
+  @include flex-direction(column);
+  text-align: left;
+  margin: 2.5rem 0 0.5rem 0;
+
+  & label {
+    align-items: flex-start;
+    font-size: 1.7rem;
+    font-family: $font-family-5;
+    color: $dark-heading-1;
+  }
+
+  & input {
+    font-family: $font-family-5;
+    padding: 1.5rem 1rem;
+    margin: 0.6rem 0;
+    font-size: 1.7rem;
+    outline: none;
+    border: 1px solid rgba(0, 0, 0, 0.103);
+    border-radius: 0.5rem;
+  }
+
+  @include sm {
+    margin: 2.5rem 0;
+  }
+}
+
+@mixin containerMixin {
+  display: inline-block;
+  min-width: 50rem;
+  margin: 3.2rem auto;
+  padding: 2rem 5rem;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.164);
+  border-radius: 0.9rem;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+
+  @include sm {
+    min-width: 100%;
+    padding: 2rem 2rem;
+    margin: 1rem auto;
+    border: none;
+    box-shadow: none;
+  }
+
+  @include xs {
+    padding: 1rem 2rem;
+  }
+}
+
+@mixin headingMixin {
+  font-size: 2.5rem;
+  font-family: $font-family-5;
+  margin: 2.5rem 0 1.5rem 0;
+  margin-bottom: 6rem;
+  font-weight: bold;
+  color: $dark-heading-1;
+
+  @include lg {
+    font-size: 2.2rem;
+  }
+
+  @include sm {
+    font-size: 2rem;
+    margin-bottom: 3.5rem;
+  }
+  @include xs {
+    margin: 2rem 0;
+    margin-bottom: 2.5rem;
+    padding: 1rem 1rem;
+  }
+}
+
+.otpPageContainer {
+  text-align: center;
+
+  &__otpComponentContainer {
+    @include containerMixin;
+
+    &__brandLogoContainer {
+      & img {
+        height: 6rem;
+        width: 6rem;
+        opacity: 0.75;
+      }
+    }
+
+    &__heading {
+      @include headingMixin;
+    }
+    &__info {
+      font-size: 1.5rem;
+      color: $dark-heading-1;
+      margin: 1rem 0;
+      text-align: left;
+
+      @include xs {
+        text-align: center;
+      }
+    }
+
+    &__otpInputContainer {
+      @include inputContainerMixin;
+    }
+
+    &__submitButton {
+      @include buttonMixinCustom(
+        $button-backgroundColor-2,
+        $button-backgroundColor-3,
+        1.6rem,
+        100%,
+        1.7rem,
+        1.7rem,
+        0,
+        0,
+        0.5rem,
+        1.5rem,
+        0
+      );
+    }
+
+    &__linksContainer {
+      @include flexbox;
+      @include justify-content(space-between);
+
+      & p {
+        margin: 2rem 0;
+        font-family: $font-family-3;
+        font-size: 1.6rem;
+
+        @include xs {
+          margin: 1rem 0;
+        }
+
+        & a {
+          font-family: $font-family-5;
+          font-size: 1.8rem;
+          text-decoration: underline;
+        }
+      }
+
+      @include xs {
+        @include flex-direction(column);
+        @include justify-content(space-between);
+      }
+    }
+  }
+}

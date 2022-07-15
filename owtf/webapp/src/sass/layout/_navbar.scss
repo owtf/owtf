@@ -1,0 +1,292 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+//navigation bar styles
+
+@mixin navbarTextMixin {
+  font-family: $font-family-3;
+  font-size: 1.8rem;
+  display: inline-block;
+  text-decoration: none;
+  color: $navbar-color-light;
+  text-align: center;
+  cursor: pointer;
+  padding: 2rem 1.2rem;
+  font-weight: 400;
+  margin: 0 0.3rem;
+
+  @include xl {
+    font-size: 1.4rem;
+  }
+
+  @include lg {
+    padding: 2rem 0.3rem;
+    font-size: 1.3rem;
+  }
+
+  @include md {
+    padding: 1.8rem 1.9rem;
+    font-size: 1.9rem;
+  }
+}
+
+.navigationBar {
+  @include flexbox;
+  @include justify-content(space-between);
+  @include align-self(center);
+  background-color: $navbar-background-color;
+  z-index: 10;
+  box-shadow: 0px 15px 25px -4px rgba(24, 24, 48, 0.25);
+  padding: 0 5rem;
+  position: relative;
+  min-height: 6.6rem;
+
+  &__brandContainer {
+    @include flexbox;
+    @include flex-direction(row);
+    @include align-self(center);
+
+    & img {
+      max-width: 4rem;
+      max-height: 4rem;
+      margin-left: 1rem;
+      opacity: 0.8;
+      position: relative;
+      top: 0.4rem;
+
+      @include xl {
+        max-width: 3rem;
+        max-height: 3rem;
+        top: 0.3rem;
+        margin-left: 0.4rem;
+      }
+    }
+
+    &__link {
+      font-family: $font-family-6;
+      color: $navbar-brand-color;
+      font-size: 3.2rem;
+      font-weight: bold;
+      padding-top: 0.3rem;
+      letter-spacing: 0.1rem;
+
+      &:link,
+      &:hover,
+      &:active,
+      &:visited {
+        color: $navbar-brand-color;
+        text-decoration: none;
+      }
+
+      @include xl {
+        font-size: 2.3rem;
+      }
+    }
+  }
+
+  &__navLinksContainer {
+    @include flexbox;
+    @include justify-content(space-around);
+    position: relative;
+
+    &__linksContainer {
+      @include flexbox;
+      @include flex-direction(row);
+      @include justify-content(center);
+      text-align: center;
+      align-items: center;
+
+      &__link {
+        width: 100%;
+        @include navbarTextMixin;
+
+        &:hover,
+        &:focus,
+        &:active,
+        &:visited {
+          text-decoration: none !important;
+          background-color: $hover-background-2;
+          color: $navbar-color-light;
+        }
+
+        @include md {
+          text-align: left;
+        }
+      }
+
+      &__linkDropDownContainer {
+        margin: 0 1rem;
+        position: relative;
+
+        &__linkText {
+          @include flexbox;
+          @include justify-content(space-between);
+          color: $navbar-color-light;
+          font-size: 1.7rem;
+          align-items: center;
+          padding: 0.5rem 0.5rem;
+          cursor: pointer;
+
+          & span {
+            margin-left: 0.5rem;
+            position: relative;
+            top: 0.4rem;
+          }
+
+          & p {
+            @include navbarTextMixin;
+            margin-bottom: 0;
+            padding: 2rem 0.7rem;
+
+            @include md {
+              padding: 2rem 0.3rem;
+            }
+          }
+
+          @include md {
+            padding: 0 1.5rem;
+          }
+        }
+
+        &__droppedLinksContainer {
+          position: absolute;
+          width: 100%;
+          background-color: white;
+          box-shadow: 0px 15px 25px -4px rgba(30, 30, 60, 0.39);
+          border: 1px solid rgba(0, 0, 0, 0.148);
+          border-radius: 0 0 0.6rem 0.6rem;
+          overflow: hidden;
+          z-index: 9;
+
+          &__link a {
+            color: $navbar-color-dark;
+            font-size: 1.7rem;
+            padding: 1rem 0;
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+
+            @include md {
+              text-align: left;
+              padding: 1rem 2.2rem;
+            }
+
+            &:hover {
+              color: $navbar-color-dark;
+              text-decoration: none;
+              background-color: $hover-dark;
+            }
+
+            @include xl {
+              font-size: 1.2rem;
+            }
+
+            @include md {
+              color: $navbar-color-light;
+              background-color: transparent;
+              font-size: 1.6rem;
+            }
+          }
+
+          @include md {
+            background-color: transparent;
+          }
+        }
+
+        @include lg {
+          margin: 0 0.45rem;
+        }
+
+        @include md {
+          margin: 0;
+        }
+      }
+
+      @include md {
+        @include flex-direction(column);
+        @include justify-content(flex-start);
+        align-items: flex-start;
+      }
+    }
+
+    &__closeButton {
+      position: absolute;
+      top: 1.6rem;
+      right: 2.7rem;
+      height: 4rem;
+      width: 4rem;
+      display: none;
+      transition: all 0.3s ease-in;
+
+      & svg {
+        height: 100%;
+        width: 100%;
+        color: $navbar-color-light;
+      }
+
+      &:hover {
+        cursor: pointer;
+      }
+
+      @include md {
+        display: block;
+      }
+    }
+
+    @include xl {
+      margin: 0 1rem;
+    }
+
+    @include md {
+      position: fixed;
+      width: 100vw;
+      height: 100vh;
+      background-color: $navbar-background-color;
+      top: 0;
+      left: 0;
+      margin: 0;
+      padding: 2rem 4rem;
+      padding-top: 7rem;
+      transform: translateX(-100%);
+      transition: all 0.5s ease-in;
+    }
+
+    @include md {
+      @include justify-content(flex-start);
+    }
+  }
+
+  &__menuButton {
+    height: 3.5rem;
+    width: 3.5rem;
+    margin-top: 1.5rem;
+    display: none;
+    transition: all 0.3s ease-in;
+
+    & svg {
+      height: 100%;
+      width: 100%;
+      color: $navbar-color-light;
+    }
+
+    &:hover {
+      cursor: pointer;
+    }
+
+    @include md {
+      display: block;
+    }
+  }
+
+  @include xl {
+    padding: 0 2.5rem;
+  }
+
+  @include md {
+    padding: 0 2rem;
+  }
+}
+
+.navMenuSlideIn {
+  transform: translateX(0);
+}

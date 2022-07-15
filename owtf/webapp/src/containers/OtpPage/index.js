@@ -4,20 +4,14 @@
  */
 
 import React from "react";
-import {
-  Pane,
-  Heading,
-  Button,
-  Paragraph,
-  Link,
-  TextInputField
-} from "evergreen-ui";
+import { Link } from "react-router-dom";
 import { otpStart } from "./actions";
 import { connect } from "react-redux";
 import { forgotPasswordEmailStart } from "../ForgotPasswordPage/actions";
 import PropTypes from "prop-types";
 import { createStructuredSelector } from "reselect";
 import { makeSelectForgotEmail } from "../ForgotPasswordPage/selectors";
+import logo from "../../../public/img/logo.png";
 
 export class OtpPage extends React.Component {
   constructor(props, context) {
@@ -68,62 +62,60 @@ export class OtpPage extends React.Component {
 
   render() {
     return (
-      <Pane marginY={100} data-test="otpPageComponent">
-        <Pane
-          justifyContent="center"
-          width="35%"
-          elevation={1}
-          margin="auto"
-          padding={5}
-        >
-          <Heading
-            size={700}
-            textAlign="center"
-            marginBottom={20}
-            paddingTop={20}
-          >
+      <div className="otpPageContainer" data-test="otpPageComponent">
+        <div className="otpPageContainer__otpComponentContainer">
+          <div className="otpPageContainer__otpComponentContainer__brandLogoContainer">
+            <img src={logo} alt="brand-logo" />
+          </div>
+
+          <h2 className="otpPageContainer__otpComponentContainer__heading">
             We sent a code
-          </Heading>
-          <Paragraph size={300} width="60%" marginLeft="20%" marginTop={20}>
+          </h2>
+
+          <p className="otpPageContainer__otpComponentContainer__info">
             Enter the 6-digit verification code sent to your email.
-          </Paragraph>
-          <Paragraph size={300} width="60%" marginLeft="20%" marginTop={10}>
-            <Link href="/forgot-password/email/">Change Username / Email</Link>
-          </Paragraph>
-          <TextInputField
-            label="Enter the OTP received"
-            placeholder="6 digit code"
-            width="60%"
-            marginLeft="20%"
-            marginTop={10}
-            marginBottom={10}
-            name="text-input-otp"
-            value={this.state.otp}
-            onBlur={e => this.handleOtpValidation(e)}
-            onChange={e => this.setState({ otp: e.target.value })}
-            validationMessage={this.state.otpError ? this.state.otpError : null}
-          />
-          <Paragraph size={300} width="60%" marginLeft="20%">
-            <Link onClick={this.resendHandler}>Resend Code</Link>
-          </Paragraph>
-          <Button
-            width="20%"
-            marginLeft="40%"
-            marginBottom={10}
-            marginTop={10}
-            justifyContent="center"
-            appearance="primary"
-            intent="none"
+          </p>
+
+          <div className="otpPageContainer__otpComponentContainer__otpInputContainer">
+            <label htmlFor="otpPageInput">Enter the OTP received</label>
+            <input
+              type="text"
+              placeholder="6 digit code"
+              name="text-input-otp"
+              value={this.state.otp}
+              onBlur={e => this.handleOtpValidation(e)}
+              onChange={e => this.setState({ otp: e.target.value })}
+              validationMessage={
+                this.state.otpError ? this.state.otpError : null
+              }
+            />
+          </div>
+          <p className="inputRequiredError">{this.state.otpError}</p>
+
+          <button
+            className="otpPageContainer__otpComponentContainer__submitButton"
             onClick={this.submitHandler}
             disabled={this.state.otpError ? true : false}
           >
             Submit
-          </Button>
-          <Paragraph size={300} width="60%" marginLeft="20%" marginBottom={20}>
+          </button>
+
+          <div className="otpPageContainer__otpComponentContainer__linksContainer">
+            <p>
+              <Link to="#" onClick={this.resendHandler}>
+                Resend Code
+              </Link>
+            </p>
+            <p>
+              <Link to="/forgot-password/email/">Change Username / Email</Link>
+            </p>
+          </div>
+
+          <p className="otpPageContainer__otpComponentContainer__info">
             If you don't find it in your inbox, check spam folder.
-          </Paragraph>
-        </Pane>
-      </Pane>
+          </p>
+        </div>
+      </div>
     );
   }
 }
@@ -147,7 +139,4 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(OtpPage);
+export default connect(mapStateToProps, mapDispatchToProps)(OtpPage);
