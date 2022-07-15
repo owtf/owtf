@@ -1,0 +1,23 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+.activeNavLink {
+  text-decoration: none !important;
+  background-color: $hover-background-2;
+  color: $navbar-color-light !important;
+}
+
+.errorContainer {
+  @include errorContainerMixin;
+}
+
+.selectedTab {
+  background-color: rgba(0, 0, 0, 0.158);
+}
+
+.inputRequiredError {
+  font-size: 1.4rem;
+  color: $warning-red;
+  text-align: left;
+  font-family: $font-family-2;
+}
