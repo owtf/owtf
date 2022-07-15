@@ -10,6 +10,10 @@
 @import "./layout/layout.scss";
 @import "./layout/navbar.scss";
 
+//components imports
+@import "./components/configurationTabsContent";
+@import "./components/configurationTabsNav";
+
 //pages imports
 @import "./pages/welcomePage";
 @import "./pages/login";
@@ -17,3 +21,5 @@
 @import "./pages/forgotPassword";
 @import "./pages/otpPage";
 @import "./pages/newPassword";
+@import "./pages/setttingsPage";
+@import "./pages/helpPage";
