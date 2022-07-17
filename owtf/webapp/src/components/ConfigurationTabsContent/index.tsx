@@ -5,12 +5,15 @@ import React from 'react';
 import { Pane, TextInputField } from 'evergreen-ui';
 import PropTypes from 'prop-types';
 
+interface IConfigurationTabsContentProps{
+  configurations: {[section: string]: object[]};
+  handleConfigurationChange: React.ChangeEventHandler<HTMLInputElement> | undefined;
+  selectedIndex: number;
+}
 
-export default class ConfigurationTabsContent extends React.Component {
-  render() {
-    const { configurations, handleConfigurationChange, selectedIndex } = this.props;
-
-    return Object.keys(configurations).map((section, key) => (
+export default function ConfigurationTabsContent ({ configurations, handleConfigurationChange, selectedIndex }: IConfigurationTabsContentProps) {
+  return (
+    Object.keys(configurations).map((section: any, key: any) => (
       <Pane
         key={key}
         id={`panel-${key}`}
@@ -19,7 +22,7 @@ export default class ConfigurationTabsContent extends React.Component {
         aria-hidden={key !== selectedIndex}
         display={key === selectedIndex ? 'block' : 'none'}
       >
-        {configurations[section].map((config, index) => (
+        {configurations[section].map((config: any, index: any) => (
           <TextInputField
             key={index}
             name={config.key}
@@ -30,8 +33,8 @@ export default class ConfigurationTabsContent extends React.Component {
           />
         ))}
       </Pane>
-    ));
-  }
+    ))
+  )
 }
 
 ConfigurationTabsContent.propTypes = {
