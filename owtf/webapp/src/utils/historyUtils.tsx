@@ -3,8 +3,8 @@
  * This file returns a history object which can be used by both routers and sagas.
  */
 
-import { createBrowserHistory } from "history";
+ import { createBrowserHistory, History } from 'history';
 
-const history = createBrowserHistory();
+const history: History = createBrowserHistory();
 
 export default history;

@@ -6,9 +6,9 @@
  * Example usage importDirectory(require.context('<directory>', true, /\.(js|jsx|jpg)$/));
  */
 
-export function importDirectory(r) {
-  let elem = {};
-  r.keys().map((item, index) => {
+export const importDirectory: object = (r: __WebpackModuleApi.RequireContext) => {
+  let elem: any = {};
+  r.keys().forEach((item: string) => {
     elem[item.replace("./", "")] = r(item);
   });
   return elem;
