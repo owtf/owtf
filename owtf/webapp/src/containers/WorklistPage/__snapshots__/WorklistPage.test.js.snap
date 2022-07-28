@@ -25,7 +25,16 @@ exports[`Worklist Page component Testing WorklistTable component Should render w
     </TextTableHeaderCell>
     <SearchTableHeaderCell
       flex="none"
-      icon="search"
+      icon={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "compare": null,
+          "type": Object {
+            "$$typeof": Symbol(react.forward_ref),
+            "render": [Function],
+          },
+        }
+      }
       onChange={[Function]}
       placeholder="Target"
       spellCheck={true}
@@ -34,7 +43,16 @@ exports[`Worklist Page component Testing WorklistTable component Should render w
     />
     <SearchTableHeaderCell
       flex="none"
-      icon="search"
+      icon={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "compare": null,
+          "type": Object {
+            "$$typeof": Symbol(react.forward_ref),
+            "render": [Function],
+          },
+        }
+      }
       onChange={[Function]}
       placeholder="Plugin Group"
       spellCheck={true}
@@ -43,7 +61,16 @@ exports[`Worklist Page component Testing WorklistTable component Should render w
     />
     <SearchTableHeaderCell
       flex="none"
-      icon="search"
+      icon={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "compare": null,
+          "type": Object {
+            "$$typeof": Symbol(react.forward_ref),
+            "render": [Function],
+          },
+        }
+      }
       onChange={[Function]}
       placeholder="Plugin Type"
       spellCheck={true}
@@ -52,7 +79,16 @@ exports[`Worklist Page component Testing WorklistTable component Should render w
     />
     <SearchTableHeaderCell
       flex="none"
-      icon="search"
+      icon={
+        Object {
+          "$$typeof": Symbol(react.memo),
+          "compare": null,
+          "type": Object {
+            "$$typeof": Symbol(react.forward_ref),
+            "render": [Function],
+          },
+        }
+      }
       onChange={[Function]}
       placeholder="Plugin Name"
       spellCheck={true}
