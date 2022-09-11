@@ -43,7 +43,7 @@ module.exports = {
   ],
   resolve: {
     modules: ["src", "node_modules"],
-    extensions: [".js", ".jsx"]
+    extensions: [".js", ".jsx", ".tx", ".tsx"]
   },
   module: {
     rules: [
@@ -51,7 +51,13 @@ module.exports = {
         test: /\.js$/, // Transform all .js files required somewhere with Babel
         exclude: /node_modules/,
         use: {
-          loader: "babel-loader"
+          loader: "babel-loader",
+          options: {
+            presets: [
+              "@babel/preset-env",
+              "@babel/preset-react",
+            ]
+          }
         }
       },
       {
@@ -110,7 +116,17 @@ module.exports = {
             limit: 10000
           }
         }
-      }
+      },
+      {
+        test: /\.ts$/, // Transform all .js files required somewhere with Babel
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ["@babel/preset-typescript"]
+          }
+        }
+      },
     ]
   }
 };

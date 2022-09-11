@@ -121,7 +121,7 @@ export function NavMenu({ links, menuToggle }: INavMenuProps) {
   });
   return (
     <div className="navigationBar__navLinksContainer__linksContainer">
-      <>{links}</>
+      <>{linkss}</>
     </div>
   );
 }

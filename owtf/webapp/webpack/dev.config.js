@@ -38,6 +38,19 @@ const develop = {
       failOnError: false, // show a warning when there is a circular dependency
     }),
   ],
+  
+  module: {
+    rules: [
+    {
+       test: /\.(js|jsx|tsx|ts)$/,
+       exclude: /node_modules/,
+       loader: 'babel-loader'
+      }
+    ]
+  },
+  resolve: {
+    extensions: ['*', '.js', '.jsx', '.tsx', '.ts'],
+  },
 
   // Emit a source map for easier debugging
   // See https://webpack.js.org/configuration/devtool/#devtool

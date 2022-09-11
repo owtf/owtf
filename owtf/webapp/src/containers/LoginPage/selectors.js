@@ -13,7 +13,7 @@ const makeSelectLogin = createSelector(
 
 const makeSelectLoginIsAuthenticated = createSelector(
   makeSelectLogin,
-  loginState => loginState.get("isAuthenticated")
+  loginState => loginState.get("isAuthenticated") || ''
 );
 
 const makeSelectLoginUsername = createSelector(
