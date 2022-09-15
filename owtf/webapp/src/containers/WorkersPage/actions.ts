@@ -24,7 +24,7 @@ import {
  *
  * @return {object} An action object with a type of LOAD_WORKERS
  */
-export function loadWorkers() {
+export function loadWorkers(): object {
   return {
     type: LOAD_WORKERS
   };
@@ -37,7 +37,7 @@ export function loadWorkers() {
  *
  * @return {object} An action object with a type of LOAD_WORKERS_SUCCESS passing the workers
  */
-export function workersLoaded(workers) {
+export function workersLoaded(workers: Array<any>): object {
   return {
     type: LOAD_WORKERS_SUCCESS,
     workers
@@ -51,7 +51,7 @@ export function workersLoaded(workers) {
  *
  * @return {object} An action object with a type of LOAD_WORKERS_ERROR passing the error
  */
-export function workersLoadingError(error) {
+export function workersLoadingError(error: object): object {
   return {
     type: LOAD_WORKERS_ERROR,
     error
@@ -63,7 +63,7 @@ export function workersLoadingError(error) {
  *
  * @return {object} An action object with a type of CREATE_WORKER
  */
-export function createWorker() {
+export function createWorker(): object {
   return {
     type: CREATE_WORKER
   };
@@ -74,7 +74,7 @@ export function createWorker() {
  *
  * @return {object} An action object with a type of CREATE_WORKER_SUCCESS
  */
-export function workerCreated() {
+export function workerCreated(): object {
   return {
     type: CREATE_WORKER_SUCCESS
   };
@@ -87,7 +87,7 @@ export function workerCreated() {
  *
  * @return {object} An action object with a type of CREATE_WORKER_ERROR passing the error
  */
-export function workerCreatingError(error) {
+export function workerCreatingError(error: object): object {
   return {
     type: CREATE_WORKER_ERROR,
     error
@@ -102,7 +102,7 @@ export function workerCreatingError(error) {
  *
  * @return {object} An action object with a type of CHANGE_WORKER
  */
-export function changeWorker(worker_id, action_type) {
+export function changeWorker(worker_id: number, action_type: string): object {
   return {
     type: CHANGE_WORKER,
     worker_id,
@@ -115,7 +115,7 @@ export function changeWorker(worker_id, action_type) {
  *
  * @return {object} An action object with a type of CHANGE_WORKER_SUCCESS
  */
-export function workerChanged() {
+export function workerChanged(): object {
   return {
     type: CHANGE_WORKER_SUCCESS
   };
@@ -128,7 +128,7 @@ export function workerChanged() {
  *
  * @return {object} An action object with a type of CHANGE_WORKER_ERROR passing the error
  */
-export function workerChangingError(error) {
+export function workerChangingError(error: object): object {
   return {
     type: CHANGE_WORKER_ERROR,
     error
@@ -142,7 +142,7 @@ export function workerChangingError(error) {
  *
  * @return {object} An action object with a type of DELETE_WORKER
  */
-export function deleteWorker(worker_id) {
+export function deleteWorker(worker_id: string): object {
   return {
     type: DELETE_WORKER,
     worker_id
@@ -154,7 +154,7 @@ export function deleteWorker(worker_id) {
  *
  * @return {object} An action object with a type of DELETE_WORKER_SUCCESS
  */
-export function workerDeleted() {
+export function workerDeleted(): object {
   return {
     type: DELETE_WORKER_SUCCESS
   };
@@ -167,7 +167,7 @@ export function workerDeleted() {
  *
  * @return {object} An action object with a type of DELETE_WORKER_ERROR passing the error
  */
-export function workerDeletingError(error) {
+export function workerDeletingError(error: object): object {
   return {
     type: DELETE_WORKER_ERROR,
     error
@@ -179,7 +179,7 @@ export function workerDeletingError(error) {
  *
  * @return {object} An action object with a type of LOAD_WORKER_PROGRESS
  */
-export function loadWorkerProgress() {
+export function loadWorkerProgress(): object {
   return {
     type: LOAD_WORKER_PROGRESS,
   };
@@ -192,7 +192,7 @@ export function loadWorkerProgress() {
  *
  * @return {object} An action object with a type of LOAD_WORKER_PROGRESS_SUCCESS passing the progress
  */
-export function workerProgressLoaded(workerProgress) {
+export function workerProgressLoaded(workerProgress: Array<any>): object {
   return {
     type: LOAD_WORKER_PROGRESS_SUCCESS,
     workerProgress
@@ -206,7 +206,7 @@ export function workerProgressLoaded(workerProgress) {
  *
  * @return {object} An action object with a type of LOAD_WORKER_PROGRESS_ERROR passing the error
  */
-export function workerProgressLoadingError(error) {
+export function workerProgressLoadingError(error: object): object {
   return {
     type: LOAD_WORKER_PROGRESS_ERROR,
     error
@@ -221,7 +221,7 @@ export function workerProgressLoadingError(error) {
  * 
  * @return {object} An action object with a type of LOAD_WORKER_LOGS
  */
-export function loadWorkerLogs(name, lines) {
+export function loadWorkerLogs(name: string, lines: number): object {
   return {
     type: LOAD_WORKER_LOGS,
     name,
@@ -236,7 +236,7 @@ export function loadWorkerLogs(name, lines) {
  *
  * @return {object} An action object with a type of LOAD_WORKER_LOGS_SUCCESS passing the logs
  */
-export function workerLogsLoaded(workerLogs) {
+export function workerLogsLoaded(workerLogs: string): object {
   return {
     type: LOAD_WORKER_LOGS_SUCCESS,
     workerLogs
@@ -250,7 +250,7 @@ export function workerLogsLoaded(workerLogs) {
  *
  * @return {object} An action object with a type of LOAD_WORKER_LOGS_ERROR passing the error
  */
-export function workerLogsLoadingError(error) {
+export function workerLogsLoadingError(error: object): object {
   return {
     type: LOAD_WORKER_LOGS_ERROR,
     error

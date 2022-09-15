@@ -1,36 +1,36 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { Tablist, SidebarTab, Pane, Heading } from 'evergreen-ui';
 import PropTypes from 'prop-types';
 
-export default class TargetList extends React.Component {
+interface ITargetListProps{
+  targets: Array<any>;
+  getTransactions: Function;
+}
 
-  constructor(props, context) {
-    super(props, context);
+export default function TargetList(
+  {
+    targets,
+    getTransactions
+  }: ITargetListProps
+){
 
-    this.renderTargetList = this.renderTargetList.bind(this);
-
-    this.state = {
-      selectedIndex: null,
-    };
-  }
-
-  handleSelect(index, target_id) {
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  
+  const handleSelect = (index: number | React.SetStateAction<null>, target_id: any) => {
     event.preventDefault();
-    this.setState({
-      selectedIndex: index
-    });
-    this.props.getTransactions(target_id);
+    setSelectedIndex(index);
+    getTransactions(target_id);
   }
 
-  renderTargetList() {
-    if (this.props.targets !== false) {
-      return this.props.targets.map((target, index) => {
+  const renderTargetList = () => {
+    if (targets !== false) {
+      return targets.map((target, index) => {
         return (
           <SidebarTab
             key={target.id}
             id={target.id}
-            onSelect={() => this.handleSelect(index, target.id)}
-            isSelected={index === this.state.selectedIndex}
+            onSelect={() => handleSelect(index, target.id)}
+            isSelected={index === selectedIndex}
             aria-controls={`panel-${target.id}`}
           >
             {target.target_url}
@@ -40,20 +40,20 @@ export default class TargetList extends React.Component {
     }
   }
 
-  render() {
-    return (
+  return (
+    <>
       <Pane display="flex" flexDirection="column" data-test="targetListComponent">
         <Pane>
           <Heading size={700}>Targets</Heading>
         </Pane>
         <Pane display="flex" marginTop={30}>
           <Tablist marginBottom={16} flexBasis={240} marginRight={24} onSelect={k => this.handleSelect(k)}>
-            {this.renderTargetList()}
+            {renderTargetList()}
           </Tablist>
         </Pane>
       </Pane>
-    );
-  }
+    </>
+  );
 }
 
 TargetList.propTypes = {

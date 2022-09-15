@@ -8,7 +8,7 @@ import {
   LOAD_HRT_RESPONSE,
   LOAD_HRT_RESPONSE_SUCCESS,
   LOAD_HRT_RESPONSE_ERROR,
-} from './constants';
+} from './constants.ts';
 
 /**
  * Load the transactions, this action starts the request saga GET
@@ -17,7 +17,7 @@ import {
  * 
  * @return {object} An action object with a type of LOAD_TRANSACTIONS
  */
-export function loadTransactions(target_id) {
+export function loadTransactions(target_id: number): object {
   return {
     type: LOAD_TRANSACTIONS,
     target_id

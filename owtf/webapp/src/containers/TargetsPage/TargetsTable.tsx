@@ -3,7 +3,7 @@
  * Shows the list of all the targets added along with actions that can be applied on them
  *
  */
-import React from "react";
+import React, { useState } from "react";
 import { filter } from "fuzzaldrin-plus";
 import {
   Pane,
@@ -16,7 +16,12 @@ import {
   Badge,
   Link,
   Checkbox,
-  Strong
+  Strong,
+  MoreIcon,
+  TrashIcon,
+  RemoveIcon,
+  BuildIcon,
+  CaretDownIcon
 } from "evergreen-ui";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
@@ -37,33 +42,52 @@ const Severity = {
   CRITICAL: 5
 };
 
-export class TargetsTable extends React.Component {
-  constructor(props) {
-    super(props);
+interface ITargetsTableProps{
+  targets: Array<object>;
+  getCurrentSession: Function;
+  handleAlertMsg: Function;
+  updateSelectedTargets: Function;
+  handlePluginShow: Function;
+  onChangeTarget: Function;
+  onDeleteTarget: Function;
+  onRemoveTargetFromSession: Function;
+  deleteError: object | boolean;
+  removeError: object | boolean;
+}
 
-    this.state = {
-      searchQuery: "", //filter for target URL
-      filterColumn: 1, //column on which filter is to be applied
-      filterSeverity: Severity.NONE, //filter for target severity
-      selectedRows: [] //array of checked targets IDs
-    };
-  }
-
+export function TargetsTable({
+  targets,
+  getCurrentSession,
+  handleAlertMsg,
+  updateSelectedTargets,
+  handlePluginShow,
+  onChangeTarget,
+  onDeleteTarget,
+  onRemoveTargetFromSession,
+  deleteError,
+  removeError,
+}: ITargetsTableProps) {
+  
+  const [searchQuery, setSearchQuery] = useState(""); //filter for target URL
+  const [filterColumn, setFilterColumn] = useState(1); //column on which filter is to be applied
+  const [filterSeverity, setFilterSeverity] = useState(Severity.NONE); //filter for target severity
+  const [selectedRows, setSelectedRows] = useState([]); //array of checked targets IDs
+    
   /**
    * Function handling the deletion of targets(both single target and bulk targets)
    * @param {string} target_ids IDs of the target to be deleted
    */
-  handleDeleteTargets(target_ids) {
+  const handleDeleteTargets = (target_ids: any) => {
     const target_count = target_ids.length;
     const status = {
       complete: [], //contains IDs of targets that are successfully deleted
       failed: [] //contains IDs of targets that fails to delete
     };
-    target_ids.map(id => {
-      this.props.onDeleteTarget(id);
+    target_ids.map((id: any) => {
+      onDeleteTarget(id);
       //wait 200 ms for delete target saga to finish completely
       setTimeout(() => {
-        if (this.props.deleteError !== false) {
+        if (deleteError !== false) {
           status.failed.push(id);
         } else {
           status.complete.push(id);
@@ -75,12 +99,12 @@ export class TargetsTable extends React.Component {
       if (status.complete.length + status.failed.length === target_count) {
         const base_message = status.complete.length + " targets deleted.";
         if (status.failed.length) {
-          this.props.handleAlertMsg(
+          handleAlertMsg(
             "warning",
             base_message + status.failed.length + " attempts failed."
           );
         } else {
-          this.props.handleAlertMsg("success", base_message);
+          handleAlertMsg("success", base_message);
         }
       }
     };
@@ -90,17 +114,17 @@ export class TargetsTable extends React.Component {
    * Function handling the removing of targets from session(both single target and bulk targets)
    * @param {string} target_ids IDs of the target to be removed
    */
-  handleRemoveTargetsFromSession(target_ids) {
+  const handleRemoveTargetsFromSession = (target_ids: any[]) => {
     const target_count = target_ids.length;
     const status = {
       complete: [],
       failed: []
     };
     target_ids.map(id => {
-      this.props.onRemoveTargetFromSession(this.props.getCurrentSession(), id);
+      onRemoveTargetFromSession(getCurrentSession(), id);
       //wait 200 ms for remove target saga to finish completely
       setTimeout(() => {
-        if (this.props.removeError !== false) {
+        if (removeError !== false) {
           status.failed.push(id);
         } else {
           status.complete.push(id);
@@ -112,12 +136,12 @@ export class TargetsTable extends React.Component {
       if (status.complete.length + status.failed.length === target_count) {
         const base_message = status.complete.length + " targets removed.";
         if (status.failed.length) {
-          this.props.handleAlertMsg(
+          handleAlertMsg(
             "warning",
             base_message + status.failed.length + " attempts failed."
           );
         } else {
-          this.props.handleAlertMsg("success", base_message);
+          handleAlertMsg("success", base_message);
         }
       }
     };
@@ -127,11 +151,10 @@ export class TargetsTable extends React.Component {
    * Function handles the plugin launch for individual targets
    * @param {object} target target for the plugins will be launched
    */
-  runTargetFromMenu = target => {
-    this.setState({ selectedRows: [target.id] }, () => {
-      this.props.updateSelectedTargets(this.state.selectedRows);
-    });
-    this.props.handlePluginShow();
+  const runTargetFromMenu = (target: any) => {
+    setSelectedRows([target.id]);
+    updateSelectedTargets(selectedRows);
+    handlePluginShow();
   };
 
   /**
@@ -139,19 +162,19 @@ export class TargetsTable extends React.Component {
    * @param {object} e checkbox onchange event
    * @param {object} target target corresponding to that checkbox
    */
-  handleCheckbox = (e, target) => {
+  const handleCheckbox = (e, target) => {
     if (e.target.checked) {
       this.setState(
-        { selectedRows: [...this.state.selectedRows, target.id] },
+        { selectedRows: [...selectedRows, target.id] },
         () => {
-          this.props.updateSelectedTargets(this.state.selectedRows);
+          updateSelectedTargets(selectedRows);
         }
       );
     } else {
       this.setState(
-        { selectedRows: this.state.selectedRows.filter(x => x !== target.id) },
+        { selectedRows: selectedRows.filter(x => x !== target.id) },
         () => {
-          this.props.updateSelectedTargets(this.state.selectedRows);
+          updateSelectedTargets(selectedRows);
         }
       );
     }
@@ -161,12 +184,11 @@ export class TargetsTable extends React.Component {
    * Function filtering the targets based on severity
    * @param {array} targets array of targets on which the filter is applied
    */
-  filterBySeverity = targets => {
-    const { filterSeverity, filterColumn } = this.state;
+  const filterBySeverity = (targets: any[]) => {
     // Return if there's no ordering.
     if (filterSeverity === Severity.NONE) return targets;
 
-    return targets.filter(target => {
+    return targets.filter((target: { max_user_rank: number; max_owtf_rank: number; }) => {
       // Use the filter from fuzzaldrin-plus to filter by severity.
       if (target.max_user_rank > target.max_owtf_rank)
         return target.max_user_rank === filterSeverity;
@@ -179,15 +201,15 @@ export class TargetsTable extends React.Component {
    * Function filtering the targets based on URL
    * @param {array} targets array of targets on which the filter is applied
    */
-  filterByURL = targets => {
-    const searchQuery = this.state.searchQuery.trim();
+  const filterByURL = (targets: any[]) => {
+    const searchQueryy = searchQuery.trim();
 
     // If the searchQuery is empty, return the targets as is.
-    if (searchQuery.length === 0) return targets;
+    if (searchQueryy.length === 0) return targets;
 
     return targets.filter(target => {
       // Use the filter from fuzzaldrin-plus to filter by name.
-      const result = filter([target.target_url], searchQuery);
+      const result = filter([target.target_url], searchQueryy);
       return result.length === 1;
     });
   };
@@ -196,14 +218,14 @@ export class TargetsTable extends React.Component {
    * Function updating the URL filter query
    * @param {string} value URL filter query
    */
-  handleFilterChange = value => {
-    this.setState({ searchQuery: value });
+  const handleFilterChange = (value: string) => {
+    setSearchQuery(value);
   };
 
   /**
    * Function rendering the severity header
    */
-  renderSeverityHeaderCell = () => {
+  const renderSeverityHeaderCell = () => {
     return (
       <Table.TextHeaderCell>
         <Popover
@@ -223,15 +245,13 @@ export class TargetsTable extends React.Component {
                   { label: "Critical", value: Severity.CRITICAL }
                 ]}
                 selected={
-                  this.state.filterColumn === 3
-                    ? this.state.filterSeverity
+                  filterColumn === 3
+                    ? filterSeverity
                     : null
                 }
                 onChange={value => {
-                  this.setState({
-                    filterColumn: 3,
-                    filterSeverity: value
-                  });
+                  setFilterColumn(3);
+                  setFilterSeverity(value);
                   // Close the popover when you select a value.
                   close();
                 }}
@@ -239,7 +259,7 @@ export class TargetsTable extends React.Component {
             </Menu>
           )}
         >
-          <TextDropdownButton icon="caret-down">Severity</TextDropdownButton>
+          <TextDropdownButton icon={CaretDownIcon}>Severity</TextDropdownButton>
         </Popover>
       </Table.TextHeaderCell>
     );
@@ -249,20 +269,20 @@ export class TargetsTable extends React.Component {
    * Function rendering the action menu for each target
    * @param {object} target target corresponding to the row
    */
-  renderRowMenu = target => {
+  const renderRowMenu = (target: any) => {
     return (
       <Menu>
         <Menu.Group>
           <Menu.Item
-            icon="build"
-            onSelect={() => this.runTargetFromMenu(target)}
+            icon={BuildIcon}
+            onSelect={() => runTargetFromMenu(target)}
           >
             Run...
           </Menu.Item>
           <Menu.Item
-            icon="remove"
+            icon={RemoveIcon}
             secondaryText="⌘R"
-            onSelect={() => this.handleRemoveTargetsFromSession([target.id])}
+            onSelect={() => handleRemoveTargetsFromSession([target.id])}
           >
             Remove...
           </Menu.Item>
@@ -270,9 +290,9 @@ export class TargetsTable extends React.Component {
         <Menu.Divider />
         <Menu.Group>
           <Menu.Item
-            icon="trash"
+            icon={TrashIcon}
             intent="danger"
-            onSelect={() => this.handleDeleteTargets([target.id])}
+            onSelect={() => handleDeleteTargets([target.id])}
             data-test="deleteTargetMenuItem"
           >
             Delete...
@@ -286,7 +306,7 @@ export class TargetsTable extends React.Component {
    * Function rendering row-wise target severity
    * @param {object} target target corresponding to the row
    */
-  renderSeverity = target => {
+  const renderSeverity = (target: any) => {
     let rank = target.max_user_rank;
     if (target.max_user_rank <= target.max_owtf_rank) {
       rank = target.max_owtf_rank;
@@ -315,15 +335,15 @@ export class TargetsTable extends React.Component {
    * Function rendering content of each row
    * @param {object} object target corresponding to the row
    */
-  renderRow = ({ target }) => {
+  const renderRow = ({ target }: object) => {
     return (
       <Table.Row key={target.id} height={75}>
         <Table.Cell flexShrink={0} flexGrow={3}>
           <Pane display="flex" flexDirection="row" alignItems="center">
             <Checkbox
-              checked={this.state.selectedRows.includes(target.id)}
+              checked={selectedRows.includes(target.id)}
               id={target.target_url}
-              onChange={e => this.handleCheckbox(e, target)}
+              onChange={e => handleCheckbox(e, target)}
               margin={10}
             />
             <Link href={`/targets/${target.id}`} size={500}>
@@ -332,14 +352,14 @@ export class TargetsTable extends React.Component {
             </Link>
           </Pane>
         </Table.Cell>
-        <Table.TextCell>{this.renderSeverity(target)}</Table.TextCell>
+        <Table.TextCell>{renderSeverity(target)}</Table.TextCell>
         <Table.Cell>
           <Popover
-            content={() => this.renderRowMenu(target)}
+            content={() => renderRowMenu(target)}
             position={Position.BOTTOM_RIGHT}
             data-test="actionsPopover"
           >
-            <IconButton icon="more" height={24} appearance="minimal" />
+            <IconButton icon={MoreIcon} height={24} appearance="minimal" />
           </Popover>
         </Table.Cell>
       </Table.Row>
@@ -349,7 +369,7 @@ export class TargetsTable extends React.Component {
   /**
    * Function handles the tables content when no targets are added
    */
-  renderEmptyTableBody = items => {
+  const renderEmptyTableBody = (items: string | any[]) => {
     if (items.length == 0) {
       return (
         <Pane
@@ -367,31 +387,30 @@ export class TargetsTable extends React.Component {
     }
   };
 
-  render() {
-    const targets = this.props.targets;
-    const items = this.filterByURL(this.filterBySeverity(targets));
-    return (
-      <Table marginTop={20} data-test="targetsTableComponent">
-        <Table.Head height={50}>
-          <Table.SearchHeaderCell
-            onChange={this.handleFilterChange}
-            value={this.state.searchQuery}
-            placeholder="URL"
-            flexShrink={0}
-            flexGrow={3}
-          />
-          {this.renderSeverityHeaderCell()}
-          <Table.TextHeaderCell>Actions</Table.TextHeaderCell>
-        </Table.Head>
-        <Table.VirtualBody height={500}>
-          <Pane>
-            {this.renderEmptyTableBody(items)}
-            {items.map(item => this.renderRow({ target: item }))}
-          </Pane>
-        </Table.VirtualBody>
-      </Table>
-    );
-  }
+  
+  const items = filterByURL(filterBySeverity(targets));
+  return (
+    <Table marginTop={20} data-test="targetsTableComponent">
+      <Table.Head height={50}>
+        <Table.SearchHeaderCell
+          onChange={handleFilterChange}
+          value={searchQuery}
+          placeholder="URL"
+          flexShrink={0}
+          flexGrow={3}
+        />
+        {renderSeverityHeaderCell()}
+        <Table.TextHeaderCell>Actions</Table.TextHeaderCell>
+      </Table.Head>
+      <Table.VirtualBody height={500}>
+        <Pane>
+          {renderEmptyTableBody(items)}
+          {items.map((item: any) => renderRow({ target: item }))}
+        </Pane>
+      </Table.VirtualBody>
+    </Table>
+  );
+  
 }
 
 TargetsTable.propTypes = {
@@ -412,11 +431,11 @@ const mapStateToProps = createStructuredSelector({
   removeError: makeSelectRemoveError
 });
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch: Function) => {
   return {
-    onChangeTarget: target => dispatch(changeTarget(target)),
-    onDeleteTarget: target_id => dispatch(deleteTarget(target_id)),
-    onRemoveTargetFromSession: (session, target_id) =>
+    onChangeTarget: (target: object) => dispatch(changeTarget(target)),
+    onDeleteTarget: (target_id: string) => dispatch(deleteTarget(target_id)),
+    onRemoveTargetFromSession: (session: object, target_id: object) =>
       dispatch(removeTargetFromSession(session, target_id))
   };
 };
