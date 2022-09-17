@@ -54,7 +54,7 @@ exports[`SignupPage component Testing dumb signup page component Should render w
         position="absolute"
         width="10%"
       >
-        <withTheme(Icon)
+        <Icon
           cursor="pointer"
           icon="eye-off"
           marginX={-10}
@@ -89,7 +89,7 @@ exports[`SignupPage component Testing dumb signup page component Should render w
         position="absolute"
         width="10%"
       >
-        <withTheme(Icon)
+        <Icon
           cursor="pointer"
           icon="eye-off"
           marginX={-10}
