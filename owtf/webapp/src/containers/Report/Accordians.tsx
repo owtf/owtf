@@ -8,7 +8,7 @@
  * Output is not visible to user which can be a huge data to request initially. Hence, this optimises the Report a lot.
  */
 
-import React from "react";
+import React, {useState, useEffect} from "react";
 import Accordian from "./Accordian";
 import { loadPluginOutputNames } from "./actions";
 import {
@@ -21,72 +21,80 @@ import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import { Paragraph, Pane, Spinner } from "evergreen-ui";
 
-export class Accordians extends React.Component {
-  constructor(props, context) {
-    super(props, context);
-  }
+interface IAccordians{
+  targetData: object;
+  loadingNames: boolean;
+  errorNames: object | boolean;
+  pluginOutputNames: object | boolean;
+  onFetchPluginOutputNames: Function;
+}
 
+export function Accordians({
+  targetData,
+  loadingNames,
+  errorNames,
+  pluginOutputNames,
+  onFetchPluginOutputNames,
+}: IAccordians) {
+  
   /**
    * Lifecycle method gets invoked after accordians component gets mounted.
    * Calls the onFetchPluginOutputNames action to render the list of all plugins.
    */
-  componentDidMount() {
-    this.props.onFetchPluginOutputNames(this.props.targetData.id);
+  useEffect(() => {
+    (targetData.id);
+  }, [])
+
+  const AccordianProps = {
+    targetData: targetData,
+    selectedGroup: selectedGroup,
+    selectedType: selectedType,
+    selectedRank: selectedRank,
+    selectedOwtfRank: selectedOwtfRank,
+    selectedMapping: selectedMapping,
+    selectedStatus: selectedStatus
+  };
+  if (loadingNames) {
+    return (
+      <Pane
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        height={400}
+      >
+        <Spinner />
+      </Pane>
+    );
   }
 
-  render() {
-    const { pluginOutputNames, loadingNames, errorNames } = this.props;
-    const AccordianProps = {
-      targetData: this.props.targetData,
-      selectedGroup: this.props.selectedGroup,
-      selectedType: this.props.selectedType,
-      selectedRank: this.props.selectedRank,
-      selectedOwtfRank: this.props.selectedOwtfRank,
-      selectedMapping: this.props.selectedMapping,
-      selectedStatus: this.props.selectedStatus
-    };
-    if (loadingNames) {
-      return (
-        <Pane
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          height={400}
-        >
-          <Spinner />
-        </Pane>
-      );
-    }
+  if (errorNames !== false) {
+    return (
+      <Pane
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        height={400}
+      >
+        <Paragraph size={500}>No plugins found</Paragraph>
+      </Pane>
+    );
+  }
 
-    if (errorNames !== false) {
-      return (
-        <Pane
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          height={400}
-        >
-          <Paragraph size={500}>No plugins found</Paragraph>
-        </Pane>
-      );
-    }
-
-    if (pluginOutputNames !== false) {
-      return (
-        <Pane id="pluginOutputs" data-test="accordiansComponent">
-          {Object.keys(pluginOutputNames).map(function(key) {
-            return (
-              <Accordian
-                {...AccordianProps}
-                key={key}
-                data={pluginOutputNames[key]}
-                code={key}
-              />
-            );
-          })}
-        </Pane>
-      );
-    }
+  if (pluginOutputNames !== false) {
+    return (
+      <Pane id="pluginOutputs" data-test="accordiansComponent">
+        {Object.keys(pluginOutputNames).map(function(key) {
+          return (
+            <Accordian
+              {...AccordianProps}
+              key={key}
+              data={pluginOutputNames[key]}
+              code={key}
+            />
+          );
+        })}
+      </Pane>
+    );
   }
 }
 
@@ -107,9 +115,9 @@ const mapStateToProps = createStructuredSelector({
   errorNames: makeSelectPluginOutputNamesError
 });
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch: (arg0: any) => any) => {
   return {
-    onFetchPluginOutputNames: target_id =>
+    onFetchPluginOutputNames: (target_id: any) =>
       dispatch(loadPluginOutputNames(target_id))
   };
 };

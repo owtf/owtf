@@ -13,7 +13,7 @@ import {
  *
  * @return {object} An action object with a type of LOAD_CONFIGURATIONS
  */
-export function loadConfigurations() {
+export function loadConfigurations(): object {
   return {
     type: LOAD_CONFIGURATIONS,
   };
@@ -26,7 +26,7 @@ export function loadConfigurations() {
  *
  * @return {object} An action object with a type of LOAD_CONFIGURATIONS_SUCCESS passing the configurations
  */
-export function configurationsLoaded(configurations) {
+export function configurationsLoaded(configurations: Array<any>): object {
   return {
     type: LOAD_CONFIGURATIONS_SUCCESS,
     configurations,
@@ -40,7 +40,7 @@ export function configurationsLoaded(configurations) {
  *
  * @return {object} An action object with a type of LOAD_CONFIGURATIONS_ERROR passing the error
  */
-export function configurationsLoadingError(error) {
+export function configurationsLoadingError(error: object): object {
   return {
     type: LOAD_CONFIGURATIONS_ERROR,
     error,
@@ -54,7 +54,7 @@ export function configurationsLoadingError(error) {
  *
  * @return {object} An action object with a type of CHANGE_CONFIGURATION
  */
-export function changeConfigurations(configurations) {
+export function changeConfigurations(configurations: object): object {
   return {
     type: CHANGE_CONFIGURATIONS,
     configurations,
@@ -66,7 +66,7 @@ export function changeConfigurations(configurations) {
  *
  * @return {object} An action object with a type of CHANGE_CONFIGURATION_SUCCESS
  */
-export function configurationsChanged() {
+export function configurationsChanged(): object {
   return {
     type: CHANGE_CONFIGURATIONS_SUCCESS,
   };
@@ -79,7 +79,7 @@ export function configurationsChanged() {
  *
  * @return {object} An action object with a type of CHANGE_CONFIGURATION_ERROR passing the error
  */
-export function configurationsChangingError(error) {
+export function configurationsChangingError(error: object): object {
   return {
     type: CHANGE_CONFIGURATIONS_ERROR,
     error,

@@ -14,7 +14,7 @@ import { SIGNUP_START, SIGNUP_FAIL, SIGNUP_SUCCESS } from "./constants";
  *
  * @return {object} An action object with a type of SIGNUP_START passing the above arguments
  */
-export function signupStart(email, password, confirm_password, username) {
+export function signupStart(email: string, password: string, confirm_password: string, username: string): object {
   return {
     type: SIGNUP_START,
     email: email,
@@ -31,7 +31,7 @@ export function signupStart(email, password, confirm_password, username) {
  *
  * @return {object} An action object with a type of SIGNUP_FAIL passing the error
  */
-export function signupFail(error) {
+export function signupFail(error: object): object {
   return {
     type: SIGNUP_FAIL,
     error: error
@@ -46,7 +46,7 @@ export function signupFail(error) {
 
  * @return {object} An action object with a type of SIGNUP_SUCCESS passing the msg, email
  */
-export function signupSuccess(msg, email) {
+export function signupSuccess(msg: string, email: string): object {
   return {
     type: SIGNUP_SUCCESS,
     msg: msg,
