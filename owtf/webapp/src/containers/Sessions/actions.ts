@@ -37,7 +37,7 @@ import {
  *
  * @return {object} An action object with a type of CHANGE_SESSION
  */
-export function changeSession(session) {
+export function changeSession(session: object): object {
   return {
     type: CHANGE_SESSION,
     session,
@@ -51,7 +51,7 @@ export function changeSession(session) {
  *
  * @return {object} An action object with a type of CHANGE_SESSION_SUCCESS
  */
-export function sessionsChanged(session) {
+export function sessionsChanged(session: object): object {
   return {
     type: CHANGE_SESSION_SUCCESS,
     session,
@@ -65,7 +65,7 @@ export function sessionsChanged(session) {
  *
  * @return {object} An action object with a type of CHANGE_SESSION_ERROR passing the error
  */
-export function sessionsChangingError(error) {
+export function sessionsChangingError(error: object): object {
   return {
     type: CHANGE_SESSION_ERROR,
     error,
@@ -77,7 +77,7 @@ export function sessionsChangingError(error) {
  *
  * @return {object} An action object with a type of LOAD_SESSIONS
  */
-export function loadSessions() {
+export function loadSessions(): object {
   return {
     type: LOAD_SESSIONS,
   };
@@ -90,7 +90,7 @@ export function loadSessions() {
  *
  * @return {object} An action object with a type of LOAD_SESSIONS_SUCCESS passing the sessions
  */
-export function sessionsLoaded(sessions) {
+export function sessionsLoaded(sessions: Array<any>): object {
   return {
     type: LOAD_SESSIONS_SUCCESS,
     sessions,
@@ -104,7 +104,7 @@ export function sessionsLoaded(sessions) {
  *
  * @return {object} An action object with a type of LOAD_SESSIONS_ERROR passing the error
  */
-export function sessionsLoadingError(error) {
+export function sessionsLoadingError(error: object): object {
   return {
     type: LOAD_SESSIONS_ERROR,
     error,
@@ -119,7 +119,7 @@ export function sessionsLoadingError(error) {
  *
  * @return {object} An action object with a type of CREATE_SESSION
  */
-export function createSession(sessionName) {
+export function createSession(sessionName: string): object {
   return {
     type: CREATE_SESSION,
     sessionName
@@ -131,7 +131,7 @@ export function createSession(sessionName) {
  *
  * @return {object} An action object with a type of CREATE_SESSION_SUCCESS
  */
-export function sessionsCreated() {
+export function sessionsCreated(): object {
   return {
     type: CREATE_SESSION_SUCCESS,
   };
@@ -144,7 +144,7 @@ export function sessionsCreated() {
  *
  * @return {object} An action object with a type of CREATE_SESSION_ERROR passing the error
  */
-export function sessionsCreatingError(error) {
+export function sessionsCreatingError(error: object): object {
   return {
     type: CREATE_SESSION_ERROR,
     error,
@@ -158,7 +158,7 @@ export function sessionsCreatingError(error) {
  *
  * @return {object} An action object with a type of DELETE_SESSION
  */
-export function deleteSession(session) {
+export function deleteSession(session: string): object {
   return {
     type: DELETE_SESSION,
     session
@@ -170,7 +170,7 @@ export function deleteSession(session) {
  *
  * @return {object} An action object with a type of DELETE_SESSION_SUCCESS
  */
-export function sessionsDeleted() {
+export function sessionsDeleted(): object {
   return {
     type: DELETE_SESSION_SUCCESS,
   };
@@ -183,7 +183,7 @@ export function sessionsDeleted() {
  *
  * @return {object} An action object with a type of DELETE_SESSION_ERROR passing the error
  */
-export function sessionsDeletingError(error) {
+export function sessionsDeletingError(error: object): object {
   return {
     type: DELETE_SESSION_ERROR,
     error,

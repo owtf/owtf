@@ -5,51 +5,44 @@
  * PluginData is only updated initially or when some plugin is deleted or after a rank change.
  */
 
-import React from "react";
+import React, {useState, useEffect} from "react";
 import { Pane, Heading, IconButton, Small, Badge } from "evergreen-ui";
 import { Breadcrumb } from "react-bootstrap";
 import "./style.scss";
 import PropTypes from "prop-types";
 
-export default class Header extends React.Component {
-  constructor(props, context) {
-    super(props, context);
+export default function Header({
 
-    this.renderSeverity = this.renderSeverity.bind(this);
-    this.scrollStep = this.scrollStep.bind(this);
-    this.scrollToTop = this.scrollToTop.bind(this);
-
-    this.state = {
-      intervalId: 0
-    };
-  }
-
+}) {
+  
+  const [intervalId, setInterValid] = useState(0);
+  
   /**
    * Funtion to keep track of the page scroll.
    */
-  scrollStep() {
+  const scrollStep = () => {
     if (window.pageYOffset === 0) {
-      clearInterval(this.state.intervalId);
+      clearInterval(intervalId);
     }
-    window.scroll(0, window.pageYOffset - this.props.scrollStepInPx);
+    window.scroll(0, window.pageYOffset - scrollStepInPx);
   }
 
   /**
    * Function handles scroll to top of the page.
    */
-  scrollToTop() {
-    let intervalId = setInterval(this.scrollStep, this.props.delayInMs);
-    this.setState({ intervalId: intervalId });
+  const scrollToTop = () => {
+    let intervalId = setInterval(scrollStep, delayInMs);
+    setInterValid(intervalId);
   }
 
   /**
    * Renders the overall severity component based on the plugin ranks.
    */
-  renderSeverity() {
+  const renderSeverity = () => {
     const localMax =
-      this.props.targetData.max_user_rank > this.props.targetData.max_owtf_rank
-        ? this.props.targetData.max_user_rank
-        : this.props.targetData.max_owtf_rank;
+      targetData.max_user_rank > targetData.max_owtf_rank
+        ? targetData.max_user_rank
+        : targetData.max_owtf_rank;
     if (localMax == 0)
       return (
         <Badge
@@ -107,53 +100,51 @@ export default class Header extends React.Component {
     return null;
   }
 
-  render() {
-    return (
-      <Pane data-test="headerComponent">
-        <Breadcrumb>
-          <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-          <Breadcrumb.Item href="/targets/">Target</Breadcrumb.Item>
-          <Breadcrumb.Item active>
-            {this.props.targetData.target_url}
-          </Breadcrumb.Item>
-        </Breadcrumb>
+  return (
+    <Pane data-test="headerComponent">
+      <Breadcrumb>
+        <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
+        <Breadcrumb.Item href="/targets/">Target</Breadcrumb.Item>
+        <Breadcrumb.Item active>
+          {targetData.target_url}
+        </Breadcrumb.Item>
+      </Breadcrumb>
 
-        {/* Scroll to top */}
-        <IconButton
-          icon="arrow-up"
-          appearance="primary"
-          intent="danger"
-          className="scroll"
-          onClick={this.scrollToTop}
-          title="Move to top"
-        />
-        {/* End of scroll to top */}
+      {/* Scroll to top */}
+      <IconButton
+        icon="arrow-up"
+        appearance="primary"
+        intent="danger"
+        className="scroll"
+        onClick={this.scrollToTop}
+        title="Move to top"
+      />
+      {/* End of scroll to top */}
 
+      <Pane
+        display="flex"
+        flexDirection="row"
+        alignItems="center"
+        marginTop={50}
+      >
         <Pane
+          flexBasis={800}
           display="flex"
-          flexDirection="row"
-          alignItems="center"
-          marginTop={50}
+          flexDirection="Column"
+          alignItems=""
         >
-          <Pane
-            flexBasis={800}
-            display="flex"
-            flexDirection="Column"
-            alignItems=""
-          >
-            <Heading size={800} marginLeft={10}>
-              {this.props.targetData.target_url}
-            </Heading>
-            <Small marginTop={20} marginBottom={20} marginLeft={10}>
-              {" (" + this.props.targetData.host_ip + ")"}
-            </Small>
-          </Pane>
-          {this.renderSeverity()}
+          <Heading size={800} marginLeft={10}>
+            {targetData.target_url}
+          </Heading>
+          <Small marginTop={20} marginBottom={20} marginLeft={10}>
+            {" (" + targetData.host_ip + ")"}
+          </Small>
         </Pane>
-        <hr />
+        {renderSeverity()}
       </Pane>
-    );
-  }
+      <hr />
+    </Pane>
+  );
 }
 
 Header.propTypes = {
