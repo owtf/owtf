@@ -88,22 +88,25 @@ docs:
 docker-build:
 	@echo "--> Building the docker image for develop"
 	@echo "Please note that this uses the kali linux rolling release docker image"
-	@echo "which does not support pinning to a specific version; it only has the `:latest` tag"
-	@echo "So if this docker image build fails, that's probably why"
+	@echo "which does not support pinning to a specific version; it only has the ':latest' tag"
+	@echo "So if this docker image build fails, that probably means OWTF needs"
+	@echo "to update its docker build after a recent kali linux rolling release"
 	docker build -t owtf/owtf -f docker/Dockerfile .
 
 docker-run:
 	@echo "--> Running the Docker development image"
 	@echo "Please note that this uses the kali linux rolling release docker image"
-	@echo "which does not support pinning to a specific version; it only has the `:latest` tag"
-	@echo "So if this docker image build fails, that's probably why"
+	@echo "which does not support pinning to a specific version; it only has the ':latest' tag"
+	@echo "So if this docker image build fails, that probably means OWTF needs"
+	@echo "to update its docker build after a recent kali linux rolling release"
 	docker run -it -p 8009:8009 -p 8008:8008 -p 8010:8010 -v $(current_dir):/owtf owtf/owtf /bin/bash
 
 compose:
 	@echo "--> Running the Docker Compose setup"
 	@echo "Please note that this uses the kali linux rolling release docker image"
-	@echo "which does not support pinning to a specific version; it only has the `:latest` tag"
-	@echo "So if this docker image build fails, that's probably why"
+	@echo "which does not support pinning to a specific version; it only has the ':latest' tag"
+	@echo "So if this docker image build fails, that probably means OWTF needs"
+	@echo "to update its docker build after a recent kali linux rolling release"
 	docker-compose -f docker/docker-compose.dev.yml up
 
 ### DEBIAN PACKAGING
