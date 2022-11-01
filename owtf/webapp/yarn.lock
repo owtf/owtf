@@ -1376,8 +1376,8 @@
     "@types/yargs-parser" "*"
 
 "@xmldom/xmldom@^0.8.0":
-  version "0.8.2"
-  resolved "https://registry.npmjs.org/@xmldom/xmldom/-/xmldom-0.8.2.tgz"
+  version "0.8.5"
+  resolved "https://registry.yarnpkg.com/@xmldom/xmldom/-/xmldom-0.8.5.tgz#7f4b797cfda39355b512b4cfcc66b49b5d93d5f3"
 
 abab@^2.0.0:
   version "2.0.5"
