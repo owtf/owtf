@@ -23,7 +23,7 @@ RUN apt-get -y install  xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev z
 postgresql-server-dev-all postgresql-client postgresql-client-common \
 postgresql libcurl4-openssl-dev proxychains tor ca-certificates libpq-dev  \
 libxslt1-dev libldap2-dev libsasl2-dev libffi-dev net-tools lsof locales-all \
-libyaml-dev python3.9 python3.9-dev build-essential python3.9-venv python3-lxml python3-impacket golang-go python3-pip
+libyaml-dev python3 python3-dev build-essential python3-venv python3-lxml python3-impacket golang-go python3-pip
 
 # Set locale
 ENV LANG en_US.UTF-8
@@ -42,7 +42,7 @@ RUN chmod +x /usr/bin/wait-for-it.sh
 
 #Create and activating a python virtualenv
 ENV VIRTUAL_ENV=/bin/owtf
-RUN python3.9 -m venv $VIRTUAL_ENV
+RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Ensure pip and setuptools are at their latest versions
