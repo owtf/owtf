@@ -45,9 +45,10 @@ jobs:
         run: |
           sudo apt update
           sudo apt -y install libffi-dev golang postgresql-client libgnutls28-dev libyaml-dev python3-yaml python3-pip libcurl4-openssl-dev libssl-dev python3 python3-dev python3-venv
-          pip3 install pyopenssl
+          pip3 install pyopenssl 
       - name: install
         run: |
+          sudo pip3 install setuptools==57.5
           echo "Running install base requirements"
           pip3 install -r requirements/base.txt
           echo "Running install test requirements"
