@@ -51,6 +51,7 @@ jobs:
           sudo pip3 install setuptools==57.5
           echo "Running install base requirements"
           pip3 show setuptools
+          python3 -m pip install setuptools==57.5
           pip3 install -r requirements/base.txt
           echo "Running install test requirements"
           pip3 install -r requirements/test.txt
