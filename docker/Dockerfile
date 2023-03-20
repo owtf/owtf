@@ -1,4 +1,4 @@
-FROM kalilinux/kali-rolling:latest
+FROM ubuntu:latest
 
 LABEL Viyat Bhalodia viyat.bhalodia@owasp.org
 
