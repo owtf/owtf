@@ -1,4 +1,5 @@
 blinker
+setuptools==57.5
 cffi>=1.14.1
 cookies>=2.2.1
 dnspython>=1.15.0
