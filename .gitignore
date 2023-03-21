@@ -124,6 +124,7 @@ owtf/webapp/src/containers/Report/templates/*
 # Don't check auto-generated stuff into git
 owtf/webapp/coverage
 owtf/webapp/stats.json
+*node_modules/*
 
 # Mac/OS specific files
 #############################################
