@@ -10,7 +10,7 @@ Markdown==2.6.9
 pexpect==4.6.0
 psutil==5.7.2
 psycopg2-binary==2.8
--e git+https://github.com/owtf/ptp@1a5d7d6532a6d58e2730787e4ec3e4ebf1dceafa#egg=PTP
+owtf_ptp==0.4.3
 pycurl==7.43.0.2
 pyOpenSSL==19.0.0
 PyYAML==5.4.1
