@@ -13,7 +13,6 @@ psycopg2-binary==2.8
 PTP @ git+https://github.com/owtf/ptp@1a5d7d6532a6d58e2730787e4ec3e4ebf1dceafa
 pycurl==7.43.0.2
 pyOpenSSL==19.0.0
-PyVirtualDisplay==0.2.1
 PyYAML==5.4.1
 requests==2.22.0
 selenium==3.4.3
