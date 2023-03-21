@@ -1,12 +1,6 @@
 name: OWTF CI
 
-on:
-  push:
-    branches: [master, develop]
-  pull_request_target:
-    branches: [master, develop]
-
-  workflow_dispatch:
+on: [push, pull_request]
 
 jobs:
   build:
