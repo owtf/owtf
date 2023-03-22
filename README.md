@@ -1,6 +1,6 @@
 # Offensive Web Testing Framework
 
-![Build Status](https://github.com/owtf/docs/actions/workflows/main.yml/badge.svg)
+![Build staus](https://github.com/owtf/owtf/actions/workflows/main.yml/badge.svg)
 [![License (3-Clause
 BSD)](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square)](http://opensource.org/licenses/BSD-3-Clause)
 [![python_3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/)
