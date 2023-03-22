@@ -75,7 +75,7 @@ endif
 
 post-install:
 	@echo "--> Installing dictionaries and tools"
-	python scripts/install_tools.py
+	python3 scripts/install_tools.py
 
 ### DOCS
 
