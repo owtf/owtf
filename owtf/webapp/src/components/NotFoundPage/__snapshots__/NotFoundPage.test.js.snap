@@ -1,7 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`NotFoundPage Component Should render without errors 1`] = `
-<p>
+<p
+  style={
+    Object {
+      "fontSize": "40px",
+      "fontWeight": "bold",
+      "margin": "150px auto",
+      "textAlign": "center",
+    }
+  }
+>
   Page Not Found
 </p>
 `;

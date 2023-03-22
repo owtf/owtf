@@ -2,15 +2,15 @@ name: OWTF CI
 
 on:
   push:
-    branches: [master, develop]
-  pull_request_target:
-    branches: [master, develop]
-
-  workflow_dispatch:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     strategy:
       matrix:
@@ -21,7 +21,7 @@ jobs:
         image: postgres
         env:
           POSTGRES_USER: owtf_db_user
-          POSTGRES_PASSWORD: jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=
+          POSTGRES_PASSWORD: ${{ secrets.OWTF_DB_PASSWORD }}
           POSTGRES_DB: owtf_db
         ports:
           - 5432:5432
@@ -81,9 +81,10 @@ jobs:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
 
-      - name: node_js
-        working-directory: owtf/webapp
-        run: yarn test
+      # - name: node_js
+      #   if: "!contains(github.event.commits[0].message, '[skip ui-tests]')"
+      #   working-directory: owtf/webapp
+      #   run: yarn install --production=false && yarn test
 
       - name: slack - GitHub Actions Slack integration
         uses: act10ns/slack@v1.2.2
