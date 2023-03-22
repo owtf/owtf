@@ -2,7 +2,7 @@ blinker
 cffi==1.14.1
 cookies==2.2.1
 dnspython==1.15.0
-future==0.16.0
+future==0.18.3
 hrt==0.1.0
 ipaddr
 Markdown==2.6.9
