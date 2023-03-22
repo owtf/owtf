@@ -1,7 +1,7 @@
 /* Plugin component
  * This components manages Plugins and handles the plugin launch on selected targets
  */
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
@@ -24,7 +24,7 @@ import {
 import { loadPlugins, postToWorklist } from "./actions";
 import PluginsTable from "./PluginsTable";
 
-interface IPlugins{
+interface IPlugins {
   loading: boolean;
   error: object | boolean;
   plugins: Array<any> | boolean;
@@ -38,7 +38,7 @@ interface IPlugins{
   resetTargetState: Function;
 }
 
-export function Plugins ({
+export function Plugins({
   loading,
   error,
   plugins,
@@ -49,15 +49,14 @@ export function Plugins ({
   handlePluginClose,
   selectedTargets,
   handleAlertMsg,
-  resetTargetState,
+  resetTargetState
 }: IPlugins) {
-  
   const [selectedIndex, setSelectedIndex] = useState(1); //handles individual and group-wise plugins
   const [selectedPlugins, setSelectedPlugins] = useState([]); //list of plugins to be launched
   const [groupSelectedPlugins, setGroupSelectedPlugins] = useState({}); //list of group-wise selected pugins
   const [force_overwrite, setForceOverwrite] = useState(false); //handles force-overwrite checkbox
   const [globalSearch, setGlobalSearch] = useState(""); // handles the search query for the main search box
-  
+
   useEffect(() => {
     onFetchPlugins();
   }, []);
@@ -69,15 +68,17 @@ export function Plugins ({
     setSelectedPlugins([]);
     setGroupSelectedPlugins({});
     setForceOverwrite(false);
-  }
+  };
 
   /**
    * Function updates the checked plugins in the plugin table
    * @param {array} selectedPlugins list of checked plugins
    */
-  const updateSelectedPlugins = (selectedPlugins: React.SetStateAction<never[]>) => {
+  const updateSelectedPlugins = (
+    selectedPlugins: React.SetStateAction<never[]>
+  ) => {
     setSelectedPlugins(selectedPlugins);
-  }
+  };
 
   /**
    * Function launches the plugins group-wise based on group and type
@@ -94,7 +95,7 @@ export function Plugins ({
       });
     }
     return [pluginGroupss, pluginTypess];
-  }
+  };
 
   /**
    * Function handles the list of group-wise checked plugins
@@ -102,7 +103,11 @@ export function Plugins ({
    * @param {string} collection_type type of plugin group from ['group', 'type']
    * @param {string} collection_name name of plugin group or type
    */
-  const handleCheckboxChange = (e: { target: { checked: any; }; }, collection_type: string | number, collection_name: any) => {
+  const handleCheckboxChange = (
+    e: { target: { checked: any } },
+    collection_type: string | number,
+    collection_name: any
+  ) => {
     const newArray = groupSelectedPlugins;
     if (e.target.checked) {
       if (newArray[collection_type] === undefined)
@@ -115,7 +120,7 @@ export function Plugins ({
         delete newArray[collection_type];
     }
     setGroupSelectedPlugins(newArray);
-  }
+  };
 
   /**
    * Function updating the state of force_overwrite checkbox
@@ -123,7 +128,7 @@ export function Plugins ({
    */
   const forceOverwriteChange = ({ target }) => {
     setForceOverwrite(target.checked);
-  }
+  };
 
   /**
    * Function handles the launch of selected individual and group-wise plugins
@@ -135,21 +140,19 @@ export function Plugins ({
       handlePostToWorklist(pluginDetails);
     });
     // Then fire off any selected groups
-    if (
-      Object.getOwnPropertyNames(groupSelectedPlugins).length !== 0
-    ) {
+    if (Object.getOwnPropertyNames(groupSelectedPlugins).length !== 0) {
       // i.e no checkboxes checked then do not send a request
       handlePostToWorklist(groupSelectedPlugins);
     }
     resetState();
     resetTargetState();
-  }
+  };
 
   /**
    * Function that posts targets to worklist using API call
    * @param {object} selectedPluginData array containing the target and plugin launch data
    */
-  const handlePostToWorklist = (selectedPluginData) => {
+  const handlePostToWorklist = selectedPluginData => {
     selectedPluginData["id"] = selectedTargets;
     selectedPluginData["force_overwrite"] = force_overwrite;
     const data = Object.keys(selectedPluginData)
@@ -165,18 +168,12 @@ export function Plugins ({
 
     if (selectedPluginData["id"].length < 1) {
       // If no targets selected
-      handleAlertMsg(
-        "warning",
-        "No targets selected to launch plugins"
-      );
+      handleAlertMsg("warning", "No targets selected to launch plugins");
     } else {
       onPostToWorklist(data);
       setTimeout(() => {
         if (postingError !== false) {
-          handleAlertMsg(
-            "danger",
-            "Unable to add " + postingError
-          ); // on post to worklist saga success
+          handleAlertMsg("danger", "Unable to add " + postingError); // on post to worklist saga success
         } else {
           handleAlertMsg(
             "success",
@@ -187,7 +184,7 @@ export function Plugins ({
     }
 
     handlePluginClose();
-  }
+  };
 
   const PluginsTableProps = {
     plugins: plugins,
@@ -232,9 +229,7 @@ export function Plugins ({
                 borderRadius={100}
                 className="search-box"
                 placeholder="Search"
-                onChange={e =>
-                  setGlobalSearch(e.target.value))
-                }
+                onChange={e => setGlobalSearch(e.target.value)}
                 value={globalSearch}
               />
             ) : null}
@@ -289,13 +284,10 @@ export function Plugins ({
                     key={index}
                     label={group}
                     checked={
-                      groupSelectedPlugins["group"] !==
-                        undefined &&
+                      groupSelectedPlugins["group"] !== undefined &&
                       groupSelectedPlugins["group"].includes(group)
                     }
-                    onChange={e =>
-                      handleCheckboxChange(e, "group", group)
-                    }
+                    onChange={e => handleCheckboxChange(e, "group", group)}
                   />
                 );
               })}
@@ -347,11 +339,9 @@ const mapStateToProps = createStructuredSelector({
 const mapDispatchToProps = (dispatch: Function) => {
   return {
     onFetchPlugins: () => dispatch(loadPlugins()),
-    onPostToWorklist: (plugin_data: object) => dispatch(postToWorklist(plugin_data))
+    onPostToWorklist: (plugin_data: object) =>
+      dispatch(postToWorklist(plugin_data))
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Plugins);
+export default connect(mapStateToProps, mapDispatchToProps)(Plugins);

@@ -27,7 +27,7 @@ import {
   makeSelectChangeNotesError
 } from "./selectors";
 
-interface IDataTable{
+interface IDataTable {
   targetData: object;
   deletePluginOutput: Function;
   postToWorklist: Function;
@@ -46,10 +46,9 @@ export function DataTable({
   changeNotesError,
   onChangeUserNotes
 }: IDataTable) {
-
   const [editorData, setEditorData] = useState("");
   const [editorShow, setEditorShow] = useState(false);
-  
+
   /**
    * Lifecycle method gets invoked before table component gets mounted.
    * Uses the props from the parent component to initialize the editor value.
@@ -88,30 +87,33 @@ export function DataTable({
     } else {
       handleEditorShow();
     }
-  }
+  };
 
   /**
    * Function handles the opening of the user notes text editor.
    */
   const handleEditorShow = () => {
     setEditorShow(true);
-  }
+  };
 
   /**
    * Function handles the closing of the user notes text editor.
    */
   const handleEditorClose = () => {
     setEditorShow(false);
-  }
+  };
 
   /**
    * Function updates the text editor value in a controlled fashion
    * @param {event} event Text editor onchange event
    * @param {ClassicEditor} editor CKEditor instance
    */
-  const handleEditorData = (event: any, editor: { getData: () => React.SetStateAction<string>; }) => {
+  const handleEditorData = (
+    event: any,
+    editor: { getData: () => React.SetStateAction<string> }
+  ) => {
     setEditorData(editor.getData());
-  }
+  };
 
   const output_path = encodeURIComponent(obj["output_path"]) + "/";
   const status = obj["status"];
@@ -123,22 +125,22 @@ export function DataTable({
   const type = obj["plugin_type"];
   const code = obj["plugin_code"];
   const user_notes = obj["user_notes"];
-  const editorShow = editorShow;
+  //const editorTestShow = editorShow;
   let resourceList = [];
-  let ResourceListName = ''
+  let ResourceListName = "";
   try {
     output.map(singleOutput => {
-      if (singleOutput.hasOwnProperty('output')) {
-        if (singleOutput.output.hasOwnProperty('ResourceList')) {
-          resourceList = singleOutput.output.ResourceList
+      if (singleOutput.hasOwnProperty("output")) {
+        if (singleOutput.output.hasOwnProperty("ResourceList")) {
+          resourceList = singleOutput.output.ResourceList;
         }
-        if (singleOutput.output.hasOwnProperty('ResourceListName')) {
-          ResourceListName = singleOutput.output.ResourceListName
+        if (singleOutput.output.hasOwnProperty("ResourceListName")) {
+          ResourceListName = singleOutput.output.ResourceListName;
         }
       }
-    })
+    });
   } catch (_) {
-    resourceList = []
+    resourceList = [];
   }
   return (
     <Pane data-test="dataTableComponent">
@@ -149,9 +151,7 @@ export function DataTable({
           <Table.TextHeaderCell>STATUS</Table.TextHeaderCell>
           {(() => {
             if (output_path !== undefined) {
-              return (
-                <Table.TextHeaderCell>OUTPUT FILES</Table.TextHeaderCell>
-              );
+              return <Table.TextHeaderCell>OUTPUT FILES</Table.TextHeaderCell>;
             }
           })()}
           <Table.TextHeaderCell>ACTIONS</Table.TextHeaderCell>
@@ -228,37 +228,30 @@ export function DataTable({
               isShown={editorShow}
               editor={ClassicEditor}
               data={user_notes}
-              onChange={(event, editor) =>
-                handleEditorData(event, editor)
-              }
+              onChange={(event, editor) => handleEditorData(event, editor)}
             />
           ) : null}
         </Pane>
 
         <Pane border padding={10}>
           <Heading>MORE DETAILS</Heading>
-          <Table
-            border
-            padding={10}
-            margin={5}
-          >
-            {
-              (resourceList.length > 0) ?
-                <Pane>
-                  {ResourceListName}
-                  <UnorderedList>
-                    {resourceList.map(
-                      (resource, index) => <ListItem key={index}>
-                        <Link href={resource[1]} target="__blank">
-                          {resource[0]}
-                        </Link>
-                      </ListItem>
-                    )}
-                  </UnorderedList>
-                </Pane>
-                :
-                'Output not available'
-            }
+          <Table border padding={10} margin={5}>
+            {resourceList.length > 0 ? (
+              <Pane>
+                {ResourceListName}
+                <UnorderedList>
+                  {resourceList.map((resource, index) => (
+                    <ListItem key={index}>
+                      <Link href={resource[1]} target="__blank">
+                        {resource[0]}
+                      </Link>
+                    </ListItem>
+                  ))}
+                </UnorderedList>
+              </Pane>
+            ) : (
+              "Output not available"
+            )}
           </Table>
         </Pane>
       </Pane>
@@ -283,11 +276,9 @@ const mapStateToProps = createStructuredSelector({
 
 const mapDispatchToProps = (dispatch: (arg0: any) => any) => {
   return {
-    onChangeUserNotes: (plugin_data: any) => dispatch(changeUserNotes(plugin_data))
+    onChangeUserNotes: (plugin_data: any) =>
+      dispatch(changeUserNotes(plugin_data))
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(DataTable);
+export default connect(mapStateToProps, mapDispatchToProps)(DataTable);
