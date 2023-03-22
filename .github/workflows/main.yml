@@ -21,7 +21,7 @@ jobs:
         image: postgres
         env:
           POSTGRES_USER: owtf_db_user
-          POSTGRES_PASSWORD: ${{ secrets.OWTF_DB_PASSWORD }}
+          POSTGRES_PASSWORD: test
           POSTGRES_DB: owtf_db
         ports:
           - 5432:5432
