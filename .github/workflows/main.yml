@@ -76,6 +76,7 @@ jobs:
           POSTGRES_PORT: 5432
 
       - name: node_js
+        if: "!contains(github.event.commits[0].message, '[skip ui-tests]')"
         working-directory: owtf/webapp
         run: yarn install --production=false && yarn test
 

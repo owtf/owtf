@@ -4,7 +4,7 @@
  * Speciality of this React implementation is that the filtering is totally client side no server intraction is happening on filtering as compare to previous implementation.(Super fast filtering)
  */
 
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import {
   loadPluginOutput,
   changeUserRank,
@@ -29,7 +29,7 @@ import "./style.scss";
 import Collapse from "./Collapse";
 import update from "immutability-helper";
 
-interface IAccordian{
+interface IAccordian {
   targetData: object;
   selectedGroup: Array<any>;
   selectedType: Array<any>;
@@ -53,7 +53,7 @@ interface IAccordian{
   onDeletePluginOutput: Function;
 }
 
-export function Accordian ({
+export function Accordian({
   targetData,
   selectedGroup,
   selectedType,
@@ -74,29 +74,28 @@ export function Accordian ({
   onFetchPluginOutput,
   onChangeUserRank,
   onPostToWorklist,
-  onDeletePluginOutput,
+  onDeletePluginOutput
 }: IAccordian) {
-  
   const [pactive, setPactive] = useState(""); // Tells which plugin_type is active on Accordian
   const [details, setDetails] = useState({});
   const [pluginData, setPluginData] = useState([]);
   const [pluginCollapseData, setPluginCollapseData] = useState([]); //Plugin data to be passed over to the collapse component as props
   const [isClicked, setIsClicked] = useState(false); // Contents is alredy loaded or not.(To Prevant unneccesaary request)
   const [sideSheetOpen, setSideSheetOpen] = useState(false);
-  
+
   /**
    * Handles the closing of the plugin details sidesheet
    */
   const handleSideSheetClose = () => {
     setSideSheetOpen(false);
-  }
+  };
 
   /**
    * Handles the opening of the plugin details sidesheet
    */
   const handleSideSheetShow = () => {
     setSideSheetOpen(true);
-  }
+  };
 
   /**
    * Function responsible for determing rank on Accordian
@@ -104,12 +103,12 @@ export function Accordian ({
    * @return rank of plugin.
    */
 
-  const getRankAndTypeCount = (pluginDataList) => {
+  const getRankAndTypeCount = pluginDataList => {
     let testCaseMax = 0;
     let count = 0;
     let maxUserRank = -1;
     let maxOWTFRank = -1;
-    
+
     for (var i = 0; i < pluginDataList.length; i++) {
       if (
         (selectedType.length === 0 ||
@@ -143,7 +142,7 @@ export function Accordian ({
     }
     testCaseMax = maxUserRank > maxOWTFRank ? maxUserRank : maxOWTFRank;
     return { rank: testCaseMax, count: count };
-  }
+  };
 
   /**
    * Function responsible for handling the button on Accordian.
@@ -151,7 +150,9 @@ export function Accordian ({
    * @param {plugin_type} values plugin_type: Plugin type which is been clicked
    */
 
-  const handlePluginBtnOnAccordian = (plugin_type: React.SetStateAction<string>) => {
+  const handlePluginBtnOnAccordian = (
+    plugin_type: React.SetStateAction<string>
+  ) => {
     if (isClicked === false) {
       var target_id = targetData.id;
       onFetchPluginOutput(target_id, code);
@@ -168,7 +169,7 @@ export function Accordian ({
       setPactive(plugin_type);
     }
     handleSideSheetShow();
-  }
+  };
 
   /**
    * Function responsible for fetching the plugin data from server.
@@ -189,7 +190,7 @@ export function Accordian ({
       }, 500);
     }
     handleSideSheetShow();
-  }
+  };
 
   /**
    * Function responsible for changing/ranking the plugins.
@@ -226,7 +227,7 @@ export function Accordian ({
         setPactive(pactive);
       }
     }, 500);
-  }
+  };
 
   /**
    * Function responsible for re-scanning of one plugin.
@@ -236,7 +237,10 @@ export function Accordian ({
    * @param {bool} force_overwrite tells if the force_overwrite checkbox is checked or not
    */
 
-  const postToWorklist = (selectedPluginData: { [x: string]: string | number | boolean; }, force_overwrite: any) => {
+  const postToWorklist = (
+    selectedPluginData: { [x: string]: string | number | boolean },
+    force_overwrite: any
+  ) => {
     selectedPluginData["id"] = targetData.id;
     selectedPluginData["force_overwrite"] = force_overwrite;
     const data = Object.keys(selectedPluginData)
@@ -260,7 +264,7 @@ export function Accordian ({
         );
       }
     }, 1000);
-  }
+  };
 
   /**
    * Function responsible for deleting a instance of plugin.
@@ -294,13 +298,15 @@ export function Accordian ({
           pluginData.length != 1 && i === 0
             ? pluginData[i + 1]["plugin_type"]
             : pactive;
-        setPluginData(update(pluginData, {
-          $splice: [[i, 1]]
-        }));
+        setPluginData(
+          update(pluginData, {
+            $splice: [[i, 1]]
+          })
+        );
         setPactive(pactive);
       }
     }, 500);
-  }
+  };
 
   /**
    * Function handles the accordian panel background based on the plugin severity.
@@ -323,7 +329,7 @@ export function Accordian ({
       default:
         return "none";
     }
-  }
+  };
 
   /**
    * Function handles the style of the accordian button based on the plugin severity.
@@ -346,13 +352,13 @@ export function Accordian ({
       default:
         return "none";
     }
-  }
+  };
 
   /**
    * Function renders the plugin severity on top of the accordian panel based on plugin ranking
    * @param {number} testCaseMax plugin severity ranking
    */
-  const renderSeverity = (testCaseMax) => {
+  const renderSeverity = testCaseMax => {
     if (testCaseMax == 0)
       return (
         <Badge
@@ -408,13 +414,13 @@ export function Accordian ({
         </Badge>
       );
     return null;
-  }
+  };
 
   /**
    * Lifecycle method gets invoked before accordian component gets mounted.
    * Uses the props from the parent component to initialize the plugin details.
    */
-  
+
   useEffect(() => {
     const details = data["details"];
     const pluginData = data["data"];
@@ -426,7 +432,7 @@ export function Accordian ({
   const rankAndCount = getRankAndTypeCount(pluginData);
   const testCaseMax = rankAndCount.rank;
   const count = rankAndCount.count;
-  const panelStyle = panelStyle(testCaseMax);
+  const panelTestStyle = panelStyle(testCaseMax);
   const buttonStyle = panelButtonStyle(testCaseMax);
   const CollapseProps = {
     targetData: targetData,
@@ -456,7 +462,7 @@ export function Accordian ({
           marginBottom={10}
           height={100}
           alignItems="center"
-          background={panelStyle}
+          background={panelTestStyle}
         >
           <Pane width={100}>
             {pluginData.map((obj, index) => {
@@ -496,12 +502,7 @@ export function Accordian ({
               }
             })}
           </Pane>
-          <Pane
-            flex={1}
-            display="flex"
-            flexDirection="row"
-            alignItems="center"
-          >
+          <Pane flex={1} display="flex" flexDirection="row" alignItems="center">
             <Heading
               size={700}
               onClick={fetchData}
@@ -579,14 +580,13 @@ const mapDispatchToProps = (dispatch: Function) => {
   return {
     onFetchPluginOutput: (target_id: any, plugin_code: any) =>
       dispatch(loadPluginOutput(target_id, plugin_code)),
-    onChangeUserRank: (plugin_data: any) => dispatch(changeUserRank(plugin_data)),
-    onPostToWorklist: (plugin_data: object) => dispatch(postToWorklist(plugin_data)),
+    onChangeUserRank: (plugin_data: any) =>
+      dispatch(changeUserRank(plugin_data)),
+    onPostToWorklist: (plugin_data: object) =>
+      dispatch(postToWorklist(plugin_data)),
     onDeletePluginOutput: (plugin_data: any) =>
       dispatch(deletePluginOutput(plugin_data))
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Accordian);
+export default connect(mapStateToProps, mapDispatchToProps)(Accordian);

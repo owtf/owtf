@@ -6,14 +6,11 @@ import React from "react";
 import { Pane, IconButton } from "evergreen-ui";
 import PropTypes from "prop-types";
 
-interface IRankButtons{
+interface IRankButtons {
   obj: object;
   patchUserRank: Function;
 }
-export default function RankButtons({
-  obj,
-  patchUserRank,
-}: IRankButtons) {
+export default function RankButtons({ obj, patchUserRank }: IRankButtons) {
   const user_rank = obj["user_rank"];
   const owtf_rank = obj["owtf_rank"];
   const group = obj["plugin_group"];
