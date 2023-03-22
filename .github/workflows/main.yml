@@ -15,7 +15,7 @@ jobs:
         image: postgres
         env:
           POSTGRES_USER: owtf_db_user
-          POSTGRES_PASSWORD: jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=
+          POSTGRES_PASSWORD: ${{ secrets.OWTF_DB_PASSWORD }}
           POSTGRES_DB: owtf_db
         ports:
           - 5432:5432
@@ -77,7 +77,7 @@ jobs:
 
       - name: node_js
         working-directory: owtf/webapp
-        run: yarn test
+        run: yarn install --production=false && yarn test
 
       - name: slack - GitHub Actions Slack integration
         uses: act10ns/slack@v1.2.2
