@@ -1,0 +1,81 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+@mixin settingsPageContainerMixin {
+  @include flexbox;
+  @include flex-direction(column);
+  margin: 4rem 2rem;
+  padding: 2rem 2rem;
+
+  @include xl {
+    padding: 2rem 0;
+  }
+
+  @include sm {
+    margin: 2rem 0.5rem;
+  }
+}
+
+@mixin headingMixin {
+  font-family: $font-family-2;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: $dark-heading-1;
+  margin: 0 0;
+  padding: 1.5rem 1.8rem;
+
+  @include lg {
+    padding: 1.2rem 0.7rem;
+  }
+
+  @include md {
+    font-size: 2.2rem;
+    padding: 1rem 1rem;
+  }
+}
+
+.settingsContainer {
+  @include settingsPageContainerMixin;
+
+  &__headingContainer {
+    @include flexbox;
+    @include flex-direction(row);
+    @include justify-content(space-between);
+
+    & h2 {
+      @include headingMixin;
+    }
+
+    & button {
+      @include buttonMixinCustom(
+        $button-backgroundColor-2,
+        $button-backgroundColor-3,
+        1.5rem,
+        20rem,
+        1rem,
+        1rem,
+        0.7rem,
+        0.7rem,
+        0.8rem,
+        0,
+        1rem
+      );
+
+      @include xl {
+        @include buttonMixinCustom(
+          $button-backgroundColor-2,
+          $button-backgroundColor-3,
+          1.2rem,
+          15rem,
+          0.5rem,
+          0.5rem,
+          1rem,
+          1rem,
+          0.8rem,
+          0,
+          1rem
+        );
+      }
+    }
+  }
+}

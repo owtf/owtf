@@ -8,7 +8,10 @@
 
 import React, { useEffect } from "react";
 import { Switch, Route, Router, Redirect } from "react-router-dom";
-import NavigationBar, { INavigationBarProps, INavItem } from "../../components/NavigationBar";
+import NavigationBar, {
+  INavigationBarProps,
+  INavItem
+} from "../../components/NavigationBar";
 import WelcomePage from "../WelcomePage/Loadable";
 import Dashboard from "../Dashboard/Loadable";
 import TargetsPage from "../TargetsPage/Loadable";
@@ -18,7 +21,7 @@ import LoginPage from "../LoginPage/Loadable";
 import SignupPage from "../SignupPage/Loadable";
 import ForgotPasswordPage from "../ForgotPasswordPage/Loadable";
 import OtpPage from "../OtpPage/Loadable";
-import WorkersPage from "../WorkersPage/Loadable";
+import WorkersPage from "../WorklistPage/WorkersPage/Loadable";
 import WorklistPage from "../WorklistPage/Loadable";
 import NotFoundPage from "../../components/NotFoundPage";
 import TransactionsPage from "../Transactions/Loadable";
@@ -39,20 +42,19 @@ import {
 } from "../LoginPage/selectors";
 import "../../styles/main.css";
 
-interface IAppProps{
+interface IAppProps {
   tryAutoLogin: Function;
   isAuthenticated: boolean;
   username: string;
 }
 
-interface IPrivateRoute{
+interface IPrivateRoute {
   path: string;
   component: Function;
   authenticated: boolean;
 }
 
-export function App ({tryAutoLogin, isAuthenticated, username}: IAppProps){
-  
+export function App({ tryAutoLogin, isAuthenticated, username }: IAppProps) {
   useEffect(() => {
     tryAutoLogin();
   }, []);
@@ -62,7 +64,7 @@ export function App ({tryAutoLogin, isAuthenticated, username}: IAppProps){
     text: "",
     links: [],
     dropdown: false
-  }
+  };
 
   const navbar: INavigationBarProps = {
     brand: navitem,
@@ -84,7 +86,7 @@ export function App ({tryAutoLogin, isAuthenticated, username}: IAppProps){
       dropdown: true,
       text: username,
       links: [{ linkTo: "/logout", text: "Logout" }]
-    }
+    };
     navbar.links.push(link);
   } else {
     navbar.links.push({
@@ -138,9 +140,7 @@ export function App ({tryAutoLogin, isAuthenticated, username}: IAppProps){
             path="/login"
             component={isAuthenticated ? NotFoundPage : LoginPage}
           />
-          <Route 
-            path="/logout" 
-            component={LogoutPage} />
+          <Route path="/logout" component={LogoutPage} />
           <Route
             path="/signup"
             component={isAuthenticated ? NotFoundPage : SignupPage}
@@ -151,35 +151,29 @@ export function App ({tryAutoLogin, isAuthenticated, username}: IAppProps){
           />
           <Route
             path="/forgot-password/email"
-            component={
-              isAuthenticated ? NotFoundPage : ForgotPasswordPage
-            }
+            component={isAuthenticated ? NotFoundPage : ForgotPasswordPage}
           />
           <Route
             path="/email-send/"
-            component={
-              isAuthenticated ? NotFoundPage : EmailSendPage
-            }
+            component={isAuthenticated ? NotFoundPage : EmailSendPage}
           />
-          <Route
-            path="/email-verify/:link"
-            component={EmailVerificationPage}
-          />
+          <Route path="/email-verify/:link" component={EmailVerificationPage} />
           <Route
             path="/new-password/"
-            component={
-              isAuthenticated ? NotFoundPage : NewPasswordPage
-            }
+            component={isAuthenticated ? NotFoundPage : NewPasswordPage}
           />
           <Route path="*" component={NotFoundPage} />
         </Switch>
       </div>
     </Router>
   );
-  
 }
 
-function PrivateRoute({ component: Component, authenticated, ...rest }: IPrivateRoute) {
+function PrivateRoute({
+  component: Component,
+  authenticated,
+  ...rest
+}: IPrivateRoute) {
   if (!authenticated) {
     toaster.danger("Login Required!");
   }

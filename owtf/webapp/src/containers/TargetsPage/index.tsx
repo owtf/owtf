@@ -5,7 +5,7 @@
  * Shows the list of targets along with actions to apply on the targets
  */
 
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import {
   Pane,
   Heading,
@@ -22,7 +22,7 @@ import Plugins from "../Plugins/index";
 import TargetsTable from "./TargetsTable";
 // import "./style.scss";
 import PropTypes from "prop-types";
-import { connect, useSelector, useDispatch  } from "react-redux";
+import { connect, useSelector, useDispatch } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import {
   makeSelectFetchError,
@@ -49,7 +49,7 @@ interface ITargetsProps {
   createError: object | boolean;
   onCreateTarget: Function;
   onFetchSession: Function;
-};
+}
 
 export function TargetsPage({
   fetchLoading,
@@ -62,7 +62,6 @@ export function TargetsPage({
   onCreateTarget,
   onFetchSession
 }: ITargetsProps) {
-  
   const [newTargetUrls, setNewTargetUrls] = useState(""); //URLs of new targets to be added
   const [show, setShow] = useState(false); //handles visibility of alert box
   const [alertStyle, setAlertStyle] = useState("");
@@ -75,8 +74,8 @@ export function TargetsPage({
    * Function re-initializing the state after plugin launch
    */
   const resetTargetState = () => {
-    setSelectedTargets([])
-  }
+    setSelectedTargets([]);
+  };
 
   /**
    * Function handles the closing of Alert box
@@ -119,7 +118,7 @@ export function TargetsPage({
         </Alert>
       );
     }
-  }
+  };
 
   /**
    * Function invoking the Alert box using given params
@@ -133,17 +132,7 @@ export function TargetsPage({
     setTimeout(() => {
       setShow(false);
     }, 5000);
-  }
-
-  /**
-   * Function updating the input targets url
-   * @param {Object} event Event containing the name and value of the Textbox
-   */
-  const handleTargetUrlsChange = ({ target }: any) => {
-    setSelectedTargets(
-      target.value
-    );
-  }
+  };
 
   /**
    * Function validating a string to be a proper URL
@@ -153,7 +142,7 @@ export function TargetsPage({
     // TODO: Add all url protocols to support network plugins
     const urlPattern = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?/;
     return urlPattern.test(str);
-  }
+  };
 
   /**
    * Function for adding new targets using the onCreateTarget function
@@ -197,7 +186,7 @@ export function TargetsPage({
       );
     }
     setDisabled(false);
-  }
+  };
 
   useEffect(() => {
     onFetchTarget();
@@ -209,20 +198,20 @@ export function TargetsPage({
    */
   const getCurrentSession = () => {
     if (sessions === false) return false;
-    if(sessions !== true){
+    if (sessions !== true) {
       for (const session of sessions) {
         if (session.active) return session;
       }
     }
-  }
+  };
 
   /**
    * Function to download list of targets as txt file
    */
   const exportTargets = () => {
     const targetsArray: Array<any> = [];
-    if(targets instanceof Array){
-      targets.map(target=> {
+    if (targets instanceof Array) {
+      targets.map(target => {
         targetsArray.push(target.target_url + "\n");
       });
     }
@@ -231,21 +220,21 @@ export function TargetsPage({
     element.href = URL.createObjectURL(file);
     element.download = "targets.txt";
     element.click();
-  }
+  };
 
   /**
    * Handles the closing of the plugin component
    */
   const handlePluginClose = () => {
     setPluginShow(false);
-  }
+  };
 
   /**
    * Handles the opening of the plugin component
    */
   const handlePluginShow = () => {
     setPluginShow(false);
-  }
+  };
 
   /**
    * Function updating the targest IDs to be run
@@ -253,8 +242,15 @@ export function TargetsPage({
    */
   const updateSelectedTargets = (selectedTargets: any) => {
     setSelectedTargets(selectedTargets);
-  }
+  };
 
+  /**
+   * Function updating the input targets url
+   * @param {Object} event Event containing the name and value of the Textbox
+   */
+  function handleTargetUrlsChange(e) {
+    setNewTargetUrls(e.target.value);
+  }
 
   const TargetsTableProps = {
     targets: targets,
@@ -290,7 +286,9 @@ export function TargetsPage({
               name="newTargetUrls"
               placeholder="Input targets seperated by new line"
               marginTop={10}
-              onChange={handleTargetUrlsChange}
+              onChange={e => {
+                handleTargetUrlsChange(e);
+              }}
               value={newTargetUrls}
             />
             <Button
@@ -347,7 +345,6 @@ export function TargetsPage({
       </Pane>
     </Pane>
   );
-  
 }
 
 TargetsPage.propTypes = {
@@ -378,7 +375,4 @@ const mapDispatchToProps = (dispatch: Function) => {
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(TargetsPage);
+export default connect(mapStateToProps, mapDispatchToProps)(TargetsPage);

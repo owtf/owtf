@@ -1,0 +1,110 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+@mixin worklistHeaderButtonMixin($color-1, $color-2) {
+  @include buttonMixinCustom(
+    $color-1,
+    $color-2,
+    1.5rem,
+    auto,
+    1rem,
+    1rem,
+    1.2rem,
+    1.2rem,
+    0.5rem,
+    0,
+    1rem
+  );
+
+  @include lg {
+    font-size: 1.1rem;
+    padding: 0.8rem 0.5rem;
+    padding-right: 1.2rem;
+  }
+
+  svg {
+    @include lg {
+      margin-right: 0.3rem;
+      position: relative;
+      top: 0.6rem;
+    }
+  }
+}
+
+.worklistComponentContainer {
+  padding: 5rem;
+
+  &__headerContainer {
+    @include flexbox;
+    @include flex-direction(row);
+    @include justify-content(space-between);
+
+    &__searchInputContainer {
+      & input {
+        display: inline-block;
+        color: $text-area-color-dark;
+        border-radius: 0.5rem;
+        padding: 1rem 1rem;
+        font-size: 1.4rem;
+        outline: none;
+        border: 1px solid rgba(34, 34, 34, 0.192);
+        transition: all 0.3s all;
+
+        &:focus {
+          width: 40rem;
+        }
+
+        @include sm {
+          width: 100%;
+        }
+      }
+    }
+
+    &__buttonsContainer {
+      @include flexbox;
+      @include flex-direction(row);
+      @include justify-content(space-between);
+
+      &__pauseAllButton {
+        @include worklistHeaderButtonMixin(
+          $button-backgroundColor-2,
+          $button-backgroundColor-3
+        );
+      }
+
+      &__resumeAllButton {
+        @include worklistHeaderButtonMixin(
+          $button-backgroundColor-6,
+          $button-backgroundColor-7
+        );
+      }
+
+      &__deleteAllButton {
+        @include worklistHeaderButtonMixin(
+          $button-backgroundColor-4,
+          $button-backgroundColor-5
+        );
+      }
+
+      @include sm {
+        margin: 2rem 0;
+      }
+    }
+
+    @include sm {
+      @include flex-direction(column);
+    }
+  }
+
+  &__errorContainer {
+    @include errorContainerMixin;
+  }
+
+  @include xl {
+    padding: 5rem 0.5rem;
+  }
+
+  @include sm {
+    padding: 2rem 0;
+  }
+}

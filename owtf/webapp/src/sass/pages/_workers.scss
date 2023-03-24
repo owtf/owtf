@@ -1,0 +1,146 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+@mixin worklistHeaderButtonMixin($color-1, $color-2) {
+  @include buttonMixinCustom(
+    $color-1,
+    $color-2,
+    1.5rem,
+    auto,
+    1rem,
+    1rem,
+    1.2rem,
+    1.2rem,
+    0.5rem,
+    0,
+    1rem
+  );
+
+  @include lg {
+    font-size: 1.1rem;
+    padding: 0.8rem 0.5rem;
+    padding-right: 1.2rem;
+  }
+
+  svg {
+    color: white;
+
+    @include lg {
+      margin-right: 0.3rem;
+      position: relative;
+      top: 0.6rem;
+    }
+  }
+}
+
+@mixin headingMixin {
+  font-family: $font-family-2;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: $dark-heading-1;
+  margin: 0 0;
+  padding: 1.5rem 0;
+
+  @include lg {
+    padding: 1.2rem 0.7rem;
+  }
+
+  @include md {
+    font-size: 1.8rem;
+    padding: 1rem 0rem;
+  }
+}
+
+.workersPageContainer {
+  padding: 5rem;
+
+  &__buttonsContainer {
+    @include flexbox;
+    @include flex-direction(row);
+    @include justify-content(flex-end);
+
+    &__addWorkerButton {
+      @include worklistHeaderButtonMixin(
+        $button-backgroundColor-2,
+        $button-backgroundColor-3
+      );
+    }
+
+    &__pauseAllButton {
+      @include worklistHeaderButtonMixin(
+        $button-backgroundColor-6,
+        $button-backgroundColor-7
+      );
+    }
+
+    &__resumeAllButton {
+      @include worklistHeaderButtonMixin(
+        $button-backgroundColor-4,
+        $button-backgroundColor-5
+      );
+    }
+
+    @include sm {
+      @include justify-content(flex-start);
+      margin: 2rem 0;
+    }
+  }
+
+  &__heading {
+    @include headingMixin;
+    margin: 0.5rem 0;
+  }
+
+  &__progressBarContainer p {
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    color: #5e5d5d;
+    font-size: 1.7rem;
+    margin: 0 1rem;
+    margin: 0.5rem 0;
+
+    @include lg {
+      padding: 1.2rem 0.7rem;
+    }
+
+    @include md {
+      font-size: 1.5;
+      padding: 1rem 1rem;
+    }
+  }
+
+  &__workerPanelContainer {
+    height: auto;
+    padding: 1rem 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    row-gap: 3rem;
+    column-gap: 5rem;
+
+    @include xl {
+      grid-template-columns: repeat(3, 1fr);
+      column-gap: 3rem;
+    }
+
+    @include md {
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: 2rem;
+    }
+
+    @include sm {
+      grid-template-columns: repeat(1, 1fr);
+    }
+  }
+
+  &__errorContainer {
+    @include errorContainerMixin;
+  }
+
+  @include xl {
+    padding: 5rem 0.5rem;
+  }
+
+  @include sm {
+    padding: 2rem 0.5rem;
+  }
+}

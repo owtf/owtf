@@ -1,0 +1,22 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+.targetContainer__headerToolbarContainer__toolbarContainer {
+  @include flexbox;
+  @include flex-direction(row);
+  @include justify-content(flex-start);
+  margin: 2rem 0;
+
+  & span {
+    cursor: pointer;
+    margin: 0 1rem;
+    padding: 1rem;
+    font-size: 1.5rem;
+    border-radius: 0.3rem;
+    font-family: $font-family-2;
+
+    @include sm {
+      padding: 1rem 0.5rem;
+    }
+  }
+}

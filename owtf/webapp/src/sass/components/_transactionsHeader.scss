@@ -1,0 +1,164 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+@mixin headerContainer {
+  padding: 1rem 1.5rem;
+  margin: 2rem 0;
+
+  & p {
+    font-size: 1.4rem;
+    font-family: $font-family-2;
+  }
+
+  & pre {
+    font-size: 1.3rem;
+    max-height: 30rem;
+    overflow: scroll;
+    overflow-x: scroll;
+    white-space: nowrap;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
+
+@mixin filterContainer {
+  @include flexbox;
+  @include flex-direction(column);
+  margin-right: 1rem;
+
+  & span {
+    padding: 0.7rem;
+    font-size: 1.4rem;
+    font-family: $font-family-2;
+  }
+
+  & input {
+    padding: 0.7rem;
+    font-size: 1.4rem;
+    outline: none;
+    border: 0.5px solid rgba(0, 0, 0, 0.116);
+    border-radius: 0.3rem;
+    color: rgb(100, 100, 100);
+  }
+
+  @include lg {
+    margin: 1rem 0;
+  }
+}
+
+.transactionsHeader {
+  margin: 4rem 0;
+
+  &__requestResponseHeaderToggle {
+    margin: 1rem 0;
+    @include flexbox;
+    @include flex-direction(row);
+    @include justify-content(flex-start);
+
+    & span {
+      cursor: pointer;
+      margin: 0 1rem;
+      padding: 1rem;
+      font-size: 1.5rem;
+      border-radius: 0.3rem;
+      font-family: $font-family-2;
+    }
+  }
+
+  &__requestResponseHeaderContainer {
+    margin: 2rem 0;
+
+    &__request {
+      &__wrapper {
+        @include headerContainer;
+
+        & button {
+          padding: 1rem;
+          margin: 1rem 0;
+          font-size: 1.3rem;
+          color: white;
+          background-color: rgba(23, 175, 31, 0.918);
+          border: none;
+          border-radius: 0.3rem;
+        }
+
+        &__generateCodeContainer {
+          margin: 3rem 0;
+
+          & strong {
+            font-family: $font-family-2;
+            font-size: 1.7rem;
+          }
+
+          &__filterContainer {
+            @include flexbox;
+            @include flex-direction(row);
+            @include justify-content(flex-start);
+            margin: 2rem 0;
+
+            &__language {
+              @include flexbox;
+              @include flex-direction(column);
+              margin-right: 1rem;
+
+              & span {
+                padding: 0.7rem;
+                font-size: 1.4rem;
+                font-family: $font-family-2;
+              }
+
+              & select {
+                padding: 0.7rem;
+                font-size: 1.4rem;
+                outline: none;
+                border: 0.5px solid rgba(0, 0, 0, 0.116);
+                border-radius: 0.3rem;
+                color: rgb(100, 100, 100);
+                margin-top: 0.2rem;
+              }
+            }
+
+            &__proxy {
+              @include filterContainer;
+            }
+
+            &__searchString {
+              @include filterContainer;
+            }
+
+            &__data {
+              @include filterContainer;
+            }
+
+            @include lg {
+              @include flex-direction(column);
+            }
+          }
+
+          &__buttonsContainer {
+            margin: 1rem 0;
+
+            & button {
+              padding: 1rem;
+              margin: 1rem 0;
+              font-size: 1.3rem;
+              color: white;
+              background-color: rgba(43, 177, 255, 0.918);
+              border: none;
+              border-radius: 0.3rem;
+              margin-right: 1.5rem;
+            }
+          }
+        }
+      }
+    }
+
+    &__response {
+      @include headerContainer;
+    }
+  }
+}

@@ -1,0 +1,10 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+.transactionsPage {
+  padding: 0 3rem;
+
+  @include xl {
+    padding: 0 1.5rem;
+  }
+}

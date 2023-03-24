@@ -1,0 +1,71 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+.accordriansContainer__accordianCollapseContainer {
+  &__accordianContainer {
+    @include flexbox;
+    @include flex-direction(row);
+    margin: 1rem 0;
+    padding: 1rem 0;
+    box-shadow: 10px 10px 30px -4px rgba(30, 30, 60, 0.082);
+
+    &__buttonsContainer {
+      padding-top: 1.4rem;
+
+      & button {
+        color: white;
+        padding: 0.5rem 0.7rem;
+        margin: 0 0.5rem;
+        background-color: rgba(65, 167, 250, 0.897);
+        border: none;
+        font-size: 1.5rem;
+      }
+    }
+
+    &__headingContainer {
+      @include flexbox;
+      @include flex-direction(row);
+
+      & h2 {
+        font-size: 1.6rem;
+        cursor: pointer;
+        font-family: $font-family-2;
+        margin-right: 1rem;
+
+        &:hover {
+          text-decoration: underline;
+          color: rgba(10, 127, 236, 0.842);
+        }
+      }
+
+      & small {
+        padding-top: 2.2rem;
+        font-size: 1.2rem;
+        margin: 0 2rem;
+      }
+    }
+
+    &__severityContainer {
+      & span {
+        display: inline-block;
+        margin: 0 1rem;
+        margin-top: 1.4rem;
+        padding: 0.6rem 0.7rem;
+        font-size: 1.3rem;
+        font-family: $font-family-2;
+        color: white;
+      }
+    }
+  }
+
+  @include xl {
+    overflow-x: scroll;
+    white-space: nowrap;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
