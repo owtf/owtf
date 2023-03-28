@@ -43,7 +43,7 @@ module.exports = {
   ],
   resolve: {
     modules: ["src", "node_modules"],
-    extensions: [".js", ".jsx"]
+    extensions: [".js", ".jsx", ".ts", ".tsx"]
   },
   module: {
     rules: [
@@ -110,7 +110,12 @@ module.exports = {
             limit: 10000
           }
         }
-      }
+      },
+      // all files with a `.ts`, `.cts`, `.mts` or `.tsx` extension will be handled by `ts-loader`
+      { test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" ,options: {
+        transpileOnly: true
+      }}
+
     ]
   }
 };

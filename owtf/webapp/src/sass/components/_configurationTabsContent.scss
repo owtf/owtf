@@ -1,0 +1,42 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+.configurationTabsContentContainer {
+  box-shadow: 10px 10px 30px -4px rgba(30, 30, 60, 0.092);
+  border-radius: 0.5rem;
+  background-color: $light-background-1;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+  margin-top: 2.5rem;
+
+  &__tabContainer {
+    @include flexbox;
+    @include flex-direction(column);
+
+    margin: 2.5rem 0;
+
+    & label {
+      font-size: 1.5rem;
+      font-family: $font-family-4;
+      padding: 0.8rem 2rem;
+      color: $dark-heading-1;
+
+      @include xl {
+        font-size: 1.3rem;
+      }
+    }
+
+    & input {
+      font-family: $font-family-5;
+      border: 1px solid rgba(80, 80, 80, 0.185);
+      border-radius: 0.8rem;
+      padding: 1rem 1.5rem;
+      margin: 0.5rem 2rem;
+      font-size: 1.5rem;
+      outline: none;
+
+      @include xl {
+        font-size: 1.3rem;
+      }
+    }
+  }
+}

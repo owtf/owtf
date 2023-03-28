@@ -1,0 +1,32 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+.targetContainer {
+  padding: 3rem;
+
+  &__severityContainer {
+    @include flexbox;
+    @include flex-direction(row);
+    @include justify-content(flex-start);
+
+    & strong {
+      padding-top: 2.7rem;
+      font-size: 1.8rem;
+    }
+
+    @include xl {
+      overflow-x: scroll;
+      white-space: nowrap;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+  }
+
+  @include sm {
+    padding: 1.5rem;
+  }
+}

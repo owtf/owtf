@@ -1,23 +1,75 @@
-/* Spinner*/
-.spinner:before {
-  content: "";
-  box-sizing: border-box;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 50px;
-  height: 50px;
-  margin-top: -30px;
-  margin-left: -30px;
-  border-radius: 70%;
-  border-top: 3px solid #337ab7;
-  border-right: 3px solid #337ab7;
-  animation: spinner 0.5s linear infinite;
+.search-box {
+  width: 200px;
+  -webkit-transition: width 0.4s ease-in-out;
+  transition: width 0.4s ease-in-out;
+  border-radius: 20px;
 }
 
-@keyframes spinner {
-  to {
-    transform: rotate(360deg);
-  }
+/* When the input field gets focus, change its width to 100% */
+.search-box:focus {
+  width: 400px;
+}/*# sourceMappingURL=style.css.map */e: pre;
+  width: 1000;
 }
-/*# sourceMappingURL=style.css.map */
+
+#drag {
+  background-color: rgb(224, 224, 224);
+  height: 3px;
+  cursor: n-resize;
+}
+
+#left_panel {
+  float: left;
+  position: relative;
+  min-height: 1px;
+  padding-right: 15px;
+  padding-left: 15px;
+  overflow: hidden;
+}
+
+#right_panel {
+  float: left;
+  position: relative;
+  min-height: 1px;
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+#drag-left {
+  background-color: rgb(224, 224, 224);
+  width: 3px;
+  float: left;
+  position: relative;
+  height: 100vh;
+  margin-right: 15px;
+  cursor: w-resize;
+}
+
+.footer-col {
+  text-align: center;
+}
+
+.footer-btn {
+  margin: 15px;
+}
+
+.footer-btn-disabled {
+  margin: 15px;
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.btn-disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.header-tab {
+  padding-top: 16px;
+  margin-bottom: 12px;
+  font-weight: 400;
+}
+
+.transaction-table {
+  overflow: scroll;
+}/*# sourceMappingURL=style.css.map */

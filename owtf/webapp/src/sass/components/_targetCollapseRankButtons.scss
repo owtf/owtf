@@ -1,0 +1,27 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+.targetsCollapse__rankButtonsContainer {
+  @include flexbox;
+  @include flex-direction(row);
+  margin: 2rem;
+
+  & button {
+    padding: 0.5rem;
+    border: 0.5px solid rgba(0, 0, 0, 0.096);
+    padding: 1rem;
+    height: 4rem;
+    width: 4rem;
+    background-color: rgba(151, 54, 54, 0.945);
+    border-radius: 0.3rem;
+    & svg {
+      height: 2rem;
+      width: 2rem;
+      color: rgba(0, 0, 0, 0.637);
+    }
+  }
+
+  @include sm {
+    margin: 1rem 0;
+  }
+}

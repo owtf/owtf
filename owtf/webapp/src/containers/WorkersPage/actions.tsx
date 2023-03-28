@@ -16,7 +16,7 @@ import {
   LOAD_WORKER_PROGRESS_ERROR,
   LOAD_WORKER_LOGS,
   LOAD_WORKER_LOGS_SUCCESS,
-  LOAD_WORKER_LOGS_ERROR,
+  LOAD_WORKER_LOGS_ERROR
 } from "./constants";
 
 /**
@@ -24,7 +24,7 @@ import {
  *
  * @return {object} An action object with a type of LOAD_WORKERS
  */
-export function loadWorkers(): object {
+export function loadWorkers() {
   return {
     type: LOAD_WORKERS
   };
@@ -37,7 +37,7 @@ export function loadWorkers(): object {
  *
  * @return {object} An action object with a type of LOAD_WORKERS_SUCCESS passing the workers
  */
-export function workersLoaded(workers: Array<any>): object {
+export function workersLoaded(workers) {
   return {
     type: LOAD_WORKERS_SUCCESS,
     workers
@@ -51,7 +51,7 @@ export function workersLoaded(workers: Array<any>): object {
  *
  * @return {object} An action object with a type of LOAD_WORKERS_ERROR passing the error
  */
-export function workersLoadingError(error: object): object {
+export function workersLoadingError(error) {
   return {
     type: LOAD_WORKERS_ERROR,
     error
@@ -63,7 +63,7 @@ export function workersLoadingError(error: object): object {
  *
  * @return {object} An action object with a type of CREATE_WORKER
  */
-export function createWorker(): object {
+export function createWorker() {
   return {
     type: CREATE_WORKER
   };
@@ -74,7 +74,7 @@ export function createWorker(): object {
  *
  * @return {object} An action object with a type of CREATE_WORKER_SUCCESS
  */
-export function workerCreated(): object {
+export function workerCreated() {
   return {
     type: CREATE_WORKER_SUCCESS
   };
@@ -87,7 +87,7 @@ export function workerCreated(): object {
  *
  * @return {object} An action object with a type of CREATE_WORKER_ERROR passing the error
  */
-export function workerCreatingError(error: object): object {
+export function workerCreatingError(error) {
   return {
     type: CREATE_WORKER_ERROR,
     error
@@ -102,7 +102,7 @@ export function workerCreatingError(error: object): object {
  *
  * @return {object} An action object with a type of CHANGE_WORKER
  */
-export function changeWorker(worker_id: number, action_type: string): object {
+export function changeWorker(worker_id, action_type) {
   return {
     type: CHANGE_WORKER,
     worker_id,
@@ -115,7 +115,7 @@ export function changeWorker(worker_id: number, action_type: string): object {
  *
  * @return {object} An action object with a type of CHANGE_WORKER_SUCCESS
  */
-export function workerChanged(): object {
+export function workerChanged() {
   return {
     type: CHANGE_WORKER_SUCCESS
   };
@@ -128,7 +128,7 @@ export function workerChanged(): object {
  *
  * @return {object} An action object with a type of CHANGE_WORKER_ERROR passing the error
  */
-export function workerChangingError(error: object): object {
+export function workerChangingError(error) {
   return {
     type: CHANGE_WORKER_ERROR,
     error
@@ -142,7 +142,7 @@ export function workerChangingError(error: object): object {
  *
  * @return {object} An action object with a type of DELETE_WORKER
  */
-export function deleteWorker(worker_id: string): object {
+export function deleteWorker(worker_id) {
   return {
     type: DELETE_WORKER,
     worker_id
@@ -154,7 +154,7 @@ export function deleteWorker(worker_id: string): object {
  *
  * @return {object} An action object with a type of DELETE_WORKER_SUCCESS
  */
-export function workerDeleted(): object {
+export function workerDeleted() {
   return {
     type: DELETE_WORKER_SUCCESS
   };
@@ -167,7 +167,7 @@ export function workerDeleted(): object {
  *
  * @return {object} An action object with a type of DELETE_WORKER_ERROR passing the error
  */
-export function workerDeletingError(error: object): object {
+export function workerDeletingError(error) {
   return {
     type: DELETE_WORKER_ERROR,
     error
@@ -179,9 +179,9 @@ export function workerDeletingError(error: object): object {
  *
  * @return {object} An action object with a type of LOAD_WORKER_PROGRESS
  */
-export function loadWorkerProgress(): object {
+export function loadWorkerProgress() {
   return {
-    type: LOAD_WORKER_PROGRESS,
+    type: LOAD_WORKER_PROGRESS
   };
 }
 
@@ -192,7 +192,7 @@ export function loadWorkerProgress(): object {
  *
  * @return {object} An action object with a type of LOAD_WORKER_PROGRESS_SUCCESS passing the progress
  */
-export function workerProgressLoaded(workerProgress: Array<any>): object {
+export function workerProgressLoaded(workerProgress) {
   return {
     type: LOAD_WORKER_PROGRESS_SUCCESS,
     workerProgress
@@ -206,7 +206,7 @@ export function workerProgressLoaded(workerProgress: Array<any>): object {
  *
  * @return {object} An action object with a type of LOAD_WORKER_PROGRESS_ERROR passing the error
  */
-export function workerProgressLoadingError(error: object): object {
+export function workerProgressLoadingError(error) {
   return {
     type: LOAD_WORKER_PROGRESS_ERROR,
     error
@@ -215,17 +215,17 @@ export function workerProgressLoadingError(error: object): object {
 
 /**
  * Load worker logs, this action starts the request saga GET
- * 
+ *
  * @param {string} name Name of the worker log
  * @param {number} lines lines in the logs to fetch
- * 
+ *
  * @return {object} An action object with a type of LOAD_WORKER_LOGS
  */
-export function loadWorkerLogs(name: string, lines: number): object {
+export function loadWorkerLogs(name, lines) {
   return {
     type: LOAD_WORKER_LOGS,
     name,
-    lines,
+    lines
   };
 }
 
@@ -236,7 +236,7 @@ export function loadWorkerLogs(name: string, lines: number): object {
  *
  * @return {object} An action object with a type of LOAD_WORKER_LOGS_SUCCESS passing the logs
  */
-export function workerLogsLoaded(workerLogs: string): object {
+export function workerLogsLoaded(workerLogs) {
   return {
     type: LOAD_WORKER_LOGS_SUCCESS,
     workerLogs
@@ -250,7 +250,7 @@ export function workerLogsLoaded(workerLogs: string): object {
  *
  * @return {object} An action object with a type of LOAD_WORKER_LOGS_ERROR passing the error
  */
-export function workerLogsLoadingError(error: object): object {
+export function workerLogsLoadingError(error) {
   return {
     type: LOAD_WORKER_LOGS_ERROR,
     error

@@ -1,0 +1,92 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+.accordriansContainer__accordianCollapseContainer__collapseContainer {
+  &__headerContainer {
+    padding: 1rem;
+
+    &__heading {
+      & h2 {
+        font-size: 2.2rem;
+        font-family: $font-family-2;
+      }
+
+      & p {
+        font-size: 1.6rem;
+        color: rgba(94, 93, 93, 0.596);
+      }
+    }
+
+    &__typeContainer {
+      @include flexbox;
+      @include flex-direction(row);
+      margin: 2rem 0;
+
+      & span {
+        font-size: 1.5rem;
+        padding: 0.7rem 0.5rem;
+        font-weight: bold;
+        font-family: $font-family-2;
+      }
+
+      & a {
+        display: inline-block;
+        font-size: 1.4rem;
+        padding: 0.7rem;
+        margin: 0 0.5rem;
+        text-decoration: none;
+        font-family: $font-family-2;
+      }
+
+      overflow-x: scroll;
+      white-space: nowrap;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+
+      & svg {
+        width: 2rem;
+        height: 2rem;
+      }
+    }
+  }
+
+  &__bodyContainer {
+    &__pluginTypeContainer {
+      &__headingButtonsContainer {
+        &__heading {
+          @include flexbox;
+          @include flex-direction(row);
+
+          & blockquote {
+            padding: 1rem;
+
+            & h2 {
+              font-size: 1.9rem;
+              font-family: $font-family-2;
+            }
+
+            & small {
+              font-size: 1.6rem;
+              color: rgba(94, 93, 93, 0.596);
+            }
+          }
+
+          @include sm {
+            @include flexbox;
+            @include flex-direction(column);
+          }
+        }
+      }
+    }
+  }
+}
+
+.accordriansContainer__accordianCollapseContainer__errorContainer {
+  margin: 10rem auto;
+  font-size: 1.6rem;
+  text-align: center;
+}

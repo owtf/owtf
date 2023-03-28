@@ -1,0 +1,255 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+@mixin cellTextMixin {
+  font-size: 1.4rem;
+  padding: 0 1rem;
+  font-family: $font-family-2;
+
+  @include xl {
+    font-size: 1.1rem;
+  }
+
+  @include sm {
+    font-size: 0.9rem;
+    padding-left: 0.2;
+  }
+}
+
+@mixin headingTextMixin {
+  font-size: 1.5rem;
+  font-weight: bold;
+  font-family: $font-family-2;
+
+  @include xl {
+    font-size: 1.1rem;
+  }
+
+  @include lg {
+    font-size: 0.9rem;
+  }
+}
+
+@mixin headingInputContainerMixin {
+  position: relative;
+
+  & input {
+    color: $text-area-color-dark;
+    border-radius: 0.5rem;
+    padding: 0.8rem 1rem;
+    padding-left: 2.4rem;
+    font-size: 1.4rem;
+    outline: none;
+    border: 1px solid rgba(34, 34, 34, 0.192);
+    transition: all 0.3s ease-in;
+    width: 100%;
+  }
+
+  & svg {
+    position: absolute;
+    top: 1.1rem;
+    left: 0.5rem;
+    height: 1.5rem;
+    width: 1.5rem;
+  }
+}
+
+.worklistTableContainer {
+  &__headerContainer {
+    @include flexbox;
+    @include justify-content(space-between);
+    @include flex-direction(row);
+    margin: 3rem 0;
+    padding: 1rem;
+    background-color: rgb(243, 243, 243);
+
+    &__estimatedTimeContainer {
+      @include flexbox;
+      padding: 0.7rem 0rem;
+      width: 10%;
+      @include headingTextMixin;
+
+      & label {
+        margin-left: 0.5rem;
+      }
+
+      & input {
+        position: relative;
+        bottom: 0.6rem;
+      }
+
+      @include md {
+        width: 14%;
+        padding: 1rem 0;
+      }
+    }
+
+    &__actionsContainer {
+      padding: 0.8rem 1rem;
+      width: 10%;
+      @include headingTextMixin;
+
+      @include sm {
+        padding: 0.8rem 0;
+      }
+    }
+
+    &__targetSearchContainer {
+      width: 35%;
+      @include headingInputContainerMixin;
+
+      @include lg {
+        width: 20%;
+      }
+    }
+
+    &__pluginTypeSearchContainer {
+      width: 11%;
+      @include headingInputContainerMixin;
+
+      @include lg {
+        width: 16%;
+      }
+    }
+
+    &__pluginGroupSearchContainer {
+      width: 11%;
+      @include headingInputContainerMixin;
+
+      @include lg {
+        width: 16%;
+      }
+    }
+
+    &__pluginNameSearchContainer {
+      width: 11%;
+      @include headingInputContainerMixin;
+
+      @include lg {
+        width: 16%;
+      }
+    }
+
+    @include sm {
+      padding: 1rem 0;
+    }
+  }
+
+  &__bodyContainer {
+    &__rowContainer {
+      @include flexbox;
+      @include justify-content(space-between);
+      @include flex-direction(row);
+      margin: 0.5rem 0;
+      padding: 1.5rem 0;
+      border-bottom: 1px solid rgba(53, 52, 52, 0.116);
+
+      &__pluginMinTimeContainer {
+        width: 10%;
+        @include cellTextMixin;
+
+        @include md {
+          width: 14%;
+        }
+      }
+
+      &__buttonContainer {
+        width: 10%;
+        @include cellTextMixin;
+        @include flexbox;
+
+        & button {
+          @include buttonMixinCustom(
+            $button-backgroundColor-2,
+            $button-backgroundColor-3,
+            1.5rem,
+            auto,
+            0.6rem,
+            0.8rem,
+            0.8rem,
+            0.6rem,
+            0.5rem,
+            0,
+            0.5rem
+          );
+
+          @include xl {
+            margin: 0 0.2rem;
+            padding: 0.4rem;
+            font-size: 1.2rem;
+            border-radius: 0.3rem;
+
+            & svg {
+              margin: 0;
+              padding: 0;
+            }
+          }
+
+          @include sm {
+            padding: 0.2rem;
+            margin: 0.2rem;
+
+            & svg {
+              height: 1.5rem;
+              width: 1.5rem;
+              margin-right: 0;
+            }
+          }
+        }
+
+        @include lg {
+          padding: 0;
+        }
+      }
+
+      &__workTargetContainer {
+        width: 35%;
+        @include cellTextMixin;
+        overflow-x: scroll;
+        white-space: nowrap;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+
+        @include lg {
+          width: 20%;
+        }
+      }
+
+      &__workPluginGroupContainer {
+        width: 11%;
+        @include cellTextMixin;
+
+        @include lg {
+          width: 16%;
+        }
+      }
+
+      &__pluginTypeContainer {
+        @include cellTextMixin;
+
+        @include lg {
+          width: 16%;
+        }
+
+        width: 11%;
+      }
+
+      &__pluginNameContainer {
+        @include cellTextMixin;
+        width: 11%;
+
+        @include lg {
+          width: 16%;
+        }
+      }
+
+      &:hover {
+        background-color: rgba(220, 238, 255, 0.433);
+      }
+    }
+  }
+}

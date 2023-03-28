@@ -1,0 +1,86 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+.targetContainer__headerToolbarContainer__headerContainer {
+  background-color: rgba(128, 128, 128, 0.205);
+  padding: 2rem 0.5rem;
+  margin: 1.5rem 0;
+
+  &__heading {
+    @include flexbox;
+    @include flex-direction(row);
+
+    & h2 {
+      max-width: 70%;
+      font-size: 2.5rem;
+      overflow-x: scroll;
+      white-space: nowrap;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+
+      @include sm {
+        font-size: 2rem;
+        max-width: 100%;
+      }
+    }
+
+    & small {
+      padding-top: 2rem;
+      max-width: 15%;
+      font-size: 1.9rem;
+      margin: 0 2rem;
+      text-align: center;
+
+      @include sm {
+        padding: 0;
+        margin: 1rem 0;
+        font-size: 1.6rem;
+        width: 100%;
+        text-align: left;
+      }
+    }
+
+    &__severity {
+      width: 10%;
+      padding-top: 2rem;
+
+      & span {
+        font-size: 1.7rem;
+        padding: 0.7rem;
+        border-radius: 0.3rem;
+        color: white;
+      }
+
+      @include sm {
+        padding: 0;
+        margin: 1rem 0;
+        font-size: 1.6rem;
+        width: 100%;
+      }
+    }
+
+    @include xl {
+      overflow-x: scroll;
+      white-space: nowrap;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    @include sm {
+      @include flexbox;
+      @include flex-direction(column);
+    }
+  }
+
+  @include sm {
+    padding: 1rem 0.5rem;
+  }
+}

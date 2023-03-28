@@ -1,0 +1,237 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+.targetsTableContainer {
+  margin: 3rem 0;
+
+  &__headerContainer {
+    @include flexbox;
+    @include flex-direction(row);
+    @include justify-content(space-between);
+
+    &__searchInput {
+      @include flexbox;
+      @include flex-direction(row);
+      overflow: hidden;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(34, 34, 34, 0.192);
+      width: 60%;
+
+      & input {
+        width: 100%;
+        color: $text-area-color-dark;
+        padding: 0.9rem 1rem;
+        padding-left: 1.5rem;
+        font-size: 1.4rem;
+        outline: none;
+        border: none;
+
+        @include xl {
+          font-size: 1.2rem;
+        }
+
+        @include sm {
+          padding-right: 0;
+        }
+      }
+
+      & svg {
+        height: 1.8rem;
+        width: 1.8rem;
+        position: relative;
+        top: 1.2rem;
+        left: 0.7rem;
+      }
+
+      @include xl {
+        width: 50%;
+      }
+    }
+
+    &__severity {
+      width: 20%;
+      font-family: $font-family-2;
+      text-align: center;
+
+      &__buttonAndDropdownMenuContainer {
+        display: inline-block;
+        position: relative;
+        margin: 0 auto;
+
+        & button {
+          font-size: 1.4rem;
+          padding: 1.2rem 0.7rem;
+
+          background-color: transparent;
+          border: none;
+
+          & svg {
+            position: relative;
+            top: 0.2rem;
+            left: 0.4rem;
+          }
+        }
+
+        &__dropdownMenuContainer {
+          z-index: 8;
+          position: absolute;
+          top: 100%;
+          left: -8%;
+          @include flexbox;
+          @include flex-direction(column);
+          background-color: rgb(248, 248, 248);
+          box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.096);
+          width: 10rem;
+          border-left: 0.5px solid rgba(0, 0, 0, 0.03);
+          padding: 0.3rem 0;
+
+          & span {
+            display: inline-block;
+            font-size: 1.2rem;
+            width: 100%;
+            color: rgba(0, 0, 0, 0.788);
+            font-family: $font-family-2;
+            padding: 0.8rem 0;
+            cursor: pointer;
+
+            &:hover {
+              background-color: rgba(0, 0, 0, 0.062);
+            }
+          }
+        }
+      }
+
+      @include xl {
+        width: 23%;
+      }
+    }
+
+    &__actions {
+      width: 20%;
+      font-family: $font-family-2;
+      font-size: 1.5rem;
+      padding: 1.3rem 0;
+      text-align: center;
+
+      @include xl {
+        width: 23%;
+      }
+    }
+  }
+
+  &__bodyContainer {
+    margin: 2rem 0;
+    padding-top: 0.5rem;
+
+    &__rowContainer {
+      @include flexbox;
+      @include flex-direction(row);
+      @include justify-content(space-between);
+      margin: 2rem 0;
+
+      &__checkboxUrlContainer {
+        width: 60%;
+        @include flexbox;
+        @include flex-direction(row);
+        & input {
+          position: relative;
+          bottom: 0.7rem;
+        }
+
+        & a {
+          margin-left: 1.5rem;
+          width: 95%;
+          display: inline-block;
+          font-size: 1.4rem;
+          overflow-x: scroll;
+          white-space: nowrap;
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+
+          &::-webkit-scrollbar {
+            display: none;
+          }
+        }
+
+        @include xl {
+          width: 50%;
+        }
+      }
+
+      &__severityContainer {
+        & span {
+          text-align: center;
+          width: 20%;
+          font-size: 1.3rem;
+          color: white;
+          padding: 0.5rem;
+          border-radius: 0.3rem;
+          font-family: $font-family-3;
+          position: relative;
+          top: 0.7rem;
+
+          @include xl {
+            width: 23%;
+          }
+        }
+      }
+
+      &__optionContainer {
+        text-align: center;
+        width: 20%;
+
+        & button {
+          background-color: transparent;
+          border: none;
+          position: relative;
+
+          & svg {
+            height: 3rem;
+            width: 3rem;
+          }
+        }
+
+        &__menu {
+          z-index: 8;
+          position: absolute;
+          top: 100%;
+          left: -100%;
+          @include flexbox;
+          @include flex-direction(column);
+          background-color: rgb(248, 248, 248);
+          box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.096);
+          width: 10rem;
+          border-left: 0.5px solid rgba(0, 0, 0, 0.03);
+          padding: 0.3rem 0;
+
+          & span {
+            display: inline-block;
+            font-size: 1.2rem;
+            width: 100%;
+            color: rgba(0, 0, 0, 0.788);
+            font-family: $font-family-2;
+            padding: 0.8rem 0;
+            cursor: pointer;
+
+            &:hover {
+              background-color: rgba(0, 0, 0, 0.062);
+            }
+          }
+
+          @include sm {
+            width: 7.5rem;
+            left: -35%;
+          }
+        }
+
+        @include xl {
+          width: 23%;
+        }
+      }
+    }
+
+    @include sm {
+      margin: 1rem 0;
+    }
+  }
+}
