@@ -1,0 +1,44 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+.transactionsPage__targetListContainer__headingAndList {
+  margin: 2rem 0;
+  padding: 1rem;
+  &__headingContainer {
+    & h2 {
+      font-size: 2.5rem;
+      font-family: $font-family-2;
+      font-weight: 600;
+    }
+  }
+
+  &__listContainer {
+    padding: 1rem;
+    max-height: 25rem;
+    overflow: scroll;
+    overflow-x: hidden;
+    background-color: rgb(236, 236, 236);
+    &__listWrapper {
+      @include flexbox;
+      @include flex-direction(column);
+
+      &__listItem {
+        margin: 0.5rem 0;
+        padding: 1rem 0;
+        font-size: 1.4rem;
+        font-family: $font-family-2;
+        width: 100%;
+        overflow-x: scroll;
+        white-space: nowrap;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        cursor: pointer;
+        color: rgba(0, 0, 0, 0.76);
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+      }
+    }
+  }
+}

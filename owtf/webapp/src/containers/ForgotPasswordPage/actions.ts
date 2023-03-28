@@ -18,7 +18,10 @@ export function forgotPasswordEmailFail(error: any): object {
   };
 }
 
-export function forgotPasswordEmailSuccess(msg: string, emailOrUsername: string): object {
+export function forgotPasswordEmailSuccess(
+  msg: string,
+  emailOrUsername: string
+): object {
   return {
     type: FORGOT_PASSWORD_EMAIL_SUCCESS,
     msg: msg,

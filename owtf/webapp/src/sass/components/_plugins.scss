@@ -1,0 +1,122 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+@mixin inputContainerMixin {
+  & h2 {
+    font-family: $font-family-2;
+    font-size: 2rem;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.658);
+
+    @include sm {
+      font-size: 1.8rem;
+    }
+  }
+
+  &__inputContainer {
+    & label {
+      font-size: 1.4rem;
+      padding-top: 1.2rem;
+      font-family: $font-family-2;
+      font-weight: 400;
+      @include sm {
+        font-size: 1.2rem;
+      }
+    }
+
+    & input {
+      margin: 0 0.8rem;
+    }
+  }
+}
+
+.pluginsContainer {
+  &__headerContainer {
+    &__launchingOptionsContainer {
+      @include flexbox;
+      @include flex-direction(row);
+      @include justify-content(flex-start);
+      margin: 1rem 0;
+      & span {
+        cursor: pointer;
+        margin: 0 1rem;
+        padding: 1rem;
+        font-size: 1.5rem;
+        border-radius: 0.3rem;
+        font-family: $font-family-2;
+      }
+
+      &__selected {
+        background-color: rgba(0, 0, 0, 0.178);
+      }
+    }
+
+    &__searchinputCheckboxContainer {
+      @include flexbox;
+      @include flex-direction(row);
+      @include justify-content(space-between);
+      margin: 1rem 0;
+      padding: 0.5rem;
+
+      &__checkboxContainer {
+        & label {
+          font-size: 1.3rem;
+          font-family: $font-family-2;
+          margin: 0.5rem;
+        }
+
+        & input {
+          margin: 0.5rem;
+        }
+      }
+
+      &__searchinputContainer {
+        @include flexbox;
+        @include flex-direction(row);
+        @include justify-content(flex-start);
+
+        & input {
+          outline: none;
+          padding: 1rem 1rem;
+          margin: 0.5rem 0.5rem;
+          font-size: 1.3rem;
+          border: none;
+          background-color: rgb(238, 238, 238);
+          font-family: $font-family-2;
+          color: rgba(0, 0, 0, 0.644);
+        }
+      }
+    }
+  }
+
+  &__bodyContainer {
+    &__pluginGroupContainer {
+      padding: 1rem;
+      @include flexbox;
+      @include justify-content(space-between);
+      @include flex-direction(row);
+
+      &__pluginGroupSelectContainer {
+        @include inputContainerMixin;
+      }
+
+      &__pluginTypesContainer {
+        @include inputContainerMixin;
+      }
+    }
+  }
+
+  &__buttonContainer {
+    margin: 1rem 0;
+    text-align: right;
+    & button {
+      border: none;
+      padding: 0.8rem 1rem;
+      font-size: 1.6rem;
+      background-color: rgb(255, 80, 80);
+      color: white;
+      border-radius: 0.4rem;
+      font-family: $font-family-3;
+    }
+  }
+}

@@ -1,0 +1,67 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+@mixin optionsWrapperMixin {
+  @include flexbox;
+  @include flex-direction(row);
+  @include justify-content(flex-start);
+  margin: 1rem 0;
+
+  & strong {
+    padding-top: 0.7rem;
+    font-size: 1.8rem;
+  }
+
+  &__optionsWrapper {
+    @include flexbox;
+    @include flex-direction(row);
+    @include justify-content(flex-start);
+
+    & span {
+      cursor: pointer;
+      margin: 0 1rem;
+      padding: 1rem;
+      font-size: 1.5rem;
+      border-radius: 0.3rem;
+      font-family: $font-family-2;
+      @include xl {
+        padding: 1rem 0.5rem;
+      }
+    }
+
+    &__selected {
+      background-color: rgba(0, 0, 0, 0.178);
+    }
+  }
+
+  @include xl {
+    overflow-x: scroll;
+    white-space: nowrap;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
+
+.targetContainer__sideFilterContainer {
+  &__actionsContainer {
+    @include optionsWrapperMixin;
+
+    & span:hover {
+      color: rgba(0, 0, 255, 0.747);
+      cursor: pointer;
+      text-decoration: underline;
+    }
+  }
+
+  &__groupsContainer {
+    @include optionsWrapperMixin;
+  }
+
+  &__typeContainer {
+    @include optionsWrapperMixin;
+  }
+}

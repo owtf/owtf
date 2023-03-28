@@ -7,14 +7,14 @@ import {
   LOAD_TRANSACTION_ERROR,
   LOAD_HRT_RESPONSE,
   LOAD_HRT_RESPONSE_SUCCESS,
-  LOAD_HRT_RESPONSE_ERROR,
-} from './constants.ts';
+  LOAD_HRT_RESPONSE_ERROR
+} from "./constants";
 
 /**
  * Load the transactions, this action starts the request saga GET
  *
  * @param {integer} target_id Target Id for which transactions are to be loaded
- * 
+ *
  * @return {object} An action object with a type of LOAD_TRANSACTIONS
  */
 export function loadTransactions(target_id: number): object {
@@ -34,7 +34,7 @@ export function loadTransactions(target_id: number): object {
 export function transactionsLoaded(transactions) {
   return {
     type: LOAD_TRANSACTIONS_SUCCESS,
-    transactions,
+    transactions
   };
 }
 
@@ -48,7 +48,7 @@ export function transactionsLoaded(transactions) {
 export function transactionsLoadingError(error) {
   return {
     type: LOAD_TRANSACTIONS_ERROR,
-    error,
+    error
   };
 }
 
@@ -57,7 +57,7 @@ export function transactionsLoadingError(error) {
  *
  * @param {number} target_id Target Id for which transaction is to be loaded
  * @param {number} transaction_id Transaction Id of the transaction to be loaded
- * 
+ *
  * @return {object} An action object with a type of LOAD_TRANSACTION
  */
 export function loadTransaction(target_id, transaction_id) {
@@ -78,7 +78,7 @@ export function loadTransaction(target_id, transaction_id) {
 export function transactionLoaded(transaction) {
   return {
     type: LOAD_TRANSACTION_SUCCESS,
-    transaction,
+    transaction
   };
 }
 
@@ -92,7 +92,7 @@ export function transactionLoaded(transaction) {
 export function transactionLoadingError(error) {
   return {
     type: LOAD_TRANSACTION_ERROR,
-    error,
+    error
   };
 }
 
@@ -102,7 +102,7 @@ export function transactionLoadingError(error) {
  * @param {number} target_id Target Id for which transaction is to be loaded
  * @param {number} transaction_id Transaction Id of the transaction to be loaded
  * @param {object} data selected languages
- * 
+ *
  * @return {object} An action object with a type of LOAD_HRT_RESPONSE
  */
 export function loadHrtResponse(target_id, transaction_id, data) {
@@ -110,7 +110,7 @@ export function loadHrtResponse(target_id, transaction_id, data) {
     type: LOAD_HRT_RESPONSE,
     target_id,
     transaction_id,
-    data,
+    data
   };
 }
 
@@ -124,7 +124,7 @@ export function loadHrtResponse(target_id, transaction_id, data) {
 export function hrtResponseLoaded(hrtResponse) {
   return {
     type: LOAD_HRT_RESPONSE_SUCCESS,
-    hrtResponse,
+    hrtResponse
   };
 }
 
@@ -138,6 +138,6 @@ export function hrtResponseLoaded(hrtResponse) {
 export function hrtResponseLoadingError(error) {
   return {
     type: LOAD_HRT_RESPONSE_ERROR,
-    error,
+    error
   };
 }

@@ -1,0 +1,89 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+.sessionTableContainer {
+  border: 1px solid rgba(0, 0, 0, 0.164);
+  border-radius: 0.5rem;
+  margin-top: 2rem;
+
+  &__tableHeader {
+    @include flexbox;
+    @include justify-content(space-between);
+    @include flex-direction(row);
+    background-color: rgb(243, 243, 243);
+    width: 100%;
+    padding: 0.5rem 0;
+
+    & label {
+      width: 10%;
+    }
+
+    & span {
+      width: 30%;
+      font-size: 1.2rem;
+      text-align: center;
+      padding-top: 0.6rem;
+      font-weight: bold;
+      color: rgba(112, 112, 112, 0.808);
+    }
+
+    & input {
+      width: 60%;
+      color: $text-area-color-dark;
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.6rem;
+      padding-left: 1.2rem;
+      font-size: 1.2rem;
+      outline: none;
+      border: 1px solid rgba(34, 34, 34, 0.192);
+    }
+  }
+
+  &__tableBody {
+    padding: 1rem 0;
+    &__rowContainer {
+      @include flexbox;
+      @include justify-content(space-between);
+      @include flex-direction(row);
+      margin: 0.5rem 0;
+
+      &__radioCell {
+        width: 10%;
+        text-align: center;
+      }
+
+      &__sessionNameCell {
+        display: inline-block;
+        width: 60%;
+        text-align: left;
+        padding-left: 1rem;
+        overflow-x: scroll;
+        white-space: nowrap;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        font-size: 1.3rem;
+        color: rgb(112, 112, 112);
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+      }
+
+      &__deleteButtonCell {
+        width: 30%;
+        text-align: center;
+
+        & button {
+          color: rgba(216, 2, 2, 0.795);
+          background-color: transparent;
+          border: none;
+
+          & svg {
+            height: 2rem;
+            width: 2rem;
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,128 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+@mixin infoContainer {
+  font-family: $font-family-2;
+  font-size: 1.5rem;
+  margin: 0;
+  padding: 0.5rem 0;
+}
+
+@mixin showLogButtonMixin($color-1, $color-2) {
+  @include buttonMixinCustom(
+    $color-1,
+    $color-2,
+    1.3rem,
+    auto,
+    0.7rem,
+    0.7rem,
+    0.6rem,
+    0.6rem,
+    0.5rem,
+    0.5rem,
+    0
+  );
+
+  @include lg {
+    font-size: 1.1rem;
+    padding: 0.8rem 0.5rem;
+    padding-right: 1.2rem;
+  }
+}
+
+.workerPanelContainer {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.096);
+
+  &__headingContainer {
+    @include flexbox;
+    @include flex-direction(row);
+    @include justify-content(space-between);
+
+    &__heading {
+      font-size: 2.5rem;
+      align-items: center;
+      padding-top: 0.5rem;
+      padding: 1.5rem 0;
+      margin: 0;
+      font-family: $font-family-2;
+      color: $dark-background-1;
+
+      @include lg {
+        font-size: 2.2rem;
+      }
+
+      @include sm {
+        font-size: 1.8rem;
+      }
+
+      @include xs {
+        font-size: 1.5rem;
+      }
+    }
+
+    &__deleteButton {
+      button {
+        border: none;
+        background-color: transparent;
+
+        svg {
+          height: 2rem;
+          width: 2rem;
+          color: rgb(78, 78, 78);
+        }
+      }
+    }
+  }
+
+  &__infoContainer {
+    &__pid {
+      @include infoContainer;
+    }
+
+    &__startTime {
+      @include infoContainer;
+    }
+
+    &__workerWorkContainer p {
+      @include infoContainer;
+    }
+
+    &__showLogsButton {
+      @include showLogButtonMixin(
+        $button-backgroundColor-2,
+        $button-backgroundColor-3
+      );
+
+      position: relative;
+      &__dropDownMenu {
+        z-index: 8;
+        position: absolute;
+        top: 100%;
+        left: -8%;
+        @include flexbox;
+        @include flex-direction(column);
+        background-color: rgb(248, 248, 248);
+        box-shadow: 10px 10px 25px -4px rgba(30, 30, 60, 0.096);
+        width: 10rem;
+        border-left: 0.5px solid rgba(0, 0, 0, 0.03);
+        padding: 0.3rem 0;
+
+        & span {
+          display: inline-block;
+          font-size: 1.2rem;
+          width: 100%;
+          color: rgba(0, 0, 0, 0.788);
+          font-family: $font-family-2;
+          padding: 0.8rem 0;
+          cursor: pointer;
+
+          &:hover {
+            background-color: rgba(0, 0, 0, 0.062);
+          }
+        }
+      }
+    }
+  }
+}

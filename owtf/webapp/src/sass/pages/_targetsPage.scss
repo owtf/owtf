@@ -1,0 +1,155 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+@mixin targetsPageContainerMixin {
+  @include flexbox;
+  @include flex-direction(column);
+  margin: 4rem 0;
+  padding: 2rem 2rem;
+  box-shadow: 10px 10px 30px -4px rgba(30, 30, 60, 0.092);
+  border-radius: 0.5rem;
+  background-color: $light-background-1;
+  border: 1px solid rgba(0, 0, 0, 0.045);
+}
+
+@mixin headingMixin {
+  font-family: $font-family-2;
+  font-size: 2.3rem;
+  font-weight: bold;
+  color: $dark-heading-1;
+  margin: 2rem 0;
+}
+
+.targetsPageContainer {
+  padding-right: 5rem;
+  padding-left: 5rem;
+
+  &__addTargetsContainer {
+    margin: 5rem 0;
+    @include targetsPageContainerMixin;
+
+    & h2 {
+      @include headingMixin;
+    }
+
+    & textarea {
+      border: none;
+      font-size: 1.8rem;
+      margin: 1.5rem 0;
+      outline: none;
+      background-color: $text-area-backgroundColor-light;
+      padding: 1.8rem 1rem;
+      color: $text-area-color-dark;
+      border-radius: 0.5rem;
+    }
+
+    & button {
+      @include buttonMixinCustom(
+        $button-backgroundColor-2,
+        $button-backgroundColor-3,
+        1.5rem,
+        15rem,
+        1rem,
+        1rem,
+        1.2rem,
+        1.2rem,
+        0.8rem,
+        1rem,
+        0
+      );
+    }
+
+    @include sm {
+      margin: 2.5rem 0;
+      padding: 1rem 0.7rem;
+    }
+  }
+
+  &__targetsContainer {
+    @include targetsPageContainerMixin;
+
+    &__toolbarContainer {
+      @include flexbox;
+      @include flex-direction(row);
+      @include justify-content(space-between);
+
+      &__headingConatiner h2 {
+        @include headingMixin;
+        align-items: center;
+      }
+
+      &__sessionsContainer {
+        margin-bottom: 2rem;
+        align-items: center;
+
+        @include lg {
+          margin: 1.5rem 0;
+        }
+      }
+
+      &__buttonsContainer {
+        @include flexbox;
+        @include flex-direction(row);
+        @include justify-content(center);
+        margin: 0 2rem;
+        align-items: center;
+
+        &__exportButton {
+          @include buttonMixinCustom(
+            $button-backgroundColor-2,
+            $button-backgroundColor-3,
+            1.5rem,
+            15rem,
+            1rem,
+            1rem,
+            0.7rem,
+            0.7rem,
+            0.8rem,
+            0,
+            0
+          );
+        }
+
+        &__runButton {
+          @include buttonMixinCustom(
+            $button-backgroundColor-6,
+            $button-backgroundColor-7,
+            1.5rem,
+            15rem,
+            1rem,
+            1rem,
+            0.7rem,
+            0.7rem,
+            0.8rem,
+            0,
+            1rem
+          );
+        }
+
+        @include lg {
+          margin: 1.5rem 0;
+        }
+      }
+
+      @include lg {
+        @include flex-direction(column);
+      }
+    }
+
+    &__errorContainer {
+      @include errorContainerMixin;
+    }
+
+    @include sm {
+      padding: 0.7rem;
+    }
+  }
+
+  @include xl {
+    padding: 0 1.5rem;
+  }
+
+  @include sm {
+    padding: 0;
+  }
+}
