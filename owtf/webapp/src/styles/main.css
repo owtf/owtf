@@ -4838,7 +4838,7 @@ body {
   font-size: 1.5rem;
   font-family: "Inter", sans-serif;
   padding: 0.8rem 2rem;
-  color: rgb(78, 78, 78);
+  color: #747474;
 }
 @media (max-width: 1200px) {
   .configurationTabsContentContainer__tabContainer label {
