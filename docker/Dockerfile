@@ -23,14 +23,7 @@ RUN apt-get -y install  xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev z
 postgresql-server-dev-all postgresql-client postgresql-client-common \
 postgresql libcurl4-openssl-dev proxychains tor ca-certificates libpq-dev  \
 libxslt1-dev libldap2-dev libsasl2-dev libffi-dev net-tools lsof locales-all 
-#libyaml-dev python3.9 python3.9-dev build-essential python3.9-venv python3-lxml python3-impacket golang-go python3-pip
-# RUN apt-get install -y make build-essential libssl-dev git zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev
-# RUN curl https://pyenv.run | bash
-# RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
-# RUN echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
-# RUN echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init --path)"\nfi' >> ~/.bashrc
-# RUN source ~/.bashrc
-# RUN exec $SHELL
+
 RUN apt-get install -y --no-install-recommends make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
 
 ENV HOME="/root"
