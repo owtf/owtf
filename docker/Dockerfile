@@ -45,7 +45,7 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-# Install optional tools (LBD, arachni, gnutls-bin, o-saft and metagoofil) (not available on ubuntu20)
+# Install optional tools (LBD, arachni, gnutls-bin, o-saft and metagoofil)
 RUN apt-get -y install lbd theharvester tlssled nikto dnsrecon nmap whatweb skipfish dirbuster \
 metasploit-framework wpscan wapiti hydra metagoofil o-saft amass 
 
