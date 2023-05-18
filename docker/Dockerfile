@@ -46,8 +46,8 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 # Install optional tools (LBD, arachni, gnutls-bin, o-saft and metagoofil) (not available on ubuntu20)
-# RUN apt-get -y install lbd theharvester tlssled nikto dnsrecon nmap whatweb skipfish dirbuster \
-# metasploit-framework wpscan wapiti hydra metagoofil o-saft amass 
+RUN apt-get -y install lbd theharvester tlssled nikto dnsrecon nmap whatweb skipfish dirbuster \
+metasploit-framework wpscan wapiti hydra metagoofil o-saft amass 
 
 # Create a dedicated OWTF directory to copy source to and run from.
 RUN cd / && /bin/mkdir -p owtf
