@@ -17,13 +17,13 @@ Panoptic:
   command: git clone https://github.com/lightos/Panoptic.git
   directory: tools/restricted/panoptic
 SSL-Cipher-check:
-  command: "wget --user-agent='Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0' --tries=3 http://unspecific.com/ssl/ssl-cipher-check.pl; chmod 700 *"
+  command: "wget --user-agent='Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0' --tries=3 https://github.com/philwo/pysk/blob/master/tools/ssl-cipher-check.pl; chmod 700 *"
   directory: tools/restricted/ssl/ssl-cipher-check
 SSLLABS:
   command: "wget --tries=3 https://github.com/ssllabs/ssllabs-scan/releases/download/v1.4.0/ssllabs-scan_1.4.0-linux64.tgz; tar xvf * ; rm *.tgz"
   directory: tools/restricted/ssllabs-scan
 SVN-Digger:
-  command: "wget --user-agent='Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0' --tries=3 https://www.netsparker.com/s/research/SVNDigger.zip; unzip *.zip; rm -f *.zip"
+  command: "wget --user-agent='Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0' --tries=3 https://github.com/ph1ne4s/SVNDigger/raw/main/SVNDigger.zip; unzip *.zip; rm -f *.zip"
   directory: dictionaries/restricted/svndigger
 Fuzzdb:
   command: "wget --user-agent='Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0' --tries=3 https://github.com/fuzzdb-project/fuzzdb/archive/master.zip; unzip *.zip; rm -f *.zip"
@@ -38,7 +38,7 @@ Sublist3r:
   command : "git clone https://github.com/aboul3la/Sublist3r"
   directory: tools/restricted/sublist3r
 Subjack:
-  command : "go get github.com/haccer/subjack"
+  command : "go install github.com/haccer/subjack@latest"
   directory: tools/restricted/subjack
 
  
