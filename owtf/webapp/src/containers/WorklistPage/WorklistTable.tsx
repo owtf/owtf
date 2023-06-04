@@ -5,16 +5,40 @@
  */
 import React from "react";
 import { filter } from "fuzzaldrin-plus";
-import { Table, IconButton, Tooltip, Checkbox } from "evergreen-ui";
+import { Table } from "evergreen-ui";
 import { Link } from "react-router-dom";
-import PropTypes from "prop-types";
 import { GiPauseButton } from "react-icons/gi";
 import { BsPlayFill } from "react-icons/bs";
 
 import { HiOutlineSearch } from "react-icons/hi";
 import { RiDeleteBinLine } from "react-icons/ri";
 
-export default class WorklistTable extends React.Component {
+interface PropsType {
+  worklist: [];
+  globalSearch: string;
+  resumeWork: Function;
+  pauseWork: Function;
+  deleteWork: Function;
+  updatingWorklist: Function;
+  selection: boolean;
+  changeSelection: Function;
+  resumeAllWork: Function;
+  pauseAllWork: Function;
+  deleteAllWork: Function;
+}
+
+interface StateType {
+  urlSearch: string;
+  nameSearch: string;
+  typeSearch: string;
+  groupSearch: string;
+  items: {};
+}
+
+export default class WorklistTable extends React.Component<
+  PropsType,
+  StateType
+> {
   constructor(props) {
     super(props);
 
@@ -48,13 +72,13 @@ export default class WorklistTable extends React.Component {
     )
       return worklist;
 
-    return worklist.filter(work => {
+    return worklist.filter((work: any) => {
       // Use the filter from fuzzaldrin-plus to filter by url, method and status.
       var res = true,
-        globalRes = true,
-        resultURL,
-        resultName,
-        resultType,
+        globalRes: boolean = true,
+        resultURL: string,
+        resultName: string,
+        resultType: string,
         resultGroup;
       if (urlSearch.length) {
         resultURL = filter([work.target.target_url], urlSearch);
@@ -96,33 +120,29 @@ export default class WorklistTable extends React.Component {
 
   /**
    * Function updating the code filter qurey
-   * @param {string} value code filter query
    */
-  handleURLFilterChange = value => {
+  handleURLFilterChange = (value: string) => {
     this.setState({ urlSearch: value });
   };
 
   /**
    * Function updating the name filter qurey
-   * @param {string} value name filter query
    */
-  handleNameFilterChange = value => {
+  handleNameFilterChange = (value: string) => {
     this.setState({ nameSearch: value });
   };
 
   /**
    * Function updating the type filter qurey
-   * @param {string} value type filter query
    */
-  handleTypeFilterChange = value => {
+  handleTypeFilterChange = (value: string) => {
     this.setState({ typeSearch: value });
   };
 
   /**
    * Function updating the group filter qurey
-   * @param {string} value group filter query
    */
-  handleGroupFilterChange = value => {
+  handleGroupFilterChange = (value: string) => {
     this.setState({ groupSearch: value });
   };
 
@@ -130,8 +150,9 @@ export default class WorklistTable extends React.Component {
    * Function handling the toggling of the selection checkbox
    * @param {e, items} value event, items to be selected
    */
-  toggleCheck = (e, items) => {
-    this.props.changeSelection(e.target.checked);
+  toggleCheck = (e: React.FormEvent<EventTarget>, items: any) => {
+    let target = e.target as HTMLInputElement;
+    this.props.changeSelection(target.checked);
     this.props.updatingWorklist(items);
   };
 
@@ -149,7 +170,10 @@ export default class WorklistTable extends React.Component {
               id="worklistTableEstimatedTimeInput"
               type="checkbox"
               checked={this.props.selection}
-              onChange={(e, item) => this.toggleCheck(e, items)}
+              // @ts-ignore
+              onChange={(e: React.FormEvent<EventTarget>, item: any) =>
+                this.toggleCheck(e, item)
+              }
             />
             <label htmlFor="worklistTableEstimatedTimeInput">
               Est. Time (min)
@@ -202,7 +226,7 @@ export default class WorklistTable extends React.Component {
             <HiOutlineSearch />
             <input
               id="worklistTablePluginNameSearchInput"
-              input="text"
+              type="text"
               onChange={e => {
                 this.handleNameFilterChange(e.target.value);
               }}
@@ -216,7 +240,6 @@ export default class WorklistTable extends React.Component {
             <div
               className="worklistTableContainer__bodyContainer__rowContainer"
               key={work.id}
-              isSelectable
             >
               <div className="worklistTableContainer__bodyContainer__rowContainer__pluginMinTimeContainer">
                 <span>{work.plugin.min_time}</span>
@@ -268,11 +291,3 @@ export default class WorklistTable extends React.Component {
     );
   };
 }
-
-WorklistTable.propTypes = {
-  worklist: PropTypes.array,
-  globalSearch: PropTypes.string,
-  resumeWork: PropTypes.func,
-  pauseWork: PropTypes.func,
-  deleteWork: PropTypes.func
-};

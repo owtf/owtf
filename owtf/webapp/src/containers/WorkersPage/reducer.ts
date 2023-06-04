@@ -31,7 +31,7 @@ import {
   LOAD_WORKER_PROGRESS_ERROR,
   LOAD_WORKER_LOGS,
   LOAD_WORKER_LOGS_SUCCESS,
-  LOAD_WORKER_LOGS_ERROR,
+  LOAD_WORKER_LOGS_ERROR
 } from "./constants";
 
 // The initial state of the workers.
@@ -127,7 +127,10 @@ const initialWorkerProgressState = fromJS({
   workerProgress: false
 });
 
-export function workerProgressLoadReducer(state = initialWorkerProgressState, action) {
+export function workerProgressLoadReducer(
+  state = initialWorkerProgressState,
+  action
+) {
   switch (action.type) {
     case LOAD_WORKER_PROGRESS:
       return state
@@ -184,5 +187,5 @@ export default combineReducers({
   change: workerChangeReducer,
   delete: workerDeleteReducer,
   loadWorkerProgress: workerProgressLoadReducer,
-  loadWorkerLogs: workerLogsLoadReducer,
+  loadWorkerLogs: workerLogsLoadReducer
 });

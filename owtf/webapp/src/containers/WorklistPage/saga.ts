@@ -32,7 +32,7 @@ import "@babel/polyfill";
  * Fetch Worklist request/response handler
  */
 export function* getWorklist() {
-  const fetchAPI = getWorklistAPI();
+  const fetchAPI: [{ [x: string]: any }, string] = getWorklistAPI();
   try {
     // Call our request helper (see 'utils/request')
     const worklist = yield call(fetchAPI);
@@ -45,8 +45,8 @@ export function* getWorklist() {
 /**
  * Post Worklist request/response handler
  */
-export function* postWorklist(action) {
-  const postAPI = postWorklistAPI();
+export function* postWorklist(action: any) {
+  const postAPI: [{ [x: string]: any }, string] = postWorklistAPI();
   try {
     yield call(postAPI, action.worklist_data);
     yield put(worklistCreated());
@@ -59,8 +59,8 @@ export function* postWorklist(action) {
 /**
  * Patch Worklist request/response handler
  */
-export function* patchWorklist(action) {
-  const patchAPI = patchWorklistAPI(action);
+export function* patchWorklist(action: any) {
+  const patchAPI: [{ [x: string]: any }, string] = patchWorklistAPI(action);
   try {
     yield call(patchAPI);
     yield put(worklistChanged());
@@ -73,8 +73,8 @@ export function* patchWorklist(action) {
 /**
  * Delete Worklist request/response handler
  */
-export function* deleteWorklist(action) {
-  const deleteAPI = deleteWorklistAPI(action);
+export function* deleteWorklist(action: any) {
+  const deleteAPI: [{ [x: string]: any }, string] = deleteWorklistAPI(action);
   try {
     yield call(deleteAPI);
     yield put(worklistDeleted());

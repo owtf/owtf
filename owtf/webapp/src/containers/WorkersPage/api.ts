@@ -1,7 +1,9 @@
 import Request from "../../utils/request";
 import { API_BASE_URL } from "../../utils/constants";
 
-function getHeaders() {
+function getHeaders(): {
+  headers: { "Content-Type": string; Authorization: string };
+} {
   return {
     headers: {
       "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
