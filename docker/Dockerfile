@@ -22,7 +22,7 @@ RUN apt-get -y update && apt-get clean
 RUN apt-get -y install  xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc python-all-dev \
 postgresql-server-dev-all postgresql-client postgresql-client-common \
 postgresql libcurl4-openssl-dev proxychains tor ca-certificates libpq-dev  \
-libxslt1-dev libldap2-dev libsasl2-dev libffi-dev net-tools lsof locales-all 
+libxslt1-dev libldap2-dev libsasl2-dev libffi-dev net-tools lsof locales-all
 
 RUN apt-get install -y --no-install-recommends make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
 
@@ -47,7 +47,7 @@ ENV LC_ALL en_US.UTF-8
 
 # Install optional tools (LBD, arachni, gnutls-bin, o-saft and metagoofil)
 RUN apt-get -y install lbd theharvester tlssled nikto dnsrecon nmap whatweb skipfish dirbuster \
-metasploit-framework wpscan wapiti hydra metagoofil o-saft amass 
+metasploit-framework wpscan wapiti hydra metagoofil o-saft amass
 
 # Create a dedicated OWTF directory to copy source to and run from.
 RUN cd / && /bin/mkdir -p owtf
