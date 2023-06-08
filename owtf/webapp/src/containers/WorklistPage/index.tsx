@@ -3,15 +3,7 @@
  * This components manages target works and allows us to apply certain action (pause, resume, delete) on them.
  */
 import React from "react";
-import {
-  Pane,
-  Button,
-  Spinner,
-  SearchInput,
-  toaster,
-  Paragraph
-} from "evergreen-ui";
-import PropTypes from "prop-types";
+import { Spinner, toaster } from "evergreen-ui";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import {
@@ -29,7 +21,24 @@ import { GiPauseButton } from "react-icons/gi";
 import { BsPlayFill } from "react-icons/bs";
 import { RiDeleteBinLine } from "react-icons/ri";
 
-export class WorklistPage extends React.Component {
+interface PropsType {
+  fetchLoading: boolean;
+  fetchError: boolean;
+  worklist: boolean;
+  changeError: boolean;
+  deleteError: boolean;
+  onFetchWorklist: Function;
+  onChangeWorklist: Function;
+  onDeleteWorklist: Function;
+}
+
+interface StateType {
+  globalSearch: string;
+  selection: boolean;
+  worklist: object;
+}
+
+export class WorklistPage extends React.Component<PropsType, StateType> {
   constructor(props, context) {
     super(props, context);
     this.resumeAllWork = this.resumeAllWork.bind(this);
@@ -167,7 +176,9 @@ export class WorklistPage extends React.Component {
    * Function to delete selected work
    * Uses Function deleteWork()
    */
+
   deleteSelectedWork = () => {
+    // @ts-ignore
     for (let val of this.state.worklist) {
       this.deleteWork(val.id);
     }
@@ -178,6 +189,7 @@ export class WorklistPage extends React.Component {
    * Uses Function resumeWork()
    */
   resumeSelectedWork = () => {
+    // @ts-ignore
     for (let val of this.state.worklist) {
       this.resumeWork(val.id);
     }
@@ -188,12 +200,14 @@ export class WorklistPage extends React.Component {
    * Uses Function pauseWork()
    */
   pauseSelectedWork = () => {
+    // @ts-ignore
     for (let val of this.state.worklist) {
       this.pauseWork(val.id);
     }
   };
 
   render() {
+    console.log(this.state.worklist + "youifhisudhfi");
     const { fetchLoading, fetchError, worklist } = this.props;
     const WorklistTableProps = {
       worklist,
@@ -261,7 +275,9 @@ export class WorklistPage extends React.Component {
             <Spinner />
           </div>
         ) : null}
+
         {worklist !== false ? (
+          // @ts-ignore
           <WorklistTable
             {...WorklistTableProps}
             updatingWorklist={this.updatingWorklist}
@@ -276,17 +292,6 @@ export class WorklistPage extends React.Component {
     );
   }
 }
-
-WorklistPage.propTypes = {
-  fetchLoading: PropTypes.bool,
-  fetchError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  worklist: PropTypes.oneOfType([PropTypes.array, PropTypes.bool]),
-  changeError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  deleteError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  onFetchWorklist: PropTypes.func,
-  onChangeWorklist: PropTypes.func,
-  onDeleteWorklist: PropTypes.func
-};
 
 const mapStateToProps = createStructuredSelector({
   worklist: makeSelectFetchWorklist,
@@ -305,4 +310,5 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
+// @ts-ignore
 export default connect(mapStateToProps, mapDispatchToProps)(WorklistPage);

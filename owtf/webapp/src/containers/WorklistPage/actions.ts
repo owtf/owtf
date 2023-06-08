@@ -18,7 +18,7 @@ import {
  *
  * @return {object} An action object with a type of LOAD_WORKLIST
  */
-export function loadWorklist() {
+export function loadWorklist(): { type: string } {
   return {
     type: LOAD_WORKLIST
   };
@@ -31,7 +31,7 @@ export function loadWorklist() {
  *
  * @return {object} An action object with a type of LOAD_WORKLIST_SUCCESS passing the worklist
  */
-export function worklistLoaded(worklist) {
+export function worklistLoaded(worklist: []): { type: string; worklist: any } {
   return {
     type: LOAD_WORKLIST_SUCCESS,
     worklist
@@ -45,7 +45,9 @@ export function worklistLoaded(worklist) {
  *
  * @return {object} An action object with a type of LOAD_WORKLIST_ERROR passing the error
  */
-export function worklistLoadingError(error) {
+export function worklistLoadingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: LOAD_WORKLIST_ERROR,
     error
@@ -59,7 +61,9 @@ export function worklistLoadingError(error) {
  *
  * @return {object} An action object with a type of CREATE_WORKLIST
  */
-export function createWorklist(worklist_data) {
+export function createWorklist(
+  worklist_data: string
+): { type: string; worklist_data: any } {
   return {
     type: CREATE_WORKLIST,
     worklist_data
@@ -71,7 +75,7 @@ export function createWorklist(worklist_data) {
  *
  * @return {object} An action object with a type of CREATE_WORKLIST_SUCCESS
  */
-export function worklistCreated() {
+export function worklistCreated(): { type: string } {
   return {
     type: CREATE_WORKLIST_SUCCESS
   };
@@ -84,7 +88,9 @@ export function worklistCreated() {
  *
  * @return {object} An action object with a type of CREATE_WORKLIST_ERROR passing the error
  */
-export function worklistCreatingError(error) {
+export function worklistCreatingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: CREATE_WORKLIST_ERROR,
     error
@@ -99,7 +105,10 @@ export function worklistCreatingError(error) {
  *
  * @return {object} An action object with a type of CHANGE_WORKLIST
  */
-export function changeWorklist(work_id, action_type) {
+export function changeWorklist(
+  work_id: number,
+  action_type: string
+): { type: string; work_id: number; action_type: string } {
   return {
     type: CHANGE_WORKLIST,
     work_id,
@@ -112,7 +121,7 @@ export function changeWorklist(work_id, action_type) {
  *
  * @return {object} An action object with a type of CHANGE_WORKLIST_SUCCESS
  */
-export function worklistChanged() {
+export function worklistChanged(): { type: string } {
   return {
     type: CHANGE_WORKLIST_SUCCESS
   };
@@ -125,7 +134,9 @@ export function worklistChanged() {
  *
  * @return {object} An action object with a type of CHANGE_WORKLIST_ERROR passing the error
  */
-export function worklistChangingError(error) {
+export function worklistChangingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: CHANGE_WORKLIST_ERROR,
     error
@@ -139,7 +150,9 @@ export function worklistChangingError(error) {
  *
  * @return {object} An action object with a type of DELETE_WORKLIST
  */
-export function deleteWorklist(work_id) {
+export function deleteWorklist(
+  work_id: string
+): { type: string; work_id: string } {
   return {
     type: DELETE_WORKLIST,
     work_id
@@ -151,7 +164,7 @@ export function deleteWorklist(work_id) {
  *
  * @return {object} An action object with a type of DELETE_WORKLIST_SUCCESS
  */
-export function worklistDeleted() {
+export function worklistDeleted(): { type: string } {
   return {
     type: DELETE_WORKLIST_SUCCESS
   };
@@ -164,7 +177,9 @@ export function worklistDeleted() {
  *
  * @return {object} An action object with a type of DELETE_WORKLIST_ERROR passing the error
  */
-export function worklistDeletingError(error) {
+export function worklistDeletingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: DELETE_WORKLIST_ERROR,
     error

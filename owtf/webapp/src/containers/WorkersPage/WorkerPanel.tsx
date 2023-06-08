@@ -4,30 +4,38 @@
  *
  */
 import React from "react";
-import {
-  Pane,
-  Paragraph,
-  Strong,
-  Menu,
-  Button,
-  Popover,
-  Position,
-  Pre
-} from "evergreen-ui";
 import Moment from "react-moment";
-import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 
 import { GrFormClose } from "react-icons/gr";
 import { GrPauseFill } from "react-icons/gr";
 import { GrPlayFill } from "react-icons/gr";
 
+interface propsType {
+  worker: any;
+  resumeWorker: (worker_id: any) => void;
+  pauseWorker: (worker_id: any) => void;
+  abortWorker: (worker_id: any) => void;
+  deleteWorker: (worker_id: any) => void;
+  handleLogDialogShow: () => void;
+  handleLogDialogContent: (logs: any) => void;
+  workerLogs: any;
+  onFetchWorkerLogs: Function;
+  logDialogContent: string;
+  openDialog: Function;
+  key: any;
+}
+interface stateType {
+  showLogs: boolean;
+}
+
 const panelStyle = {
   primary: "#337ab7",
   info: "#bce8f1",
   default: "#ddd"
 };
-export default class WorkerPanel extends React.Component {
+
+export default class WorkerPanel extends React.Component<propsType, stateType> {
   constructor(props) {
     super(props);
 
@@ -118,7 +126,7 @@ export default class WorkerPanel extends React.Component {
    * @param {sring} name Worker name
    * @param {number} lines log lines to show
    */
-  getWorkerLog(name, lines) {
+  getWorkerLog(name: string, lines: number) {
     this.props.onFetchWorkerLogs(name, lines);
     setTimeout(() => {
       const workerLogs = this.props.workerLogs;
@@ -133,7 +141,7 @@ export default class WorkerPanel extends React.Component {
    * @param {string} worker worker name
    * @param {number} lines Lines to render
    */
-  openLogModal(worker, lines) {
+  openLogModal(worker: string, lines: number) {
     this.getWorkerLog(worker, lines);
     this.props.openDialog();
   }
@@ -214,6 +222,7 @@ export default class WorkerPanel extends React.Component {
                 {[...Array(10)].map((_, i) => (
                   <span
                     key={i + 1}
+                    // @ts-ignore
                     onClick={() => this.openLogModal(worker.name, i.toString())}
                   >
                     {i + 1}
@@ -227,17 +236,3 @@ export default class WorkerPanel extends React.Component {
     );
   }
 }
-
-WorkerPanel.propTypes = {
-  worker: PropTypes.object,
-  resumeWorker: PropTypes.func,
-  pauseWorker: PropTypes.func,
-  abortWorker: PropTypes.func,
-  deleteWorker: PropTypes.func,
-  handleLogDialogShow: PropTypes.func,
-  handleLogDialogContent: PropTypes.func,
-  logDialogShow: PropTypes.bool,
-  workerLogs: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
-  onFetchWorkerLogs: PropTypes.func,
-  logDialogContent: PropTypes.string
-};

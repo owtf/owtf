@@ -6,7 +6,6 @@
 import React from "react";
 import { Spinner, toaster, Paragraph, Pre } from "evergreen-ui";
 import { ProgressBar } from "react-bootstrap";
-import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import {
@@ -38,7 +37,40 @@ import { GiPauseButton } from "react-icons/gi";
 import { BsPlayFill } from "react-icons/bs";
 import { BsPlusLg } from "react-icons/bs";
 
-export class WorkersPage extends React.Component {
+interface workers {
+  busy: boolean;
+  id: number;
+  name: string;
+  paused: boolean;
+  work: Array<any>;
+  worker: Number;
+}
+
+interface propsType {
+  fetchLoading: Function;
+  fetchError: Function;
+  workers?: Array<workers>;
+  changeError: Function;
+  deleteError: Function;
+  createError: Array<boolean>;
+  workerProgressLoading: boolean;
+  workerProgressError: boolean;
+  workerProgress: { complete_count: number; left_count: number };
+  workerLogs: boolean;
+  onFetchWorkers: Function;
+  onChangeWorker: Function;
+  onDeleteWorker: Function;
+  onCreateWorker: Function;
+  onFetchWorkerProgress: Function;
+  onFetchWorkerLogs: Function;
+}
+interface stateType {
+  logDialogShow: boolean;
+  logDialogContent: string;
+  isDialogOpened: boolean;
+}
+
+export class WorkersPage extends React.Component<propsType, stateType> {
   constructor(props, context) {
     super(props, context);
 
@@ -70,7 +102,7 @@ export class WorkersPage extends React.Component {
    * @param {number} worker_id  Id of the worker on which an action is applied
    * @param {string} action type of action applied [PLAY/PAUSE/DELETE/ABORT]
    */
-  toasterSuccess(worker_id, action) {
+  toasterSuccess(worker_id: number, action: string) {
     if (worker_id === 0) {
       // If action is applied on all the workers at once
       if (action === "pause") {
@@ -98,7 +130,7 @@ export class WorkersPage extends React.Component {
    * Function handles rendering of toaster after a failed API call
    * @param {*} error Error message
    */
-  toasterError(error) {
+  toasterError(error: object) {
     toaster.danger("Server replied: " + error);
   }
 
@@ -112,7 +144,7 @@ export class WorkersPage extends React.Component {
   /**
    * Function handles the rendering of worker log dialog box content
    */
-  handleLogDialogContent(logs) {
+  handleLogDialogContent(logs: any) {
     this.setState({ logDialogContent: logs });
   }
 
@@ -145,7 +177,7 @@ export class WorkersPage extends React.Component {
    * @param {number} worker_id Id of the worker to be aborted
    * Uses GET API - /api/v1/wokers/<worker_id>/abort/
    */
-  abortWorker(worker_id) {
+  abortWorker(worker_id: number) {
     this.props.onChangeWorker(worker_id, "abort");
   }
 
@@ -154,7 +186,7 @@ export class WorkersPage extends React.Component {
    * @param {number} worker_id Id of the worker to be resumed
    * Uses PATCH API - /api/v1/wokers/<worker_id>/resume
    */
-  resumeWorker(worker_id) {
+  resumeWorker(worker_id: number) {
     this.props.onChangeWorker(worker_id, "resume");
   }
 
@@ -163,7 +195,7 @@ export class WorkersPage extends React.Component {
    * @param {number} worker_id Id of the worker to be paused
    * Uses PATCH API - /api/v1/wokers/<worker_id>/pause
    */
-  pauseWorker(worker_id) {
+  pauseWorker(worker_id: number) {
     this.props.onChangeWorker(worker_id, "pause");
   }
 
@@ -172,7 +204,7 @@ export class WorkersPage extends React.Component {
    * @param {number} worker_id Id of the worker to be deleted
    * Uses DELETE API - /api/v1/wokers/<worker_id>/
    */
-  deleteWorker(worker_id) {
+  deleteWorker(worker_id: number) {
     this.props.onDeleteWorker(worker_id);
   }
 
@@ -193,24 +225,23 @@ export class WorkersPage extends React.Component {
       workerProgressError,
       workerProgressLoading
     } = this.props;
+
     if (workerProgressError !== false) {
       return <p>Something went wrong, please try again!</p>;
     }
     if (workerProgressLoading) {
       return <Spinner />;
     }
-    if (workerProgress !== false) {
+    if (workerProgress) {
       const left_count = workerProgress.left_count;
       const complete_count = workerProgress.complete_count;
       if (left_count == 0 && complete_count == 0) {
-        return (
-          <Paragraph>You have not added anything to worklist yet</Paragraph>
-        );
+        return <p>You have not added anything to worklist yet</p>;
       } else {
         const percentage_done =
           (complete_count / (left_count + complete_count)) * 100;
         if (percentage_done == 100) {
-          return <Paragraph>Worklist is empty</Paragraph>;
+          return <p>Worklist is empty</p>;
         } else {
           return (
             <ProgressBar
@@ -237,8 +268,10 @@ export class WorkersPage extends React.Component {
       isDialogOpened: false
     });
   }
+
   render() {
     const { fetchError, fetchLoading, workers, workerLogs } = this.props;
+
     const { isDialogOpened } = this.state;
     const WorkerPanelProps = {
       resumeWorker: this.resumeWorker,
@@ -286,26 +319,21 @@ export class WorkersPage extends React.Component {
           {this.renderProgressBar()}
         </div>
 
-        {fetchError !== false ? (
+        {fetchError ? (
           <div className="workersPageContainer__errorContainer">
             <BiError />
             <p>Something went wrong, please try again!</p>
           </div>
         ) : null}
 
-        {fetchLoading !== false ? (
-          <div
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            height={600}
-          >
+        {fetchLoading ? (
+          <div>
             <Spinner size={64} />
           </div>
         ) : null}
 
-        <div clearfix className="workersPageContainer__workerPanelContainer">
-          {workers !== false
+        <div className="workersPageContainer__workerPanelContainer">
+          {workers
             ? workers.map(obj => (
                 <WorkerPanel worker={obj} key={obj.id} {...WorkerPanelProps} />
               ))
@@ -327,25 +355,6 @@ export class WorkersPage extends React.Component {
     );
   }
 }
-
-WorkersPage.propTypes = {
-  fetchLoading: PropTypes.bool,
-  fetchError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  workers: PropTypes.oneOfType([PropTypes.array, PropTypes.bool]),
-  changeError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  deleteError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  createError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  workerProgressLoading: PropTypes.bool,
-  workerProgressError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  workerProgress: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  workerLogs: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
-  onFetchWorkers: PropTypes.func,
-  onChangeWorker: PropTypes.func,
-  onDeleteWorker: PropTypes.func,
-  onCreateWorker: PropTypes.func,
-  onFetchWorkerProgress: PropTypes.func,
-  onFetchWorkerLogs: PropTypes.func
-};
 
 const mapStateToProps = createStructuredSelector({
   workers: makeSelectFetchWorkers,
@@ -373,4 +382,5 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
+// @ts-ignore
 export default connect(mapStateToProps, mapDispatchToProps)(WorkersPage);

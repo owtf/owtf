@@ -8,6 +8,7 @@
     "skipLibCheck": true /* Skip type checking all .d.ts files. */,
     "jsx": "react",
     "sourceMap": true,
+    "lib": ["es5", "es6", "dom", "dom.iterable"]
   },
   "include": ["src", "declaration.d.ts"],
   "exclude": ["node_modules", "dist"]

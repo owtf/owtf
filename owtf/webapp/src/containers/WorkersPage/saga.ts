@@ -9,7 +9,7 @@ import {
   CHANGE_WORKER,
   DELETE_WORKER,
   LOAD_WORKER_PROGRESS,
-  LOAD_WORKER_LOGS,
+  LOAD_WORKER_LOGS
 } from "./constants";
 import {
   loadWorkers,
@@ -25,7 +25,7 @@ import {
   workerProgressLoaded,
   workerProgressLoadingError,
   workerLogsLoaded,
-  workerLogsLoadingError,
+  workerLogsLoadingError
 } from "./actions";
 import {
   getWorkersAPI,
@@ -33,11 +33,11 @@ import {
   patchWorkerAPI,
   deleteWorkerAPI,
   getWorkerProgressAPI,
-  getWorkerLogsAPI,
+  getWorkerLogsAPI
 } from "./api";
 import { WorkersPage } from "./index";
 import "@babel/polyfill";
-
+// @ts-ignore
 const workerspage = new WorkersPage();
 
 /**
@@ -102,7 +102,6 @@ export function* deleteWorker(action) {
     workerspage.toasterError(error);
   }
 }
-
 
 /**
  * Fetch worker progress request/response handler
