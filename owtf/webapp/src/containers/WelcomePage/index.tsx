@@ -2,56 +2,52 @@
  * WelcomePage
  */
 import React from "react";
-import { LinkContainer } from "react-router-bootstrap";
-import { Button } from "react-bootstrap";
-import PropTypes from "prop-types";
+import { Link } from "react-router-dom";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import { makeSelectLoginIsAuthenticated } from "../LoginPage/selectors";
+import logo from "../../../public/img/logo.png";
 
-interface IWelcomePage{
-  isAuthenticated: string
+interface propsType {
+  isAuthenticated: string;
 }
 
-export function WelcomePage({
-  isAuthenticated
-}: IWelcomePage) {
+export class WelcomePage extends React.Component<propsType> {
   // Since state and props are static,
   // there's no need to re-render this component
-  return (
-    <div>
-      <div className="container">
-        <div className="jumbotron">
-          <h1>Offensive Web Testing Framework!</h1>
-          <p style={{ textAlign: "center" }}>
-            OWASP OWTF test is a project that aims to make security
-            assessments as efficient as possible.
-          </p>
-          <div
-            className="row"
-            style={{ display: "flex", justifyContent: "center" }}
-          >
-            {!isAuthenticated ? (
-              <LinkContainer to="/login">
-                <Button bsStyle="primary">Login</Button>
-              </LinkContainer>
-            ) : null}
+  shouldComponentUpdate() {
+    return false;
+  }
+
+  render() {
+    return (
+      <div className="welcomePageContainer">
+        <div className="welcomePageContainer__infoLogoContainer">
+          <div className="welcomePageContainer__infoLogoContainer__info">
+            <h1>Offensive Web Testing Framework!</h1>
+            <p>
+              OWASP OWTF Offensive Web Testing Framework! test is a project that
+              aims to make security assessments as efficient as possible.
+            </p>
+            <div className="welcomePageContainer__infoLogoContainer__loginButton">
+              {!this.props.isAuthenticated ? (
+                <Link to="/login">Log in</Link>
+              ) : null}
+            </div>
+          </div>
+          <div className="welcomePageContainer__infoLogoContainer__logo">
+            <div className="welcomePageContainer__infoLogoContainer__logo__container">
+              <img src={logo} alt="brand logo" />
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
-
-WelcomePage.propTypes = {
-  isAuthenticated: PropTypes.string
-};
 
 const mapStateToProps = createStructuredSelector({
   isAuthenticated: makeSelectLoginIsAuthenticated
 });
 
-export default connect(
-  mapStateToProps,
-  null
-)(WelcomePage);
+export default connect(mapStateToProps, null)(WelcomePage);

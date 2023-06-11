@@ -1,171 +1,222 @@
-import React, {useState, useEffect} from 'react';
-import ReactDOM from 'react-dom';
-import { filter } from 'fuzzaldrin-plus';
+import React from "react";
+import ReactDOM from "react-dom";
+import { filter } from "fuzzaldrin-plus";
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { Pane, Table } from 'evergreen-ui';
-import PropTypes from 'prop-types';
-import './style.scss';
+import PropTypes from "prop-types";
+import "./style.scss";
+import { HiOutlineSearch } from "react-icons/hi";
 
-interface ITransactionTable{
-  target_id: number,
-  transactions: Array<any>,
-  getTransactionsHeaders: Function,
-  handleHeaderContainerHeight: Function,
-  updateHeaderData: Function,
+interface propsType {
+  target_id: number;
+  transactions: [];
+  getTransactionsHeaders: Function;
+  handleHeaderContainerHeight: Function;
+  updateHeaderData: Function;
+}
+interface stateType {
+  urlSearch: any;
+  methodSearch: any;
+  statusSearch: any;
+  resizeTableActive: boolean;
+  tableHeight: number;
 }
 
-export default function TransactionTable ({
-  target_id,
-  transactions,
-  getTransactionsHeaders,
-  handleHeaderContainerHeight,
-  updateHeaderData,
-}: ITransactionTable) {
-  
-  const [urlSearch, setUrlSearch] = useState('');
-  const [methodSearch, setMethodSearch] = useState('');
-  const [statusSearch, setStatusSearch] = useState('');
-  const [resizeTableActive, setResizeTableActive] = useState(false);
-  const [tableHeight, setTableHeight] = useState(0);
-  
+export default class TransactionTable extends React.Component<
+  propsType,
+  stateType
+> {
+  constructor(props) {
+    super(props);
+
+    this.handleMouseMove = this.handleMouseMove.bind(this);
+    this.handleTableFilter = this.handleTableFilter.bind(this);
+    this.handleUrlFilterChange = this.handleUrlFilterChange.bind(this);
+    this.handleMethodFilterChange = this.handleMethodFilterChange.bind(this);
+    this.handleStatusFilterChange = this.handleStatusFilterChange.bind(this);
+
+    this.state = {
+      urlSearch: "",
+      methodSearch: "",
+      statusSearch: "",
+      resizeTableActive: false,
+      tableHeight: 0
+    };
+  }
 
   // Filter the transactions based on the url, method and status property.
-  const handleTableFilter = (transactions: any[]) => {
-    const urlSearchh = urlSearch.trim()
-    const methodSearchh = methodSearch.trim()
-    const statusSearchh = statusSearch.trim()
+  handleTableFilter = transactions => {
+    const urlSearch = this.state.urlSearch.trim();
+    const methodSearch = this.state.methodSearch.trim();
+    const statusSearch = this.state.statusSearch.trim();
 
     // If the searchQuery is empty, return the transactions as it is.
-    if (urlSearchh.length === 0 && methodSearchh.length === 0 && statusSearchh.length === 0)
-      return transactions
+    if (
+      urlSearch.length === 0 &&
+      methodSearch.length === 0 &&
+      statusSearch.length === 0
+    )
+      return transactions;
 
     return transactions.filter(tr => {
       // Use the filter from fuzzaldrin-plus to filter by url, method and status.
-      var res = true
-      if (urlSearchh.length) {
-        const resultUrl = filter([tr.url], urlSearchh);
+      var res = true;
+      if (urlSearch.length) {
+        const resultUrl = filter([tr.url], urlSearch);
         res = res && resultUrl.length === 1;
       }
-      if (methodSearchh.length) {
-        const resultMethod = filter([tr.method], methodSearchh);
+      if (methodSearch.length) {
+        const resultMethod = filter([tr.method], methodSearch);
         res = res && resultMethod.length === 1;
       }
-      if (statusSearchh.length) {
-        const resultStatus = filter([tr.response_status], statusSearchh);
+      if (statusSearch.length) {
+        const resultStatus = filter([tr.response_status], statusSearch);
         res = res && resultStatus.length === 1;
       }
-      return res
-    })
-  }
+      return res;
+    });
+  };
 
-  const handleUrlFilterChange = (value: React.SetStateAction<string>) => {
-    setUrlSearch(value);
-  }
+  handleUrlFilterChange = (value: any) => {
+    this.setState({ urlSearch: value });
+  };
 
-  const handleMethodFilterChange = (value: React.SetStateAction<string>) => {
-    setMethodSearch(value);
-  }
+  handleMethodFilterChange = (value: any) => {
+    this.setState({ methodSearch: value });
+  };
 
-  const handleStatusFilterChange = (value: React.SetStateAction<string>) => {
-    setStatusSearch(value);
-  }
+  handleStatusFilterChange = (value: any) => {
+    this.setState({ statusSearch: value });
+  };
 
-  const handleOnClick = (transaction_id: any) => {
-
-    const target_id = target_id;
+  handleOnClick = (transaction_id: number) => {
+    const target_id = this.props.target_id;
     /* To update header and body for selected row */
-    getTransactionsHeaders(target_id, transaction_id);
+    this.props.getTransactionsHeaders(target_id, transaction_id);
   };
 
-  useEffect(() => {
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', e => handleMouseUp(e));
+  componentDidMount() {
+    document.addEventListener("mousemove", this.handleMouseMove);
+    document.addEventListener("mouseup", e => this.handleMouseUp(e));
     let tablePos;
-    if(refs["table"]){
-      tablePos = ReactDOM.findDOMNode(refs["table"]).getBoundingClientRect();
-      setTableHeight((window.innerHeight - tablePos.top) / 2);
+    if (this.refs["table"]) {
+      //@ts-ignore
+      tablePos = ReactDOM.findDOMNode(
+        this.refs["table"]
+      ).getBoundingClientRect();
+      this.setState({
+        tableHeight: (window.innerHeight - tablePos.top) / 2
+      });
     }
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', e => handleMouseUp(e));
-    }
-  }, []);
+  }
 
-  const handleMouseDown = (e: any) => {
-    setResizeTableActive(true);
-  };
+  componentWillUnmount() {
+    document.removeEventListener("mousemove", this.handleMouseMove);
+    document.removeEventListener("mouseup", e => this.handleMouseUp(e));
+  }
 
-  const handleMouseUp = (e: any) => {
-    setResizeTableActive(false);
-  };
+  handleMouseDown() {
+    this.setState({ resizeTableActive: true });
+  }
 
-  const handleMouseMove = (e: { clientY: number; }) => {
-    if (!resizeTableActive) {
+  handleMouseUp(e) {
+    this.setState({ resizeTableActive: false });
+  }
+
+  handleMouseMove(e: MouseEvent) {
+    if (!this.state.resizeTableActive) {
       return;
     }
-    const tablePos = ReactDOM.findDOMNode(this.refs['table']).getBoundingClientRect()
-    setTableHeight(e.clientY - tablePos.top);
-    handleHeaderContainerHeight(window.innerHeight - e.clientY);
-  };
 
-  const items = handleTableFilter(transactions);
+    const tablePos = ReactDOM.findDOMNode(this.refs["table"])
+      //@ts-ignore
+      .getBoundingClientRect();
+    this.setState({
+      tableHeight: e.clientY - tablePos.top
+    });
+    this.props.handleHeaderContainerHeight(window.innerHeight - e.clientY);
+  }
 
-  return (
-    <Pane data-test="transactionTableComponent">
-      <Pane ref="table" overflow='scroll' height={tableHeight}>
-        <Table>
-          <Table.Head>
-            <Table.SearchHeaderCell
-              onChange={handleUrlFilterChange}
-              value={urlSearch}
-              placeholder='URL'
-              flexShrink={0}
-              flexGrow={3}
-            />
-            <Table.SearchHeaderCell
-              onChange={handleMethodFilterChange}
-              value={methodSearch}
-              placeholder='Method'
-            />
-            <Table.SearchHeaderCell
-              onChange={handleStatusFilterChange}
-              value={statusSearch}
-              placeholder='Status'
-            />
-            <Table.TextHeaderCell>
-              Duration
-            </Table.TextHeaderCell>
-            <Table.TextHeaderCell>
-              Time
-            </Table.TextHeaderCell>
-          </Table.Head>
-          <Table.Body>
+  render() {
+    const items = this.handleTableFilter(this.props.transactions);
+
+    return (
+      <div
+        className="transactionsTableContainer"
+        data-test="transactionTableComponent"
+      >
+        <div className="transactionsTableContainer__tableWrapper">
+          <div className="transactionsTableContainer__tableWrapper__headerContainer">
+            <div className="transactionsTableContainer__tableWrapper__headerContainer__url">
+              <HiOutlineSearch />
+              <input
+                type="text"
+                onChange={e => {
+                  this.handleUrlFilterChange(e.target.value);
+                }}
+                value={this.state.urlSearch}
+                placeholder="URL"
+              />
+            </div>
+
+            <div className="transactionsTableContainer__tableWrapper__headerContainer__method">
+              <HiOutlineSearch />
+              <input
+                type="text"
+                onChange={e => {
+                  this.handleMethodFilterChange(e.target.value);
+                }}
+                value={this.state.methodSearch}
+                placeholder="Method"
+              />
+            </div>
+
+            <div className="transactionsTableContainer__tableWrapper__headerContainer__status">
+              <HiOutlineSearch />
+              <input
+                type="text"
+                onChange={e => {
+                  this.handleStatusFilterChange(e.target.value);
+                }}
+                value={this.state.statusSearch}
+                placeholder="Status"
+              />
+            </div>
+
+            <span>Duration</span>
+            <span>Time</span>
+          </div>
+          <div className="transactionsTableContainer__tableWrapper__bodyContainer">
             {items.map(tr => (
-              <Table.Row key={tr.id} isSelectable onSelect={() => handleOnClick(tr.id)}>
-                <Table.TextCell flexShrink={0} flexGrow={3}>{tr.url}</Table.TextCell>
-                <Table.TextCell>{tr.method}</Table.TextCell>
-                <Table.TextCell>{tr.response_status}</Table.TextCell>
-                <Table.TextCell>{tr.time_human}</Table.TextCell>
-                <Table.TextCell>{tr.local_timestamp}</Table.TextCell>
-              </Table.Row>
+              <div
+                className="transactionsTableContainer__tableWrapper__bodyContainer__rowContainer"
+                key={tr.id}
+                onSelect={() => this.handleOnClick(tr.id)}
+              >
+                <span className="transactionsTableContainer__tableWrapper__bodyContainer__rowContainer__url">
+                  {tr.url}
+                </span>
+                <span className="transactionsTableContainer__tableWrapper__bodyContainer__rowContainer__method">
+                  {tr.method}
+                </span>
+                <span className="transactionsTableContainer__tableWrapper__bodyContainer__rowContainer__status">
+                  {tr.response_status}
+                </span>
+                <span className="transactionsTableContainer__tableWrapper__bodyContainer__rowContainer__duration">
+                  {tr.time_human}
+                </span>
+                <span className="transactionsTableContainer__tableWrapper__bodyContainer__rowContainer__time">
+                  {tr.local_timestamp}
+                </span>
+              </div>
             ))}
-          </Table.Body>
-        </Table>
-      </Pane>
-      <Pane
-        id="drag"
-        onMouseDown={(e: any) => handleMouseDown(e)}
-        onMouseUp={(e: any) => handleMouseUp(e)}
-      />
-    </Pane>
-  );
-  
+          </div>
+        </div>
+        <div
+          id="drag"
+          onMouseDown={e => this.handleMouseDown()}
+          onMouseUp={e => this.handleMouseUp(e)}
+        />
+      </div>
+    );
+  }
 }
-
-TransactionTable.propTypes = {
-  target_id: PropTypes.number,
-  transactions: PropTypes.array,
-  getTransactionsHeaders: PropTypes.func,
-  handleHeaderContainerHeight: PropTypes.func,
-  updateHeaderData: PropTypes.func,
-};

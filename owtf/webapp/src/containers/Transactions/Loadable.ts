@@ -1,5 +1,5 @@
 /**
- * Asynchronously loads the component for WelcomePage
+ * Asynchronously loads the component for Transactions
  */
 import Loadable from "react-loadable";
 

@@ -17,7 +17,9 @@ import {
  *
  * @return {object} An action object with a type of LOAD_TRANSACTIONS
  */
-export function loadTransactions(target_id: number): object {
+export function loadTransactions(
+  target_id: number
+): { type: string; target_id: number } {
   return {
     type: LOAD_TRANSACTIONS,
     target_id
@@ -31,7 +33,9 @@ export function loadTransactions(target_id: number): object {
  *
  * @return {object} An action object with a type of LOAD_TRANSACTIONS_SUCCESS passing the transactions
  */
-export function transactionsLoaded(transactions) {
+export function transactionsLoaded(
+  transactions: []
+): { type: string; transactions: [] } {
   return {
     type: LOAD_TRANSACTIONS_SUCCESS,
     transactions
@@ -45,7 +49,9 @@ export function transactionsLoaded(transactions) {
  *
  * @return {object} An action object with a type of LOAD_TRANSACTIONS_ERROR passing the error
  */
-export function transactionsLoadingError(error) {
+export function transactionsLoadingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: LOAD_TRANSACTIONS_ERROR,
     error
@@ -60,7 +66,11 @@ export function transactionsLoadingError(error) {
  *
  * @return {object} An action object with a type of LOAD_TRANSACTION
  */
-export function loadTransaction(target_id, transaction_id) {
+
+export function loadTransaction(
+  target_id: number,
+  transaction_id: number
+): { type: string; target_id: number; transaction_id: number } {
   return {
     type: LOAD_TRANSACTION,
     target_id,
@@ -75,7 +85,9 @@ export function loadTransaction(target_id, transaction_id) {
  *
  * @return {object} An action object with a type of LOAD_TRANSACTION_SUCCESS passing the transaction
  */
-export function transactionLoaded(transaction) {
+export function transactionLoaded(
+  transaction: []
+): { type: string; transaction: [] } {
   return {
     type: LOAD_TRANSACTION_SUCCESS,
     transaction
@@ -89,7 +101,9 @@ export function transactionLoaded(transaction) {
  *
  * @return {object} An action object with a type of LOAD_TRANSACTION_ERROR passing the error
  */
-export function transactionLoadingError(error) {
+export function transactionLoadingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: LOAD_TRANSACTION_ERROR,
     error
@@ -105,7 +119,11 @@ export function transactionLoadingError(error) {
  *
  * @return {object} An action object with a type of LOAD_HRT_RESPONSE
  */
-export function loadHrtResponse(target_id, transaction_id, data) {
+export function loadHrtResponse(
+  target_id: number,
+  transaction_id: number,
+  data: object
+): { type: string; target_id: number; transaction_id: number; data: object } {
   return {
     type: LOAD_HRT_RESPONSE,
     target_id,
@@ -121,7 +139,9 @@ export function loadHrtResponse(target_id, transaction_id, data) {
  *
  * @return {object} An action object with a type of LOAD_HRT_RESPONSE_SUCCESS passing the hrtResponse
  */
-export function hrtResponseLoaded(hrtResponse) {
+export function hrtResponseLoaded(
+  hrtResponse: string
+): { type: string; hrtResponse: string } {
   return {
     type: LOAD_HRT_RESPONSE_SUCCESS,
     hrtResponse
@@ -135,7 +155,9 @@ export function hrtResponseLoaded(hrtResponse) {
  *
  * @return {object} An action object with a type of LOAD_HRT_RESPONSE_ERROR passing the error
  */
-export function hrtResponseLoadingError(error) {
+export function hrtResponseLoadingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: LOAD_HRT_RESPONSE_ERROR,
     error
