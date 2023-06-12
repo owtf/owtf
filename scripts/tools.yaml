@@ -23,7 +23,7 @@ SSLLABS:
   command: "wget --tries=3 https://github.com/ssllabs/ssllabs-scan/releases/download/v1.4.0/ssllabs-scan_1.4.0-linux64.tgz; tar xvf * ; rm *.tgz"
   directory: tools/restricted/ssllabs-scan
 SVN-Digger:
-  command: "wget --user-agent='Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0' --tries=3 https://github.com/ph1ne4s/SVNDigger/raw/main/SVNDigger.zip; unzip *.zip; rm -f *.zip"
+  command: "wget --user-agent='Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0' --tries=3 wget --user-agent='Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0' --tries=3 https://github.com/owtf/SVNDigger/archive/refs/heads/master.zip; unzip *.zip; rm -f *.zip"
   directory: dictionaries/restricted/svndigger
 Fuzzdb:
   command: "wget --user-agent='Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/15.0' --tries=3 https://github.com/fuzzdb-project/fuzzdb/archive/master.zip; unzip *.zip; rm -f *.zip"
