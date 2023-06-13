@@ -22,8 +22,23 @@ RUN apt-get -y update && apt-get clean
 RUN apt-get -y install  xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc python-all-dev \
 postgresql-server-dev-all postgresql-client postgresql-client-common \
 postgresql libcurl4-openssl-dev proxychains tor ca-certificates libpq-dev  \
-libxslt1-dev libldap2-dev libsasl2-dev libffi-dev net-tools lsof locales-all \
-libyaml-dev python3.9 python3.9-dev build-essential python3.9-venv python3-lxml python3-impacket golang-go python3-pip
+libxslt1-dev libldap2-dev libsasl2-dev libffi-dev net-tools lsof locales-all
+
+RUN apt-get install -y --no-install-recommends make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
+
+ENV HOME="/root"
+WORKDIR ${HOME}
+RUN apt-get install -y git
+RUN git clone --depth=1 https://github.com/pyenv/pyenv.git .pyenv
+ENV PYENV_ROOT="${HOME}/.pyenv"
+ENV PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}"
+
+ENV PYTHON_VERSION=3.9
+RUN pyenv install ${PYTHON_VERSION}
+RUN pyenv global ${PYTHON_VERSION}
+RUN pyenv --version
+RUN python --version
+
 
 # Set locale
 ENV LANG en_US.UTF-8

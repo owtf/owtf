@@ -160,7 +160,7 @@ ui_setup() {
     # Setup nvm and install node
     . ${NVM_DIR}/nvm.sh
     echo "${normal}[*] Installing NPM...${reset}"
-    nvm install 15.0
+    nvm install 18.0
     nvm alias default node
     echo "${normal}[*] npm successfully installed.${reset}"
 

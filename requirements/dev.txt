@@ -1,3 +1,3 @@
 black==18.6b4
-pre-commit==1.8.2
+pre-commit==2.9.2
 bumpversion==0.5.3
