@@ -1,14 +1,12 @@
 /*
  * Transactions
  */
-import React, { useEffect, useState } from "react";
-import { Pane } from "evergreen-ui";
+import React from "react";
 import "./style.scss";
 import TransactionTable from "./TransactionTable";
 import TransactionHeader from "./TransactionHeader";
 import TargetList from "./TargetList";
 
-import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import {
@@ -34,239 +32,227 @@ import {
 import { loadTargets } from "../TargetsPage/actions";
 import { loadTransactions, loadTransaction, loadHrtResponse } from "./actions";
 
-interface ITransactions {
+interface propsType {
   targetsLoading: boolean;
   targetsError: object | boolean;
-  targets: Array<any> | boolean;
+  targets: object | boolean;
   transactionsLoading: boolean;
   transactionsError: object | boolean;
-  transactions: Array<any> | boolean;
+  transactions: object | boolean;
   transactionLoading: boolean;
   transactionError: object | boolean;
   transaction: object | boolean;
   hrtResponseLoading: boolean;
   hrtResponseError: object | boolean;
+  hrtResponse: any;
   onFetchTargets: Function;
   onFetchTransactions: Function;
   onFetchTransaction: Function;
   onFetchHrtResponse: Function;
 }
+interface stateType {
+  resizeTableActiveLeft: boolean;
+  widthTargetList: number;
+  minWidthTargetList: number;
+  widthTable: number;
+  minWidthTable: number;
+  target_id: number;
+  transactionHeaderData: object;
+  transactionsData: any;
+  hrtResponse: any;
+  headerHeight: number;
+}
 
-export function Transactions({
-  targetsLoading,
-  targetsError,
-  targets,
-  transactionsLoading,
-  transactionsError,
-  transactions,
-  transactionLoading,
-  transactionError,
-  transaction,
-  hrtResponseLoading,
-  hrtResponseError,
-  onFetchTargets,
-  onFetchTransactions,
-  onFetchTransaction,
-  onFetchHrtResponse
-}: ITransactions) {
-  const [resizeTableActiveLeft, setResizeTableActiveLeft] = useState(false);
-  const [widthTargetList, setWidthTargetList] = useState(16.66666667);
-  const [minWidthTargetList, setMinWidthTargetList] = useState(10);
-  const [widthTable, setWidthTable] = useState(80);
-  const [minWidthTable, setMinWidthTable] = useState(20);
-  const [target_id, setTarget_id] = useState(0);
-  const [transactionHeaderData, setTransactionHeaderData] = useState({
-    id: "",
-    requestHeader: "",
-    responseHeader: "",
-    responseBody: ""
-  });
-  const [transactionsData, setTransactionsData] = useState([]);
-  const [hrtResponse, setHrtResponse] = useState("");
-  const [headerHeight, setHeaderHeight] = useState(0);
+export class Transactions extends React.Component<propsType, stateType> {
+  constructor(props, context) {
+    super(props, context);
 
-  /* Function responsible for filling transaction table */
-  const getTransactions = (target_id: any) => {
-    onFetchTransactions(target_id);
-    setTimeout(() => {
-      setTarget_id(target_id);
-      setTransactionsData([]);
-      setTransactionHeaderData({
+    this.getTransactions = this.getTransactions.bind(this);
+    this.getTransactionsHeaders = this.getTransactionsHeaders.bind(this);
+    this.getHrtResponse = this.getHrtResponse.bind(this);
+    this.handleHeaderContainerHeight = this.handleHeaderContainerHeight.bind(
+      this
+    );
+    this.updateHeaderData = this.updateHeaderData.bind(this);
+
+    this.state = {
+      resizeTableActiveLeft: false,
+      widthTargetList: 16.66666667,
+      minWidthTargetList: 10,
+      widthTable: 80,
+      minWidthTable: 20,
+      target_id: 0,
+      transactionHeaderData: {
         id: "",
         requestHeader: "",
         responseHeader: "",
         responseBody: ""
+      },
+      transactionsData: [],
+      hrtResponse: "",
+      headerHeight: 0
+    };
+  }
+
+  /* Function responsible for filling transaction table */
+  getTransactions(target_id: number) {
+    this.props.onFetchTransactions(target_id);
+    setTimeout(() => {
+      this.setState({
+        target_id: target_id,
+        transactionsData: this.props.transactions || [],
+        transactionHeaderData: {
+          id: "",
+          requestHeader: "",
+          responseHeader: "",
+          responseBody: ""
+        },
+        hrtResponse: ""
       });
-      setHrtResponse("");
     }, 500);
-  };
+  }
 
   /* Function responsible for filling data TransactionHeaders and Body component */
-  const getTransactionsHeaders = (target_id: any, transaction_id: any) => {
-    onFetchTransaction(target_id, transaction_id);
+  getTransactionsHeaders(target_id: number, transaction_id: number) {
+    this.props.onFetchTransaction(target_id, transaction_id);
     setTimeout(() => {
-      if (transaction) {
-        const transactionn: any = transaction;
-        setTransactionHeaderData({
-          id: transactionn.id,
-          requestHeader: transactionn.raw_request,
-          responseHeader: transactionn.response_headers,
-          responseBody: transactionn.response_body
+      if (this.props.transaction) {
+        const transaction = this.props.transaction;
+        this.setState({
+          transactionHeaderData: {
+            //@ts-ignore
+            id: transaction.id,
+            //@ts-ignore
+            requestHeader: transaction.raw_request,
+            //@ts-ignore
+            responseHeader: transaction.response_headers,
+            //@ts-ignore
+            responseBody: transaction.response_body
+          },
+          hrtResponse: ""
         });
-        setHrtResponse("");
       }
     }, 500);
-  };
+  }
 
   /* Function which is handling HRT (http request handler) for request translation.
      Rest API - POST /api/targets/<target_id>/transactions/hrt/<transaction_id/
                parameter - language : <selected language>
                Response - output of HRT.
   */
-  const getHrtResponse = (target_id: any, transaction_id: any, values: any) => {
-    onFetchHrtResponse(target_id, transaction_id, values);
+  getHrtResponse(target_id: number, transaction_id: number, values: any) {
+    this.props.onFetchHrtResponse(target_id, transaction_id, values);
     setTimeout(() => {
-      if (hrtResponse) {
-        setHrtResponse(hrtResponse);
+      if (this.props.hrtResponse) {
+        this.setState({ hrtResponse: this.props.hrtResponse });
       }
     }, 500);
-  };
+  }
 
-  useEffect(() => {
-    onFetchTargets();
-    document.addEventListener("mousemove", e => handleMouseDragLeft(e));
-    document.addEventListener("mouseup", e => handleMouseUp(e));
-    return () => {
-      document.removeEventListener("mousemove", (e: MouseEvent) =>
-        handleMouseDragLeft(e)
-      );
-      document.removeEventListener("mouseup", (e: MouseEvent) =>
-        handleMouseUp(e)
-      );
-    };
-  }, []);
+  componentDidMount() {
+    this.props.onFetchTargets();
+    document.addEventListener("mousemove", e => this.handleMouseDragLeft(e));
+    document.addEventListener("mouseup", e => this.handleMouseUp(e));
+  }
 
-  const handleHeaderContainerHeight = (changedValue: number) => {
-    setHeaderHeight(changedValue);
-  };
+  componentWillUnmount() {
+    document.removeEventListener("mousemove", e => this.handleMouseDragLeft(e));
+    document.removeEventListener("mouseup", e => this.handleMouseUp(e));
+  }
+
+  handleHeaderContainerHeight(changedValue: number) {
+    this.setState({ headerHeight: changedValue });
+  }
 
   /* Clear header data in TransactionHeader during filters in TransactionTable */
-  const updateHeaderData = () => {
-    setTransactionHeaderData({
-      id: "",
-      requestHeader: "",
-      responseHeader: "",
-      responseBody: ""
+  updateHeaderData() {
+    this.setState({
+      transactionHeaderData: {
+        id: "",
+        requestHeader: "",
+        responseHeader: "",
+        responseBody: ""
+      },
+      hrtResponse: ""
     });
-    setHrtResponse("");
-  };
+  }
 
-  const handleMouseDown = (e: MouseEvent) => {
-    setResizeTableActiveLeft(true);
-  };
+  handleMouseDown(e) {
+    this.setState({ resizeTableActiveLeft: true });
+  }
 
-  const handleMouseUp = (e: MouseEvent) => {
-    setResizeTableActiveLeft(false);
-  };
+  handleMouseUp(e) {
+    this.setState({ resizeTableActiveLeft: false });
+  }
 
-  const handleMouseDragLeft = (e: MouseEvent) => {
-    if (!resizeTableActiveLeft) {
+  handleMouseDragLeft(e) {
+    if (!this.state.resizeTableActiveLeft) {
       return;
     }
-    setWidthTargetList((e.clientX / window.innerWidth) * 100);
-    setWidthTable((e.clientX / window.innerWidth) * 100);
-    if (widthTable < minWidthTable) {
-      setWidthTargetList(minWidthTable);
-      setWidthTable(minWidthTable);
+    this.setState({
+      widthTargetList: (e.clientX / window.innerWidth) * 100,
+      widthTable: 96 - (e.clientX / window.innerWidth) * 100
+    });
+    if (this.state.widthTable < this.state.minWidthTable) {
+      this.setState({
+        widthTable: this.state.minWidthTable,
+        widthTargetList: 96 - this.state.minWidthTable
+      });
     }
-    if (widthTargetList < minWidthTargetList) {
-      setWidthTargetList(minWidthTargetList);
-      setWidthTable(96 - minWidthTargetList);
+    if (this.state.widthTargetList < this.state.minWidthTargetList) {
+      this.setState({
+        widthTargetList: this.state.minWidthTargetList,
+        widthTable: 96 - this.state.minWidthTargetList
+      });
     }
-  };
+  }
 
-  const TransactionHeaderProps = {
-    target_id: target_id,
-    transactionHeaderData: transactionHeaderData,
-    hrtResponse: hrtResponse,
-    getHrtResponse: getHrtResponse,
-    headerHeight: headerHeight
-  };
-  const TargetListProps = {
-    targets: targets,
-    getTransactions: getTransactions
-  };
-  const TransactionTableProps = {
-    getTransactionsHeaders: getTransactionsHeaders,
-    target_id: target_id,
-    updateHeaderData: updateHeaderData,
-    handleHeaderContainerHeight: handleHeaderContainerHeight,
-    transactions: transactionsData
-  };
-  return (
-    <Pane display="flex" flexDirection="row" data-test="transactionsComponent">
-      <Pane
-        id="left_panel"
-        style={{
-          width: widthTargetList.toString() + "%"
-        }}
-      >
-        <TargetList {...TargetListProps} />
-      </Pane>
-      <Pane
-        id="drag-left"
-        onMouseDown={(e: any) => handleMouseDown(e)}
-        onMouseUp={(e: any) => handleMouseUp(e)}
-      />
-      <Pane
-        flexDirection="column"
-        id="right_panel"
-        style={{
-          width: widthTable.toString() + "%"
-        }}
-      >
-        <Pane>
-          {target_id !== 0 ? (
-            <TransactionTable {...TransactionTableProps} />
-          ) : null}
-        </Pane>
-        <Pane>
-          {target_id !== 0 ? (
-            <TransactionHeader {...TransactionHeaderProps} />
-          ) : null}
-        </Pane>
-      </Pane>
-    </Pane>
-  );
+  render() {
+    console.log(this.props);
+    const TransactionHeaderProps = {
+      target_id: this.state.target_id,
+      transactionHeaderData: this.state.transactionHeaderData,
+      hrtResponse: this.state.hrtResponse,
+      getHrtResponse: this.getHrtResponse,
+      headerHeight: this.state.headerHeight
+    };
+    const TargetListProps = {
+      targets: this.props.targets,
+      getTransactions: this.getTransactions
+    };
+    const TransactionTableProps = {
+      getTransactionsHeaders: this.getTransactionsHeaders,
+      target_id: this.state.target_id,
+      updateHeaderData: this.updateHeaderData,
+      handleHeaderContainerHeight: this.handleHeaderContainerHeight,
+      transactions: this.state.transactionsData
+    };
+    return (
+      <div className="transactionsPage" data-test="transactionsComponent">
+        <div className="transactionsPage__targetListContainer">
+          <TargetList {...TargetListProps} />
+        </div>
+        <div className="transactionsPage__HeaderAndTableContainer" />
+        <div
+          className="transactionsPage__HeaderAndTableContainer__wrapper"
+          id="right_panel"
+          style={{ width: "100%" }}
+        >
+          <div className="transactionsPage__HeaderAndTableContainer__wrapper__TableContainer">
+            {this.state.target_id !== 0 ? (
+              <TransactionTable {...TransactionTableProps} />
+            ) : null}
+          </div>
+          <div className="transactionsPage__HeaderAndTableContainer__wrapper__headerContainer">
+            {this.state.target_id !== 0 ? (
+              <TransactionHeader {...TransactionHeaderProps} />
+            ) : null}
+          </div>
+        </div>
+      </div>
+    );
+  }
 }
-
-Transactions.propTypes = {
-  targetsLoading: PropTypes.bool,
-  targetsError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  targets: PropTypes.oneOfType([
-    PropTypes.array.isRequired,
-    PropTypes.bool.isRequired
-  ]),
-  transactionsLoading: PropTypes.bool,
-  transactionsError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  transactions: PropTypes.oneOfType([
-    PropTypes.array.isRequired,
-    PropTypes.bool.isRequired
-  ]),
-  transactionLoading: PropTypes.bool,
-  transactionError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  transaction: PropTypes.oneOfType([
-    PropTypes.object.isRequired,
-    PropTypes.bool.isRequired
-  ]),
-  hrtResponseLoading: PropTypes.bool,
-  hrtResponseError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  hrtResponse: PropTypes.any,
-  onFetchTargets: PropTypes.func,
-  onFetchTransactions: PropTypes.func,
-  onFetchTransaction: PropTypes.func,
-  onFetchHrtResponse: PropTypes.func
-};
 
 const mapStateToProps = createStructuredSelector({
   targets: makeSelectFetchTargets,
@@ -286,16 +272,19 @@ const mapStateToProps = createStructuredSelector({
   hrtResponseError: makeSelectHrtResponseError
 });
 
-const mapDispatchToProps = (dispatch: Function) => {
+const mapDispatchToProps = dispatch => {
   return {
     onFetchTargets: () => dispatch(loadTargets()),
-    onFetchTransactions: (target_id: number) =>
-      dispatch(loadTransactions(target_id)),
-    onFetchTransaction: (target_id: any, transaction_id: any) =>
+    onFetchTransactions: target_id => dispatch(loadTransactions(target_id)),
+    onFetchTransaction: (target_id, transaction_id) =>
       dispatch(loadTransaction(target_id, transaction_id)),
-    onFetchHrtResponse: (target_id: any, transaction_id: any, data: any) =>
+    onFetchHrtResponse: (target_id, transaction_id, data) =>
       dispatch(loadHrtResponse(target_id, transaction_id, data))
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Transactions);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+  //@ts-ignore
+)(Transactions);

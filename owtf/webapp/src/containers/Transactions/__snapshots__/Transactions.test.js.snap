@@ -86,7 +86,6 @@ exports[`Transactions Page componemt Testing Transaction Header component Should
       aria-hidden={false}
       aria-labelledby="request"
       display="block"
-      height={50}
       id="panel-request"
       key="1"
       role="tabpanel"
@@ -112,7 +111,6 @@ exports[`Transactions Page componemt Testing Transaction Header component Should
       aria-hidden={true}
       aria-labelledby="response"
       display="none"
-      height={50}
       id="panel-response"
       key="2"
       role="tabpanel"

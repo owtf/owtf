@@ -1,65 +1,70 @@
-import React, {useState} from 'react';
-import { Tablist, SidebarTab, Pane, Heading } from 'evergreen-ui';
-import PropTypes from 'prop-types';
+import React from "react";
 
-interface ITargetListProps{
-  targets: Array<any>;
+interface propsType {
+  targets: [] | boolean;
   getTransactions: Function;
 }
+interface stateType {
+  selectedIndex: number | string;
+}
 
-export default function TargetList(
-  {
-    targets,
-    getTransactions
-  }: ITargetListProps
-){
+export default class TargetList extends React.Component<propsType, stateType> {
+  constructor(props, context) {
+    super(props, context);
 
-  const [selectedIndex, setSelectedIndex] = useState(null);
-  
-  const handleSelect = (index: number | React.SetStateAction<null>, target_id: any) => {
-    event.preventDefault();
-    setSelectedIndex(index);
-    getTransactions(target_id);
+    this.renderTargetList = this.renderTargetList.bind(this);
+
+    this.state = {
+      selectedIndex: null
+    };
   }
 
-  const renderTargetList = () => {
-    if (targets !== false) {
-      return targets.map((target, index) => {
+  handleSelect(index: any, target_id: number) {
+    this.setState({
+      selectedIndex: index
+    });
+    this.props.getTransactions(target_id);
+  }
+
+  renderTargetList() {
+    if (this.props.targets !== false) {
+      //@ts-ignore
+      return this.props.targets.map((target, index) => {
         return (
-          <SidebarTab
+          <div
+            className="transactionsPage__targetListContainer__headingAndList__listContainer__listWrapper__listItem"
             key={target.id}
             id={target.id}
-            onSelect={() => handleSelect(index, target.id)}
-            isSelected={index === selectedIndex}
-            aria-controls={`panel-${target.id}`}
+            onClick={() => this.handleSelect(index, target.id)}
+            style={{
+              backgroundColor:
+                index === this.state.selectedIndex
+                  ? "rgba(36, 156, 255, 0.479)"
+                  : ""
+            }}
           >
             {target.target_url}
-          </SidebarTab>
+          </div>
         );
       });
     }
   }
 
-  return (
-    <>
-      <Pane display="flex" flexDirection="column" data-test="targetListComponent">
-        <Pane>
-          <Heading size={700}>Targets</Heading>
-        </Pane>
-        <Pane display="flex" marginTop={30}>
-          <Tablist marginBottom={16} flexBasis={240} marginRight={24} onSelect={k => this.handleSelect(k)}>
-            {renderTargetList()}
-          </Tablist>
-        </Pane>
-      </Pane>
-    </>
-  );
+  render() {
+    return (
+      <div
+        className="transactionsPage__targetListContainer__headingAndList"
+        data-test="targetListComponent"
+      >
+        <div className="transactionsPage__targetListContainer__headingAndList__headingContainer">
+          <h2>Targets</h2>
+        </div>
+        <div className="transactionsPage__targetListContainer__headingAndList__listContainer">
+          <div className="transactionsPage__targetListContainer__headingAndList__listContainer__listWrapper">
+            {this.renderTargetList()}
+          </div>
+        </div>
+      </div>
+    );
+  }
 }
-
-TargetList.propTypes = {
-  targets: PropTypes.oneOfType([
-    PropTypes.array.isRequired,
-    PropTypes.bool.isRequired,
-  ]),
-  getTransactions: PropTypes.func
-};

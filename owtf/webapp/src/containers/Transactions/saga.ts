@@ -2,17 +2,25 @@
  * Fetch, Create and Change the targets from API
  */
 
-import { call, put, takeLatest } from 'redux-saga/effects';
-import { LOAD_TRANSACTIONS, LOAD_TRANSACTION, LOAD_HRT_RESPONSE } from './constants';
-import { 
+import { call, put, takeLatest } from "redux-saga/effects";
+import {
+  LOAD_TRANSACTIONS,
+  LOAD_TRANSACTION,
+  LOAD_HRT_RESPONSE
+} from "./constants";
+import {
   transactionsLoaded,
   transactionsLoadingError,
   transactionLoaded,
   transactionLoadingError,
   hrtResponseLoaded,
   hrtResponseLoadingError
-} from './actions';
-import { getTransactionsAPI, getTransactionAPI, getHrtResponseAPI} from "./api";
+} from "./actions";
+import {
+  getTransactionsAPI,
+  getTransactionAPI,
+  getHrtResponseAPI
+} from "./api";
 import "@babel/polyfill";
 
 /**

@@ -10,11 +10,11 @@
  *
  */
 
-import React, {useState, useEffect} from "react";
+import React from "react";
 import { Pane } from "evergreen-ui";
 import Header from "./Header";
 import SideFilters from "./SideFilters";
-import Toolbar from "./Toolbar.tsx";
+import Toolbar from "./Toolbar";
 import Accordians from "./Accordians";
 import { loadTarget } from "./actions";
 import {
@@ -28,33 +28,30 @@ import { createStructuredSelector } from "reselect";
 import update from "immutability-helper";
 import "style.scss";
 
-interface IReport{
-  targetLoading: boolean;
-  targetError: object | boolean;
-  target: object | boolean;
-  onFetchTarget: Function;
-}
+export class Report extends React.Component {
+  constructor(props, context) {
+    super(props, context);
 
-export function Report ({
-  targetLoading,
-  targetError,
-  target,
-  onFetchTarget,
-}: IReport) {
-  
-  const [selectedGroup, setSelectedGroup] = useState([]);
-  const [selectedType, setSelectedType] = useState([]);
-  const [selectedRank, setSelectedRank] = useState([]);
-  const [selectedOwtfRank, setSelectedOwtfRank] = useState([]);
-  const [selectedMapping, setSelectedMapping] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState([]);
+    this.updateFilter = this.updateFilter.bind(this);
+    this.clearFilters = this.clearFilters.bind(this);
+    this.updateReport = this.updateReport.bind(this);
+
+    this.state = {
+      selectedGroup: [],
+      selectedType: [],
+      selectedRank: [],
+      selectedOwtfRank: [],
+      selectedMapping: "",
+      selectedStatus: []
+    };
+  }
   /**
    * Function gets called right after the page mount.
    */
-  useEffect(() => {
-    const { id } = match.params;
-    onFetchTarget(id);
-  }, []);
+  componentDidMount() {
+    const { id } = this.props.match.params;
+    this.props.onFetchTarget(id);
+  }
 
   /**
    * Function responsible for handling filtering in Report.
@@ -62,7 +59,7 @@ export function Report ({
    * @param {filter_type, val} values filter_type: type of filter like group, rank etc., val: Value to add in corresponsing state.
    */
 
-  const updateFilter = (filter_type: string, val: any) => {
+  updateFilter(filter_type, val) {
     let type;
     if (filter_type === "plugin_type") {
       type = "selectedType";
@@ -73,22 +70,22 @@ export function Report ({
     } else if (filter_type === "owtf_rank") {
       type = "selectedOwtfRank";
     } else if (filter_type === "mapping") {
-      setSelectedMapping(val);
+      this.setState({ selectedMapping: val });
       return;
     } else if (filter_type === "status") {
       type = "selectedStatus";
     }
 
-    const index = state[type].indexOf(val);
+    const index = this.state[type].indexOf(val);
     if (index > -1) {
       this.setState({
-        [type]: update(state[type], {
+        [type]: update(this.state[type], {
           $splice: [[index, 1]]
         })
       });
     } else {
       this.setState({
-        [type]: update(state[type], { $push: [val] })
+        [type]: update(this.state[type], { $push: [val] })
       });
     }
   }
@@ -97,58 +94,60 @@ export function Report ({
    * Function responsible for refreshing the Report.(Refresh button in Toolbar)
    */
 
-  const updateReport = () => {
+  updateReport() {
     location.reload();
   }
 
-  const clearFilters = () => {
+  clearFilters() {
     // $(".filterCheckbox").attr("checked", false);
-    setSelectedStatus([]);
-    setSelectedRank([]);
-    setSelectedGroup([]);
-    setSelectedMapping("");
-    setSelectedOwtfRank([]);
-    setSelectedType([]);
+    this.setState({
+      selectedStatus: [],
+      selectedRank: [],
+      selectedGroup: [],
+      selectedMapping: "",
+      selectedOwtfRank: [],
+      selectedType: []
+    });
   }
 
-  const HeaderProps = {
-    targetData: target
-  };
-  const SideFiltersProps = {
-    targetData: [target.id],
-    selectedGroup: selectedGroup,
-    selectedType: selectedType,
-    updateFilter: updateFilter,
-    clearFilters: clearFilters,
-    updateReport: updateReport
-  };
-  const ToolbarProps = {
-    selectedRank: selectedRank,
-    updateFilter: updateFilter
-  };
-  const AccordiansProps = {
-    targetData: target
-  };
-  return (
-    <Pane
-      display="flex"
-      flexDirection="row"
-      marginTop={-20}
-      data-test="reportComponent"
-    >
-      <Pane width={220} background="tint2" padding={20} flex="none">
+  render() {
+    const HeaderProps = {
+      targetData: this.props.target
+    };
+    const SideFiltersProps = {
+      targetData: [this.props.target.id],
+      selectedGroup: this.state.selectedGroup,
+      selectedType: this.state.selectedType,
+      updateFilter: this.updateFilter,
+      clearFilters: this.clearFilters,
+      updateReport: this.updateReport
+    };
+    const ToolbarProps = {
+      selectedRank: this.state.selectedRank,
+      updateFilter: this.updateFilter
+    };
+    const AccordiansProps = {
+      targetData: this.props.target
+    };
+    return (
+      <div className="targetContainer" data-test="reportComponent">
         <SideFilters {...SideFiltersProps} />
-      </Pane>
-      <Pane flex={1} padding={30}>
-        {target !== false ? <Header {...HeaderProps} /> : null}
-        <Toolbar {...ToolbarProps} />
-        <br />
-        {target !== false ? (
-          <Accordians {...AccordiansProps} {...state} />
-        ) : null}
-      </Pane>
-    </Pane>
-  );
+        <div className="targetContainer__headerToolbarContainer">
+          {this.props.target !== false ? <Header {...HeaderProps} /> : null}
+
+          <div className="targetContainer__severityContainer">
+            <strong>Severity : </strong>
+            <Toolbar {...ToolbarProps} />
+          </div>
+
+          <br />
+          {this.props.target !== false ? (
+            <Accordians {...AccordiansProps} {...this.state} />
+          ) : null}
+        </div>
+      </div>
+    );
+  }
 }
 
 Report.propTypes = {
@@ -173,7 +172,4 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Report);
+export default connect(mapStateToProps, mapDispatchToProps)(Report);
