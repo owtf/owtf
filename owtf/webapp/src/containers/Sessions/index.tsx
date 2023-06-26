@@ -5,59 +5,75 @@
  * Handles creating, changing, deleting a session
  */
 
-import React, {useEffect, useState} from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { createStructuredSelector } from 'reselect';
-import { Pane, Dialog, TextInput, Button } from 'evergreen-ui';
-import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchSessions } from './selectors';
-import { loadSessions, createSession, changeSession, deleteSession } from "./actions";
-import SessionsTable from './SessionTable';
+import React from "react";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
+import { createStructuredSelector } from "reselect";
+import {
+  makeSelectFetchError,
+  makeSelectFetchLoading,
+  makeSelectFetchSessions
+} from "./selectors";
+import {
+  loadSessions,
+  createSession,
+  changeSession,
+  deleteSession
+} from "./actions";
+import SessionsTable from "./SessionTable";
+import Dialog from "../../components/DialogBox/dialog";
 
-interface ISessions{
+interface propsType {
   loading: boolean;
   error: object | boolean;
-  sessions: Array<any> | boolean;
+  sessions: any;
   onFetchSession: Function;
   onCreateSession: Function;
   onChangeSession: Function;
   onDeleteSession: Function;
 }
+interface stateType {
+  show: boolean;
+  newSessionName: string;
+}
 
-export function Sessions({
-  loading,
-  error,
-  sessions,
-  onFetchSession,
-  onCreateSession,
-  onChangeSession,
-  onDeleteSession,
-}: ISessions) {
-  
-  const [show, setShow] = useState(false); //handles the apperance of session dialog box
-  const [newSessionName, setNewSessionName] = useState(""); //name of the session to be added
-  
+export class Sessions extends React.Component<propsType, stateType> {
+  constructor(props, context) {
+    super(props, context);
+
+    this.handleShow = this.handleShow.bind(this);
+    this.handleClose = this.handleClose.bind(this);
+    this.getCurrentSession = this.getCurrentSession.bind(this);
+    this.handleNewSessionName = this.handleNewSessionName.bind(this);
+    this.handleAddSession = this.handleAddSession.bind(this);
+
+    this.state = {
+      show: false, //handles the apperance of session dialog box
+      newSessionName: "" //name of the session to be added
+    };
+  }
+
   /**
    * Function handles the closing of session dialog box
    */
-  const handleClose = () => {
-    setShow(false);
+  handleClose() {
+    this.setState({ show: false });
   }
 
   /**
    * Function handles the opening of session dialog box
    */
-  const handleShow = () => {
-    setShow(true);
+  handleShow() {
+    this.setState({ show: true });
   }
 
   /**
    * Function returns currently active session
    */
-  const getCurrentSession = () => {
-    const sessionss = sessions;
-    if (sessionss === false) return false;
-    for (const session of sessionss) {
+  getCurrentSession() {
+    const sessions = this.props.sessions;
+    if (sessions === false) return false;
+    for (const session of sessions) {
       if (session.active) return session;
     }
   }
@@ -66,96 +82,103 @@ export function Sessions({
    * Function updates the name of the session to be added
    * @param {object} e Inputbox onchange event
    */
-  const handleNewSessionName = (e: { target: { value: React.SetStateAction<string>; }; }) => {
-    setNewSessionName(e.target.value);
+  handleNewSessionName(e) {
+    this.setState({
+      newSessionName: e.target.value
+    });
   }
 
   /**
    * Function handles a session creation
    */
-  const handleAddSession = () => {
-    onCreateSession(newSessionName);
-    setNewSessionName("");
+  handleAddSession() {
+    this.props.onCreateSession(this.state.newSessionName);
+    this.setState({ newSessionName: "" });
   }
 
-  useEffect(() => {
-    onFetchSession();
-  }, []);
+  componentDidMount() {
+    this.props.onFetchSession();
+  }
 
-  const currentSession = getCurrentSession();
-  const sessionsTableProps = {
-    loading,
-    error,
-    sessions,
-    onChangeSession,
-    onDeleteSession
-  };
+  render() {
+    const {
+      loading,
+      error,
+      sessions,
+      onChangeSession,
+      onDeleteSession
+    } = this.props;
+    const currentSession = this.getCurrentSession();
+    const sessionsTableProps = {
+      loading,
+      error,
+      sessions,
+      onChangeSession,
+      onDeleteSession
+    };
 
-  return (
-    <Pane data-test="sessionsComponent">
-      <TextInput
-        name="currentSession"
-        placeholder={currentSession !== undefined ? currentSession.name : "No session selected!"}
-        disabled
-        width={200}
-      />
-      <Button appearance="primary" onClick={handleShow}>Session</Button>
-      <Dialog
-        isShown={show}
-        title="Sessions"
-        onCloseComplete={handleClose}
-        hasFooter={false}
-      >
-        <Pane marginBottom={20}>
-          <TextInput
-            name="newSessionName"
-            placeholder="Enter new session...."
-            width="89%"
-            onChange={e => handleNewSessionName(e)}
-            value={newSessionName}
-          />
-          <Button
-            appearance="primary"
-            disabled={newSessionName.length === 0}
-            onClick={handleAddSession}>
-            Add!
-          </Button>
-        </Pane>
-        <SessionsTable {...sessionsTableProps} />
-      </Dialog>
-    </Pane>
-  );
+    return (
+      <div data-test="sessionsComponent" className="sessionsContainer">
+        <input
+          className="sessionsContainer__currentSessionInput"
+          type="text"
+          name="currentSession"
+          placeholder={
+            currentSession !== undefined
+              ? currentSession.name
+              : "No session selected!"
+          }
+          disabled
+        />
+        <button className="sessionsContainer__button" onClick={this.handleShow}>
+          Session
+        </button>
+
+        <div className="dialogWrapper">
+          <Dialog
+            title="Sessions"
+            isDialogOpened={this.state.show}
+            onClose={this.handleClose}
+          >
+            <div className="sessionsContainer__newSessionContainer">
+              <input
+                className="sessionsContainer__newSessionContainer__input"
+                type="text"
+                name="newSessionName"
+                placeholder="Enter new session...."
+                onChange={e => this.handleNewSessionName(e)}
+                value={this.state.newSessionName}
+              />
+              <button
+                className="sessionsContainer__newSessionContainer__button"
+                disabled={this.state.newSessionName.length === 0}
+                onClick={this.handleAddSession}
+              >
+                Add!
+              </button>
+            </div>
+            <SessionsTable {...sessionsTableProps} />
+          </Dialog>
+        </div>
+      </div>
+    );
+  }
 }
-
-Sessions.propTypes = {
-  loading: PropTypes.bool,
-  error: PropTypes.oneOfType([
-    PropTypes.object,
-    PropTypes.bool,
-  ]),
-  sessions: PropTypes.oneOfType([
-    PropTypes.array,
-    PropTypes.bool,
-  ]),
-  onFetchSession: PropTypes.func,
-  onCreateSession: PropTypes.func,
-  onChangeSession: PropTypes.func,
-  onDeleteSession: PropTypes.func,
-};
 
 const mapStateToProps = createStructuredSelector({
   sessions: makeSelectFetchSessions,
   loading: makeSelectFetchLoading,
-  error: makeSelectFetchError,
+  error: makeSelectFetchError
 });
 
-const mapDispatchToProps = (dispatch: Function) => {
+const mapDispatchToProps = dispatch => {
   return {
     onFetchSession: () => dispatch(loadSessions()),
-    onCreateSession: (sessionName: string) => dispatch(createSession(sessionName)),
-    onChangeSession: (session: object) => dispatch(changeSession(session)),
-    onDeleteSession: (session: string) => dispatch(deleteSession(session))
+    onCreateSession: sessionName => dispatch(createSession(sessionName)),
+    onChangeSession: session => dispatch(changeSession(session)),
+    onDeleteSession: session => dispatch(deleteSession(session))
   };
 };
 
+//@ts-ignore
 export default connect(mapStateToProps, mapDispatchToProps)(Sessions);

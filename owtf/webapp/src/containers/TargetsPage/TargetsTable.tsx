@@ -5,18 +5,6 @@
  */
 import React from "react";
 import { filter } from "fuzzaldrin-plus";
-import {
-  Pane,
-  Table,
-  Popover,
-  Position,
-  Menu,
-  IconButton,
-  TextDropdownButton,
-  Badge,
-  Checkbox,
-  Strong
-} from "evergreen-ui";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
@@ -40,7 +28,28 @@ const Severity = {
   CRITICAL: 5
 };
 
-export class TargetsTable extends React.Component {
+interface propsType {
+  targets: [];
+  getCurrentSession: Function;
+  handleAlertMsg: Function;
+  updateSelectedTargets: Function;
+  handlePluginShow: Function;
+  onChangeTarget: Function;
+  onDeleteTarget: Function;
+  onRemoveTargetFromSession: Function;
+  deleteError: object | boolean;
+  removeError: object | boolean;
+}
+interface stateType {
+  searchQuery: string;
+  filterColumn: number;
+  filterSeverity: any;
+  selectedRows: any;
+  actionsOptionDropdown: any;
+  severityFilterToggle: boolean;
+}
+
+export class TargetsTable extends React.Component<propsType, stateType> {
   constructor(props) {
     super(props);
 
@@ -192,7 +201,7 @@ export class TargetsTable extends React.Component {
    * Function filtering the targets based on URL
    * @param {array} targets array of targets on which the filter is applied
    */
-  filterByURL = targets => {
+  filterByURL = (targets: any) => {
     const searchQuery = this.state.searchQuery.trim();
 
     // If the searchQuery is empty, return the targets as is.
@@ -240,7 +249,7 @@ export class TargetsTable extends React.Component {
    * @param {object} severity severity corresponding to the row
    */
 
-  handleSeverityFilterOptionDropDown(severity) {
+  handleSeverityFilterOptionDropDown(severity: number) {
     this.setState({
       filterColumn: 3,
       filterSeverity: severity
@@ -556,29 +565,16 @@ export class TargetsTable extends React.Component {
   }
 }
 
-TargetsTable.propTypes = {
-  targets: PropTypes.array,
-  getCurrentSession: PropTypes.func,
-  handleAlertMsg: PropTypes.func,
-  updateSelectedTargets: PropTypes.func,
-  handlePluginShow: PropTypes.func,
-  onChangeTarget: PropTypes.func,
-  onDeleteTarget: PropTypes.func,
-  onRemoveTargetFromSession: PropTypes.func,
-  deleteError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  removeError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool])
-};
-
 const mapStateToProps = createStructuredSelector({
   deleteError: makeSelectDeleteError,
   removeError: makeSelectRemoveError
 });
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch: Function) => {
   return {
-    onChangeTarget: target => dispatch(changeTarget(target)),
-    onDeleteTarget: target_id => dispatch(deleteTarget(target_id)),
-    onRemoveTargetFromSession: (session, target_id) =>
+    onChangeTarget: (target: any) => dispatch(changeTarget(target)),
+    onDeleteTarget: (target_id: string) => dispatch(deleteTarget(target_id)),
+    onRemoveTargetFromSession: (session: any, target_id: string) =>
       dispatch(removeTargetFromSession(session, target_id))
   };
 };

@@ -1200,8 +1200,9 @@ body {
   -ms-flex-pack: center;
   -webkit-justify-content: center;
   justify-content: center;
-  margin: 0 2rem;
-  align-items: center;
+  margin: 0;
+  display: flex;
+  justify-content: left;
 }
 .targetsPageContainer__targetsContainer__toolbarContainer__buttonsContainer__exportButton {
   margin: 0 0;

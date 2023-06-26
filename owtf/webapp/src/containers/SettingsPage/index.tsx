@@ -1,17 +1,23 @@
 /*
  * SettingsPage
  */
-import React, {useState, useEffect} from 'react';
-import {Pane, Button, Alert, Spinner} from 'evergreen-ui';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { createStructuredSelector } from 'reselect';
-import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchConfigurations, makeSelectChangeError } from './selectors';
-import { loadConfigurations, changeConfigurations } from './actions';
-import ConfigurationTabsContent from '../../components/ConfigurationTabsContent';
-import ConfigurationTabsNav from '../../components/ConfigurationTabsNav';
+import React from "react";
+import { Alert, Spinner } from "evergreen-ui";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
+import { createStructuredSelector } from "reselect";
+import {
+  makeSelectFetchError,
+  makeSelectFetchLoading,
+  makeSelectFetchConfigurations,
+  makeSelectChangeError
+} from "./selectors";
+import { loadConfigurations, changeConfigurations } from "./actions";
+import ConfigurationTabsContent from "../../components/ConfigurationTabsContent";
+import ConfigurationTabsNav from "../../components/ConfigurationTabsNav";
+import { BiError } from "react-icons/bi";
 
-interface ISettingsPage{
+interface propsType {
   loading: boolean;
   fetchError: object | boolean;
   changeError: object | boolean;
@@ -19,50 +25,67 @@ interface ISettingsPage{
   onFetchConfiguration: Function;
   onChangeConfiguration: Function;
 }
+interface stateType {
+  updateDisabled: boolean;
+  patch_data: object;
+  show: boolean;
+  selectedIndex: number;
+}
 
-export function SettingsPage({
-  loading,
-  fetchError,
-  changeError,
-  configurations,
-  onFetchConfiguration,
-  onChangeConfiguration,
-}: ISettingsPage) {
-  
-  const [updateDisabled, setUpdateDisabled] = useState(true); // for update configuration button
-  const [patch_data, setPatchData] = useState({}); // contains information of the updated configurations
-  const [show, setShow] = useState(false); // handle alert visibility
-  const [selectedIndex, setSelectedIndex] = useState(-1);
-  
-  useEffect(() => {
-    onFetchConfiguration();
-  }, []);
+export class SettingsPage extends React.Component<propsType, stateType> {
+  constructor(props, context) {
+    super(props, context);
+
+    this.handleConfigurationChange = this.handleConfigurationChange.bind(this);
+    this.onUpdateConfiguration = this.onUpdateConfiguration.bind(this);
+    this.renderAlert = this.renderAlert.bind(this);
+    this.handleDismiss = this.handleDismiss.bind(this);
+    this.handleTabSelect = this.handleTabSelect.bind(this);
+    this.state = {
+      updateDisabled: true, // for update configuration button
+      patch_data: {}, // contains information of the updated configurations
+      show: false, // handle alert visibility
+      selectedIndex: -1
+    };
+  }
+
+  componentDidMount() {
+    this.props.onFetchConfiguration();
+  }
 
   // update the configurations using rest APIs
-  const onUpdateConfiguration = () => {
-    onChangeConfiguration(patch_data);
-    setPatchData({});
-    setUpdateDisabled(true);
-    setShow(true);
-    setTimeout(() => { setShow(false); }, 3000);
+  onUpdateConfiguration() {
+    this.props.onChangeConfiguration(this.state.patch_data);
+    this.setState({
+      patch_data: {},
+      updateDisabled: true,
+      show: true
+    });
+    setTimeout(() => {
+      this.setState({ show: false });
+    }, 3000);
   }
 
   // handles changes for all the configuration
-  const handleConfigurationChange = ({ target }) => {
-    setPatchData({ [target.name]: target.value });
-    setUpdateDisabled(false);
+  handleConfigurationChange({ target }) {
+    this.setState({
+      patch_data: Object.assign({}, this.state.patch_data, {
+        [target.name]: target.value
+      }),
+      updateDisabled: false
+    });
   }
 
-  const handleTabSelect = (index: React.SetStateAction<number>) => {
-    setSelectedIndex(index);
+  handleTabSelect(index) {
+    this.setState({ selectedIndex: index });
   }
 
-  const handleDismiss = () => {
-    setShow(false);
+  handleDismiss() {
+    this.setState({ show: false });
   }
 
-  const renderAlert = (error) => {
-    if (show) {
+  renderAlert(error) {
+    if (this.state.show) {
       if (error !== false) {
         return (
           <Alert
@@ -70,99 +93,92 @@ export function SettingsPage({
             intent="danger"
             title={error.toString()}
             isRemoveable={true}
-            onRemove={handleDismiss}
+            onRemove={this.handleDismiss}
           />
         );
       }
 
       return (
         <Alert
-            appearance="card"
-            intent="success"
-            title="Configuration updated successfully!"
-            isRemoveable={true}
-            onRemove={handleDismiss}
-          />
+          appearance="card"
+          intent="success"
+          title="Configuration updated successfully!"
+          isRemoveable={true}
+          onRemove={this.handleDismiss}
+        />
       );
     }
   }
 
-  if (loading) {
-    return (
-      <Pane display="flex" alignItems="center" justifyContent="center" height={400}>
-        <Spinner />
-      </Pane>
-    );
-  }
+  render() {
+    const { configurations, loading, fetchError, changeError } = this.props;
+    if (loading) {
+      return (
+        <div>
+          <Spinner />
+        </div>
+      );
+    }
 
-  if (fetchError !== false) {
-    return (
-      "<p>Something went wrong, please try again!</p>"
-    );
-  }
+    if (fetchError !== false) {
+      return (
+        <div className="errorContainer">
+          <BiError />
+          <p>Something went wrong, please try again!</p>
+        </div>
+      );
+    }
 
-  if (configurations !== false) {
-    return (
-      <Pane display="flex" flexDirection="column" margin={20} data-test="settingsPageComponent">
-        <Pane>
-          {renderAlert(changeError)}
-        </Pane>
-        <Pane margin={20}>
-          <Button
-            appearance="primary"
-            className="pull-right"
-            disabled={updateDisabled}
-            onClick={onUpdateConfiguration}
-            data-test="changeBtn">
-            Update Configuration!
-          </Button>
-        </Pane>
-        <Pane display="flex" margin={20}>
-          <ConfigurationTabsNav
-            configurations={configurations}
-            handleTabSelect={handleTabSelect}
-            selectedIndex={selectedIndex} />
+    if (configurations !== false) {
+      return (
+        <div className="settingsContainer" data-test="settingsPageComponent">
+          <div>{this.renderAlert(changeError)}</div>
 
-          <Pane padding={16} flex="1">
-            <ConfigurationTabsContent
+          <div className="settingsContainer__headingContainer">
+            <h2>Settings</h2>
+            <button
+              className="pull-right"
+              disabled={this.state.updateDisabled}
+              onClick={this.onUpdateConfiguration}
+              data-test="changeBtn"
+            >
+              Update Configuration!
+            </button>
+          </div>
+
+          <div>
+            <ConfigurationTabsNav
               configurations={configurations}
-              handleConfigurationChange={handleConfigurationChange}
-              selectedIndex={selectedIndex} />
-          </Pane>
-        </Pane>
-      </Pane>
-    );
+              handleTabSelect={this.handleTabSelect}
+              selectedIndex={this.state.selectedIndex}
+            />
+
+            <div>
+              <ConfigurationTabsContent
+                configurations={configurations}
+                handleConfigurationChange={this.handleConfigurationChange}
+                selectedIndex={this.state.selectedIndex}
+              />
+            </div>
+          </div>
+        </div>
+      );
+    }
   }
 }
-
-SettingsPage.propTypes = {
-  loading: PropTypes.bool,
-  fetchError: PropTypes.oneOfType([
-    PropTypes.object,
-    PropTypes.bool,
-  ]),
-  changeError: PropTypes.oneOfType([
-    PropTypes.object,
-    PropTypes.bool,
-  ]),
-  configurations: PropTypes.oneOfType([
-    PropTypes.object.isRequired,
-    PropTypes.bool.isRequired,
-  ]),
-  onFetchConfiguration: PropTypes.func,
-  onChangeConfiguration: PropTypes.func,
-};
 
 const mapStateToProps = createStructuredSelector({
   configurations: makeSelectFetchConfigurations,
   loading: makeSelectFetchLoading,
   fetchError: makeSelectFetchError,
-  changeError: makeSelectChangeError,
+  changeError: makeSelectChangeError
 });
 
-const mapDispatchToProps = (dispatch: Function) => ({
+const mapDispatchToProps = dispatch => ({
   onFetchConfiguration: () => dispatch(loadConfigurations()),
-  onChangeConfiguration: (patch_data: object) => dispatch(changeConfigurations(patch_data)),
+  onChangeConfiguration: patch_data =>
+    dispatch(changeConfigurations(patch_data))
 });
 
+//@ts-ignore
 export default connect(mapStateToProps, mapDispatchToProps)(SettingsPage);

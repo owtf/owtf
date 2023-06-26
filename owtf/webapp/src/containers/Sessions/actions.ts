@@ -27,8 +27,8 @@ import {
   CREATE_SESSION_ERROR,
   DELETE_SESSION,
   DELETE_SESSION_SUCCESS,
-  DELETE_SESSION_ERROR,
-} from './constants';
+  DELETE_SESSION_ERROR
+} from "./constants";
 
 /**
  * Changes the session, this action starts the request saga PATCH.
@@ -37,10 +37,12 @@ import {
  *
  * @return {object} An action object with a type of CHANGE_SESSION
  */
-export function changeSession(session: object): object {
+export function changeSession(
+  session: object
+): { type: string; session: object } {
   return {
     type: CHANGE_SESSION,
-    session,
+    session
   };
 }
 
@@ -51,10 +53,12 @@ export function changeSession(session: object): object {
  *
  * @return {object} An action object with a type of CHANGE_SESSION_SUCCESS
  */
-export function sessionsChanged(session: object): object {
+export function sessionsChanged(
+  session: object
+): { type: string; session: object } {
   return {
     type: CHANGE_SESSION_SUCCESS,
-    session,
+    session
   };
 }
 
@@ -65,10 +69,12 @@ export function sessionsChanged(session: object): object {
  *
  * @return {object} An action object with a type of CHANGE_SESSION_ERROR passing the error
  */
-export function sessionsChangingError(error: object): object {
+export function sessionsChangingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: CHANGE_SESSION_ERROR,
-    error,
+    error
   };
 }
 
@@ -77,9 +83,9 @@ export function sessionsChangingError(error: object): object {
  *
  * @return {object} An action object with a type of LOAD_SESSIONS
  */
-export function loadSessions(): object {
+export function loadSessions(): { type: string } {
   return {
-    type: LOAD_SESSIONS,
+    type: LOAD_SESSIONS
   };
 }
 
@@ -90,10 +96,12 @@ export function loadSessions(): object {
  *
  * @return {object} An action object with a type of LOAD_SESSIONS_SUCCESS passing the sessions
  */
-export function sessionsLoaded(sessions: Array<any>): object {
+export function sessionsLoaded(
+  sessions: Array<any>
+): { type: string; sessions: object } {
   return {
     type: LOAD_SESSIONS_SUCCESS,
-    sessions,
+    sessions
   };
 }
 
@@ -104,13 +112,14 @@ export function sessionsLoaded(sessions: Array<any>): object {
  *
  * @return {object} An action object with a type of LOAD_SESSIONS_ERROR passing the error
  */
-export function sessionsLoadingError(error: object): object {
+export function sessionsLoadingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: LOAD_SESSIONS_ERROR,
-    error,
+    error
   };
 }
-
 
 /**
  * Creates the session, this action starts the request saga POST.
@@ -119,7 +128,9 @@ export function sessionsLoadingError(error: object): object {
  *
  * @return {object} An action object with a type of CREATE_SESSION
  */
-export function createSession(sessionName: string): object {
+export function createSession(
+  sessionName: string
+): { type: string; sessionName: string } {
   return {
     type: CREATE_SESSION,
     sessionName
@@ -131,9 +142,9 @@ export function createSession(sessionName: string): object {
  *
  * @return {object} An action object with a type of CREATE_SESSION_SUCCESS
  */
-export function sessionsCreated(): object {
+export function sessionsCreated(): { type: string } {
   return {
-    type: CREATE_SESSION_SUCCESS,
+    type: CREATE_SESSION_SUCCESS
   };
 }
 
@@ -144,10 +155,12 @@ export function sessionsCreated(): object {
  *
  * @return {object} An action object with a type of CREATE_SESSION_ERROR passing the error
  */
-export function sessionsCreatingError(error: object): object {
+export function sessionsCreatingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: CREATE_SESSION_ERROR,
-    error,
+    error
   };
 }
 
@@ -158,7 +171,9 @@ export function sessionsCreatingError(error: object): object {
  *
  * @return {object} An action object with a type of DELETE_SESSION
  */
-export function deleteSession(session: string): object {
+export function deleteSession(
+  session: string
+): { type: string; session: string } {
   return {
     type: DELETE_SESSION,
     session
@@ -170,9 +185,9 @@ export function deleteSession(session: string): object {
  *
  * @return {object} An action object with a type of DELETE_SESSION_SUCCESS
  */
-export function sessionsDeleted(): object {
+export function sessionsDeleted(): { type: string } {
   return {
-    type: DELETE_SESSION_SUCCESS,
+    type: DELETE_SESSION_SUCCESS
   };
 }
 
@@ -183,9 +198,11 @@ export function sessionsDeleted(): object {
  *
  * @return {object} An action object with a type of DELETE_SESSION_ERROR passing the error
  */
-export function sessionsDeletingError(error: object): object {
+export function sessionsDeletingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: DELETE_SESSION_ERROR,
-    error,
+    error
   };
 }
