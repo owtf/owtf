@@ -38,7 +38,7 @@ import {
  *
  * @return {object} An action object with a type of LOAD_TARGETS
  */
-export function loadTargets() {
+export function loadTargets(): { type: string } {
   return {
     type: LOAD_TARGETS
   };
@@ -51,7 +51,7 @@ export function loadTargets() {
  *
  * @return {object} An action object with a type of LOAD_TARGETS_SUCCESS passing the targets
  */
-export function targetsLoaded(targets) {
+export function targetsLoaded(targets: []): { type: string; targets: object } {
   return {
     type: LOAD_TARGETS_SUCCESS,
     targets
@@ -65,7 +65,9 @@ export function targetsLoaded(targets) {
  *
  * @return {object} An action object with a type of LOAD_TARGETS_ERROR passing the error
  */
-export function targetsLoadingError(error) {
+export function targetsLoadingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: LOAD_TARGETS_ERROR,
     error
@@ -79,7 +81,9 @@ export function targetsLoadingError(error) {
  *
  * @return {object} An action object with a type of CREATE_TARGET
  */
-export function createTarget(target_url) {
+export function createTarget(
+  target_url: object
+): { type: string; target_url: object } {
   return {
     type: CREATE_TARGET,
     target_url
@@ -91,7 +95,7 @@ export function createTarget(target_url) {
  *
  * @return {object} An action object with a type of CREATE_TARGET_SUCCESS
  */
-export function targetCreated() {
+export function targetCreated(): { type: string } {
   return {
     type: CREATE_TARGET_SUCCESS
   };
@@ -104,7 +108,9 @@ export function targetCreated() {
  *
  * @return {object} An action object with a type of CREATE_TARGET_ERROR passing the error
  */
-export function targetCreatingError(error) {
+export function targetCreatingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: CREATE_TARGET_ERROR,
     error
@@ -118,11 +124,11 @@ export function targetCreatingError(error) {
  *
  * @return {object} An action object with a type of CHANGE_TARGET
  */
-export function changeTarget(target) {
+export function changeTarget(target: object): { type: string; target: object } {
   return {
     type: CHANGE_TARGET,
-    target,
-    patch_data
+    target
+    // patch_data
   };
 }
 
@@ -131,7 +137,7 @@ export function changeTarget(target) {
  *
  * @return {object} An action object with a type of CHANGE_TARGET_SUCCESS
  */
-export function targetChanged() {
+export function targetChanged(): { type: string } {
   return {
     type: CHANGE_TARGET_SUCCESS
   };
@@ -144,7 +150,9 @@ export function targetChanged() {
  *
  * @return {object} An action object with a type of CHANGE_TARGET_ERROR passing the error
  */
-export function targetChangingError(error) {
+export function targetChangingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: CHANGE_TARGET_ERROR,
     error
@@ -158,7 +166,9 @@ export function targetChangingError(error) {
  *
  * @return {object} An action object with a type of DELETE_TARGET
  */
-export function deleteTarget(target_id) {
+export function deleteTarget(
+  target_id: string
+): { type: string; target_id: string } {
   return {
     type: DELETE_TARGET,
     target_id
@@ -170,7 +180,7 @@ export function deleteTarget(target_id) {
  *
  * @return {object} An action object with a type of DELETE_TARGET_SUCCESS
  */
-export function targetDeleted() {
+export function targetDeleted(): { type: string } {
   return {
     type: DELETE_TARGET_SUCCESS
   };
@@ -183,7 +193,9 @@ export function targetDeleted() {
  *
  * @return {object} An action object with a type of DELETE_TARGET_ERROR passing the error
  */
-export function targetDeletingError(error) {
+export function targetDeletingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: DELETE_TARGET_ERROR,
     error
@@ -198,7 +210,10 @@ export function targetDeletingError(error) {
  *
  * @return {object} An action object with a type of CHANGE_SESSION
  */
-export function removeTargetFromSession(session, target_id) {
+export function removeTargetFromSession(
+  session: object,
+  target_id: string
+): { type: string; session: object; target_id: string } {
   return {
     type: REMOVE_TARGET_FROM_SESSION,
     session,
@@ -211,7 +226,7 @@ export function removeTargetFromSession(session, target_id) {
  *
  * @return {object} An action object with a type of CHANGE_SESSION_SUCCESS
  */
-export function targetFromSessionRemoved() {
+export function targetFromSessionRemoved(): { type: string } {
   return {
     type: REMOVE_TARGET_FROM_SESSION_SUCCESS
   };
@@ -224,7 +239,9 @@ export function targetFromSessionRemoved() {
  *
  * @return {object} An action object with a type of CHANGE_SESSION_ERROR passing the error
  */
-export function targetFromSessionRemovingError(error) {
+export function targetFromSessionRemovingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: REMOVE_TARGET_FROM_SESSION_ERROR,
     error

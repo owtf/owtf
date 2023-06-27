@@ -30,7 +30,28 @@ import { makeSelectFetchSessions } from "../Sessions/selectors";
 import { loadTargets, createTarget } from "./actions";
 import { loadSessions } from "../Sessions/actions";
 
-export class TargetsPage extends React.Component {
+interface propsType {
+  fetchLoading: boolean;
+  fetchError: object | boolean;
+  targets: any;
+  sessions: any;
+  onFetchTarget: Function;
+  onFetchSession: Function;
+  createLoading: boolean;
+  createError: object | boolean;
+  onCreateTarget: Function;
+}
+interface stateType {
+  newTargetUrls: any;
+  show: Boolean;
+  alertStyle: any;
+  alertMsg: string;
+  disabled: boolean;
+  pluginShow: boolean;
+  selectedTargets: [];
+}
+
+export class TargetsPage extends React.Component<propsType, stateType> {
   constructor(props, context) {
     super(props, context);
 
@@ -121,7 +142,7 @@ export class TargetsPage extends React.Component {
    * @param {string} alertStyle Intent of the alert box
    * @param {string} alertMsg Message shown by the alert box
    */
-  handleAlertMsg(alertStyle, alertMsg) {
+  handleAlertMsg(alertStyle: string, alertMsg: string) {
     this.setState({
       show: true,
       alertStyle: alertStyle,
@@ -138,7 +159,7 @@ export class TargetsPage extends React.Component {
    */
   handleTargetUrlsChange({ target }) {
     this.setState({
-      [target.name]: target.value
+      newTargetUrls: target.value
     });
   }
 
@@ -273,14 +294,10 @@ export class TargetsPage extends React.Component {
             id="add_targets"
             className="targetsPageContainer__addTargetsContainer"
           >
-            <h2 size={700} color="#0788DE">
-              Add Targets
-            </h2>
+            <h2>Add Targets</h2>
             <textarea
               name="newTargetUrls"
               placeholder="Input targets seperated by new line"
-              rows="4"
-              cols="230"
               onChange={this.handleTargetUrlsChange}
               value={this.state.newTargetUrls}
             />
@@ -332,16 +349,7 @@ export class TargetsPage extends React.Component {
                 <p>Something went wrong, please try again!</p>
               </div>
             ) : null}
-            {fetchLoading !== false ? (
-              <div
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                height={400}
-              >
-                Loading.standard();
-              </div>
-            ) : null}
+            {fetchLoading !== false ? <div>Loading.standard();</div> : null}
             {targets !== false ? <TargetsTable {...TargetsTableProps} /> : null}
           </div>
         </div>
@@ -349,17 +357,6 @@ export class TargetsPage extends React.Component {
     );
   }
 }
-
-TargetsPage.propTypes = {
-  fetchLoading: PropTypes.bool,
-  fetchError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  targets: PropTypes.oneOfType([PropTypes.array, PropTypes.bool]),
-  sessions: PropTypes.oneOfType([PropTypes.array, PropTypes.bool]),
-  onFetchTarget: PropTypes.func,
-  createLoading: PropTypes.bool,
-  createError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  onCreateTarget: PropTypes.func
-};
 
 const mapStateToProps = createStructuredSelector({
   sessions: makeSelectFetchSessions,
@@ -370,12 +367,19 @@ const mapStateToProps = createStructuredSelector({
   createError: makeSelectCreateError
 });
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (
+  dispatch: Function
+): {
+  onFetchSession: Function;
+  onFetchTarget: Function;
+  onCreateTarget: Function;
+} => {
   return {
     onFetchSession: () => dispatch(loadSessions()),
     onFetchTarget: () => dispatch(loadTargets()),
-    onCreateTarget: target_url => dispatch(createTarget(target_url))
+    onCreateTarget: (target_url: object) => dispatch(createTarget(target_url))
   };
 };
 
+//@ts-ignore
 export default connect(mapStateToProps, mapDispatchToProps)(TargetsPage);
