@@ -2,123 +2,115 @@
  * ForgotPasswordPage.
  * Handles forgot password for the user
  */
-import React, { useState } from "react";
-import {
-  Pane,
-  Heading,
-  Button,
-  Paragraph,
-  Link,
-  TextInputField
-} from "evergreen-ui";
+import React from "react";
+import { Link } from "react-router-dom";
 import { forgotPasswordEmailStart } from "./actions";
-import PropTypes from "prop-types";
 import { connect } from "react-redux";
+import logo from "../../../public/img/logo.png";
 
-interface IForgotPasswordPageProps {
-  onReset: Function;
+
+interface propsType {
+  onReset: Function
+}
+interface stateType {
+  emailOrUsername: string,
+  emailError: string
 }
 
-export function ForgotPasswordPage ({onReset}: IForgotPasswordPageProps) {
-  
-  const [emailOrUsername, setEmailOrUsername] = useState("")
-  const [emailError, setEmailError] = useState("")
+
+export class ForgotPasswordPage extends React.Component<propsType , stateType>  {
+  constructor(props, context) {
+    super(props, context);
+
+    this.state = {
+      emailOrUsername: "",
+      emailError: ""
+    };
+  }
 
   /**
    * Function handles the input email validation
    *
    * @param {object} e event which triggered this function
    */
-  const handleEmailValidation = (e: any) => {
-    if (!emailOrUsername) {
-      setEmailError("Email can't be empty");
-    } else if (typeof emailOrUsername !== "undefined") {
+  handleEmailValidation = e => {
+    if (!this.state.emailOrUsername) {
+      this.setState({ emailError: "Email can't be empty" });
+    } else if (typeof this.state.emailOrUsername !== "undefined") {
       if (
-        !emailOrUsername.match(
+        !this.state.emailOrUsername.match(
           /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
         )
       ) {
-        setEmailError("Please enter a valid email");
+        this.setState({ emailError: "Please enter a valid email" });
       } else {
-        setEmailError("");
+        this.setState({ emailError: "" });
       }
     }
   };
 
-  const resetHandler = (e: any) => {
-    if (!emailError) {
-      onReset(emailOrUsername);
+  resetHandler = e => {
+    if (!this.state.emailError) {
+      this.props.onReset(this.state.emailOrUsername);
     }
   };
 
-  return (
-    <Pane marginY={100} data-test="forgotPasswordPageComponent">
-      <Pane
-        justifyContent="center"
-        width="35%"
-        elevation={1}
-        margin="auto"
-        padding={5}
+  render() {
+    return (
+      <div
+        className="forgotPasswordPageContainer"
+        data-test="forgotPasswordPageComponent"
       >
-        <Heading
-          size={700}
-          textAlign="center"
-          marginBottom={20}
-          paddingTop={20}
-        >
-          Forgot Password?
-        </Heading>
-        <Paragraph width="60%" marginLeft="20%" marginRight="20%" size={300}>
-          Reset password in 2 quick steps.
-        </Paragraph>
-        <TextInputField
-          label="Enter your Username / Email Address"
-          placeholder="Username / Email"
-          width="60%"
-          marginLeft="20%"
-          name="text-input-email-or-username"
-          marginBottom={20}
-          marginTop={10}
-          value={emailOrUsername}
-          onChange={(e: any) => setEmailOrUsername(e.target.value)}
-          validationMessage={
-            emailError ? emailError : null
-          }
-        />
-        <Button
-          width="40%"
-          marginLeft="30%"
-          marginBottom={10}
-          justifyContent="center"
-          appearance="primary"
-          intent="none"
-          onClick={(e: any) => resetHandler(e)}
-          disabled={emailError ? true : false}
-        >
-          Reset Password
-        </Button>
-        <Paragraph width="10%" marginLeft="45%" size={300}>
-          <Link href="/login" justifyContent="center">
-            Back
-          </Link>
-        </Paragraph>
-      </Pane>
-    </Pane>
-  );
+        <div className="forgotPasswordPageContainer__forgotPasswordComponentContainer">
+          <div className="forgotPasswordPageContainer__forgotPasswordComponentContainer__brandLogoContainer">
+            <img src={logo} alt="brand-logo" />
+          </div>
+          <h2 className="forgotPasswordPageContainer__forgotPasswordComponentContainer__heading">
+            Forgot Password?
+          </h2>
+          <p className="forgotPasswordPageContainer__forgotPasswordComponentContainer__info">
+            Reset password in 2 quick steps.
+          </p>
+          <div className="forgotPasswordPageContainer__forgotPasswordComponentContainer__userNameEmailInputContainer">
+            <label htmlFor="forgotPasswordInput">
+              Enter your Username / Email Address
+            </label>
+            <input
+              type="text"
+              id="forgotPasswordInput"
+              placeholder="Username / Email"
+              name="text-input-email-or-username"
+              value={this.state.emailOrUsername}
+              onChange={e => this.setState({ emailOrUsername: e.target.value })}
+              onBlur={e => this.handleEmailValidation(e)}
+            />
+          </div>
+          <p className="inputRequiredError">{this.state.emailError}</p>
+
+          <button
+            className="forgotPasswordPageContainer__forgotPasswordComponentContainer__submitButton"
+            onClick={e => this.resetHandler(e)}
+            disabled={this.state.emailError ? true : false}
+          >
+            Reset Password
+          </button>
+
+          <div className="forgotPasswordPageContainer__forgotPasswordComponentContainer__goBackLinkContainer">
+            <Link to="/login">Back</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 }
 
-ForgotPasswordPage.propTypes = {
-  onReset: PropTypes.func
-};
 
-const mapDispatchToProps = (dispatch: Function) => {
+const mapDispatchToProps = dispatch => {
   return {
-    onReset: (emailOrUsername: string) =>
+    onReset: emailOrUsername =>
       dispatch(forgotPasswordEmailStart(emailOrUsername))
   };
 };
 
-export default connect(
-  null,
-  mapDispatchToProps
-)(ForgotPasswordPage);
+//@ts-ignore
+export default connect(null, mapDispatchToProps)(ForgotPasswordPage);

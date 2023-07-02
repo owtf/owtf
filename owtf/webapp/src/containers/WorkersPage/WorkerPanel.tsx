@@ -106,7 +106,7 @@ export default class WorkerPanel extends React.Component<propsType, stateType> {
             <button onClick={() => this.props.pauseWorker(worker.id)}>
               <GrPauseFill />
             </button>
-            <button onClick={() => this.props.abortWorker(worker.id)}>
+            <button  onClick={() => this.props.abortWorker(worker.id)}>
               <GrFormClose />
             </button>
           </div>
@@ -114,7 +114,7 @@ export default class WorkerPanel extends React.Component<propsType, stateType> {
       }
     } else {
       return (
-        <button onClick={() => this.props.deleteWorker(worker.id)}>
+        <button className="wokerPanel_woker_deleteButton" onClick={() => this.props.deleteWorker(worker.id)}>
           <GrFormClose />
         </button>
       );

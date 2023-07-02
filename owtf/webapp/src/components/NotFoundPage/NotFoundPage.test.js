@@ -18,8 +18,8 @@ describe('NotFoundPage Component', () => {
 
     it('Should render without errors', () => {
       const tree = toJson(component);
-      expect(component.find('p').length).toBe(1);
-      expect(component.find('p').text()).toBe('Page Not Found');
+      expect(component.find('h3').length).toBe(1);
+      expect(component.find('h3').text()).toBe('Page Not Found!');
       expect(tree).toMatchSnapshot();
     });
 

@@ -8,7 +8,7 @@ import { OTP_START, OTP_SUCCESS, OTP_FAIL } from "./constants";
  *
  * @return {object} An action object with a type of OTP_START passing the email and otp
  */
-export function otpStart(emailOrUsername: string, otp: string): object {
+export function otpStart(emailOrUsername:string, otp:string):{type: string,emailOrUsername: string,  otp: string} {
   return {
     type: OTP_START,
     emailOrUsername: emailOrUsername,
@@ -23,7 +23,7 @@ export function otpStart(emailOrUsername: string, otp: string): object {
  *
  * @return {object} An action object with a type of OTP_FAIL passing the error
  */
-export function otpFail(error: object): object {
+export function otpFail(error:object):{type: string,error: object} {
   return {
     type: OTP_FAIL,
     error: error
@@ -38,7 +38,7 @@ export function otpFail(error: object): object {
  *
  * @return {object} An action object with a type of OTP_SUCCESS passing the msg and otp
  */
-export function otpSuccess(msg: string, otp: string): object {
+export function otpSuccess(msg:string, otp:string):{type: string,msg: string,  otp: string}  {
   return {
     type: OTP_SUCCESS,
     msg: msg,

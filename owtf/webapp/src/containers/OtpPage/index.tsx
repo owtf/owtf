@@ -3,44 +3,45 @@
  * Manages sending the otp to the user
  */
 
-import React, {useState} from "react";
-import {
-  Pane,
-  Heading,
-  Button,
-  Paragraph,
-  Link,
-  TextInputField
-} from "evergreen-ui";
+import React from "react";
+import { Link } from "react-router-dom";
 import { otpStart } from "./actions";
 import { connect } from "react-redux";
 import { forgotPasswordEmailStart } from "../ForgotPasswordPage/actions";
-import PropTypes from "prop-types";
 import { createStructuredSelector } from "reselect";
 import { makeSelectForgotEmail } from "../ForgotPasswordPage/selectors";
+import logo from "../../../public/img/logo.png";
 
-interface IOtpPage{
-  onSubmit: Function;
-  onResend: Function;
-  emailOrUsername: string;
+interface propsType {
+  onSubmit: Function,
+  onResend: Function,
+  emailOrUsername: string
+}
+interface stateType {
+  otp: string,
+  otpError: string
 }
 
-export function OtpPage ({
-  onSubmit,
-  onResend,
-  emailOrUsername
-}: IOtpPage) {
-  
-  const [otp, setOtp] = useState("");
-  const [otpError, setOtpError] = useState("");
-  
-  const submitHandler = () => {
-    onSubmit(emailOrUsername, otp);
+
+export class OtpPage extends React.Component<propsType, stateType>  {
+  constructor(props, context) {
+    super(props, context);
+
+    this.state = {
+      otp: "",
+      otpError: ""
+    };
+  }
+
+  submitHandler = () => {
+    this.props.onSubmit(this.props.emailOrUsername, this.state.otp);
   };
 
-  const isNumeric = (str: string | number) => {
+  isNumeric = (str) => {
     if (typeof str != "string") return false; // only process strings!
+    
     return (
+      //@ts-ignore
       !isNaN(str) && !isNaN(parseFloat(str)) // use type coercion to parse the _entirety_ of the string
     ); // ...and ensure strings of whitespace fail
   };
@@ -50,107 +51,98 @@ export function OtpPage ({
    *
    * @param {object} e event which triggered this function
    */
-  const handleOtpValidation = (e: any) => {
-    if (!otp) {
-      setOtpError("OTP can't be empty");
+  handleOtpValidation = e => {
+    if (!this.state.otp) {
+      this.setState({ otpError: "OTP can't be empty" });
     } else if (
-      typeof otp !== "undefined" &&
-      isNumeric(otp) &&
-      otp.length === 6
+      typeof this.state.otp !== "undefined" &&
+      this.isNumeric(this.state.otp) &&
+      this.state.otp.length === 6
     ) {
-      setOtpError("");
+      this.setState({ otpError: "" });
     } else {
-      setOtpError("Please enter a valid OTP");
+      this.setState({ otpError: "Please enter a valid OTP" });
     }
   };
 
   /**
    * Function handles the otp resend
    */
-  const resendHandler = () => {
-    onResend(emailOrUsername, otp);
+  resendHandler = () => {
+    this.props.onResend(this.props.emailOrUsername, this.state.otp);
   };
 
-  return (
-    <Pane marginY={100} data-test="otpPageComponent">
-      <Pane
-        justifyContent="center"
-        width="35%"
-        elevation={1}
-        margin="auto"
-        padding={5}
-      >
-        <Heading
-          size={700}
-          textAlign="center"
-          marginBottom={20}
-          paddingTop={20}
-        >
-          We sent a code
-        </Heading>
-        <Paragraph size={300} width="60%" marginLeft="20%" marginTop={20}>
-          Enter the 6-digit verification code sent to your email.
-        </Paragraph>
-        <Paragraph size={300} width="60%" marginLeft="20%" marginTop={10}>
-          <Link href="/forgot-password/email/">Change Username / Email</Link>
-        </Paragraph>
-        <TextInputField
-          label="Enter the OTP received"
-          placeholder="6 digit code"
-          width="60%"
-          marginLeft="20%"
-          marginTop={10}
-          marginBottom={10}
-          name="text-input-otp"
-          value={otp}
-          onBlur={e => handleOtpValidation(e)}
-          onChange={e => setOtp(e.target.value)}
-          validationMessage={otpError ? otpError : null}
-        />
-        <Paragraph size={300} width="60%" marginLeft="20%">
-          <Link onClick={resendHandler}>Resend Code</Link>
-        </Paragraph>
-        <Button
-          width="20%"
-          marginLeft="40%"
-          marginBottom={10}
-          marginTop={10}
-          justifyContent="center"
-          appearance="primary"
-          intent="none"
-          onClick={submitHandler}
-          disabled={otpError ? true : false}
-        >
-          Submit
-        </Button>
-        <Paragraph size={300} width="60%" marginLeft="20%" marginBottom={20}>
-          If you don't find it in your inbox, check spam folder.
-        </Paragraph>
-      </Pane>
-    </Pane>
-  );
+  render() {
+    return (
+      <div className="otpPageContainer" data-test="otpPageComponent">
+        <div className="otpPageContainer__otpComponentContainer">
+          <div className="otpPageContainer__otpComponentContainer__brandLogoContainer">
+            <img src={logo} alt="brand-logo" />
+          </div>
+
+          <h2 className="otpPageContainer__otpComponentContainer__heading">
+            A code was sent
+          </h2>
+
+          <p className="otpPageContainer__otpComponentContainer__info">
+            Enter the 6-digit verification code sent to your email.
+          </p>
+
+          <div className="otpPageContainer__otpComponentContainer__otpInputContainer">
+            <label htmlFor="otpPageInput">Enter the OTP received</label>
+            <input
+              type="text"
+              placeholder="6 digit code"
+              name="text-input-otp"
+              value={this.state.otp}
+              onBlur={e => this.handleOtpValidation(e)}
+              onChange={e => this.setState({ otp: e.target.value })}
+            />
+          </div>
+          <p className="inputRequiredError">{this.state.otpError}</p>
+
+          <button
+            className="otpPageContainer__otpComponentContainer__submitButton"
+            onClick={this.submitHandler}
+            disabled={this.state.otpError ? true : false}
+          >
+            Submit
+          </button>
+
+          <div className="otpPageContainer__otpComponentContainer__linksContainer">
+            <p>
+              <Link to="#" onClick={this.resendHandler}>
+                Resend Code
+              </Link>
+            </p>
+            <p>
+              <Link to="/forgot-password/email/">Change Username / Email</Link>
+            </p>
+          </div>
+
+          <p className="otpPageContainer__otpComponentContainer__info">
+            If you don't find it in your inbox, check spam folder.
+          </p>
+        </div>
+      </div>
+    );
+  }
 }
 
-OtpPage.propTypes = {
-  onSubmit: PropTypes.func,
-  onResend: PropTypes.func,
-  emailOrUsername: PropTypes.string
-};
+
 
 const mapStateToProps = createStructuredSelector({
   emailOrUsername: makeSelectForgotEmail
 });
 
-const mapDispatchToProps = (dispatch: Function) => {
+const mapDispatchToProps = dispatch => {
   return {
-    onSubmit: (emailOrUsername: string, otp: string) =>
+    onSubmit: (emailOrUsername, otp) =>
       dispatch(otpStart(emailOrUsername, otp)),
-    onResend: (emailOrUsername: any) =>
+    onResend: emailOrUsername =>
       dispatch(forgotPasswordEmailStart(emailOrUsername))
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(OtpPage);
+//@ts-ignore
+export default connect(mapStateToProps, mapDispatchToProps)(OtpPage);

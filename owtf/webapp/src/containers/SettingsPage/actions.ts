@@ -4,17 +4,18 @@ import {
   LOAD_CONFIGURATIONS_ERROR,
   CHANGE_CONFIGURATIONS_SUCCESS,
   CHANGE_CONFIGURATIONS_ERROR,
-  CHANGE_CONFIGURATIONS
-} from "./constants";
+  CHANGE_CONFIGURATIONS,
+} from './constants';
+
 
 /**
  * Load the configurations, this action starts the request saga GET
  *
  * @return {object} An action object with a type of LOAD_CONFIGURATIONS
  */
-export function loadConfigurations(): { type: string } {
+export function loadConfigurations(): {type:string} {
   return {
-    type: LOAD_CONFIGURATIONS
+    type: LOAD_CONFIGURATIONS,
   };
 }
 
@@ -25,12 +26,10 @@ export function loadConfigurations(): { type: string } {
  *
  * @return {object} An action object with a type of LOAD_CONFIGURATIONS_SUCCESS passing the configurations
  */
-export function configurationsLoaded(
-  configurations: []
-): { type: string; configurations: any } {
+export function configurationsLoaded(configurations: []): {type:string , configurations :any } {
   return {
     type: LOAD_CONFIGURATIONS_SUCCESS,
-    configurations
+    configurations,
   };
 }
 
@@ -41,12 +40,10 @@ export function configurationsLoaded(
  *
  * @return {object} An action object with a type of LOAD_CONFIGURATIONS_ERROR passing the error
  */
-export function configurationsLoadingError(
-  error: object
-): { type: string; error: object } {
+export function configurationsLoadingError(error: object): {type:string , error :object }  {
   return {
     type: LOAD_CONFIGURATIONS_ERROR,
-    error
+    error,
   };
 }
 
@@ -57,12 +54,10 @@ export function configurationsLoadingError(
  *
  * @return {object} An action object with a type of CHANGE_CONFIGURATION
  */
-export function changeConfigurations(
-  configurations: object
-): { type: string; configurations: object } {
+export function changeConfigurations(configurations: object): {type:string , configurations :object }  {
   return {
     type: CHANGE_CONFIGURATIONS,
-    configurations
+    configurations,
   };
 }
 
@@ -71,9 +66,9 @@ export function changeConfigurations(
  *
  * @return {object} An action object with a type of CHANGE_CONFIGURATION_SUCCESS
  */
-export function configurationsChanged(): { type: string } {
+export function configurationsChanged(): {type:string}  {
   return {
-    type: CHANGE_CONFIGURATIONS_SUCCESS
+    type: CHANGE_CONFIGURATIONS_SUCCESS,
   };
 }
 
@@ -84,11 +79,9 @@ export function configurationsChanged(): { type: string } {
  *
  * @return {object} An action object with a type of CHANGE_CONFIGURATION_ERROR passing the error
  */
-export function configurationsChangingError(
-  error: object
-): { type: string; error: object } {
+export function configurationsChangingError(error: object): {type:string , error :object }  {
   return {
     type: CHANGE_CONFIGURATIONS_ERROR,
-    error
+    error,
   };
 }

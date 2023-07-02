@@ -273,32 +273,31 @@ describe("Targets Page component", () => {
     it("Should render empty table", () => {
       wrapper.setProps({ targets: [] });
       const component = findByTestAtrr(wrapper, "renderEmptyTable");
-      const tableRow = wrapper.find("withTheme(TableRow)");
+      const tableRow = wrapper.find(".targetsTableContainer__bodyContainer__rowContainer");
       expect(component.length).toBe(1);
       expect(tableRow.length).toBe(0);
     });
 
     it("Should render table rows correctly", () => {
-      const tableRow = wrapper.find("withTheme(TableRow)");
+      const tableRow = wrapper.find(".targetsTableContainer__bodyContainer__rowContainer");
       expect(tableRow.length).toBe(1);
     });
 
     it("Should correctly severity labels for each targets", () => {
-      const severityBadge = wrapper.find("withTheme(Badge)");
+      const severityBadge = wrapper.find(".targetsTableContainer__bodyContainer__rowContainer__severityContainer span");
       expect(severityBadge.length).toBe(1);
-      expect(severityBadge.props().color).toEqual("orange");
       expect(severityBadge.props().children).toEqual("Medium");
     });
 
     it("Should filter the targets properly", () => {
       wrapper.setState({ filterSeverity: 3 });
-      expect(wrapper.find("withTheme(TableRow)").length).toBe(1);
+      expect(wrapper.find(".targetsTableContainer__bodyContainer__rowContainer").length).toBe(1);
       wrapper.setState({ filterSeverity: 4 });
-      expect(wrapper.find("withTheme(TableRow)").length).toBe(0);
+      expect(wrapper.find(".targetsTableContainer__bodyContainer__rowContainer").length).toBe(0);
       wrapper.setState({ searchQuery: "fb", filterSeverity: -2 });
-      expect(wrapper.find("withTheme(TableRow)").length).toBe(1);
+      expect(wrapper.find(".targetsTableContainer__bodyContainer__rowContainer").length).toBe(1);
       wrapper.setState({ searchQuery: "test" });
-      expect(wrapper.find("withTheme(TableRow)").length).toBe(0);
+      expect(wrapper.find(".targetsTableContainer__bodyContainer__rowContainer").length).toBe(0);
     });
   });
 

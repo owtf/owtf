@@ -208,7 +208,7 @@ export class Transactions extends React.Component<propsType, stateType> {
   }
 
   render() {
-    console.log(this.props);
+    
     const TransactionHeaderProps = {
       target_id: this.state.target_id,
       transactionHeaderData: this.state.transactionHeaderData,
@@ -230,6 +230,7 @@ export class Transactions extends React.Component<propsType, stateType> {
     return (
       <div className="transactionsPage" data-test="transactionsComponent">
         <div className="transactionsPage__targetListContainer">
+          {/* @ts-ignore */}
           <TargetList {...TargetListProps} />
         </div>
         <div className="transactionsPage__HeaderAndTableContainer" />
@@ -272,14 +273,25 @@ const mapStateToProps = createStructuredSelector({
   hrtResponseError: makeSelectHrtResponseError
 });
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (
+  dispatch: Function
+): {
+  onFetchTargets: Function;
+  onFetchTransactions: Function;
+  onFetchTransaction: Function;
+  onFetchHrtResponse: Function;
+} => {
   return {
     onFetchTargets: () => dispatch(loadTargets()),
-    onFetchTransactions: target_id => dispatch(loadTransactions(target_id)),
-    onFetchTransaction: (target_id, transaction_id) =>
+    onFetchTransactions: (target_id: number) =>
+      dispatch(loadTransactions(target_id)),
+    onFetchTransaction: (target_id: number, transaction_id: number) =>
       dispatch(loadTransaction(target_id, transaction_id)),
-    onFetchHrtResponse: (target_id, transaction_id, data) =>
-      dispatch(loadHrtResponse(target_id, transaction_id, data))
+    onFetchHrtResponse: (
+      target_id: number,
+      transaction_id: number,
+      data: object
+    ) => dispatch(loadHrtResponse(target_id, transaction_id, data))
   };
 };
 

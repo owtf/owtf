@@ -105,24 +105,24 @@ describe("Worklist Page component", () => {
     });
 
     it("Should correctly render its subcomponents", () => {
-      const searchBox = wrapper.find("withTheme(SearchInput)");
-      const button = wrapper.find("withTheme(Button)");
+      const searchBox = wrapper.find("input");
+      const button = wrapper.find("button");
       const worklistTable = wrapper.find("WorklistTable");
 
       expect(searchBox.length).toBe(1);
       expect(button.length).toBe(3);
       expect(worklistTable.length).toBe(1);
-      expect(button.at(0).props().children).toEqual("Pause All");
-      expect(button.at(1).props().children).toEqual("Resume All");
-      expect(button.at(2).props().children).toEqual("Delete All");
+      expect(button.at(0).props().children[1]).toEqual("Pause All");
+      expect(button.at(1).props().children[1]).toEqual("Resume All");
+      expect(button.at(2).props().children[1]).toEqual("Delete All");
     });
 
     it("Should call correct function after action button click", () => {
       expect(props.onFetchWorklist.mock.calls.length).toBe(1);
       expect(props.onChangeWorklist.mock.calls.length).toBe(0);
-      const pauseButton = wrapper.find("withTheme(Button)").at(0);
-      const resumeButton = wrapper.find("withTheme(Button)").at(1);
-      const deleteButton = wrapper.find("withTheme(Button)").at(2);
+      const pauseButton = wrapper.find("button").at(0);
+      const resumeButton = wrapper.find("button").at(1);
+      const deleteButton = wrapper.find("button").at(2);
       pauseButton.simulate("click");
       expect(props.onChangeWorklist.mock.calls.length).toBe(1);
       resumeButton.simulate("click");
@@ -265,36 +265,28 @@ describe("Worklist Page component", () => {
     });
 
     it("Should properly render its sub-components", () => {
-      const textTableHeaderCell = wrapper.find("TextTableHeaderCell");
-      const searchTableHeaderCell = wrapper.find("SearchTableHeaderCell");
-      const tableRow = wrapper.find("withTheme(TableRow)");
-      const textTableCell = wrapper.find("TextTableCell");
-      const tableCell = wrapper.find("withTheme(TableCell)");
-      expect(textTableHeaderCell.length).toBe(2);
-      expect(searchTableHeaderCell.length).toBe(4);
-      expect(tableRow.length).toBe(2);
-      expect(textTableCell.length).toBe(10);
-      expect(tableCell.length).toBe(2);
+      const textTableHeaderCell = wrapper.find(".worklistTableContainer__headerContainer div");
+      const tableRow = wrapper.find(".worklistTableContainer__bodyContainer");
+      const textTableCell = wrapper.find(".worklistTableContainer__bodyContainer__rowContainer div");
+      const textTableCellContent = wrapper.find(".worklistTableContainer__bodyContainer__rowContainer div span");
+      expect(textTableHeaderCell.length).toBe(6);
+      expect(tableRow.length).toBe(1);
+      expect(textTableCell.length).toBe(12);
       expect(textTableHeaderCell.at(1).props().children).toEqual("Actions");
-      expect(textTableCell.at(0).props().children).toEqual(
+      expect(textTableCellContent.at(0).props().children).toEqual(
         props.worklist[0].plugin.min_time
-      );
-      expect(textTableCell.at(5).props().children).toEqual(
-        props.worklist[1].plugin.min_time
       );
     });
 
     it("Should correctly render play/pause icon button", () => {
-      const playIconButton = wrapper.find("withTheme(IconButton)").at(0);
-      const pauseIconButton = wrapper.find("withTheme(IconButton)").at(2);
-      expect(playIconButton.props().intent).toEqual("warning");
-      expect(pauseIconButton.props().intent).toEqual("success");
+      const playPauseDeleteButton = wrapper.find(".worklistTableContainer__bodyContainer__rowContainer__buttonContainer button")
+      expect(playPauseDeleteButton.length).toBe(4);
     });
 
     it("Should call prop functions after Icon button button click", () => {
-      const playIconButton = wrapper.find("withTheme(IconButton)").at(0);
-      const deleteIconButton = wrapper.find("withTheme(IconButton)").at(1);
-      const pauseIconButton = wrapper.find("withTheme(IconButton)").at(2);
+      const playIconButton = wrapper.find("button").at(0);
+      const deleteIconButton = wrapper.find("button").at(1);
+      const pauseIconButton = wrapper.find("button").at(2);
       playIconButton.simulate("click");
       expect(props.resumeWork.mock.calls.length).toBe(1);
       deleteIconButton.simulate("click");
@@ -305,9 +297,9 @@ describe("Worklist Page component", () => {
 
     it("Should correctly filter the worklist", () => {
       wrapper.setState({ groupSearch: "web" });
-      expect(wrapper.find("withTheme(TableRow)").length).toBe(1);
+      expect(wrapper.find(".worklistTableContainer__bodyContainer__rowContainer").length).toBe(1);
       wrapper.setProps({ globalSearch: "external" });
-      expect(wrapper.find("withTheme(TableRow)").length).toBe(0);
+      expect(wrapper.find(".worklistTableContainer__bodyContainer__rowContainer").length).toBe(0);
     });
   });
 

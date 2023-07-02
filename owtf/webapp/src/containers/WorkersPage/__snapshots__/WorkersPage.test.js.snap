@@ -1,129 +1,97 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Workers Page component Testing WorkerPanel component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="workerPanelContainer"
   data-test="workerPanelComponent"
-  display="flex"
-  elevation={3}
-  flexDirection="column"
-  float="left"
-  marginBottom={20}
-  marginRight={40}
-  width={500}
 >
-  <withTheme(Heading)
-    background="#ddd"
-    height={40}
+  <div
+    className="workerPanelContainer__headingContainer"
   >
-    <withTheme(Pane)
-      margin={10}
+    <h1
+      className="workerPanelContainer__headingContainer__heading"
     >
+       
       Worker 4
-      <withTheme(Pane)
-        className="pull-right"
+    </h1>
+    <div
+      className="workerPanelContainer__headingContainer__deleteButton pull-right"
+    >
+      <button
+        className="wokerPanel_woker_deleteButton"
+        onClick={[Function]}
       >
-        <withTheme(IconButton)
-          appearance="primary"
-          height={24}
-          icon="cross"
-          intent="danger"
-          onClick={[Function]}
-        />
-      </withTheme(Pane)>
-    </withTheme(Pane)>
-  </withTheme(Heading)>
-  <withTheme(Pane)
-    padding={15}
+        <GrFormClose />
+      </button>
+    </div>
+  </div>
+  <div
+    className="workerPanelContainer__infoContainer"
   >
-    <withTheme(Paragraph)>
-      <Strong>
+    <p
+      className="workerPanelContainer__infoContainer__pid"
+    >
+      <strong>
         PID: 
-      </Strong>
+      </strong>
       29693
-    </withTheme(Paragraph)>
-    <withTheme(Paragraph)>
-      <Strong>
+    </p>
+    <p
+      className="workerPanelContainer__infoContainer__startTime"
+    >
+      <strong>
         Start Time: 
-      </Strong>
+      </strong>
       N/A
-    </withTheme(Paragraph)>
-    <withTheme(Button)
-      appearance="primary"
-      height={20}
+    </p>
+    <button
+      className="workerPanelContainer__infoContainer__showLogsButton"
       onClick={[Function]}
     >
       Show logs
-    </withTheme(Button)>
-  </withTheme(Pane)>
-</withTheme(Pane)>
+    </button>
+  </div>
+</div>
 `;
 
 exports[`Workers Page component Testing dumb WorkersPage component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="workersPageContainer"
   data-test="workerComponent"
-  display="flex"
-  flexDirection="column"
-  paddingLeft={50}
-  paddingRight={50}
 >
-  <Breadcrumb
-    bsClass="breadcrumb"
+  <div
+    className="workersPageContainer__buttonsContainer"
   >
-    <BreadcrumbItem
-      active={false}
-      href="/"
-    >
-      Home
-    </BreadcrumbItem>
-    <BreadcrumbItem
-      active={true}
-      href="/workers/"
-    >
-      Workers
-    </BreadcrumbItem>
-  </Breadcrumb>
-  <withTheme(Pane)
-    display="flex"
-    flexDirection="row"
-    marginBottom={30}
-  >
-    <withTheme(Pane)
-      flex={1}
-    />
-    <withTheme(Button)
-      appearance="primary"
-      iconBefore="add"
-      intent="success"
-      marginRight={16}
+    <button
+      className="workersPageContainer__buttonsContainer__addWorkerButton"
       onClick={[Function]}
     >
-      Add worker!
-    </withTheme(Button)>
-    <withTheme(Button)
-      appearance="primary"
-      iconBefore="pause"
-      intent="warning"
-      marginRight={16}
+      <BsPlusLg />
+      Add worker !
+    </button>
+    <button
+      className="workersPageContainer__buttonsContainer__pauseAllButton"
       onClick={[Function]}
     >
+      <GiPauseButton />
       Pause All
-    </withTheme(Button)>
-    <withTheme(Button)
-      appearance="primary"
-      iconBefore="play"
-      intent="none"
+    </button>
+    <button
+      className="workersPageContainer__buttonsContainer__resumeAllButton"
       onClick={[Function]}
     >
+      <BsPlayFill />
       Resume All
-    </withTheme(Button)>
-  </withTheme(Pane)>
-  <withTheme(Heading)
+    </button>
+  </div>
+  <h2
+    className="workersPageContainer__heading"
     title="updates in 13s"
   >
     Total scan progress
-  </withTheme(Heading)>
-  <withTheme(Pane)
-    marginBottom={20}
+  </h2>
+  <div
+    className="workersPageContainer__progressBarContainer"
   >
     <ProgressBar
       active={true}
@@ -136,9 +104,9 @@ exports[`Workers Page component Testing dumb WorkersPage component Should render
       srOnly={false}
       striped={true}
     />
-  </withTheme(Pane)>
-  <withTheme(Pane)
-    clearfix={true}
+  </div>
+  <div
+    className="workersPageContainer__workerPanelContainer"
   >
     <WorkerPanel
       abortWorker={[Function]}
@@ -147,8 +115,8 @@ exports[`Workers Page component Testing dumb WorkersPage component Should render
       handleLogDialogShow={[Function]}
       key="4"
       logDialogContent="Nothing to show here!"
-      logDialogShow={false}
       onFetchWorkerLogs={[MockFunction]}
+      openDialog={[Function]}
       pauseWorker={[Function]}
       resumeWorker={[Function]}
       worker={
@@ -163,17 +131,26 @@ exports[`Workers Page component Testing dumb WorkersPage component Should render
       }
       workerLogs={false}
     />
-  </withTheme(Pane)>
-  <withTheme(Dialog)
-    hasFooter={false}
-    intent="danger"
-    isShown={false}
-    onCloseComplete={[Function]}
-    title="Worker Log"
+  </div>
+  <div
+    className="dialogWrapper"
   >
-    <Pre>
-      Nothing to show here!
-    </Pre>
-  </withTheme(Dialog)>
-</withTheme(Pane)>
+    <Dialog
+      isDialogOpened={false}
+      onClose={[Function]}
+      title="Worker Log"
+    >
+      <pre
+        style={
+          Object {
+            "maxHeight": "80vh",
+            "overflow": "scroll",
+          }
+        }
+      >
+        Nothing to show here!
+      </pre>
+    </Dialog>
+  </div>
+</div>
 `;

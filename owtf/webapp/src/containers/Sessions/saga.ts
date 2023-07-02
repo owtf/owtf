@@ -2,13 +2,8 @@
  * Fetch, Create, Change and delete the sessions from API
  */
 
-import { call, put, takeLatest } from "redux-saga/effects";
-import {
-  CHANGE_SESSION,
-  LOAD_SESSIONS,
-  CREATE_SESSION,
-  DELETE_SESSION
-} from "./constants";
+import { call, put, takeLatest } from 'redux-saga/effects';
+import { CHANGE_SESSION, LOAD_SESSIONS, CREATE_SESSION, DELETE_SESSION } from './constants';
 import {
   loadSessions,
   sessionsChanged,
@@ -19,13 +14,8 @@ import {
   sessionsCreatingError,
   sessionsDeleted,
   sessionsDeletingError
-} from "./actions";
-import {
-  getSessionsAPI,
-  patchSessionAPI,
-  postSessionAPI,
-  deleteSessionAPI
-} from "./api";
+} from './actions';
+import { getSessionsAPI, patchSessionAPI, postSessionAPI, deleteSessionAPI } from "./api";
 import "@babel/polyfill";
 
 /**
@@ -62,7 +52,7 @@ export function* patchSession(action) {
 export function* postSession(action) {
   const postAPI = postSessionAPI();
   try {
-    yield call(postAPI, { name: action.sessionName });
+    yield call(postAPI, {name: action.sessionName});
     yield put(sessionsCreated());
     yield put(loadSessions());
   } catch (error) {

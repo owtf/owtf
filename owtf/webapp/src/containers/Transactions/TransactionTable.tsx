@@ -99,10 +99,9 @@ export default class TransactionTable extends React.Component<
     document.addEventListener("mouseup", e => this.handleMouseUp(e));
     let tablePos;
     if (this.refs["table"]) {
-      //@ts-ignore
-      tablePos = ReactDOM.findDOMNode(
-        this.refs["table"]
-      ).getBoundingClientRect();
+      {/* @ts-ignore */}
+      tablePos = ReactDOM.findDOMNode(this.refs["table"]).getBoundingClientRect();
+      
       this.setState({
         tableHeight: (window.innerHeight - tablePos.top) / 2
       });

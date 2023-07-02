@@ -3,7 +3,6 @@
  */
 import React from "react";
 import { Alert, Spinner } from "evergreen-ui";
-import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import {
@@ -18,18 +17,18 @@ import ConfigurationTabsNav from "../../components/ConfigurationTabsNav";
 import { BiError } from "react-icons/bi";
 
 interface propsType {
-  loading: boolean;
-  fetchError: object | boolean;
-  changeError: object | boolean;
-  configurations: object | boolean;
-  onFetchConfiguration: Function;
-  onChangeConfiguration: Function;
+  loading: boolean,
+  fetchError:object | boolean,
+  changeError: object | boolean,
+  configurations: object | boolean,
+  onFetchConfiguration: Function,
+  onChangeConfiguration: Function
 }
 interface stateType {
-  updateDisabled: boolean;
-  patch_data: object;
-  show: boolean;
-  selectedIndex: number;
+  updateDisabled: boolean,
+  patch_data: object,
+  show: boolean,
+  selectedIndex: number
 }
 
 export class SettingsPage extends React.Component<propsType, stateType> {
@@ -114,7 +113,8 @@ export class SettingsPage extends React.Component<propsType, stateType> {
     const { configurations, loading, fetchError, changeError } = this.props;
     if (loading) {
       return (
-        <div>
+        <div
+        >
           <Spinner />
         </div>
       );
@@ -166,6 +166,8 @@ export class SettingsPage extends React.Component<propsType, stateType> {
     }
   }
 }
+
+
 
 const mapStateToProps = createStructuredSelector({
   configurations: makeSelectFetchConfigurations,

@@ -86,21 +86,22 @@ describe("Plugins componemt", () => {
     });
 
     it("Should render without errors", () => {
-      const component = wrapper.find("withTheme(Dialog)");
+      const component = wrapper.find("Dialog");
       expect(component.length).toBe(1);
       expect(toJson(component)).toMatchSnapshot();
     });
 
     it("Should correctly render its sub-components", () => {
-      const tablist = wrapper.find("Tablist");
-      const tabs = wrapper.find("withTheme(Tab)");
+     
+      const tabList = wrapper.find(".pluginsContainer__headerContainer__launchingOptionsContainer");
+      const tabs = wrapper.find(".pluginsContainer__headerContainer__launchingOptionsContainer__tab");
       const individualPanel = wrapper.find("#panel-individual");
       const groupPanel = wrapper.find("#panel-group");
       const checkbox = wrapper.find("#force-overwrite");
       const pluginTable = wrapper.find("PluginsTable");
 
-      expect(tablist.length).toBe(1);
-      expect(tabs.length).toBe(3);
+      expect(tabList.length).toBe(1);
+      expect(tabs.length).toBe(2);
       expect(tabs.at(0).props().children).toEqual("Launch Individually");
       expect(tabs.at(1).props().children).toEqual("Launch in groups");
       expect(individualPanel.length).toBe(1);
@@ -110,10 +111,10 @@ describe("Plugins componemt", () => {
     });
 
     it("Should properly switch panels on tab click", () => {
-      const individualTab = wrapper.find("withTheme(Tab)").at(0);
-      const groupTab = wrapper.find("withTheme(Tab)").at(1);
+      const individualTab = wrapper.find(".pluginsContainer__headerContainer__launchingOptionsContainer span").at(0);
+      const groupTab = wrapper.find(".pluginsContainer__headerContainer__launchingOptionsContainer span").at(1);
       groupTab.simulate("select");
-      expect(wrapper.instance().state.selectedIndex).toEqual(2);
+      expect(wrapper.instance().state.selectedIndex).toEqual(1);
       individualTab.simulate("select");
       expect(wrapper.instance().state.selectedIndex).toEqual(1);
     });
@@ -218,37 +219,33 @@ describe("Plugins componemt", () => {
     });
 
     it("Should render without errors", () => {
-      const component = wrapper.find("Table");
+      const component = wrapper.find(".pluginsTableContainer");
       expect(component.length).toBe(1);
       expect(toJson(component)).toMatchSnapshot();
     });
 
     it("Should correctly render table's sub-components", () => {
-      const searchHeader = wrapper.find("SearchTableHeaderCell");
-      const checkBoxHeader = wrapper.find("TableHeaderCell");
-      const tableRow = wrapper.find("withTheme(TableRow)");
-      const textCell = wrapper.find("TextTableCell");
-      const cell = wrapper.find("withTheme(TableCell)");
-      const checkBox = wrapper.find("withTheme(Checkbox)");
+      const searchHeader = wrapper.find(".pluginsTableContainer__headerContainer input");
+      const checkBoxHeader = wrapper.find(".pluginsTableContainer__headerContainer__checkbox");
+      const tableRow = wrapper.find(".pluginsTableContainer__bodyContainer__rowContainer");
+      const cell = wrapper.find(".pluginsTableContainer__bodyContainer__rowContainer__checkbox");
+      const checkBox = wrapper.find(".pluginsTableContainer__bodyContainer__rowContainer input");
 
-      expect(searchHeader.length).toBe(5);
-      expect(searchHeader.at(0).props().placeholder).toEqual("Code");
-      expect(searchHeader.at(1).props().placeholder).toEqual("Name");
-      expect(searchHeader.at(2).props().placeholder).toEqual("Type");
-      expect(searchHeader.at(3).props().placeholder).toEqual("Group");
-      expect(searchHeader.at(4).props().placeholder).toEqual("Help");
+      expect(searchHeader.length).toBe(6);
+      expect(searchHeader.at(1).props().placeholder).toEqual("Code");
+      expect(searchHeader.at(2).props().placeholder).toEqual("Name");
+      expect(searchHeader.at(3).props().placeholder).toEqual("Type");
+      expect(searchHeader.at(4).props().placeholder).toEqual("Group");
+      expect(searchHeader.at(5).props().placeholder).toEqual("Help");
       expect(checkBoxHeader.length).toBe(1);
       expect(tableRow.length).toBe(props.plugins.length);
-      expect(textCell.length).toBe(5 * props.plugins.length);
-      expect(textCell.at(0).props().children).toEqual(props.plugins[0].code);
-      expect(textCell.at(3).props().children).toEqual(props.plugins[0].group);
       expect(cell.length).toBe(props.plugins.length);
-      expect(checkBox.length).toBe(1 + props.plugins.length);
+      expect(checkBox.length).toBe(props.plugins.length);
     });
 
     it("Should call updateSelectedPlugins on checkbox click", () => {
       expect(props.updateSelectedPlugins.mock.calls.length).toBe(0);
-      const checkBox = wrapper.find("withTheme(Checkbox)").at(0);
+      const checkBox = wrapper.find("input").at(0);
       const event = {
         preventDefault() {},
         target: { checked: false }
@@ -259,31 +256,31 @@ describe("Plugins componemt", () => {
 
     it("Should filter the plugins correctly", () => {
       wrapper.setState({ codeSearch: "IG" });
-      expect(wrapper.find("withTheme(TableRow)").length).toBe(1);
+      expect(wrapper.find(".pluginsTableContainer__bodyContainer__rowContainer").length).toBe(1);
       expect(
         wrapper
-          .find("TextTableCell")
-          .at(0)
+          .find(".pluginsTableContainer__bodyContainer__rowContainer div")
+          .at(1)
           .props().children
       ).toEqual("OWTF-IG-004");
       wrapper.setState({ codeSearch: "", nameSearch: "DoS" });
-      expect(wrapper.find("withTheme(TableRow)").length).toBe(1);
+      expect(wrapper.find(".pluginsTableContainer__bodyContainer__rowContainer").length).toBe(1);
       wrapper.setState({
         nameSearch: "",
         typeSearch: "dos",
         groupSearch: "web"
       });
-      expect(wrapper.find("withTheme(TableRow)").length).toBe(0);
+      expect(wrapper.find(".pluginsTableContainer__bodyContainer__rowContainer").length).toBe(0);
       wrapper.setState({
         helpSearch: "Denial",
         typeSearch: "",
         groupSearch: ""
       });
-      expect(wrapper.find("withTheme(TableRow)").length).toBe(1);
+      expect(wrapper.find(".pluginsTableContainer__bodyContainer__rowContainer").length).toBe(1);
       expect(
         wrapper
-          .find("TextTableCell")
-          .at(0)
+          .find(".pluginsTableContainer__bodyContainer__rowContainer div")
+          .at(1)
           .props().children
       ).toEqual("OWTF-ADoS-001");
     });

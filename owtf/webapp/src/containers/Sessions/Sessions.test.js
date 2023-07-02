@@ -94,9 +94,9 @@ describe("Sessions componemt", () => {
 
 		it("Should correctly render its sub-components", () => {
 			wrapper.setState({ newSessionName: "new session" });
-			const textInput = wrapper.find("withTheme(TextInput)");
-			const dialogBox = wrapper.find("withTheme(Dialog)");
-			const button = wrapper.find("withTheme(Button)");
+			const textInput = wrapper.find("input");
+			const dialogBox = wrapper.find("Dialog");
+			const button = wrapper.find("button");
 			const sessionTable = wrapper.find("SessionsTable");
 
 			expect(textInput.length).toBe(2);
@@ -113,7 +113,7 @@ describe("Sessions componemt", () => {
 		});
 
 		it("Should update state on TextInput change event", () => {
-			const textInput = wrapper.find("withTheme(TextInput)").at(1);
+			const textInput = wrapper.find(".sessionsContainer__newSessionContainer__input").at(0);
 			const event = {
 				preventDefault() {},
 				target: { value: "new session", name: "newSessionName" }
@@ -131,7 +131,7 @@ describe("Sessions componemt", () => {
 		it("Should call onCreateSession on add session button click", () => {
 			expect(props.onFetchSession.mock.calls.length).toBe(1);
 			expect(props.onCreateSession.mock.calls.length).toBe(0);
-			const addButton = wrapper.find("withTheme(Button)").at(1);
+			const addButton = wrapper.find(".sessionsContainer__newSessionContainer__button").at(0);
 			addButton.simulate("click");
 			expect(props.onCreateSession.mock.calls.length).toBe(1);
 		})
@@ -229,21 +229,21 @@ describe("Sessions componemt", () => {
     });
 
     it("Should render without errors", () => {
-      const component = wrapper.find("Table");
+      const component = wrapper.find(".sessionTableContainer");
       expect(component.length).toBe(1);
       expect(toJson(component)).toMatchSnapshot();
 		});
 
 		it("Should correctly render table's sub-components", () => {
-			const searchHeader = wrapper.find("SearchTableHeaderCell");
-			const textHeader = wrapper.find("TextTableHeaderCell");
-			const tableRow = wrapper.find("withTheme(TableRow)");
-			const textCell = wrapper.find("TextTableCell");
-			const iconButton = wrapper.find("withTheme(IconButton)");
-			const radio = wrapper.find("withTheme(Radio)");
+			const searchHeader = wrapper.find(".sessionTableContainer__tableHeader input");
+			const textHeader = wrapper.find(".sessionTableContainer__tableHeader span");
+			const tableRow = wrapper.find(".sessionTableContainer__tableBody__rowContainer");
+			const textCell = wrapper.find(".sessionTableContainer__tableBody__rowContainer__sessionNameCell");
+			const iconButton = wrapper.find(".sessionTableContainer__tableBody__rowContainer__deleteButtonCell button");
+			const radio = wrapper.find(".sessionTableContainer__tableBody__rowContainer__radioCell input");
 
 			expect(searchHeader.length).toBe(1);
-			expect(searchHeader.props().placeholder).toEqual("Session name");
+			expect(searchHeader.props().placeholder).toEqual("Search Session name....");
 			expect(textHeader.length).toBe(1);
 			expect(textHeader.props().children).toEqual("Delete Session");
 			expect(tableRow.length).toBe(props.sessions.length);
@@ -257,8 +257,8 @@ describe("Sessions componemt", () => {
 		});
 
 		it("Should call prop functions on radio change and iconButton click", () => {
-			const iconButton = wrapper.find("withTheme(IconButton)").at(0);
-			const radio = wrapper.find("withTheme(Radio)").at(0);
+			const iconButton = wrapper.find(".sessionTableContainer__tableBody__rowContainer__deleteButtonCell button").at(0);
+			const radio = wrapper.find(".sessionTableContainer__tableBody__rowContainer__radioCell input").at(0);
 			iconButton.simulate("click");
 			expect(props.onDeleteSession.mock.calls.length).toBe(1);
 			const event = {
@@ -271,11 +271,11 @@ describe("Sessions componemt", () => {
 
 		it("Should filter the sessions correctly", () => {
       wrapper.setState({ searchQuery: "test session" });
-			expect(wrapper.find("withTheme(TableRow)").length).toBe(2);
+			expect(wrapper.find(".sessionTableContainer__tableBody__rowContainer").length).toBe(2);
 			wrapper.setState({ searchQuery: "2" });
-			expect(wrapper.find("withTheme(TableRow)").length).toBe(1);
+			expect(wrapper.find(".sessionTableContainer__tableBody__rowContainer").length).toBe(1);
 			wrapper.setState({ searchQuery: "test session 4" });
-			expect(wrapper.find("withTheme(TableRow)").length).toBe(0);
+			expect(wrapper.find(".sessionTableContainer__tableBody__rowContainer").length).toBe(0);
 			
 		});
 	});

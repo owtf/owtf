@@ -52,13 +52,13 @@ describe("SignupPage component", () => {
         hidePassword: true,
         hideConfirmPassword: true
       });
-      const heading = wrapper.find("withTheme(Heading)");
-      const textInputField = wrapper.find("TextInputField");
-      const paragraph = wrapper.find("withTheme(Paragraph)");
-      const button = wrapper.find("withTheme(Button)");
+      const heading = wrapper.find("h2");
+      const textInputField = wrapper.find("input");
+      const paragraph = wrapper.find("p");
+      const button = wrapper.find("button");
 
       expect(heading.length).toBe(1);
-      expect(heading.at(0).props().children).toEqual("Signup");
+      expect(heading.at(0).props().children).toEqual("Create an OWTF Account");
       expect(textInputField.length).toBe(4);
       expect(textInputField.at(0).props().placeholder).toEqual("Username");
       expect(textInputField.at(1).props().placeholder).toEqual("Email");
@@ -66,14 +66,14 @@ describe("SignupPage component", () => {
       expect(textInputField.at(3).props().placeholder).toEqual(
         "Confirm Password"
       );
-      expect(paragraph.length).toBe(1);
+      expect(paragraph.length).toBe(4);
       expect(button.length).toBe(1);
       expect(button.at(0).props().children).toEqual("SIGNUP");
       expect(button.at(0).props().disabled).toEqual(false);
     });
 
     it("Should update state on TextInputField change event", () => {
-      const textInputFieldUsername = wrapper.find("TextInputField").at(0);
+      const textInputFieldUsername = wrapper.find("input").at(0);
       const eventChangeUsername = {
         preventDefault() {},
         target: { value: "test_user1", name: "text-input-name" }
@@ -81,7 +81,7 @@ describe("SignupPage component", () => {
       textInputFieldUsername.simulate("change", eventChangeUsername);
       expect(wrapper.instance().state.username).toEqual("test_user1");
 
-      const textInputFieldEmail = wrapper.find("TextInputField").at(1);
+      const textInputFieldEmail = wrapper.find("input").at(1);
       const eventChangeEmail = {
         preventDefault() {},
         target: { value: "test_user@test.com", name: "text-input-email" }
@@ -89,7 +89,7 @@ describe("SignupPage component", () => {
       textInputFieldEmail.simulate("change", eventChangeEmail);
       expect(wrapper.instance().state.email).toEqual("test_user@test.com");
 
-      const textInputFieldPassword = wrapper.find("TextInputField").at(2);
+      const textInputFieldPassword = wrapper.find("input").at(2);
       const eventChangePassword = {
         preventDefault() {},
         target: { value: "Test@12345", name: "text-input-password" }
@@ -98,7 +98,7 @@ describe("SignupPage component", () => {
       expect(wrapper.instance().state.password).toEqual("Test@12345");
 
       const textInputFieldConfirmPassword = wrapper
-        .find("TextInputField")
+        .find("input")
         .at(3);
       const eventChangeConfirmPassword = {
         preventDefault() {},
@@ -113,7 +113,7 @@ describe("SignupPage component", () => {
 
     it("Should call onSignup on signup button click", () => {
       expect(props.onSignup.mock.calls.length).toBe(0);
-      const signupButton = wrapper.find("withTheme(Button)");
+      const signupButton = wrapper.find("button");
       signupButton.simulate("click");
       expect(props.onSignup.mock.calls.length).toBe(1);
     });
