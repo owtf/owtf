@@ -114,7 +114,10 @@ export default class WorkerPanel extends React.Component<propsType, stateType> {
       }
     } else {
       return (
-        <button onClick={() => this.props.deleteWorker(worker.id)}>
+        <button
+          className="wokerPanel_woker_deleteButton"
+          onClick={() => this.props.deleteWorker(worker.id)}
+        >
           <GrFormClose />
         </button>
       );

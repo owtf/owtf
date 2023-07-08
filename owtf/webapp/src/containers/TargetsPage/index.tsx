@@ -309,6 +309,7 @@ export class TargetsPage extends React.Component<propsType, stateType> {
               <FiTarget />
               Add Targets
             </button>
+            {/* @ts-ignore */}
             <Plugins {...PluginProps} />
           </div>
 
@@ -320,6 +321,7 @@ export class TargetsPage extends React.Component<propsType, stateType> {
 
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <div className="targetsPageContainer__targetsContainer__toolbarContainer__sessionsContainer">
+                  {/* @ts-ignore */}
                   <Sessions />
                 </div>
 

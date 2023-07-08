@@ -5,7 +5,13 @@ import { IoCloseSharp } from "react-icons/io5";
 
 const modalContainer = document.querySelector("#modalContainer");
 
-export default class Dialog extends Component {
+interface propsType {
+  isDialogOpened: boolean;
+  onClose: Function;
+  title: string;
+}
+
+export default class Dialog extends Component<propsType> {
   render() {
     return ReactDOM.createPortal(
       <div>
@@ -15,6 +21,7 @@ export default class Dialog extends Component {
               <div className="dialogContainer__content">
                 <div className="dialogContainer__header">
                   <h2 className="dialogContainer__title">{this.props.title}</h2>
+                  {/* @ts-ignore */}
                   <button onClick={this.props.onClose}>
                     <IoCloseSharp />
                   </button>

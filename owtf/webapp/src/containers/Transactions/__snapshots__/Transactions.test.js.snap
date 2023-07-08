@@ -1,269 +1,247 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Transactions Page componemt Testing TargetList component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="transactionsPage__targetListContainer__headingAndList"
   data-test="targetListComponent"
-  display="flex"
-  flexDirection="column"
 >
-  <withTheme(Pane)>
-    <withTheme(Heading)
-      size={700}
-    >
-      Targets
-    </withTheme(Heading)>
-  </withTheme(Pane)>
-  <withTheme(Pane)
-    display="flex"
-    marginTop={30}
+  <div
+    className="transactionsPage__targetListContainer__headingAndList__headingContainer"
   >
-    <Tablist
-      flexBasis={240}
-      marginBottom={16}
-      marginRight={24}
-      onSelect={[Function]}
+    <h2>
+      Targets
+    </h2>
+  </div>
+  <div
+    className="transactionsPage__targetListContainer__headingAndList__listContainer"
+  >
+    <div
+      className="transactionsPage__targetListContainer__headingAndList__listContainer__listWrapper"
     >
-      <SidebarTab
-        aria-controls="panel-1"
-        height={32}
+      <div
+        className="transactionsPage__targetListContainer__headingAndList__listContainer__listWrapper__listItem"
         id={1}
-        isSelected={false}
         key="1"
-        onSelect={[Function]}
+        onClick={[Function]}
+        style={
+          Object {
+            "backgroundColor": "",
+          }
+        }
       >
         http://fb.com
-      </SidebarTab>
-      <SidebarTab
-        aria-controls="panel-2"
-        height={32}
+      </div>
+      <div
+        className="transactionsPage__targetListContainer__headingAndList__listContainer__listWrapper__listItem"
         id={2}
-        isSelected={false}
         key="2"
-        onSelect={[Function]}
+        onClick={[Function]}
+        style={
+          Object {
+            "backgroundColor": "",
+          }
+        }
       >
         https://fb.com
-      </SidebarTab>
-    </Tablist>
-  </withTheme(Pane)>
-</withTheme(Pane)>
+      </div>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`Transactions Page componemt Testing Transaction Header component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="transactionsHeader"
   data-test="transactionHeaderComponent"
-  marginTop={20}
 >
-  <Tablist
-    flexBasis={240}
-    marginBottom={16}
-    marginRight={24}
+  <div
+    className="transactionsHeader__requestResponseHeaderToggle"
   >
-    <withTheme(Tab)
-      aria-controls="panel-request"
-      id={1}
-      isSelected={true}
+    <span
+      id="1"
       key="1"
-      onSelect={[Function]}
+      onClick={[Function]}
+      style={
+        Object {
+          "backgroundColor": "rgba(0, 0, 0, 0.178)",
+        }
+      }
     >
       Request
-    </withTheme(Tab)>
-    <withTheme(Tab)
-      aria-controls="panel-response"
-      id={2}
-      isSelected={false}
+    </span>
+    <span
+      id="2"
       key="2"
-      onSelect={[Function]}
+      onClick={[Function]}
+      style={
+        Object {
+          "backgroundColor": "transparent",
+        }
+      }
     >
       Response
-    </withTheme(Tab)>
-  </Tablist>
-  <withTheme(Pane)
-    background="tint1"
-    flex="1"
-    padding={16}
+    </span>
+  </div>
+  <div
+    className="transactionsHeader__requestResponseHeaderContainer__request"
   >
-    <withTheme(Pane)
+    <div
       aria-hidden={false}
       aria-labelledby="request"
-      display="block"
+      className="transactionsHeader__requestResponseHeaderContainer__request__wrapper"
       id="panel-request"
       key="1"
       role="tabpanel"
+      style={
+        Object {
+          "display": "block",
+        }
+      }
     >
-      <withTheme(Paragraph)>
+      <p>
         Request Header
-      </withTheme(Paragraph)>
-      <Pre
-        marginBottom={20}
-      >
+      </p>
+      <pre>
         test request
-      </Pre>
-      <withTheme(Button)
-        appearance="primary"
+      </pre>
+      <button
         className="pull-right"
-        intent="success"
         onClick={[Function]}
       >
         Copy as
-      </withTheme(Button)>
-    </withTheme(Pane)>
-    <withTheme(Pane)
-      aria-hidden={true}
+      </button>
+    </div>
+    <div
       aria-labelledby="response"
-      display="none"
+      className="transactionsHeader__requestResponseHeaderContainer__response"
       id="panel-response"
       key="2"
       role="tabpanel"
+      style={
+        Object {
+          "display": "none",
+        }
+      }
     >
-      <withTheme(Paragraph)>
+      <p>
         Response Header
-      </withTheme(Paragraph)>
-      <Pre
-        marginBottom={20}
-      >
+      </p>
+      <pre>
         test request
-      </Pre>
-      <withTheme(Paragraph)>
+      </pre>
+      <p>
         Response Body
-      </withTheme(Paragraph)>
-      <Pre
-        marginBottom={20}
-      >
+      </p>
+      <pre>
         test response body
-      </Pre>
-    </withTheme(Pane)>
-  </withTheme(Pane)>
-</withTheme(Pane)>
+      </pre>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`Transactions Page componemt Testing Transaction Table component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="transactionsTableContainer"
   data-test="transactionTableComponent"
 >
-  <withTheme(Pane)
-    height={0}
-    overflow="scroll"
+  <div
+    className="transactionsTableContainer__tableWrapper"
   >
-    <Table>
-      <TableHead
-        accountForScrollbar={true}
-        height={32}
+    <div
+      className="transactionsTableContainer__tableWrapper__headerContainer"
+    >
+      <div
+        className="transactionsTableContainer__tableWrapper__headerContainer__url"
       >
-        <SearchTableHeaderCell
-          flexGrow={3}
-          flexShrink={0}
-          icon={
-            Object {
-              "$$typeof": Symbol(react.memo),
-              "compare": null,
-              "type": Object {
-                "$$typeof": Symbol(react.forward_ref),
-                "render": [Function],
-              },
-            }
-          }
+        <HiOutlineSearch />
+        <input
           onChange={[Function]}
           placeholder="URL"
-          spellCheck={true}
+          type="text"
           value=""
         />
-        <SearchTableHeaderCell
-          icon={
-            Object {
-              "$$typeof": Symbol(react.memo),
-              "compare": null,
-              "type": Object {
-                "$$typeof": Symbol(react.forward_ref),
-                "render": [Function],
-              },
-            }
-          }
+      </div>
+      <div
+        className="transactionsTableContainer__tableWrapper__headerContainer__method"
+      >
+        <HiOutlineSearch />
+        <input
           onChange={[Function]}
           placeholder="Method"
-          spellCheck={true}
+          type="text"
           value=""
         />
-        <SearchTableHeaderCell
-          icon={
-            Object {
-              "$$typeof": Symbol(react.memo),
-              "compare": null,
-              "type": Object {
-                "$$typeof": Symbol(react.forward_ref),
-                "render": [Function],
-              },
-            }
-          }
+      </div>
+      <div
+        className="transactionsTableContainer__tableWrapper__headerContainer__status"
+      >
+        <HiOutlineSearch />
+        <input
           onChange={[Function]}
           placeholder="Status"
-          spellCheck={true}
+          type="text"
           value=""
         />
-        <TextTableHeaderCell>
-          Duration
-        </TextTableHeaderCell>
-        <TextTableHeaderCell>
-          Time
-        </TextTableHeaderCell>
-      </TableHead>
-      <TableBody>
-        <withTheme(TableRow)
-          isSelectable={true}
-          key="1"
-          onSelect={[Function]}
+      </div>
+      <span>
+        Duration
+      </span>
+      <span>
+        Time
+      </span>
+    </div>
+    <div
+      className="transactionsTableContainer__tableWrapper__bodyContainer"
+    >
+      <div
+        className="transactionsTableContainer__tableWrapper__bodyContainer__rowContainer"
+        key="1"
+        onSelect={[Function]}
+      >
+        <span
+          className="transactionsTableContainer__tableWrapper__bodyContainer__rowContainer__url"
         >
-          <TextTableCell
-            flexGrow={3}
-            flexShrink={0}
-            isNumber={false}
-          >
-            http://fb.com/
-          </TextTableCell>
-          <TextTableCell
-            isNumber={false}
-          >
-            GET
-          </TextTableCell>
-          <TextTableCell
-            isNumber={false}
-          >
-            test status
-          </TextTableCell>
-          <TextTableCell
-            isNumber={false}
-          >
-            0s, 273ms
-          </TextTableCell>
-          <TextTableCell
-            isNumber={false}
-          >
-            11-08 01:42:52
-          </TextTableCell>
-        </withTheme(TableRow)>
-      </TableBody>
-    </Table>
-  </withTheme(Pane)>
-  <withTheme(Pane)
+          http://fb.com/
+        </span>
+        <span
+          className="transactionsTableContainer__tableWrapper__bodyContainer__rowContainer__method"
+        >
+          GET
+        </span>
+        <span
+          className="transactionsTableContainer__tableWrapper__bodyContainer__rowContainer__status"
+        >
+          test status
+        </span>
+        <span
+          className="transactionsTableContainer__tableWrapper__bodyContainer__rowContainer__duration"
+        >
+          0s, 273ms
+        </span>
+        <span
+          className="transactionsTableContainer__tableWrapper__bodyContainer__rowContainer__time"
+        >
+          11-08 01:42:52
+        </span>
+      </div>
+    </div>
+  </div>
+  <div
     id="drag"
     onMouseDown={[Function]}
     onMouseUp={[Function]}
   />
-</withTheme(Pane)>
+</div>
 `;
 
 exports[`Transactions Page componemt Testing dumb Transactions component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="transactionsPage"
   data-test="transactionsComponent"
-  display="flex"
-  flexDirection="row"
 >
-  <withTheme(Pane)
-    id="left_panel"
-    style={
-      Object {
-        "width": "16.66666667%",
-      }
-    }
+  <div
+    className="transactionsPage__targetListContainer"
   >
     <TargetList
       getTransactions={[Function]}
@@ -276,23 +254,25 @@ exports[`Transactions Page componemt Testing dumb Transactions component Should 
         ]
       }
     />
-  </withTheme(Pane)>
-  <withTheme(Pane)
-    id="drag-left"
-    onMouseDown={[Function]}
-    onMouseUp={[Function]}
+  </div>
+  <div
+    className="transactionsPage__HeaderAndTableContainer"
   />
-  <withTheme(Pane)
-    flexDirection="column"
+  <div
+    className="transactionsPage__HeaderAndTableContainer__wrapper"
     id="right_panel"
     style={
       Object {
-        "width": "80%",
+        "width": "100%",
       }
     }
   >
-    <withTheme(Pane) />
-    <withTheme(Pane) />
-  </withTheme(Pane)>
-</withTheme(Pane)>
+    <div
+      className="transactionsPage__HeaderAndTableContainer__wrapper__TableContainer"
+    />
+    <div
+      className="transactionsPage__HeaderAndTableContainer__wrapper__headerContainer"
+    />
+  </div>
+</div>
 `;

@@ -1,168 +1,147 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Sessions componemt Testing Session Table component Should render without errors 1`] = `
-<Table
-  border={true}
+<div
+  className="sessionTableContainer"
 >
-  <TableHead
-    accountForScrollbar={true}
-    height={32}
+  <div
+    className="sessionTableContainer__tableHeader"
   >
-    <TableHeaderCell
-      flex="none"
-      width={50}
-    />
-    <SearchTableHeaderCell
-      flex="none"
-      icon={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "compare": null,
-          "type": Object {
-            "$$typeof": Symbol(react.forward_ref),
-            "render": [Function],
-          },
-        }
-      }
+    <label />
+    <input
       onChange={[Function]}
-      placeholder="Session name"
-      spellCheck={true}
+      placeholder="Search Session name...."
+      type="text"
       value=""
-      width={300}
     />
-    <TextTableHeaderCell
-      flex="none"
-      width={120}
-    >
+    <span>
       Delete Session
-    </TextTableHeaderCell>
-  </TableHead>
-  <TableBody
-    height={240}
+    </span>
+  </div>
+  <div
+    className="sessionTableContainer__tableBody"
   >
-    <withTheme(TableRow)
-      isSelectable={true}
+    <div
+      className="sessionTableContainer__tableBody__rowContainer"
       key="1"
     >
-      <withTheme(TableCell)
-        flex="none"
-        width={50}
+      <div
+        className="sessionTableContainer__tableBody__rowContainer__radioCell"
       >
-        <withTheme(Radio)
+        <input
           checked={true}
           onChange={[Function]}
-          size={16}
+          type="radio"
         />
-      </withTheme(TableCell)>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
-        width={300}
+      </div>
+      <span
+        className="sessionTableContainer__tableBody__rowContainer__sessionNameCell"
       >
         test session 1
-      </TextTableCell>
-      <withTheme(TableCell)
-        flex="none"
-        width={120}
+      </span>
+      <div
+        className="sessionTableContainer__tableBody__rowContainer__deleteButtonCell"
       >
-        <withTheme(IconButton)
-          icon="trash"
-          intent="danger"
+        <button
           onClick={[Function]}
-        />
-      </withTheme(TableCell)>
-    </withTheme(TableRow)>
-    <withTheme(TableRow)
-      isSelectable={true}
+        >
+          <RiDeleteBinLine />
+        </button>
+      </div>
+    </div>
+    <div
+      className="sessionTableContainer__tableBody__rowContainer"
       key="2"
     >
-      <withTheme(TableCell)
-        flex="none"
-        width={50}
+      <div
+        className="sessionTableContainer__tableBody__rowContainer__radioCell"
       >
-        <withTheme(Radio)
+        <input
           checked={false}
           onChange={[Function]}
-          size={16}
+          type="radio"
         />
-      </withTheme(TableCell)>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
-        width={300}
+      </div>
+      <span
+        className="sessionTableContainer__tableBody__rowContainer__sessionNameCell"
       >
         test session 2
-      </TextTableCell>
-      <withTheme(TableCell)
-        flex="none"
-        width={120}
+      </span>
+      <div
+        className="sessionTableContainer__tableBody__rowContainer__deleteButtonCell"
       >
-        <withTheme(IconButton)
-          icon="trash"
-          intent="danger"
+        <button
           onClick={[Function]}
-        />
-      </withTheme(TableCell)>
-    </withTheme(TableRow)>
-  </TableBody>
-</Table>
+        >
+          <RiDeleteBinLine />
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`Sessions componemt Testing dumb sessions component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="sessionsContainer"
   data-test="sessionsComponent"
 >
-  <withTheme(TextInput)
+  <input
+    className="sessionsContainer__currentSessionInput"
     disabled={true}
     name="currentSession"
     placeholder="test session"
-    width={200}
+    type="text"
   />
-  <withTheme(Button)
-    appearance="primary"
+  <button
+    className="sessionsContainer__button"
     onClick={[Function]}
   >
     Session
-  </withTheme(Button)>
-  <withTheme(Dialog)
-    hasFooter={false}
-    isShown={false}
-    onCloseComplete={[Function]}
-    title="Sessions"
+  </button>
+  <div
+    className="dialogWrapper"
   >
-    <withTheme(Pane)
-      marginBottom={20}
+    <Dialog
+      isDialogOpened={false}
+      onClose={[Function]}
+      title="Sessions"
     >
-      <withTheme(TextInput)
-        name="newSessionName"
-        onChange={[Function]}
-        placeholder="Enter new session...."
-        value=""
-        width="89%"
-      />
-      <withTheme(Button)
-        appearance="primary"
-        disabled={true}
-        onClick={[Function]}
+      <div
+        className="sessionsContainer__newSessionContainer"
       >
-        Add!
-      </withTheme(Button)>
-    </withTheme(Pane)>
-    <SessionsTable
-      error={false}
-      loading={false}
-      onChangeSession={[MockFunction]}
-      onDeleteSession={[MockFunction]}
-      sessions={
-        Array [
-          Object {
-            "active": true,
-            "id": 1,
-            "name": "test session",
-          },
-        ]
-      }
-    />
-  </withTheme(Dialog)>
-</withTheme(Pane)>
+        <input
+          className="sessionsContainer__newSessionContainer__input"
+          name="newSessionName"
+          onChange={[Function]}
+          placeholder="Enter new session...."
+          type="text"
+          value=""
+        />
+        <button
+          className="sessionsContainer__newSessionContainer__button"
+          disabled={true}
+          onClick={[Function]}
+        >
+          Add!
+        </button>
+      </div>
+      <SessionsTable
+        error={false}
+        loading={false}
+        onChangeSession={[MockFunction]}
+        onDeleteSession={[MockFunction]}
+        sessions={
+          Array [
+            Object {
+              "active": true,
+              "id": 1,
+              "name": "test session",
+            },
+          ]
+        }
+      />
+    </Dialog>
+  </div>
+</div>
 `;

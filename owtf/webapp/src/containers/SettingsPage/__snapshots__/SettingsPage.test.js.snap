@@ -1,45 +1,39 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Settings Page componemt Testing dumb component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="settingsContainer"
   data-test="settingsPageComponent"
-  display="flex"
-  flexDirection="column"
-  margin={20}
 >
-  <withTheme(Pane) />
-  <withTheme(Pane)
-    margin={20}
+  <div />
+  <div
+    className="settingsContainer__headingContainer"
   >
-    <withTheme(Button)
-      appearance="primary"
+    <h2>
+      Settings
+    </h2>
+    <button
       className="pull-right"
       data-test="changeBtn"
       disabled={true}
       onClick={[Function]}
     >
       Update Configuration!
-    </withTheme(Button)>
-  </withTheme(Pane)>
-  <withTheme(Pane)
-    display="flex"
-    margin={20}
-  >
+    </button>
+  </div>
+  <div>
     <ConfigurationTabsNav
       configurations={Object {}}
       handleTabSelect={[Function]}
       selectedIndex={-1}
     />
-    <withTheme(Pane)
-      flex="1"
-      padding={16}
-    >
+    <div>
       <ConfigurationTabsContent
         configurations={Object {}}
         handleConfigurationChange={[Function]}
         selectedIndex={-1}
       />
-    </withTheme(Pane)>
-  </withTheme(Pane)>
-</withTheme(Pane)>
+    </div>
+  </div>
+</div>
 `;
