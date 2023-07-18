@@ -23,6 +23,7 @@ jobs:
           POSTGRES_USER: owtf_db_user
           POSTGRES_PASSWORD: ${{ secrets.OWTF_DB_PASSWORD }}
           POSTGRES_DB: owtf_db
+          POSTGRES_HOST_AUTH_METHOD: trust
         ports:
           - 5432:5432
         options: >-
