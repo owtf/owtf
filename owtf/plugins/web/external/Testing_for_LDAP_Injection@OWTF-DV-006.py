@@ -1,7 +1,7 @@
 from owtf.managers.resource import get_resources
 from owtf.plugin.helper import plugin_helper
 
-DESCRIPTION = "Plugin to assist manual testing"
+DESCRIPTION = "LDAP Plugin to assist manual testing"
 
 
 def run(PluginInfo):
