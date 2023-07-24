@@ -11,25 +11,18 @@ exports[`Targets Page component Testing dumb TargetPage component Should render 
       className="targetsPageContainer__addTargetsContainer"
       id="add_targets"
     >
-      <h2
-        color="#0788DE"
-        size={700}
-      >
+      <h2>
         Add Targets
       </h2>
       <textarea
-        cols="230"
         name="newTargetUrls"
         onChange={[Function]}
         placeholder="Input targets seperated by new line"
-        rows="5"
         value=""
       />
       <button
-        appearance="primary"
         data-test="addTargetButton"
         disabled={false}
-        marginTop={10}
         onClick={[Function]}
       >
         <FiTarget />
@@ -60,6 +53,7 @@ exports[`Targets Page component Testing dumb TargetPage component Should render 
           style={
             Object {
               "display": "flex",
+              "flexDirection": "column",
             }
           }
         >
@@ -89,12 +83,7 @@ exports[`Targets Page component Testing dumb TargetPage component Should render 
           </div>
         </div>
       </div>
-      <div
-        alignItems="center"
-        display="flex"
-        height={400}
-        justifyContent="center"
-      >
+      <div>
         Loading.standard();
       </div>
       <Connect(TargetsTable)
@@ -110,133 +99,96 @@ exports[`Targets Page component Testing dumb TargetPage component Should render 
 `;
 
 exports[`Targets Page component Testing dumb TargetsTable component Should render without errors 1`] = `
-<Table
+<div
+  className="targetsTableContainer"
   data-test="targetsTableComponent"
-  marginTop={20}
 >
-  <TableHead
-    accountForScrollbar={true}
-    height={50}
+  <div
+    className="targetsTableContainer__headerContainer"
   >
-    <SearchTableHeaderCell
-      flexGrow={3}
-      flexShrink={0}
-      icon={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "compare": null,
-          "type": Object {
-            "$$typeof": Symbol(react.forward_ref),
-            "render": [Function],
-          },
-        }
-      }
-      onChange={[Function]}
-      placeholder="URL"
-      spellCheck={true}
-      value=""
-    />
-    <TextTableHeaderCell>
-      <Popover
-        animationDuration={300}
-        bringFocusInside={false}
-        content={[Function]}
-        minHeight={40}
-        minWidth={200}
-        onBodyClick={[Function]}
-        onClose={[Function]}
-        onCloseComplete={[Function]}
-        onOpen={[Function]}
-        onOpenComplete={[Function]}
-        position="bottom-left"
-        shouldCloseOnExternalClick={true}
-        trigger="click"
+    <div
+      className="targetsTableContainer__headerContainer__searchInput"
+    >
+      <HiOutlineSearch />
+      <input
+        onChange={[Function]}
+        placeholder="URL"
+        value=""
+      />
+    </div>
+    <div
+      className="targetsTableContainer__headerContainer__severity"
+    >
+      <div
+        className="targetsTableContainer__headerContainer__severity__buttonAndDropdownMenuContainer"
       >
-        <withTheme(TextDropdownButton)
-          icon="caret-down"
+        <button
+          onClick={[Function]}
         >
           Severity
-        </withTheme(TextDropdownButton)>
-      </Popover>
-    </TextTableHeaderCell>
-    <TextTableHeaderCell>
+          <BiCaretDown />
+        </button>
+      </div>
+    </div>
+    <div
+      className="targetsTableContainer__headerContainer__actions"
+    >
       Actions
-    </TextTableHeaderCell>
-  </TableHead>
-  <TableVirtualBody
-    allowAutoHeight={false}
-    defaultHeight={48}
-    height={500}
-    overscanCount={5}
-    useAverageAutoHeightEstimation={true}
+    </div>
+  </div>
+  <div
+    className="targetsTableContainer__bodyContainer"
   >
-    <withTheme(Pane)>
-      <withTheme(TableRow)
-        height={75}
+    <div>
+      <div
+        className="targetsTableContainer__bodyContainer__rowContainer"
         key="6"
       >
-        <withTheme(TableCell)
-          flexGrow={3}
-          flexShrink={0}
+        <div
+          className="targetsTableContainer__bodyContainer__rowContainer__checkboxUrlContainer"
         >
-          <withTheme(Pane)
-            alignItems="center"
-            display="flex"
-            flexDirection="row"
+          <input
+            checked={false}
+            id="http://fb.com"
+            onChange={[Function]}
+            type="checkbox"
+          />
+          <Link
+            replace={false}
+            to="/targets/6"
           >
-            <withTheme(Checkbox)
-              checked={false}
-              id="http://fb.com"
-              margin={10}
-              onChange={[Function]}
-            />
-            <withTheme(Link)
-              href="/targets/6"
-              size={500}
-            >
-               
-              http://fb.com
-               (
-              157.240.16.35
-              )
-            </withTheme(Link)>
-          </withTheme(Pane)>
-        </withTheme(TableCell)>
-        <TextTableCell
-          isNumber={false}
+             
+            http://fb.com
+             (
+            157.240.16.35
+            )
+          </Link>
+        </div>
+        <div
+          className="targetsTableContainer__bodyContainer__rowContainer__severityContainer"
         >
-          <withTheme(Badge)
-            color="orange"
+          <span
+            style={
+              Object {
+                "backgroundColor": "rgba(255, 173, 21, 0.459)",
+              }
+            }
           >
             Medium
-          </withTheme(Badge)>
-        </TextTableCell>
-        <withTheme(TableCell)>
-          <Popover
-            animationDuration={300}
-            bringFocusInside={false}
-            content={[Function]}
+          </span>
+        </div>
+        <div
+          className="targetsTableContainer__bodyContainer__rowContainer__optionContainer"
+        >
+          <button
             data-test="actionsPopover"
-            minHeight={40}
-            minWidth={200}
-            onBodyClick={[Function]}
-            onClose={[Function]}
-            onCloseComplete={[Function]}
-            onOpen={[Function]}
-            onOpenComplete={[Function]}
-            position="bottom-right"
-            shouldCloseOnExternalClick={true}
-            trigger="click"
+            onClick={[Function]}
           >
-            <withTheme(IconButton)
-              appearance="minimal"
-              height={24}
-              icon="more"
-            />
-          </Popover>
-        </withTheme(TableCell)>
-      </withTheme(TableRow)>
-    </withTheme(Pane)>
-  </TableVirtualBody>
-</Table>
+            <BiDotsHorizontalRounded />
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 `;

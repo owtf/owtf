@@ -3,7 +3,6 @@
  */
 import React from "react";
 import { Alert, Spinner } from "evergreen-ui";
-import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import {

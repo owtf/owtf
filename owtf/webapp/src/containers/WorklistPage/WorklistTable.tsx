@@ -235,6 +235,7 @@ export default class WorklistTable extends React.Component<
             />
           </div>
         </div>
+
         <div className="worklistTableContainer__bodyContainer">
           {items.map(work => (
             <div
@@ -255,6 +256,7 @@ export default class WorklistTable extends React.Component<
                 >
                   {work.active ? <GiPauseButton /> : <BsPlayFill />}
                 </button>
+
                 <button
                   title="Delete work "
                   onClick={() => deleteWork(work.id)}
@@ -275,9 +277,11 @@ export default class WorklistTable extends React.Component<
               <div className="worklistTableContainer__bodyContainer__rowContainer__workPluginGroupContainer">
                 {work.plugin.group}
               </div>
+
               <div className="worklistTableContainer__bodyContainer__rowContainer__pluginTypeContainer">
                 {work.plugin.type.replace(/_/g, " ")}
               </div>
+
               <div
                 className="worklistTableContainer__bodyContainer__rowContainer__pluginNameContainer"
                 title={work.plugin.name.replace(/_/g, " ")}

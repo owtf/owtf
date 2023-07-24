@@ -2,344 +2,244 @@
 
 exports[`Worklist Page component Testing WorklistTable component Should render without errors 1`] = `
 <Table
+  className="worklistTableContainer"
   data-test="worklistTableComponent"
 >
-  <TableHead
-    accountForScrollbar={true}
-    height={55}
+  <div
+    className="worklistTableContainer__headerContainer"
   >
-    <TextTableHeaderCell
-      flex="none"
-      width="12%"
+    <div
+      className="worklistTableContainer__headerContainer__estimatedTimeContainer"
     >
-      <withTheme(Checkbox)
-        label="Est. Time (min)"
+      <input
+        id="worklistTableEstimatedTimeInput"
         onChange={[Function]}
+        type="checkbox"
       />
-    </TextTableHeaderCell>
-    <TextTableHeaderCell
-      flex="none"
-      width="10%"
+      <label
+        htmlFor="worklistTableEstimatedTimeInput"
+      >
+        Est. Time (min)
+      </label>
+    </div>
+    <div
+      className="worklistTableContainer__headerContainer__actionsContainer"
     >
       Actions
-    </TextTableHeaderCell>
-    <SearchTableHeaderCell
-      flex="none"
-      icon={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "compare": null,
-          "type": Object {
-            "$$typeof": Symbol(react.forward_ref),
-            "render": [Function],
-          },
-        }
-      }
-      onChange={[Function]}
-      placeholder="Target"
-      spellCheck={true}
-      value=""
-      width="22%"
-    />
-    <SearchTableHeaderCell
-      flex="none"
-      icon={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "compare": null,
-          "type": Object {
-            "$$typeof": Symbol(react.forward_ref),
-            "render": [Function],
-          },
-        }
-      }
-      onChange={[Function]}
-      placeholder="Plugin Group"
-      spellCheck={true}
-      value=""
-      width="15%"
-    />
-    <SearchTableHeaderCell
-      flex="none"
-      icon={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "compare": null,
-          "type": Object {
-            "$$typeof": Symbol(react.forward_ref),
-            "render": [Function],
-          },
-        }
-      }
-      onChange={[Function]}
-      placeholder="Plugin Type"
-      spellCheck={true}
-      value=""
-      width="15%"
-    />
-    <SearchTableHeaderCell
-      flex="none"
-      icon={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "compare": null,
-          "type": Object {
-            "$$typeof": Symbol(react.forward_ref),
-            "render": [Function],
-          },
-        }
-      }
-      onChange={[Function]}
-      placeholder="Plugin Name"
-      spellCheck={true}
-      value=""
-      width="25%"
-    />
-  </TableHead>
-  <TableVirtualBody
-    allowAutoHeight={false}
-    defaultHeight={48}
-    height={800}
-    overscanCount={5}
-    useAverageAutoHeightEstimation={true}
+    </div>
+    <div
+      className="worklistTableContainer__headerContainer__targetSearchContainer"
+    >
+      <HiOutlineSearch />
+      <input
+        id="worklistTableTargetSearchInput"
+        onChange={[Function]}
+        placeholder="Target"
+        type="text"
+        value=""
+      />
+    </div>
+    <div
+      className="worklistTableContainer__headerContainer__pluginGroupSearchContainer"
+    >
+      <HiOutlineSearch />
+      <input
+        id="worklistTablePluginGroupSearchInput"
+        onChange={[Function]}
+        placeholder="Plugin Group"
+        type="text"
+        value=""
+      />
+    </div>
+    <div
+      className="worklistTableContainer__headerContainer__pluginTypeSearchContainer"
+    >
+      <HiOutlineSearch />
+      <input
+        id="worklistTablePluginTypeSearchInput"
+        onChange={[Function]}
+        placeholder="Plugin Type"
+        type="text"
+        value=""
+      />
+    </div>
+    <div
+      className="worklistTableContainer__headerContainer__pluginNameSearchContainer"
+    >
+      <HiOutlineSearch />
+      <input
+        id="worklistTablePluginNameSearchInput"
+        onChange={[Function]}
+        placeholder="Plugin Name"
+        type="text"
+        value=""
+      />
+    </div>
+  </div>
+  <div
+    className="worklistTableContainer__bodyContainer"
   >
-    <withTheme(TableRow)
-      isSelectable={true}
+    <div
+      className="worklistTableContainer__bodyContainer__rowContainer"
       key="1075"
     >
-      <TextTableCell
-        flex="none"
-        isNumber={false}
-        width="12%"
+      <div
+        className="worklistTableContainer__bodyContainer__rowContainer__pluginMinTimeContainer"
       >
-        0s, 111ms
-      </TextTableCell>
-      <withTheme(TableCell)
-        flex="none"
-        width="10%"
+        <span>
+          0s, 111ms
+        </span>
+      </div>
+      <div
+        className="worklistTableContainer__bodyContainer__rowContainer__buttonContainer"
       >
-        <Tooltip
-          appearance="default"
-          content="Resume work"
-          hideDelay={120}
-          position="bottom"
-          showDelay={0}
+        <button
+          onClick={[Function]}
+          title="Resume work"
         >
-          <withTheme(IconButton)
-            appearance="primary"
-            height={24}
-            icon="play"
-            intent="warning"
-            onClick={[Function]}
-          />
-        </Tooltip>
-        <Tooltip
-          appearance="default"
-          content="Delete work"
-          hideDelay={120}
-          position="bottom"
-          showDelay={0}
+          <BsPlayFill />
+        </button>
+        <button
+          onClick={[Function]}
+          title="Delete work "
         >
-          <withTheme(IconButton)
-            appearance="primary"
-            height={24}
-            icon="trash"
-            intent="danger"
-            onClick={[Function]}
-          />
-        </Tooltip>
-      </withTheme(TableCell)>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
+          <RiDeleteBinLine />
+        </button>
+      </div>
+      <div
+        className="worklistTableContainer__bodyContainer__rowContainer__workTargetContainer"
         title="https://dcs.com"
-        width="23%"
       >
-        <withTheme(Link)
-          href="/targets/undefined"
+        <Link
+          replace={false}
           target="_blank"
+          to="/targets/undefined"
         >
           https://dcs.com
-        </withTheme(Link)>
-      </TextTableCell>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
-        width="15%"
+        </Link>
+      </div>
+      <div
+        className="worklistTableContainer__bodyContainer__rowContainer__workPluginGroupContainer"
       >
         web
-      </TextTableCell>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
-        width="15%"
+      </div>
+      <div
+        className="worklistTableContainer__bodyContainer__rowContainer__pluginTypeContainer"
       >
         active
-      </TextTableCell>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
+      </div>
+      <div
+        className="worklistTableContainer__bodyContainer__rowContainer__pluginNameContainer"
         title="W3AF Unauthenticated"
-        width="25%"
       >
         W3AF Unauthenticated
-      </TextTableCell>
-    </withTheme(TableRow)>
-    <withTheme(TableRow)
-      isSelectable={true}
+      </div>
+    </div>
+    <div
+      className="worklistTableContainer__bodyContainer__rowContainer"
       key="1076"
     >
-      <TextTableCell
-        flex="none"
-        isNumber={false}
-        width="12%"
+      <div
+        className="worklistTableContainer__bodyContainer__rowContainer__pluginMinTimeContainer"
       >
-        0s, 80ms
-      </TextTableCell>
-      <withTheme(TableCell)
-        flex="none"
-        width="10%"
+        <span>
+          0s, 80ms
+        </span>
+      </div>
+      <div
+        className="worklistTableContainer__bodyContainer__rowContainer__buttonContainer"
       >
-        <Tooltip
-          appearance="default"
-          content="Pause work"
-          hideDelay={120}
-          position="bottom"
-          showDelay={0}
+        <button
+          onClick={[Function]}
+          title="Pause work"
         >
-          <withTheme(IconButton)
-            appearance="primary"
-            height={24}
-            icon="pause"
-            intent="success"
-            onClick={[Function]}
-          />
-        </Tooltip>
-        <Tooltip
-          appearance="default"
-          content="Delete work"
-          hideDelay={120}
-          position="bottom"
-          showDelay={0}
+          <GiPauseButton />
+        </button>
+        <button
+          onClick={[Function]}
+          title="Delete work "
         >
-          <withTheme(IconButton)
-            appearance="primary"
-            height={24}
-            icon="trash"
-            intent="danger"
-            onClick={[Function]}
-          />
-        </Tooltip>
-      </withTheme(TableCell)>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
+          <RiDeleteBinLine />
+        </button>
+      </div>
+      <div
+        className="worklistTableContainer__bodyContainer__rowContainer__workTargetContainer"
         title="https://dcs.com"
-        width="23%"
       >
-        <withTheme(Link)
-          href="/targets/undefined"
+        <Link
+          replace={false}
           target="_blank"
+          to="/targets/undefined"
         >
           https://dcs.com
-        </withTheme(Link)>
-      </TextTableCell>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
-        width="15%"
+        </Link>
+      </div>
+      <div
+        className="worklistTableContainer__bodyContainer__rowContainer__workPluginGroupContainer"
       >
         network
-      </TextTableCell>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
-        width="15%"
+      </div>
+      <div
+        className="worklistTableContainer__bodyContainer__rowContainer__pluginTypeContainer"
       >
         active
-      </TextTableCell>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
+      </div>
+      <div
+        className="worklistTableContainer__bodyContainer__rowContainer__pluginNameContainer"
         title="Wapiti Unauthenticated"
-        width="25%"
       >
         Wapiti Unauthenticated
-      </TextTableCell>
-    </withTheme(TableRow)>
-  </TableVirtualBody>
+      </div>
+    </div>
+  </div>
 </Table>
 `;
 
 exports[`Worklist Page component Testing dumb WorklistPage component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="worklistComponentContainer"
   data-test="worklistComponent"
-  display="flex"
-  flexDirection="column"
-  paddingLeft={100}
-  paddingRight={100}
 >
-  <Breadcrumb
-    bsClass="breadcrumb"
+  <div
+    className="worklistComponentContainer__headerContainer"
   >
-    <BreadcrumbItem
-      active={false}
-      href="/"
+    <div
+      className="worklistComponentContainer__headerContainer__searchInputContainer"
     >
-      Home
-    </BreadcrumbItem>
-    <BreadcrumbItem
-      active={true}
-      href="/worklist/"
-    >
-      Worklist
-    </BreadcrumbItem>
-  </Breadcrumb>
-  <withTheme(Pane)
-    display="flex"
-    flexDirection="row"
-    marginBottom={20}
-    marginTop={20}
-  >
-    <withTheme(Pane)
-      flex={1}
-    >
-      <withTheme(SearchInput)
-        borderRadius={100}
+      <input
         className="search-box"
-        flex={1}
         onChange={[Function]}
         placeholder="Search"
+        type="text"
         value=""
       />
-    </withTheme(Pane)>
-    <withTheme(Button)
-      appearance="primary"
-      iconBefore="pause"
-      intent="success"
-      marginRight={16}
-      onClick={[Function]}
+    </div>
+    <div
+      className="worklistComponentContainer__headerContainer__buttonsContainer"
     >
-      Pause All
-    </withTheme(Button)>
-    <withTheme(Button)
-      appearance="primary"
-      iconBefore="play"
-      intent="warning"
-      marginRight={16}
-      onClick={[Function]}
-    >
-      Resume All
-    </withTheme(Button)>
-    <withTheme(Button)
-      appearance="primary"
-      iconBefore="trash"
-      intent="danger"
-      onClick={[Function]}
-    >
-      Delete All
-    </withTheme(Button)>
-  </withTheme(Pane)>
+      <button
+        className="worklistComponentContainer__headerContainer__buttonsContainer__pauseAllButton"
+        onClick={[Function]}
+      >
+        <GiPauseButton />
+        Pause All
+      </button>
+      <button
+        className="worklistComponentContainer__headerContainer__buttonsContainer__resumeAllButton"
+        onClick={[Function]}
+      >
+        <BsPlayFill />
+        Resume All
+      </button>
+      <button
+        className="worklistComponentContainer__headerContainer__buttonsContainer__deleteAllButton"
+        onClick={[Function]}
+      >
+        <RiDeleteBinLine />
+        Delete All
+      </button>
+    </div>
+  </div>
   <WorklistTable
     changeSelection={[Function]}
     deleteAllWork={[Function]}
@@ -362,5 +262,5 @@ exports[`Worklist Page component Testing dumb WorklistPage component Should rend
       ]
     }
   />
-</withTheme(Pane)>
+</div>
 `;
