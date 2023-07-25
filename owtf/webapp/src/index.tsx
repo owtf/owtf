@@ -5,13 +5,14 @@
  */
 
 // Needed for redux-saga es6 generator support
+// @ts-nocheck
 import "@babel/polyfill";
 
 // Import all the third party stuff
 import React from "react";
 import ReactDOM from "react-dom";
 import { Provider } from "react-redux";
-import history from "../src/utils/historyUtils";
+import history from "./utils/historyUtils";
 
 // Import root app
 import App from "containers/App";

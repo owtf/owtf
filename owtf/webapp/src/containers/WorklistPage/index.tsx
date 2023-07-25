@@ -207,7 +207,6 @@ export class WorklistPage extends React.Component<PropsType, StateType> {
   };
 
   render() {
-    console.log(this.state.worklist + "youifhisudhfi");
     const { fetchLoading, fetchError, worklist } = this.props;
     const WorklistTableProps = {
       worklist,

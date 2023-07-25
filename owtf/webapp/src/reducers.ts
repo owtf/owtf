@@ -6,19 +6,19 @@ import { fromJS } from "immutable";
 import { combineReducers } from "redux-immutable"; // combineReducers of 'redux' doesn't work with immutable.js
 import { LOCATION_CHANGE } from "react-router-redux";
 
-import sessionsReducer from "containers/Sessions/reducer";
-import transactionsReducer from "containers/Transactions/reducer";
-import configurationsReducer from "containers/SettingsPage/reducer";
-import targetsReducer from "containers/TargetsPage/reducer";
-import pluginsReducer from "containers/Plugins/reducer";
-import reportsReducer from "containers/Report/reducer";
-import worklistReducer from "containers/WorklistPage/reducer";
-import dashboardReducer from "containers/Dashboard/reducer";
-import workersReducer from "containers/WorkersPage/reducer";
-import emailVerificationReducer from "containers/EmailVerification/reducer";
-import signupReducer from "containers/SignupPage/reducer";
-import loginReducer from "containers/LoginPage/reducer";
-import otpReducer from "containers/OtpPage/reducer";
+import sessionsReducer from "./containers/Sessions/reducer";
+import transactionsReducer from "./containers/Transactions/reducer";
+import configurationsReducer from "./containers/SettingsPage/reducer";
+import targetsReducer from "./containers/TargetsPage/reducer";
+import pluginsReducer from "./containers/Plugins/reducer";
+import reportsReducer from "./containers/Report/reducer";
+import worklistReducer from "./containers/WorklistPage/reducer";
+import dashboardReducer from "./containers/Dashboard/reducer";
+import workersReducer from "./containers/WorkersPage/reducer";
+import emailVerificationReducer from "./containers/EmailVerification/reducer";
+import signupReducer from "./containers/SignupPage/reducer";
+import loginReducer from "./containers/LoginPage/reducer";
+import otpReducer from "./containers/OtpPage/reducer";
 import forgotPasswordEmailReducer from "./containers/ForgotPasswordPage/reducer";
 
 /*

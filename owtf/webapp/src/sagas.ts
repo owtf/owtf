@@ -3,8 +3,8 @@
  */
 
 import { all } from "redux-saga/effects";
-import sessionSaga from "containers/Sessions/saga";
-import configurationSaga from "containers/SettingsPage/saga";
+import sessionSaga from "./containers/Sessions/saga";
+import configurationSaga from "./containers/SettingsPage/saga";
 import transactionSaga from "./containers/Transactions/saga";
 import targetSaga from "./containers/TargetsPage/saga";
 import pluginSaga from "./containers/Plugins/saga";

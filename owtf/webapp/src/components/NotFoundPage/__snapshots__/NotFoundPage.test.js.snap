@@ -1,16 +1,40 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`NotFoundPage Component Should render without errors 1`] = `
-<p
-  style={
-    Object {
-      "fontSize": "40px",
-      "fontWeight": "bold",
-      "margin": "150px auto",
-      "textAlign": "center",
-    }
-  }
+<section
+  className="notFoundPage"
 >
-  Page Not Found
-</p>
+  <div
+    className="notFoundPage__contentWrapper"
+  >
+    <div
+      className="notFoundPage__contentWrapper__headingAndImageContainer"
+    >
+      <FaRobot />
+      <h2>
+        404
+      </h2>
+    </div>
+    <div
+      className="notFoundPage__contentWrapper__errorInfoContainer"
+    >
+      <h3>
+        Page Not Found!
+      </h3>
+      <p>
+        We are unable to find the page you're looking for.
+      </p>
+    </div>
+    <div
+      className="notFoundPage__contentWrapper__buttonContainer"
+    >
+      <Link
+        replace={false}
+        to="/"
+      >
+        Back to Home Page
+      </Link>
+    </div>
+  </div>
+</section>
 `;

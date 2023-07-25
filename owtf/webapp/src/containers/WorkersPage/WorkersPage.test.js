@@ -84,7 +84,7 @@ describe("Workers Page component", () => {
         onDeleteWorker: jest.fn(),
         onCreateWorker: jest.fn(),
         onFetchWorkerProgress: jest.fn(),
-        onFetchWorkerLogs: jest.fn(),
+        onFetchWorkerLogs: jest.fn()
       };
       wrapper = shallow(<WorkersPage {...props} />);
     });
@@ -107,7 +107,7 @@ describe("Workers Page component", () => {
         onDeleteWorker: () => {},
         onCreateWorker: () => {},
         onFetchWorkerProgress: () => {},
-        onFetchWorkerLogs: () => {},
+        onFetchWorkerLogs: () => {}
       };
       const propsErr = checkProps(WorkersPage, expectedProps);
       expect(propsErr).toBeUndefined();
@@ -120,18 +120,16 @@ describe("Workers Page component", () => {
     });
 
     it("Should correctly render its sub-components", () => {
-      const breadcrumb = wrapper.find("Breadcrumb");
-      const button = wrapper.find("withTheme(Button)");
+      const button = wrapper.find("button");
       const progressbar = wrapper.find("ProgressBar");
       const workerpanel = wrapper.find("WorkerPanel");
 
-      expect(breadcrumb.length).toBe(1);
       expect(button.length).toBe(3);
       expect(progressbar.length).toBe(1);
       expect(workerpanel.length).toBe(props.workers.length);
-      expect(button.at(0).props().children).toEqual("Add worker!");
-      expect(button.at(1).props().children).toEqual("Pause All");
-      expect(button.at(2).props().children).toEqual("Resume All");
+      expect(button.at(0).props().children[1]).toEqual("Add worker !");
+      expect(button.at(1).props().children[1]).toEqual("Pause All");
+      expect(button.at(2).props().children[1]).toEqual("Resume All");
 
       wrapper.setProps({ workers: false });
       expect(wrapper.find("WorkerPanel").length).toBe(0);
@@ -141,9 +139,9 @@ describe("Workers Page component", () => {
       expect(props.onFetchWorkers.mock.calls.length).toBe(1);
       expect(props.onChangeWorker.mock.calls.length).toBe(0);
       expect(props.onCreateWorker.mock.calls.length).toBe(0);
-      const addButton = wrapper.find("withTheme(Button)").at(0);
-      const pauseButton = wrapper.find("withTheme(Button)").at(1);
-      const resumeButton = wrapper.find("withTheme(Button)").at(2);
+      const addButton = wrapper.find("button").at(0);
+      const pauseButton = wrapper.find("button").at(1);
+      const resumeButton = wrapper.find("button").at(2);
       addButton.simulate("click");
       expect(props.onCreateWorker.mock.calls.length).toBe(1);
       pauseButton.simulate("click");
@@ -155,10 +153,6 @@ describe("Workers Page component", () => {
     it("Should pass correct props to its child component", () => {
       const workerpanel = wrapper.find("WorkerPanel").at(0);
       expect(workerpanel.props().worker).toEqual(props.workers[0]);
-      const workersState = wrapper.instance().state;
-      expect(workerpanel.props().logDialogShow).toEqual(
-        workersState.logDialogShow
-      );
     });
   });
 
@@ -187,19 +181,19 @@ describe("Workers Page component", () => {
         loading: false,
         error: false,
         workerProgress: { left_count: 50, complete_count: 100 }
-      }
+      };
       const workerLogsLoad = {
         loading: false,
         error: false,
         workerLogs: "Test worker logs"
-      }
+      };
       const workers = {
         load: workersLoad,
         create: workerCreate,
         change: workerChange,
         delete: workerDelete,
         loadWorkerProgress: workerProgressLoad,
-        loadWorkerLogs: workerLogsLoad,
+        loadWorkerLogs: workerLogsLoad
       };
       initialState = fromJS({
         workers
@@ -236,7 +230,7 @@ describe("Workers Page component", () => {
         .get("workers")
         .get("loadWorkerProgress")
         .get("workerProgress");
-        const workerLogsProp = initialState
+      const workerLogsProp = initialState
         .get("workers")
         .get("loadWorkerLogs")
         .get("workerLogs");
@@ -273,7 +267,7 @@ describe("Workers Page component", () => {
         logDialogShow: false,
         onFetchWorkerLogs: jest.fn(),
         logDialogContent: "Test content",
-        handleLogDialogContent: jest.fn(),
+        handleLogDialogContent: jest.fn()
       };
       wrapper = shallow(<WorkerPanel {...props} />);
     });
@@ -289,7 +283,7 @@ describe("Workers Page component", () => {
         logDialogShow: true,
         onFetchWorkerLogs: () => {},
         logDialogContent: "",
-        handleLogDialogContent: () => {},
+        handleLogDialogContent: () => {}
       };
       const propsErr = checkProps(WorkerPanel, expectedProps);
       expect(propsErr).toBeUndefined();
@@ -302,15 +296,10 @@ describe("Workers Page component", () => {
     });
 
     it("Should correctly render its sub-components", () => {
-      const heading = wrapper.find("withTheme(Heading)");
-      const iconbutton = wrapper.find("withTheme(IconButton)");
-      const button = wrapper.find("withTheme(Button)");
+      const heading = wrapper.find("h1");
 
       expect(heading.length).toBe(1);
-      expect(heading.props().background).toEqual("#ddd");
-      expect(heading.props().children["props"].children[0]).toEqual("Worker 4");
-      expect(iconbutton.length).toBe(1);
-      expect(button.length).toBe(1);
+      expect(heading.props().children[1]).toEqual("Worker 4");
 
       const testWorker = {
         busy: true,
@@ -321,22 +310,20 @@ describe("Workers Page component", () => {
         worker: 29693
       };
       wrapper.setProps({ worker: testWorker });
-      expect(wrapper.find("withTheme(IconButton)").length).toBe(2);
-      expect(wrapper.find("withTheme(Heading)").props().background).toEqual(
-        "#337ab7"
-      );
     });
 
     it("Should update state after logs button click", () => {
       expect(wrapper.instance().state.showLogs).toBe(false);
-      const logbutton = wrapper.find("withTheme(Button)");
+      const logbutton = wrapper.find(
+        ".workerPanelContainer__infoContainer__showLogsButton"
+      );
       logbutton.simulate("click");
       expect(wrapper.instance().state.showLogs).toBe(true);
     });
 
     it("Should correctly call function after icon button click", () => {
       expect(props.deleteWorker.mock.calls.length).toBe(0);
-      const deleteiconbutton = wrapper.find("withTheme(IconButton)");
+      const deleteiconbutton = wrapper.find(".wokerPanel_woker_deleteButton");
       deleteiconbutton.simulate("click");
       expect(props.deleteWorker.mock.calls.length).toBe(1);
     });

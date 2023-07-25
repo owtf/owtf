@@ -1,142 +1,142 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SignupPage component Testing dumb signup page component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="signupPageContainer"
   data-test="signupPageComponent"
-  marginY={60}
 >
-  <withTheme(Pane)
-    elevation={1}
-    justifyContent="center"
-    margin="auto"
-    padding={5}
-    width="35%"
+  <div
+    className="signupPageContainer__signupComponentContainer"
   >
-    <withTheme(Heading)
-      marginBottom={20}
-      paddingTop={20}
-      size={700}
-      textAlign="center"
+    <div
+      className="signupPageContainer__signupComponentContainer__brandLogoContainer"
     >
-      Signup
-    </withTheme(Heading)>
-    <TextInputField
-      inputHeight={32}
-      inputWidth="100%"
-      label="Your OWTF Username"
-      marginBottom={10}
-      marginLeft="20%"
-      name="text-input-name"
-      onBlur={[Function]}
-      onChange={[Function]}
-      placeholder="Username"
-      value=""
-      width="60%"
-    />
-    <TextInputField
-      inputHeight={32}
-      inputWidth="100%"
-      label="Email Address"
-      marginBottom={10}
-      marginLeft="20%"
-      name="text-input-email"
-      onBlur={[Function]}
-      onChange={[Function]}
-      placeholder="Email"
-      value=""
-      width="60%"
-    />
-    <withTheme(Pane)
-      position="relative"
+      <img
+        alt="brand-logo"
+        src=""
+      />
+    </div>
+    <h2
+      className="signupPageContainer__signupComponentContainer__heading"
     >
-      <withTheme(Pane)
-        marginLeft="75%"
-        position="absolute"
-        width="10%"
+      Create an OWTF Account
+    </h2>
+    <div
+      className="signupPageContainer__signupComponentContainer__userNameInputContainer"
+    >
+      <label
+        htmlFor="signupPageUsernameInput"
       >
-        <Icon
-          cursor="pointer"
-          icon="eye-off"
-          marginX={-10}
-          marginY={32}
-          onMouseDown={[Function]}
-          onMouseUp={[Function]}
-        />
-      </withTheme(Pane)>
-      <TextInputField
-        hint="Must have capital, small, number & special chars"
-        inputHeight={32}
-        inputWidth="100%"
-        label="Choose a Password"
-        marginBottom={5}
-        marginLeft="20%"
+        Your OWTF Username
+      </label>
+      <input
+        id="signupPageUsernameInput"
+        name="text-input-name"
+        onBlur={[Function]}
+        onChange={[Function]}
+        placeholder="Username"
+        type="text"
+        value=""
+      />
+    </div>
+    <p
+      className="inputRequiredError"
+    />
+    <div
+      className="signupPageContainer__signupComponentContainer__emailInputContainer"
+    >
+      <label
+        htmlFor="signupPageEmailInput"
+      >
+        Email
+      </label>
+      <input
+        id="signupEmailInput"
+        name="text-input-email"
+        onBlur={[Function]}
+        onChange={[Function]}
+        placeholder="Email"
+        type="email"
+        value=""
+      />
+    </div>
+    <p
+      className="inputRequiredError"
+    />
+    <div
+      className="signupPageContainer__signupComponentContainer__setPasswordInputContainer"
+    >
+      <label
+        htmlFor="signupPageSetPasswordInput"
+      >
+        Choose a Password
+      </label>
+      <input
+        id="signupPageSetPasswordInput"
         name="text-input-password"
         onBlur={[Function]}
         onChange={[Function]}
         placeholder="Password"
         type="password"
         value=""
-        width="60%"
       />
-    </withTheme(Pane)>
-    <withTheme(Pane)
-      marginTop={0}
-      paddingTop={0}
-      position="relative"
-    >
-      <withTheme(Pane)
-        marginLeft="75%"
-        position="absolute"
-        width="10%"
+      <span
+        className="signupPageContainer__signupComponentContainer__setPasswordInputContainer__passwordViewTogglerContainer"
+        onMouseDown={[Function]}
+        onMouseUp={[Function]}
       >
-        <Icon
-          cursor="pointer"
-          icon="eye-off"
-          marginX={-10}
-          marginY={32}
-          onMouseDown={[Function]}
-          onMouseUp={[Function]}
-        />
-      </withTheme(Pane)>
-      <TextInputField
-        inputHeight={32}
-        inputWidth="100%"
-        label="Confirm Password"
-        marginLeft="20%"
+        <AiFillEyeInvisible />
+      </span>
+    </div>
+    <p
+      className="inputRequiredError"
+    />
+    <div
+      className="signupPageContainer__signupComponentContainer__confirmPasswordInputContainer"
+    >
+      <label
+        htmlFor="signupPageConfirmPasswordInput"
+      >
+        Confirm Password
+      </label>
+      <input
+        id="signupPageConfirmPasswordInput"
         name="text-input-confirm-password"
         onBlur={[Function]}
         onChange={[Function]}
         placeholder="Confirm Password"
         type="password"
         value=""
-        width="60%"
       />
-    </withTheme(Pane)>
-    <withTheme(Button)
-      appearance="primary"
+      <span
+        className="signupPageContainer__signupComponentContainer__confirmPasswordInputContainer__passwordViewTogglerContainer"
+        onMouseDown={[Function]}
+        onMouseUp={[Function]}
+      >
+        <AiFillEyeInvisible />
+      </span>
+    </div>
+    <p
+      className="inputRequiredError"
+    />
+    <button
+      className="signupPageContainer__signupComponentContainer__submitButton"
       disabled={false}
-      intent="none"
-      justifyContent="center"
-      marginLeft="40%"
       onClick={[Function]}
-      width="20%"
     >
       SIGNUP
-    </withTheme(Button)>
-    <withTheme(Paragraph)
-      marginBottom={10}
-      marginLeft="20%"
-      marginTop={10}
-      size={300}
-      width="60%"
+    </button>
+    <div
+      className="signupPageContainer__signupComponentContainer__loginLinkContainer"
     >
       Already have an account? 
-      <withTheme(Link)
-        href="/login"
+      <Link
+        replace={false}
+        to="/login"
       >
         Login
-      </withTheme(Link)>
-    </withTheme(Paragraph)>
-  </withTheme(Pane)>
-</withTheme(Pane)>
+      </Link>
+    </div>
+  </div>
+</div>
 `;
