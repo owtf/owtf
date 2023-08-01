@@ -48,27 +48,28 @@ describe("OtpPage component", () => {
         otp: "123456",
         otpError: ""
       });
-      const pane = wrapper.find("withTheme(Pane)");
-      const heading = wrapper.find("withTheme(Heading)");
-      const textInputField = wrapper.find("TextInputField");
-      const paragraph = wrapper.find("withTheme(Paragraph)");
-      const button = wrapper.find("withTheme(Button)");
+      const div = wrapper.find("div");
+      const heading = wrapper.find("h2");
+      const textInputField = wrapper.find("input");
+      const paragraph = wrapper.find("p");
+      const button = wrapper.find("button");
 
-      expect(pane.length).toBe(2);
+      expect(div.length).toBe(5);
       expect(heading.length).toBe(1);
-      expect(heading.at(0).props().children).toEqual("We sent a code");
+      expect(heading.at(0).props().children).toEqual("A code was sent");
       expect(textInputField.length).toBe(1);
-      expect(paragraph.length).toBe(4);
+      expect(paragraph.length).toBe(5);
       expect(paragraph.at(0).props().children).toEqual(
         "Enter the 6-digit verification code sent to your email."
       );
-      expect(paragraph.at(1).props().children.props.children).toEqual(
-        "Change Username / Email"
-      );
+
       expect(paragraph.at(2).props().children.props.children).toEqual(
         "Resend Code"
       );
-      expect(paragraph.at(3).props().children).toEqual(
+      expect(paragraph.at(3).props().children.props.children).toEqual(
+        "Change Username / Email"
+      );
+      expect(paragraph.at(4).props().children).toEqual(
         "If you don't find it in your inbox, check spam folder."
       );
       expect(button.length).toBe(1);
@@ -78,7 +79,7 @@ describe("OtpPage component", () => {
 
     it("Should update state on TextInputField change event", () => {
       const otp = 123456;
-      const textInputFieldUsername = wrapper.find("TextInputField").at(0);
+      const textInputFieldUsername = wrapper.find("input").at(0);
       const eventUsername = {
         preventDefault() {},
         target: { value: otp, name: "text-input-otp" }
@@ -90,20 +91,20 @@ describe("OtpPage component", () => {
 
     it("Should call onSubmit on submit button click", () => {
       expect(props.onSubmit.mock.calls.length).toBe(0);
-      const otpButton = wrapper.find("withTheme(Button)");
+      const otpButton = wrapper.find("button");
       otpButton.simulate("click");
       expect(props.onSubmit.mock.calls.length).toBe(1);
     });
 
     it("Should call onResend on resend link click", () => {
       expect(props.onResend.mock.calls.length).toBe(0);
-      const resendButton = wrapper.find("withTheme(Link)").at(1);
+      const resendButton = wrapper.find("Link").at(0);
       resendButton.simulate("click");
       expect(props.onResend.mock.calls.length).toBe(1);
     });
 
     it("Should call handleOtpValidation to validate otp", () => {
-      const textInputField = wrapper.find("TextInputField");
+      const textInputField = wrapper.find("input");
       textInputField.simulate("change", {
         target: { value: 12345, name: "text-input-otp" }
       });

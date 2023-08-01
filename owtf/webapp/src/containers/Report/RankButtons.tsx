@@ -3,7 +3,6 @@
  */
 
 import React from "react";
-import PropTypes from "prop-types";
 import { AiTwotoneLike } from "react-icons/ai";
 import { AiFillInfoCircle } from "react-icons/ai";
 import { GoFlame } from "react-icons/go";
@@ -11,7 +10,12 @@ import { MdError } from "react-icons/md";
 import { MdRemoveCircle } from "react-icons/md";
 import { AiFillWarning } from "react-icons/ai";
 
-export default class RankButtons extends React.Component {
+interface propTypes {
+  obj: object;
+  patchUserRank: Function;
+}
+
+export default class RankButtons extends React.Component<propTypes> {
   render() {
     const { obj, patchUserRank } = this.props;
     const user_rank = obj["user_rank"];
@@ -150,8 +154,3 @@ export default class RankButtons extends React.Component {
     }
   }
 }
-
-RankButtons.propTypes = {
-  obj: PropTypes.object,
-  patchUserRank: PropTypes.func
-};

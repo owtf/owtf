@@ -1,375 +1,348 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Plugins componemt Testing Plugins Table component Should render without errors 1`] = `
-<Table
-  border={true}
+<div
+  className="pluginsTableContainer"
 >
-  <TableHead
-    accountForScrollbar={true}
-    height={32}
+  <div
+    className="pluginsTableContainer__headerContainer"
   >
-    <TableHeaderCell
-      flex={-1}
+    <div
+      className="pluginsTableContainer__headerContainer__checkbox"
     >
-      <withTheme(Checkbox)
+      <input
         checked={false}
         onChange={[Function]}
+        type="checkbox"
       />
-    </TableHeaderCell>
-    <SearchTableHeaderCell
-      flex="none"
-      icon={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "compare": null,
-          "type": Object {
-            "$$typeof": Symbol(react.forward_ref),
-            "render": [Function],
-          },
-        }
-      }
-      onChange={[Function]}
-      placeholder="Code"
-      spellCheck={true}
-      value=""
-      width={150}
-    />
-    <SearchTableHeaderCell
-      flex="none"
-      icon={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "compare": null,
-          "type": Object {
-            "$$typeof": Symbol(react.forward_ref),
-            "render": [Function],
-          },
-        }
-      }
-      onChange={[Function]}
-      placeholder="Name"
-      spellCheck={true}
-      value=""
-      width={200}
-    />
-    <SearchTableHeaderCell
-      flex="none"
-      icon={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "compare": null,
-          "type": Object {
-            "$$typeof": Symbol(react.forward_ref),
-            "render": [Function],
-          },
-        }
-      }
-      onChange={[Function]}
-      placeholder="Type"
-      spellCheck={true}
-      value=""
-      width={150}
-    />
-    <SearchTableHeaderCell
-      flex="none"
-      icon={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "compare": null,
-          "type": Object {
-            "$$typeof": Symbol(react.forward_ref),
-            "render": [Function],
-          },
-        }
-      }
-      onChange={[Function]}
-      placeholder="Group"
-      spellCheck={true}
-      value=""
-      width={150}
-    />
-    <SearchTableHeaderCell
-      flex="none"
-      icon={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "compare": null,
-          "type": Object {
-            "$$typeof": Symbol(react.forward_ref),
-            "render": [Function],
-          },
-        }
-      }
-      onChange={[Function]}
-      placeholder="Help"
-      spellCheck={true}
-      value=""
-      width={200}
-    />
-  </TableHead>
-  <TableVirtualBody
-    allowAutoHeight={false}
-    defaultHeight={48}
-    height={500}
-    overscanCount={5}
-    useAverageAutoHeightEstimation={true}
-  >
-    <withTheme(TableRow)
-      height="auto"
-      isSelectable={true}
-      key="semi_passive@OWTF-IG-004"
+    </div>
+    <div
+      className="pluginsTableContainer__headerContainer__codeInputContainer"
     >
-      <withTheme(TableCell)
-        flex={-1}
+      <HiOutlineSearch />
+      <input
+        onChange={[Function]}
+        placeholder="Code"
+        type="text"
+        value=""
+      />
+    </div>
+    <div
+      className="pluginsTableContainer__headerContainer__nameInputContainer"
+    >
+      <HiOutlineSearch />
+      <input
+        onChange={[Function]}
+        placeholder="Name"
+        type="text"
+        value=""
+      />
+    </div>
+    <div
+      className="pluginsTableContainer__headerContainer__typeInputContainer"
+    >
+      <HiOutlineSearch />
+      <input
+        onChange={[Function]}
+        placeholder="Type"
+        type="text"
+        value=""
+      />
+    </div>
+    <div
+      className="pluginsTableContainer__headerContainer__groupInputContainer"
+    >
+      <HiOutlineSearch />
+      <input
+        onChange={[Function]}
+        placeholder="Group"
+        type="text"
+        value=""
+      />
+    </div>
+    <div
+      className="pluginsTableContainer__headerContainer__helpInputContainer"
+    >
+      <HiOutlineSearch />
+      <input
+        onChange={[Function]}
+        placeholder="Help"
+        type="text"
+        value=""
+      />
+    </div>
+  </div>
+  <div
+    className="pluginsTableContainer__bodyContainer"
+  >
+    <div
+      className="pluginsTableContainer__bodyContainer__rowContainer"
+      key="0"
+    >
+      <div
+        className="pluginsTableContainer__bodyContainer__rowContainer__checkbox"
       >
-        <withTheme(Checkbox)
+        <input
           checked={false}
           id="semi_passive@OWTF-IG-004"
           onChange={[Function]}
+          type="checkbox"
         />
-      </withTheme(TableCell)>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
-        width={150}
+      </div>
+      <div
+        className="pluginsTableContainer__bodyContainer__rowContainer__pluginCode"
       >
         OWTF-IG-004
-      </TextTableCell>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
-        width={200}
+      </div>
+      <div
+        className="pluginsTableContainer__bodyContainer__rowContainer__pluginName"
       >
         Web Application Fingerprint
-      </TextTableCell>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
-        width={150}
+      </div>
+      <div
+        className="pluginsTableContainer__bodyContainer__rowContainer__pluginType"
       >
         semi passive
-      </TextTableCell>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
-        width={150}
+      </div>
+      <div
+        className="pluginsTableContainer__bodyContainer__rowContainer__pluginGroup"
       >
         web
-      </TextTableCell>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
-        width={200}
+      </div>
+      <div
+        className="pluginsTableContainer__bodyContainer__rowContainer__pluginHelp"
+        title="Normal requests to gather fingerprint info"
       >
-        <Tooltip
-          appearance="default"
-          content="Normal requests to gather fingerprint info"
-          hideDelay={120}
-          position="bottom"
-          showDelay={0}
-        >
-          <withTheme(Text)>
-            Normal requests to gather fingerprint info
-          </withTheme(Text)>
-        </Tooltip>
-      </TextTableCell>
-    </withTheme(TableRow)>
-    <withTheme(TableRow)
-      height="auto"
-      isSelectable={true}
-      key="dos@OWTF-ADoS-001"
+        Normal requests to gather fingerprint info
+      </div>
+    </div>
+    <div
+      className="pluginsTableContainer__bodyContainer__rowContainer"
+      key="1"
     >
-      <withTheme(TableCell)
-        flex={-1}
+      <div
+        className="pluginsTableContainer__bodyContainer__rowContainer__checkbox"
       >
-        <withTheme(Checkbox)
+        <input
           checked={false}
           id="dos@OWTF-ADoS-001"
           onChange={[Function]}
+          type="checkbox"
         />
-      </withTheme(TableCell)>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
-        width={150}
+      </div>
+      <div
+        className="pluginsTableContainer__bodyContainer__rowContainer__pluginCode"
       >
         OWTF-ADoS-001
-      </TextTableCell>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
-        width={200}
+      </div>
+      <div
+        className="pluginsTableContainer__bodyContainer__rowContainer__pluginName"
       >
         Direct DoS Launcher
-      </TextTableCell>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
-        width={150}
+      </div>
+      <div
+        className="pluginsTableContainer__bodyContainer__rowContainer__pluginType"
       >
         dos
-      </TextTableCell>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
-        width={150}
+      </div>
+      <div
+        className="pluginsTableContainer__bodyContainer__rowContainer__pluginGroup"
       >
         auxiliary
-      </TextTableCell>
-      <TextTableCell
-        flex="none"
-        isNumber={false}
-        width={200}
+      </div>
+      <div
+        className="pluginsTableContainer__bodyContainer__rowContainer__pluginHelp"
+        title="Denial of Service (DoS) Launcher"
       >
-        <Tooltip
-          appearance="default"
-          content="Denial of Service (DoS) Launcher"
-          hideDelay={120}
-          position="bottom"
-          showDelay={0}
-        >
-          <withTheme(Text)>
-            Denial of Service (DoS) Launcher
-          </withTheme(Text)>
-        </Tooltip>
-      </TextTableCell>
-    </withTheme(TableRow)>
-  </TableVirtualBody>
-</Table>
+        Denial of Service (DoS) Launcher
+      </div>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`Plugins componemt Testing dumb plugins component Should render without errors 1`] = `
-<withTheme(Dialog)
+<Dialog
   confirmLabel="Run"
-  isShown={false}
-  onCloseComplete={[MockFunction]}
+  isDialogOpened={false}
+  onClose={[MockFunction]}
   onConfirm={[Function]}
   title="Plugins"
-  width={1000}
 >
-  <withTheme(Pane)
-    alignItems="center"
-    display="flex"
-    flexDirection="row"
+  <div
+    className="pluginsContainer"
   >
-    <Tablist
-      flexBasis={800}
-      marginBottom={16}
-      marginRight={24}
+    <div
+      className="pluginsContainer__headerContainer"
     >
-      <withTheme(Tab)
-        aria-controls="panel-individual"
-        id={1}
-        isSelected={true}
-        key="1"
-        onSelect={[Function]}
+      <div
+        className="pluginsContainer__headerContainer__launchingOptionsContainer"
       >
-        Launch Individually
-      </withTheme(Tab)>
-      <withTheme(Tab)
-        aria-controls="panel-group"
-        id={2}
-        isSelected={false}
-        key="2"
-        onSelect={[Function]}
-      >
-        Launch in groups
-      </withTheme(Tab)>
-      <withTheme(Tab)>
-        <withTheme(SearchInput)
-          borderRadius={100}
-          className="search-box"
-          flex={1}
-          onChange={[Function]}
-          placeholder="Search"
-          value=""
-        />
-      </withTheme(Tab)>
-    </Tablist>
-    <withTheme(Checkbox)
-      checked={false}
-      className="pull-right"
-      id="force-overwrite"
-      label="Force Overwrite"
-      onChange={[Function]}
-    />
-  </withTheme(Pane)>
-  <withTheme(Pane)
-    flex="1"
-    padding={16}
-  >
-    <withTheme(Pane)
-      aria-hidden={false}
-      aria-labelledby="individual"
-      display="block"
-      id="panel-individual"
-      key="1"
-      role="tabpanel"
-    >
-      <PluginsTable
-        globalSearch=""
-        plugins={
-          Array [
+        <span
+          aria-controls="panel-individual"
+          className="pluginsContainer__headerContainer__launchingOptionsContainer__tab"
+          id="1"
+          key="1"
+          onClick={[Function]}
+          style={
             Object {
-              "code": "OWTF-IG-004",
-              "descrip": "Normal requests to gather fingerprint info",
-              "group": "web",
-              "key": "semi_passive@OWTF-IG-004",
-              "name": "Web_Application_Fingerprint",
-              "type": "semi_passive",
-            },
-          ]
-        }
-        updateSelectedPlugins={[Function]}
-      />
-    </withTheme(Pane)>
-    <withTheme(Pane)
-      aria-hidden={true}
-      aria-labelledby="group"
-      display="none"
-      id="panel-group"
-      key="2"
-      role="tabpanel"
-    >
-      <withTheme(Pane)
-        display="flex"
-        flexDirection="row"
+              "backgroundColor": "rgba(0, 0, 0, 0.178)",
+            }
+          }
+        >
+          Launch Individually
+        </span>
+        <span
+          aria-controls="panel-group"
+          className="pluginsContainer__headerContainer__launchingOptionsContainer__tab"
+          id="2"
+          key="2"
+          onClick={[Function]}
+          style={
+            Object {
+              "backgroundColor": "transparent",
+            }
+          }
+        >
+          Launch in groups
+        </span>
+      </div>
+      <div
+        className="pluginsContainer__headerContainer__searchinputCheckboxContainer"
       >
-        <withTheme(Pane)
-          display="flex"
-          flexDirection="column"
-          width={600}
+        <div
+          className="pluginsContainer__headerContainer__searchinputCheckboxContainer__searchinputContainer"
         >
-          <withTheme(Heading)
-            marginTop="default"
+          <input
+            className="search-box"
+            onChange={[Function]}
+            placeholder="Search"
+            type="text"
+            value=""
+          />
+        </div>
+        <div
+          className="pluginsContainer__headerContainer__searchinputCheckboxContainer__checkboxContainer"
+        >
+          <label
+            htmlFor="force-overwrite"
           >
+            Force Overwrite
+          </label>
+          <input
+            checked={false}
+            className="pull-right"
+            id="force-overwrite"
+            onChange={[Function]}
+            type="checkbox"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      className="pluginsContainer__bodyContainer"
+    >
+      <div
+        aria-hidden={false}
+        aria-labelledby="individual"
+        id="panel-individual"
+        key="1"
+        role="tabpanel"
+        style={
+          Object {
+            "display": "block",
+          }
+        }
+      >
+        <PluginsTable
+          globalSearch=""
+          plugins={
+            Array [
+              Object {
+                "code": "OWTF-IG-004",
+                "descrip": "Normal requests to gather fingerprint info",
+                "group": "web",
+                "key": "semi_passive@OWTF-IG-004",
+                "name": "Web_Application_Fingerprint",
+                "type": "semi_passive",
+              },
+            ]
+          }
+          updateSelectedPlugins={[Function]}
+        />
+      </div>
+      <div
+        aria-hidden={true}
+        aria-labelledby="group"
+        className="pluginsContainer__bodyContainer__pluginGroupContainer"
+        id="panel-group"
+        key="2"
+        role="tabpanel"
+        style={
+          Object {
+            "display": "none",
+          }
+        }
+      >
+        <div
+          className="pluginsContainer__bodyContainer__pluginGroupContainer__pluginGroupSelectContainer"
+        >
+          <h2>
             Plugin Groups
-          </withTheme(Heading)>
-          <withTheme(Checkbox)
-            checked={false}
+          </h2>
+          <div
+            className="pluginsContainer__bodyContainer__pluginGroupContainer__pluginGroupSelectContainer__inputContainer"
             key="0"
-            label="web"
-            onChange={[Function]}
-          />
-        </withTheme(Pane)>
-        <withTheme(Pane)
-          display="flex"
-          flexDirection="column"
-        >
-          <withTheme(Heading)
-            marginTop="default"
           >
+            <label
+              htmlFor="plugins-group-select 0"
+            >
+              web
+            </label>
+            <input
+              checked={false}
+              id="plugins-group-select 0"
+              key="0"
+              onChange={[Function]}
+              type="checkbox"
+            />
+          </div>
+        </div>
+        <div
+          className="pluginsContainer__bodyContainer__pluginGroupContainer__pluginTypesContainer"
+        >
+          <h2>
             Plugin Types
-          </withTheme(Heading)>
-          <withTheme(Checkbox)
-            checked={false}
+          </h2>
+          <div
+            className="pluginsContainer__bodyContainer__pluginGroupContainer__pluginTypesContainer__inputContainer"
             key="0"
-            label="semi passive"
-            onChange={[Function]}
-          />
-        </withTheme(Pane)>
-      </withTheme(Pane)>
-    </withTheme(Pane)>
-  </withTheme(Pane)>
-</withTheme(Dialog)>
+          >
+            <label
+              htmlFor="plugins-type-select 0"
+            >
+              semi passive
+            </label>
+            <input
+              checked={false}
+              id="plugins-type-select 0"
+              key="0"
+              onChange={[Function]}
+              type="checkbox"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="pluginsContainer__buttonContainer"
+    >
+      <button
+        onClick={[Function]}
+      >
+        Run
+      </button>
+    </div>
+  </div>
+</Dialog>
 `;

@@ -29,7 +29,41 @@ import "./style.scss";
 import Collapse from "./Collapse";
 import update from "immutability-helper";
 
-export class Accordian extends React.Component {
+interface propTypes {
+  targetData: { id: any };
+  selectedGroup: any;
+  selectedType: any;
+  selectedRank: any;
+  selectedOwtfRank: any;
+  selectedMapping: string;
+  selectedStatus: any;
+  data: object;
+  code: string;
+  loading: boolean;
+  error: object | boolean;
+  pluginOutput: [] | boolean;
+  changeLoading: boolean;
+  changeError: object | boolean;
+  deleteLoading: boolean;
+  deleteError: object | boolean;
+  postToWorklistError: object | boolean;
+  onFetchPluginOutput: Function;
+  onChangeUserRank: Function;
+  onPostToWorklist: Function;
+  onDeletePluginOutput: Function;
+}
+
+interface stateTypes {
+  pactive: string;
+  details: object;
+  pluginData: any;
+  pluginCollapseData: any;
+  isClicked: boolean;
+  sideSheetOpen: boolean;
+  code: any;
+}
+
+export class Accordian extends React.Component<propTypes, stateTypes> {
   constructor(props, context) {
     super(props, context);
 
@@ -52,7 +86,8 @@ export class Accordian extends React.Component {
       pluginData: [],
       pluginCollapseData: [], //Plugin data to be passed over to the collapse component as props
       isClicked: false, // Contents is alredy loaded or not.(To Prevant unneccesaary request)
-      sideSheetOpen: false
+      sideSheetOpen: false,
+      code: ""
     };
   }
 
@@ -258,7 +293,8 @@ export class Accordian extends React.Component {
         toaster.danger("Server replied: " + this.props.deleteError);
       } else {
         toaster.success("Deleted plugin output for " + type + "@" + code);
-        for (let i = 0; i < pluginData.length; i++) {
+        let i: number = 0;
+        for (i = 0; i < pluginData.length; i++) {
           if (
             pluginData[i]["plugin_type"] === type &&
             pluginData[i]["plugin_group"] === group
@@ -449,33 +485,6 @@ export class Accordian extends React.Component {
   }
 }
 
-Accordian.propTypes = {
-  targetData: PropTypes.object,
-  selectedGroup: PropTypes.array,
-  selectedType: PropTypes.array,
-  selectedRank: PropTypes.array,
-  selectedOwtfRank: PropTypes.array,
-  selectedMapping: PropTypes.string,
-  selectedStatus: PropTypes.array,
-  data: PropTypes.object,
-  code: PropTypes.string,
-  loading: PropTypes.bool,
-  error: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  pluginOutput: PropTypes.oneOfType([
-    PropTypes.array.isRequired,
-    PropTypes.bool.isRequired
-  ]),
-  changeLoading: PropTypes.bool,
-  changeError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  deleteLoading: PropTypes.bool,
-  deleteError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  postToWorklistError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  onFetchPluginOutput: PropTypes.func,
-  onChangeUserRank: PropTypes.func,
-  onPostToWorklist: PropTypes.func,
-  onDeletePluginOutput: PropTypes.func
-};
-
 const mapStateToProps = createStructuredSelector({
   pluginOutput: makeSelectFetchPluginOutput,
   loading: makeSelectPluginOutputLoading,
@@ -498,4 +507,5 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
+//@ts-ignore
 export default connect(mapStateToProps, mapDispatchToProps)(Accordian);

@@ -6,54 +6,44 @@ import { createSelector } from "reselect";
 
 const selectReport = state => state.get("reports");
 
-const makeSelectTarget = createSelector(
-  selectReport,
-  reportState => reportState.get("loadTarget")
+const makeSelectTarget = createSelector(selectReport, reportState =>
+  reportState.get("loadTarget")
 );
 
-const makeSelectPluginOutputNames = createSelector(
-  selectReport,
-  reportState => reportState.get("loadPluginOutputNames")
+const makeSelectPluginOutputNames = createSelector(selectReport, reportState =>
+  reportState.get("loadPluginOutputNames")
 );
 
-const makeSelectPluginOutput = createSelector(
-  selectReport,
-  reportState => reportState.get("loadPluginOutput")
+const makeSelectPluginOutput = createSelector(selectReport, reportState =>
+  reportState.get("loadPluginOutput")
 );
 
-const makeSelectUserRank = createSelector(
-  selectReport,
-  reportState => reportState.get("changeUserRank")
+const makeSelectUserRank = createSelector(selectReport, reportState =>
+  reportState.get("changeUserRank")
 );
 
-const makeSelectDeletePluginOutput = createSelector(
-  selectReport,
-  reportState => reportState.get("deletePluginOutput")
+const makeSelectDeletePluginOutput = createSelector(selectReport, reportState =>
+  reportState.get("deletePluginOutput")
 );
 
-const makeSelectUserNotes = createSelector(
-  selectReport,
-  reportState => reportState.get("changeUserNotes")
+const makeSelectUserNotes = createSelector(selectReport, reportState =>
+  reportState.get("changeUserNotes")
 );
 
-const makeSelectTargetExport = createSelector(
-  selectReport,
-  reportState => reportState.get("loadTargetExport")
+const makeSelectTargetExport = createSelector(selectReport, reportState =>
+  reportState.get("loadTargetExport")
 );
 
-const makeSelectTargetLoading = createSelector(
-  makeSelectTarget,
-  fetchState => fetchState.get("loading")
+const makeSelectTargetLoading = createSelector(makeSelectTarget, fetchState =>
+  fetchState.get("loading")
 );
 
-const makeSelectTargetError = createSelector(
-  makeSelectTarget,
-  fetchState => fetchState.get("error")
+const makeSelectTargetError = createSelector(makeSelectTarget, fetchState =>
+  fetchState.get("error")
 );
 
-const makeSelectFetchTarget = createSelector(
-  makeSelectTarget,
-  fetchState => fetchState.get("target")
+const makeSelectFetchTarget = createSelector(makeSelectTarget, fetchState =>
+  fetchState.get("target")
 );
 
 const makeSelectPluginOutputNamesLoading = createSelector(

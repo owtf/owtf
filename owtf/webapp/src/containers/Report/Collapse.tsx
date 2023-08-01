@@ -7,22 +7,30 @@
 import React from "react";
 import DataTable from "./Table";
 import RankButtons from "./RankButtons";
-import {
-  Pane,
-  Tablist,
-  Tab,
-  Paragraph,
-  Heading,
-  SideSheet,
-  Small,
-  Icon
-} from "evergreen-ui";
 import { Link } from "react-router-dom";
-import PropTypes from "prop-types";
 import { FaLightbulb } from "react-icons/fa";
 import Dialog from "../../components/DialogBox/dialog";
 
-export default class Collapse extends React.Component {
+interface propTypes {
+  targetData: object;
+  plugin: object;
+  pluginCollapseData: any;
+  pactive: string;
+  selectedType: any;
+  selectedRank: any;
+  selectedGroup: any;
+  selectedStatus: any;
+  selectedOwtfRank: any;
+  selectedMapping: string;
+  patchUserRank: Function;
+  deletePluginOutput: Function;
+  postToWorklist: Function;
+  sideSheetOpen: boolean;
+  handleSideSheetClose: Function;
+  handlePluginBtnOnAccordian: Function;
+}
+
+export default class Collapse extends React.Component<propTypes> {
   constructor(props, context) {
     super(props, context);
   }
@@ -43,6 +51,7 @@ export default class Collapse extends React.Component {
       sideSheetOpen,
       handlePluginBtnOnAccordian
     } = this.props;
+
     const DataTableProps = {
       targetData: this.props.targetData,
       deletePluginOutput: this.props.deletePluginOutput,
@@ -64,21 +73,19 @@ export default class Collapse extends React.Component {
                   {(() => {
                     if (
                       selectedMapping === "" ||
-                      plugin["mappings"][mapping] === undefined
+                      plugin["mappings"]["mapping"] === undefined
                     ) {
                       return plugin["code"] + " " + plugin["descrip"];
                     } else {
                       return (
-                        plugin["mappings"][mapping][0] +
+                        plugin["mappings"]["mapping"][0] +
                         " " +
-                        plugin["mappings"][mapping][1]
+                        plugin["mappings"]["mapping"][1]
                       );
                     }
                   })()}
                 </h2>
-                <p size={400} color="muted">
-                  {plugin["hint"].split("_").join(" ")}
-                </p>
+                <p color="muted">{plugin["hint"].split("_").join(" ")}</p>
               </div>
               <div className="accordriansContainer__accordianCollapseContainer__collapseContainer__headerContainer__typeContainer">
                 <span key="type">Type :</span>
@@ -182,6 +189,7 @@ export default class Collapse extends React.Component {
                             patchUserRank={patchUserRank}
                           />
                         </div>
+                        {/* @ts-ignore */}
                         <DataTable obj={obj} {...DataTableProps} />
                       </div>
                     </div>
@@ -199,22 +207,3 @@ export default class Collapse extends React.Component {
     );
   }
 }
-
-Collapse.propTypes = {
-  targetData: PropTypes.object,
-  plugin: PropTypes.object,
-  pluginCollapseData: PropTypes.array,
-  pactive: PropTypes.string,
-  selectedType: PropTypes.array,
-  selectedRank: PropTypes.array,
-  selectedGroup: PropTypes.array,
-  selectedStatus: PropTypes.array,
-  selectedOwtfRank: PropTypes.array,
-  selectedMapping: PropTypes.string,
-  patchUserRank: PropTypes.func,
-  deletePluginOutput: PropTypes.func,
-  postToWorklist: PropTypes.func,
-  sideSheetOpen: PropTypes.bool,
-  handleSideSheetClose: PropTypes.func,
-  handlePluginBtnOnAccordian: PropTypes.func
-};

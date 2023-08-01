@@ -29,7 +29,9 @@ import {
  *
  * @return {object} An action object with a type of LOAD_TARGET
  */
-export function loadTarget(target_id) {
+export function loadTarget(
+  target_id: number
+): { type: string; target_id: number } {
   return {
     type: LOAD_TARGET,
     target_id
@@ -43,7 +45,7 @@ export function loadTarget(target_id) {
  *
  * @return {object} An action object with a type of LOAD_TARGET_SUCCESS passing the target
  */
-export function targetLoaded(target) {
+export function targetLoaded(target: []): { type: string; target: [] } {
   return {
     type: LOAD_TARGET_SUCCESS,
     target
@@ -57,7 +59,9 @@ export function targetLoaded(target) {
  *
  * @return {object} An action object with a type of LOAD_TARGET_ERROR passing the error
  */
-export function targetLoadingError(error) {
+export function targetLoadingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: LOAD_TARGET_ERROR,
     error
@@ -71,7 +75,9 @@ export function targetLoadingError(error) {
  *
  * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT
  */
-export function loadPluginOutputNames(target_id) {
+export function loadPluginOutputNames(
+  target_id: number
+): { type: string; target_id: number } {
   return {
     type: LOAD_PLUGIN_OUTPUT_NAMES,
     target_id
@@ -85,7 +91,9 @@ export function loadPluginOutputNames(target_id) {
  *
  * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT_SUCCESS passing the plugins
  */
-export function pluginOutputNamesLoaded(pluginOutputData) {
+export function pluginOutputNamesLoaded(
+  pluginOutputData: []
+): { type: string; pluginOutputData: [] } {
   return {
     type: LOAD_PLUGIN_OUTPUT_NAMES_SUCCESS,
     pluginOutputData
@@ -99,7 +107,9 @@ export function pluginOutputNamesLoaded(pluginOutputData) {
  *
  * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT_ERROR passing the error
  */
-export function pluginOutputNamesLoadingError(error) {
+export function pluginOutputNamesLoadingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: LOAD_PLUGIN_OUTPUT_NAMES_ERROR,
     error
@@ -113,7 +123,10 @@ export function pluginOutputNamesLoadingError(error) {
  *
  * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT
  */
-export function loadPluginOutput(target_id, plugin_code) {
+export function loadPluginOutput(
+  target_id: number,
+  plugin_code: number
+): { type: string; target_id: number; plugin_code: number } {
   return {
     type: LOAD_PLUGIN_OUTPUT,
     target_id,
@@ -128,7 +141,9 @@ export function loadPluginOutput(target_id, plugin_code) {
  *
  * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT_SUCCESS passing the plugins
  */
-export function pluginOutputLoaded(pluginOutputData) {
+export function pluginOutputLoaded(
+  pluginOutputData: []
+): { type: string; pluginOutputData: [] } {
   return {
     type: LOAD_PLUGIN_OUTPUT_SUCCESS,
     pluginOutputData
@@ -142,7 +157,9 @@ export function pluginOutputLoaded(pluginOutputData) {
  *
  * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT_ERROR passing the error
  */
-export function pluginOutputLoadingError(error) {
+export function pluginOutputLoadingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: LOAD_PLUGIN_OUTPUT_ERROR,
     error
@@ -156,7 +173,9 @@ export function pluginOutputLoadingError(error) {
  *
  * @return {object} An action object with a type of CHANGE_USER_RANK
  */
-export function changeUserRank(plugin_data) {
+export function changeUserRank(
+  plugin_data: object
+): { type: string; plugin_data: object } {
   return {
     type: CHANGE_USER_RANK,
     plugin_data
@@ -168,7 +187,7 @@ export function changeUserRank(plugin_data) {
  *
  * @return {object} An action object with a type of CHANGE_USER_RANK_SUCCESS
  */
-export function userRankChanged() {
+export function userRankChanged(): { type: string } {
   return {
     type: CHANGE_USER_RANK_SUCCESS
   };
@@ -181,7 +200,9 @@ export function userRankChanged() {
  *
  * @return {object} An action object with a type of CHANGE_USER_RANK_ERROR passing the error
  */
-export function userRankChangingError(error) {
+export function userRankChangingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: CHANGE_USER_RANK_ERROR,
     error
@@ -195,7 +216,9 @@ export function userRankChangingError(error) {
  *
  * @return {object} An action object with a type of DELETE_PLUGIN_OUTPUT
  */
-export function deletePluginOutput(plugin_data) {
+export function deletePluginOutput(
+  plugin_data: object
+): { type: string; plugin_data: object } {
   return {
     type: DELETE_PLUGIN_OUTPUT,
     plugin_data
@@ -207,7 +230,7 @@ export function deletePluginOutput(plugin_data) {
  *
  * @return {object} An action object with a type of DELETE_PLUGIN_OUTPUT_SUCCESS
  */
-export function pluginOutputDeleted() {
+export function pluginOutputDeleted(): { type: string } {
   return {
     type: DELETE_PLUGIN_OUTPUT_SUCCESS
   };
@@ -220,7 +243,9 @@ export function pluginOutputDeleted() {
  *
  * @return {object} An action object with a type of DELETE_PLUGIN_OUTPUT_ERROR passing the error
  */
-export function pluginOutputDeletingError(error) {
+export function pluginOutputDeletingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: DELETE_PLUGIN_OUTPUT_ERROR,
     error
@@ -234,7 +259,9 @@ export function pluginOutputDeletingError(error) {
  *
  * @return {object} An action object with a type of CHANGE_USER_NOTES
  */
-export function changeUserNotes(plugin_data) {
+export function changeUserNotes(
+  plugin_data: object
+): { type: string; plugin_data: object } {
   return {
     type: CHANGE_USER_NOTES,
     plugin_data
@@ -246,7 +273,7 @@ export function changeUserNotes(plugin_data) {
  *
  * @return {object} An action object with a type of CHANGE_USER_NOTES_SUCCESS
  */
-export function userNotesChanged() {
+export function userNotesChanged(): { type: string } {
   return {
     type: CHANGE_USER_NOTES_SUCCESS
   };
@@ -259,7 +286,9 @@ export function userNotesChanged() {
  *
  * @return {object} An action object with a type of CHANGE_USER_NOTES_ERROR passing the error
  */
-export function userNotesChangingError(error) {
+export function userNotesChangingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: CHANGE_USER_NOTES_ERROR,
     error
@@ -273,7 +302,9 @@ export function userNotesChangingError(error) {
  *
  * @return {object} An action object with a type of LOAD_TARGET_EXPORT
  */
-export function loadTargetExport(target_id) {
+export function loadTargetExport(
+  target_id: number
+): { type: string; target_id: number } {
   return {
     type: LOAD_TARGET_EXPORT,
     target_id
@@ -287,7 +318,9 @@ export function loadTargetExport(target_id) {
  *
  * @return {object} An action object with a type of LOAD_TARGET_EXPORT_SUCCESS passing the target and the export data
  */
-export function targetExportLoaded(exportData) {
+export function targetExportLoaded(
+  exportData: any
+): { type: string; exportData: any } {
   return {
     type: LOAD_TARGET_EXPORT_SUCCESS,
     exportData
@@ -301,7 +334,9 @@ export function targetExportLoaded(exportData) {
  *
  * @return {object} An action object with a type of LOAD_TARGET_EXPORT_ERROR passing the error
  */
-export function targetExportLoadingError(error) {
+export function targetExportLoadingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: LOAD_TARGET_EXPORT_ERROR,
     error
