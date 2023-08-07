@@ -29,7 +29,7 @@ import {
  *
  * @return {object} An action object with a type of LOAD_PLUGINS
  */
-export function loadPlugins() {
+export function loadPlugins(): { type: string } {
   return {
     type: LOAD_PLUGINS
   };
@@ -42,7 +42,9 @@ export function loadPlugins() {
  *
  * @return {object} An action object with a type of LOAD_PLUGINS_SUCCESS passing the plugins
  */
-export function pluginsLoaded(plugins) {
+export function pluginsLoaded(
+  plugins: object
+): { type: string; plugins: object } {
   return {
     type: LOAD_PLUGINS_SUCCESS,
     plugins
@@ -56,7 +58,9 @@ export function pluginsLoaded(plugins) {
  *
  * @return {object} An action object with a type of LOAD_PLUGINS_ERROR passing the error
  */
-export function pluginsLoadingError(error) {
+export function pluginsLoadingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: LOAD_PLUGINS_ERROR,
     error
@@ -70,7 +74,9 @@ export function pluginsLoadingError(error) {
  *
  * @return {object} An action object with a type of CREATE_TARGET
  */
-export function postToWorklist(plugin_data) {
+export function postToWorklist(
+  plugin_data: string
+): { type: string; plugin_data: string } {
   return {
     type: POST_TO_WORKLIST,
     plugin_data
@@ -82,7 +88,7 @@ export function postToWorklist(plugin_data) {
  *
  * @return {object} An action object with a type of CREATE_TARGET_SUCCESS
  */
-export function targetPosted() {
+export function targetPosted(): { type: string } {
   return {
     type: POST_TO_WORKLIST_SUCCESS
   };
@@ -95,7 +101,9 @@ export function targetPosted() {
  *
  * @return {object} An action object with a type of CREATE_TARGET_ERROR passing the error
  */
-export function targetPostingError(error) {
+export function targetPostingError(
+  error: object
+): { type: string; error: object } {
   return {
     type: POST_TO_WORKLIST_ERROR,
     error

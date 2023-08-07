@@ -4,11 +4,27 @@
  *
  */
 import React from "react";
-import PropTypes from "prop-types";
 import { filter } from "fuzzaldrin-plus";
-import { Table, Checkbox, Tooltip, Text } from "evergreen-ui";
 import { HiOutlineSearch } from "react-icons/hi";
-export default class PluginsTable extends React.Component {
+
+interface propsType {
+  plugins: [];
+  globalSearch: string;
+  updateSelectedPlugins: Function;
+}
+interface stateType {
+  selectedRows: any;
+  codeSearch: string;
+  nameSearch: string;
+  typeSearch: string;
+  groupSearch: string;
+  helpSearch: string;
+}
+
+export default class PluginsTable extends React.Component<
+  propsType,
+  stateType
+> {
   constructor(props, context) {
     super(props, context);
 
@@ -265,8 +281,11 @@ export default class PluginsTable extends React.Component {
         </div>
 
         <div className="pluginsTableContainer__bodyContainer">
-          {items.map(plugin => (
-            <div className="pluginsTableContainer__bodyContainer__rowContainer">
+          {items.map((plugin, index) => (
+            <div
+              className="pluginsTableContainer__bodyContainer__rowContainer"
+              key={index}
+            >
               <div className="pluginsTableContainer__bodyContainer__rowContainer__checkbox">
                 <input
                   type="checkbox"
@@ -303,9 +322,3 @@ export default class PluginsTable extends React.Component {
     );
   }
 }
-
-PluginsTable.propTypes = {
-  plugins: PropTypes.array,
-  globalSearch: PropTypes.string,
-  updateSelectedPlugins: PropTypes.func
-};

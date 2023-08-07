@@ -1,92 +1,84 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`OtpPage component Testing dumb otp component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="otpPageContainer"
   data-test="otpPageComponent"
-  marginY={100}
 >
-  <withTheme(Pane)
-    elevation={1}
-    justifyContent="center"
-    margin="auto"
-    padding={5}
-    width="35%"
+  <div
+    className="otpPageContainer__otpComponentContainer"
   >
-    <withTheme(Heading)
-      marginBottom={20}
-      paddingTop={20}
-      size={700}
-      textAlign="center"
+    <div
+      className="otpPageContainer__otpComponentContainer__brandLogoContainer"
     >
-      We sent a code
-    </withTheme(Heading)>
-    <withTheme(Paragraph)
-      marginLeft="20%"
-      marginTop={20}
-      size={300}
-      width="60%"
+      <img
+        alt="brand-logo"
+        src=""
+      />
+    </div>
+    <h2
+      className="otpPageContainer__otpComponentContainer__heading"
+    >
+      A code was sent
+    </h2>
+    <p
+      className="otpPageContainer__otpComponentContainer__info"
     >
       Enter the 6-digit verification code sent to your email.
-    </withTheme(Paragraph)>
-    <withTheme(Paragraph)
-      marginLeft="20%"
-      marginTop={10}
-      size={300}
-      width="60%"
+    </p>
+    <div
+      className="otpPageContainer__otpComponentContainer__otpInputContainer"
     >
-      <withTheme(Link)
-        href="/forgot-password/email/"
+      <label
+        htmlFor="otpPageInput"
       >
-        Change Username / Email
-      </withTheme(Link)>
-    </withTheme(Paragraph)>
-    <TextInputField
-      inputHeight={32}
-      inputWidth="100%"
-      label="Enter the OTP received"
-      marginBottom={10}
-      marginLeft="20%"
-      marginTop={10}
-      name="text-input-otp"
-      onBlur={[Function]}
-      onChange={[Function]}
-      placeholder="6 digit code"
-      validationMessage={null}
-      value=""
-      width="60%"
+        Enter the OTP received
+      </label>
+      <input
+        name="text-input-otp"
+        onBlur={[Function]}
+        onChange={[Function]}
+        placeholder="6 digit code"
+        type="text"
+        value=""
+      />
+    </div>
+    <p
+      className="inputRequiredError"
     />
-    <withTheme(Paragraph)
-      marginLeft="20%"
-      size={300}
-      width="60%"
-    >
-      <withTheme(Link)
-        onClick={[Function]}
-      >
-        Resend Code
-      </withTheme(Link)>
-    </withTheme(Paragraph)>
-    <withTheme(Button)
-      appearance="primary"
+    <button
+      className="otpPageContainer__otpComponentContainer__submitButton"
       disabled={false}
-      intent="none"
-      justifyContent="center"
-      marginBottom={10}
-      marginLeft="40%"
-      marginTop={10}
       onClick={[Function]}
-      width="20%"
     >
       Submit
-    </withTheme(Button)>
-    <withTheme(Paragraph)
-      marginBottom={20}
-      marginLeft="20%"
-      size={300}
-      width="60%"
+    </button>
+    <div
+      className="otpPageContainer__otpComponentContainer__linksContainer"
+    >
+      <p>
+        <Link
+          onClick={[Function]}
+          replace={false}
+          to="#"
+        >
+          Resend Code
+        </Link>
+      </p>
+      <p>
+        <Link
+          replace={false}
+          to="/forgot-password/email/"
+        >
+          Change Username / Email
+        </Link>
+      </p>
+    </div>
+    <p
+      className="otpPageContainer__otpComponentContainer__info"
     >
       If you don't find it in your inbox, check spam folder.
-    </withTheme(Paragraph)>
-  </withTheme(Pane)>
-</withTheme(Pane)>
+    </p>
+  </div>
+</div>
 `;

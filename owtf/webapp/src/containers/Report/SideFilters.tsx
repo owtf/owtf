@@ -7,19 +7,8 @@
 
 import React from "react";
 import Plugins from "../Plugins/index";
-import { templatesNames, getDocxReportFromJSON } from "./Export.js";
-import {
-  Pane,
-  Strong,
-  Tab,
-  Tablist,
-  Text,
-  Icon,
-  Menu,
-  Popover,
-  Position,
-  toaster
-} from "evergreen-ui";
+import { templatesNames, getDocxReportFromJSON } from "./Export";
+import { Menu, Popover, Position, toaster } from "evergreen-ui";
 import Dialog from "../../components/DialogBox/dialog";
 import { loadTargetExport } from "./actions";
 import {
@@ -27,16 +16,28 @@ import {
   makeSelectTargetExportError,
   makeSelectTargetExportLoading
 } from "./selectors";
-import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
-import { MdFilterAlt } from "react-icons/md";
-import { GiRecycle } from "react-icons/gi";
-import { BsFillFlagFill } from "react-icons/bs";
-import { BiExport } from "react-icons/bi";
-MdFilterAlt;
 
-export class SideFilters extends React.Component {
+interface propTypes {
+  targetData: [];
+  selectedGroup: [];
+  selectedType: [];
+  updateFilter: Function;
+  clearFilters: Function;
+  updateReport: Function;
+  exportLoading: boolean;
+  exportError: object | boolean;
+  exportData: any;
+  onFetchTargetExport: Function;
+}
+
+interface stateType {
+  filterShow: boolean;
+  pluginShow: boolean;
+}
+
+export class SideFilters extends React.Component<propTypes, stateType> {
   constructor(props, context) {
     super(props, context);
 
@@ -48,6 +49,9 @@ export class SideFilters extends React.Component {
     this.handlePluginClose = this.handlePluginClose.bind(this);
     this.handleAlertMsg = this.handleAlertMsg.bind(this);
     this.resetTargetState = this.resetTargetState.bind(this);
+    {
+      /* @ts-ignore */
+    }
     this.getDocxReportFromJSON = getDocxReportFromJSON.bind(this);
     this.getDocx = this.getDocx.bind(this);
 
@@ -64,11 +68,17 @@ export class SideFilters extends React.Component {
    */
 
   getDocx(template) {
+    {
+      /* @ts-ignore */
+    }
     this.props.onFetchTargetExport(this.props.targetData[0]);
     setTimeout(() => {
       if (this.props.exportError !== false) {
         toaster.danger("Server replied: " + this.props.exportError);
       } else {
+        {
+          /* @ts-ignore */
+        }
         this.getDocxReportFromJSON(this.props.exportData, template);
       }
     }, 500);
@@ -175,13 +185,10 @@ export class SideFilters extends React.Component {
         <div className="targetContainer__sideFilterContainer__actionsContainer">
           <strong>Actions : </strong>
           <div className="targetContainer__sideFilterContainer__actionsContainer__optionsWrapper">
-            <span
-              key="filter"
-              onClick={this.handleFilterShow}
-              justifyContent="left"
-            >
+            <span key="filter" onClick={this.handleFilterShow}>
               Filter
             </span>
+            {/* @ts-ignore */}
             <span key="refresh" onClick={updateReport}>
               Refresh
             </span>
@@ -191,7 +198,6 @@ export class SideFilters extends React.Component {
             <span
               key="sessions"
               // onClick={() => this.handleGroupSelect(group)}
-              justifyContent="left"
             >
               User Sessions
             </span>
@@ -215,6 +221,7 @@ export class SideFilters extends React.Component {
                 </Menu>
               }
             >
+              {/* @ts-ignore */}
               <span key="export" onClick={updateReport}>
                 Export Report
               </span>
@@ -229,12 +236,13 @@ export class SideFilters extends React.Component {
         <div className="targetContainer__sideFilterContainer__groupsContainer">
           <strong> Plugin Group : </strong>
           <div className="targetContainer__sideFilterContainer__groupsContainer__optionsWrapper">
-            {groups.map((group, index) => (
+            {groups.map((group: any, index: any) => (
               <span
                 key={index}
                 id={index}
                 onClick={() => this.handleGroupSelect(group)}
                 aria-controls={`panel-${group}`}
+                //@ts-ignore
                 style={{
                   backgroundColor:
                     selectedGroup.indexOf(group) > -1
@@ -255,11 +263,12 @@ export class SideFilters extends React.Component {
         <div className="targetContainer__sideFilterContainer__typeContainer">
           <strong> Plugin Type : </strong>
           <div className="targetContainer__sideFilterContainer__typeContainer__optionsWrapper">
-            {types.map((type, index) => (
+            {types.map((type: any, index: any) => (
               <span
                 key={index}
                 id={index}
                 onClick={() => this.handleTypeSelect(type)}
+                //@ts-ignore
                 style={{
                   backgroundColor:
                     selectedType.indexOf(type) > -1
@@ -286,27 +295,12 @@ export class SideFilters extends React.Component {
           </Dialog>
         </div>
 
+        {/* @ts-ignore */}
         <Plugins {...PluginProps} />
       </div>
     );
   }
 }
-
-SideFilters.propTypes = {
-  targetData: PropTypes.array,
-  selectedGroup: PropTypes.array,
-  selectedType: PropTypes.array,
-  updateFilter: PropTypes.func,
-  clearFilters: PropTypes.func,
-  updateReport: PropTypes.func,
-  exportLoading: PropTypes.bool,
-  exportError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  exportData: PropTypes.oneOfType([
-    PropTypes.object.isRequired,
-    PropTypes.bool.isRequired
-  ]),
-  onFetchTargetExport: PropTypes.func
-};
 
 const mapStateToProps = createStructuredSelector({
   exportData: makeSelectFetchTargetExport,
@@ -320,4 +314,5 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
+//@ts-ignore
 export default connect(mapStateToProps, mapDispatchToProps)(SideFilters);

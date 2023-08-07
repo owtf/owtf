@@ -4,6 +4,7 @@ import JSZip from "jszip";
 import saveAs from "save-as";
 import "@babel/polyfill";
 
+//@ts-ignore
 const templates = importDirectory(
   require.context("./templates/", true, /\.(docx)$/)
 );
@@ -12,6 +13,7 @@ export const templatesNames = Object.keys(templates);
 
 // Funtion responsible for generating docx from JSON using docxtemplater.
 export function getDocxReportFromJSON(json, template) {
+  //@ts-ignore
   var zip = new JSZip(templates[template]);
   var doc = new Docxtemplater();
   doc.loadZip(zip);
