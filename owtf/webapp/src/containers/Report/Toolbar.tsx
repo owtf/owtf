@@ -5,10 +5,17 @@
  */
 
 import React from "react";
-import { Pane, Tab, Tablist, Text } from "evergreen-ui";
-import PropTypes from "prop-types";
 
-export default class Toolbar extends React.Component {
+interface propsType {
+  selectedRank: [];
+  updateFilter: Function;
+}
+interface stateType {
+  show: boolean;
+  newSessionName: string;
+}
+
+export default class Toolbar extends React.Component<propsType, stateType> {
   constructor(props, context) {
     super(props, context);
 
@@ -25,7 +32,7 @@ export default class Toolbar extends React.Component {
 
   render() {
     const selectedRank = this.props.selectedRank;
-    const severities = {
+    const severities: object = {
       Unranked: -1,
       Passing: 0,
       Info: 1,
@@ -37,6 +44,7 @@ export default class Toolbar extends React.Component {
     return (
       <div className="targetContainer__headerToolbarContainer__toolbarContainer">
         {Object.keys(severities).map((severity, index) => (
+          //@ts-ignore
           <span
             key={index}
             id={index}
@@ -55,8 +63,3 @@ export default class Toolbar extends React.Component {
     );
   }
 }
-
-Toolbar.propTypes = {
-  selectedRank: PropTypes.array,
-  updateFilter: PropTypes.func
-};

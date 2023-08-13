@@ -2,18 +2,9 @@
  * This components manages Plugins and handles the plugin launch on selected targets
  */
 import React from "react";
-import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
-import {
-  Pane,
-  Tab,
-  Tablist,
-  Spinner,
-  Heading,
-  Checkbox,
-  SearchInput
-} from "evergreen-ui";
+import { Spinner } from "evergreen-ui";
 import {
   makeSelectFetchError,
   makeSelectFetchLoading,
@@ -24,7 +15,28 @@ import { loadPlugins, postToWorklist } from "./actions";
 import PluginsTable from "./PluginsTable";
 import Dialog from "../../components/DialogBox/dialog";
 
-export class Plugins extends React.Component {
+interface propsType {
+  loading: boolean;
+  error: object | boolean;
+  plugins: any;
+  postingError: object | boolean;
+  pluginShow: boolean;
+  onFetchPlugins: Function;
+  onPostToWorklist: Function;
+  handlePluginClose: Function;
+  selectedTargets: [];
+  handleAlertMsg: Function;
+  resetTargetState: Function;
+}
+interface stateType {
+  selectedIndex: number;
+  selectedPlugins: [];
+  groupSelectedPlugins: object;
+  force_overwrite: boolean;
+  globalSearch: string;
+}
+
+export class Plugins extends React.Component<propsType, stateType> {
   constructor(props, context) {
     super(props, context);
 
@@ -199,6 +211,7 @@ export class Plugins extends React.Component {
           title="Plugins"
           isDialogOpened={pluginShow}
           onClose={handlePluginClose}
+          //@ts-ignore
           confirmLabel="Run"
           onConfirm={this.launchPlugins}
         >
@@ -207,7 +220,7 @@ export class Plugins extends React.Component {
               <div className="pluginsContainer__headerContainer__launchingOptionsContainer">
                 <span
                   key={1}
-                  id={1}
+                  id="1"
                   onClick={() => this.setState({ selectedIndex: 1 })}
                   style={{
                     backgroundColor:
@@ -216,12 +229,13 @@ export class Plugins extends React.Component {
                         : "transparent"
                   }}
                   aria-controls={`panel-individual`}
+                  className="pluginsContainer__headerContainer__launchingOptionsContainer__tab"
                 >
                   Launch Individually
                 </span>
                 <span
                   key={2}
-                  id={2}
+                  id="2"
                   onClick={() => this.setState({ selectedIndex: 2 })}
                   style={{
                     backgroundColor:
@@ -230,6 +244,7 @@ export class Plugins extends React.Component {
                         : "transparent"
                   }}
                   aria-controls={`panel-group`}
+                  className="pluginsContainer__headerContainer__launchingOptionsContainer__tab"
                 >
                   Launch in groups
                 </span>
@@ -249,7 +264,7 @@ export class Plugins extends React.Component {
                   ) : null}
                 </div>
                 <div className="pluginsContainer__headerContainer__searchinputCheckboxContainer__checkboxContainer">
-                  <label for="force-overwrite">Force Overwrite</label>
+                  <label htmlFor="force-overwrite">Force Overwrite</label>
                   <input
                     type="checkbox"
                     id="force-overwrite"
@@ -313,8 +328,11 @@ export class Plugins extends React.Component {
                   <h2>Plugin Groups</h2>
                   {groupArray[0].map((group, index) => {
                     return (
-                      <div className="pluginsContainer__bodyContainer__pluginGroupContainer__pluginGroupSelectContainer__inputContainer">
-                        <label for={`plugins-group-select ${index}`}>
+                      <div
+                        className="pluginsContainer__bodyContainer__pluginGroupContainer__pluginGroupSelectContainer__inputContainer"
+                        key={index}
+                      >
+                        <label htmlFor={`plugins-group-select ${index}`}>
                           {group}
                         </label>
                         <input
@@ -341,14 +359,16 @@ export class Plugins extends React.Component {
                   <h2>Plugin Types</h2>
                   {groupArray[1].map((type, index) => {
                     return (
-                      <div className="pluginsContainer__bodyContainer__pluginGroupContainer__pluginTypesContainer__inputContainer">
-                        <label for={`plugins-type-select ${index}`}>
+                      <div
+                        className="pluginsContainer__bodyContainer__pluginGroupContainer__pluginTypesContainer__inputContainer"
+                        key={index}
+                      >
+                        <label htmlFor={`plugins-type-select ${index}`}>
                           {type.replace(/_/g, " ")}
                         </label>
                         <input
                           type="checkbox"
                           key={index}
-                          label={type.replace(/_/g, " ")}
                           id={`plugins-type-select ${index}`}
                           checked={
                             this.state.groupSelectedPlugins["type"] !==
@@ -378,20 +398,6 @@ export class Plugins extends React.Component {
   }
 }
 
-Plugins.propTypes = {
-  loading: PropTypes.bool,
-  error: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  plugins: PropTypes.oneOfType([PropTypes.array, PropTypes.bool]),
-  postingError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  pluginShow: PropTypes.bool,
-  onFetchPlugins: PropTypes.func,
-  onPostToWorklist: PropTypes.func,
-  handlePluginClose: PropTypes.func,
-  selectedTargets: PropTypes.array,
-  handleAlertMsg: PropTypes.func,
-  resetTargetState: PropTypes.func
-};
-
 const mapStateToProps = createStructuredSelector({
   plugins: makeSelectFetchPlugins,
   loading: makeSelectFetchLoading,
@@ -406,4 +412,5 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
+//@ts-ignore
 export default connect(mapStateToProps, mapDispatchToProps)(Plugins);

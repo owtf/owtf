@@ -11,7 +11,6 @@
  */
 
 import React from "react";
-import { Pane } from "evergreen-ui";
 import Header from "./Header";
 import SideFilters from "./SideFilters";
 import Toolbar from "./Toolbar";
@@ -22,13 +21,28 @@ import {
   makeSelectTargetError,
   makeSelectTargetLoading
 } from "./selectors";
-import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import update from "immutability-helper";
 import "style.scss";
 
-export class Report extends React.Component {
+interface propTypes {
+  targetLoading: boolean;
+  targetError: object | boolean;
+  target: any;
+  onFetchTarget: Function;
+  match: any;
+}
+
+interface stateTypes {
+  selectedGroup: [];
+  selectedType: [];
+  selectedRank: [];
+  selectedOwtfRank: [];
+  selectedMapping: string;
+  selectedStatus: [];
+}
+export class Report extends React.Component<propTypes, stateTypes> {
   constructor(props, context) {
     super(props, context);
 
@@ -77,6 +91,10 @@ export class Report extends React.Component {
     }
 
     const index = this.state[type].indexOf(val);
+
+    {
+      /* @ts-ignore */
+    }
     if (index > -1) {
       this.setState({
         [type]: update(this.state[type], {
@@ -84,9 +102,10 @@ export class Report extends React.Component {
         })
       });
     } else {
-      this.setState({
-        [type]: update(this.state[type], { $push: [val] })
-      });
+      {
+        /* @ts-ignore */
+      }
+      this.setState({ [type]: update(this.state[type], { $push: [val] }) });
     }
   }
 
@@ -131,8 +150,10 @@ export class Report extends React.Component {
     };
     return (
       <div className="targetContainer" data-test="reportComponent">
+        {/* @ts-ignore */}
         <SideFilters {...SideFiltersProps} />
         <div className="targetContainer__headerToolbarContainer">
+          {/* @ts-ignore */}
           {this.props.target !== false ? <Header {...HeaderProps} /> : null}
 
           <div className="targetContainer__severityContainer">
@@ -142,6 +163,7 @@ export class Report extends React.Component {
 
           <br />
           {this.props.target !== false ? (
+            //@ts-ignore
             <Accordians {...AccordiansProps} {...this.state} />
           ) : null}
         </div>
@@ -149,16 +171,6 @@ export class Report extends React.Component {
     );
   }
 }
-
-Report.propTypes = {
-  targetLoading: PropTypes.bool,
-  targetError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  target: PropTypes.oneOfType([
-    PropTypes.object.isRequired,
-    PropTypes.bool.isRequired
-  ]),
-  onFetchTarget: PropTypes.func
-};
 
 const mapStateToProps = createStructuredSelector({
   target: makeSelectFetchTarget,
@@ -172,4 +184,5 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
+//@ts-ignore
 export default connect(mapStateToProps, mapDispatchToProps)(Report);

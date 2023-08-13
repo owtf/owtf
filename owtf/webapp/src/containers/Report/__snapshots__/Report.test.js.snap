@@ -1,125 +1,142 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Report page component Testing Collapse component Should render without errors 1`] = `
-<SideSheet
-  containerProps={
-    Object {
-      "display": "flex",
-      "flex": "1",
-      "flexDirection": "column",
-    }
-  }
+<Dialog
   data-test="collapseComponent"
-  isShown={true}
-  onCloseComplete={[MockFunction]}
-  onOpenComplete={[Function]}
-  position="right"
-  shouldCloseOnEscapePress={true}
-  shouldCloseOnOverlayClick={true}
-  width={700}
+  isDialogOpened={true}
+  onClose={[MockFunction]}
+  title=""
 >
-  <withTheme(Pane)
-    backgroundColor="white"
-    elevation={0}
-    flexShrink={0}
-    zIndex={1}
+  <div
+    className="accordriansContainer__accordianCollapseContainer__collapseContainer"
   >
-    <withTheme(Pane)
-      borderBottom="muted"
-      padding={16}
+    <div
+      className="accordriansContainer__accordianCollapseContainer__collapseContainer__headerContainer"
     >
-      <withTheme(Heading)
-        size={600}
+      <div
+        className="accordriansContainer__accordianCollapseContainer__collapseContainer__headerContainer__heading"
       >
-        OWTF-ABrF-001 Password Bruteforce Testing plugin
-      </withTheme(Heading)>
-      <withTheme(Paragraph)
-        color="muted"
-        size={400}
+        <h2>
+          OWTF-ABrF-001 Password Bruteforce Testing plugin
+        </h2>
+        <p
+          color="muted"
+        >
+          Password Bruteforce 
+        </p>
+      </div>
+      <div
+        className="accordriansContainer__accordianCollapseContainer__collapseContainer__headerContainer__typeContainer"
       >
-        Password Bruteforce 
-      </withTheme(Paragraph)>
-    </withTheme(Pane)>
-    <withTheme(Pane)
-      display="flex"
-      padding={8}
-    >
-      <Tablist>
-        <withTheme(Tab)
-          disabled={true}
+        <span
           key="type"
         >
-          Type:
-        </withTheme(Tab)>
-        <withTheme(Tab)
+          Type :
+        </span>
+        <Link
           aria-controls="panel-0"
-          href="#auxiliary_bruteforce_OWTF-ABrF-001"
           id={0}
           is="a"
-          isSelected={false}
           key="bruteforce_OWTF-ABrF-001"
-          onSelect={[Function]}
+          onClick={[Function]}
+          replace={false}
+          style={
+            Object {
+              "backgroundColor": "transparent",
+            }
+          }
+          to="#auxiliary_bruteforce_OWTF-ABrF-001"
         >
           bruteforce
-        </withTheme(Tab)>
-        <withTheme(Tab)
+        </Link>
+        <Link
           aria-controls="panel-1"
-          href="#auxiliarysss_bruteforce_OWTF-ABrF-001"
           id={1}
           is="a"
-          isSelected={false}
           key="bruteforce_OWTF-ABrF-001"
-          onSelect={[Function]}
+          onClick={[Function]}
+          replace={false}
+          style={
+            Object {
+              "backgroundColor": "transparent",
+            }
+          }
+          to="#auxiliarysss_bruteforce_OWTF-ABrF-001"
         >
           bruteforce
-        </withTheme(Tab)>
-        <withTheme(Tab)
+        </Link>
+        <span
           key="more-info"
+          style={
+            Object {
+              "padding": "0.5rem",
+            }
+          }
         >
-          <withTheme(Link)
+          <a
             href=" https://www.owasp.org/index.php/"
+            style={
+              Object {
+                "padding": "0",
+              }
+            }
             title="More information"
           >
-            <Icon
-              icon="lightbulb"
-            />
-          </withTheme(Link)>
-        </withTheme(Tab)>
-      </Tablist>
-    </withTheme(Pane)>
-  </withTheme(Pane)>
-  <withTheme(Pane)
-    background="tint1"
-    flex="1"
-    overflowY="scroll"
-    padding={16}
-  >
-    <withTheme(Pane)
-      aria-hidden={true}
-      aria-labelledby={0}
-      display="none"
-      id="panel-0"
-      key="bruteforce_OWTF-ABrF-001"
-      role="tabpanel"
+            <FaLightbulb />
+          </a>
+        </span>
+      </div>
+    </div>
+    <div
+      className="accordriansContainer__accordianCollapseContainer__collapseContainer__bodyContainer"
     >
-      <withTheme(Pane)
-        display="flex"
-        flexDirection="column"
+      <div
+        aria-hidden={true}
+        aria-labelledby={0}
+        className="accordriansContainer__accordianCollapseContainer__collapseContainer__bodyContainer__pluginTypeContainer"
+        id="panel-0"
+        key="bruteforce_OWTF-ABrF-001"
+        role="tabpanel"
+        style={
+          Object {
+            "display": "none",
+          }
+        }
       >
-        <withTheme(Pane)
-          marginBottom={20}
+        <div
+          className="accordriansContainer__accordianCollapseContainer__collapseContainer__bodyContainer__pluginTypeContainer__headingButtonsContainer"
         >
-          <blockquote
-            className="pull-left"
+          <div
+            className="accordriansContainer__accordianCollapseContainer__collapseContainer__bodyContainer__pluginTypeContainer__headingButtonsContainer__heading"
           >
-            <withTheme(Heading)>
-              Bruteforce
-            </withTheme(Heading)>
-            <Small>
-              OWTF-ABrF-001
-            </Small>
-          </blockquote>
-          <RankButtons
+            <blockquote
+              className="pull-left"
+            >
+              <h2>
+                Bruteforce
+              </h2>
+              <small>
+                OWTF-ABrF-001
+              </small>
+            </blockquote>
+            <RankButtons
+              obj={
+                Object {
+                  "id": 63,
+                  "owtf_rank": -1,
+                  "plugin_code": "OWTF-ABrF-001",
+                  "plugin_group": "auxiliary",
+                  "plugin_key": "bruteforce@OWTF-ABrF-001",
+                  "plugin_type": "bruteforce",
+                  "status": "",
+                  "user_rank": -1,
+                }
+              }
+              patchUserRank={[MockFunction]}
+            />
+          </div>
+          <Connect(DataTable)
+            deletePluginOutput={[MockFunction]}
             obj={
               Object {
                 "id": 63,
@@ -132,54 +149,58 @@ exports[`Report page component Testing Collapse component Should render without 
                 "user_rank": -1,
               }
             }
-            patchUserRank={[MockFunction]}
+            postToWorklist={[MockFunction]}
+            targetData={Object {}}
           />
-        </withTheme(Pane)>
-        <Connect(DataTable)
-          deletePluginOutput={[MockFunction]}
-          obj={
-            Object {
-              "id": 63,
-              "owtf_rank": -1,
-              "plugin_code": "OWTF-ABrF-001",
-              "plugin_group": "auxiliary",
-              "plugin_key": "bruteforce@OWTF-ABrF-001",
-              "plugin_type": "bruteforce",
-              "status": "",
-              "user_rank": -1,
-            }
+        </div>
+      </div>
+      <div
+        aria-hidden={true}
+        aria-labelledby={1}
+        className="accordriansContainer__accordianCollapseContainer__collapseContainer__bodyContainer__pluginTypeContainer"
+        id="panel-1"
+        key="bruteforce_OWTF-ABrF-001"
+        role="tabpanel"
+        style={
+          Object {
+            "display": "none",
           }
-          postToWorklist={[MockFunction]}
-          targetData={Object {}}
-        />
-      </withTheme(Pane)>
-    </withTheme(Pane)>
-    <withTheme(Pane)
-      aria-hidden={true}
-      aria-labelledby={1}
-      display="none"
-      id="panel-1"
-      key="bruteforce_OWTF-ABrF-001"
-      role="tabpanel"
-    >
-      <withTheme(Pane)
-        display="flex"
-        flexDirection="column"
+        }
       >
-        <withTheme(Pane)
-          marginBottom={20}
+        <div
+          className="accordriansContainer__accordianCollapseContainer__collapseContainer__bodyContainer__pluginTypeContainer__headingButtonsContainer"
         >
-          <blockquote
-            className="pull-left"
+          <div
+            className="accordriansContainer__accordianCollapseContainer__collapseContainer__bodyContainer__pluginTypeContainer__headingButtonsContainer__heading"
           >
-            <withTheme(Heading)>
-              Bruteforce
-            </withTheme(Heading)>
-            <Small>
-              OWTF-ABrF-001
-            </Small>
-          </blockquote>
-          <RankButtons
+            <blockquote
+              className="pull-left"
+            >
+              <h2>
+                Bruteforce
+              </h2>
+              <small>
+                OWTF-ABrF-001
+              </small>
+            </blockquote>
+            <RankButtons
+              obj={
+                Object {
+                  "id": 63,
+                  "owtf_rank": -1,
+                  "plugin_code": "OWTF-ABrF-001",
+                  "plugin_group": "auxiliarysss",
+                  "plugin_key": "bruteforce@OWTF-ABrF-001",
+                  "plugin_type": "bruteforce",
+                  "status": "",
+                  "user_rank": -1,
+                }
+              }
+              patchUserRank={[MockFunction]}
+            />
+          </div>
+          <Connect(DataTable)
+            deletePluginOutput={[MockFunction]}
             obj={
               Object {
                 "id": 63,
@@ -192,269 +213,182 @@ exports[`Report page component Testing Collapse component Should render without 
                 "user_rank": -1,
               }
             }
-            patchUserRank={[MockFunction]}
+            postToWorklist={[MockFunction]}
+            targetData={Object {}}
           />
-        </withTheme(Pane)>
-        <Connect(DataTable)
-          deletePluginOutput={[MockFunction]}
-          obj={
-            Object {
-              "id": 63,
-              "owtf_rank": -1,
-              "plugin_code": "OWTF-ABrF-001",
-              "plugin_group": "auxiliarysss",
-              "plugin_key": "bruteforce@OWTF-ABrF-001",
-              "plugin_type": "bruteforce",
-              "status": "",
-              "user_rank": -1,
-            }
-          }
-          postToWorklist={[MockFunction]}
-          targetData={Object {}}
-        />
-      </withTheme(Pane)>
-    </withTheme(Pane)>
-  </withTheme(Pane)>
-</SideSheet>
+        </div>
+      </div>
+    </div>
+  </div>
+</Dialog>
 `;
 
 exports[`Report page component Testing Header component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="targetContainer__headerToolbarContainer__headerContainer"
   data-test="headerComponent"
 >
-  <Breadcrumb
-    bsClass="breadcrumb"
+  <div
+    className="targetContainer__headerToolbarContainer__headerContainer__heading"
   >
-    <BreadcrumbItem
-      active={false}
-      href="/"
-    >
-      Home
-    </BreadcrumbItem>
-    <BreadcrumbItem
-      active={false}
-      href="/targets/"
-    >
-      Target
-    </BreadcrumbItem>
-    <BreadcrumbItem
-      active={true}
-    >
+    <h2>
       http://gg.com
-    </BreadcrumbItem>
-  </Breadcrumb>
-  <withTheme(IconButton)
-    appearance="primary"
-    className="scroll"
-    icon="arrow-up"
-    intent="danger"
-    onClick={[Function]}
-    title="Move to top"
-  />
-  <withTheme(Pane)
-    alignItems="center"
-    display="flex"
-    flexDirection="row"
-    marginTop={50}
-  >
-    <withTheme(Pane)
-      alignItems=""
-      display="flex"
-      flexBasis={800}
-      flexDirection="Column"
+    </h2>
+    <small>
+       (49.4.3.212)
+    </small>
+    <div
+      className="targetContainer__headerToolbarContainer__headerContainer__heading__severity"
     >
-      <withTheme(Heading)
-        marginLeft={10}
-        size={800}
+      <span
+        style={
+          Object {
+            "backgroundColor": "rgba(128, 0, 128, 0.466)",
+          }
+        }
       >
-        http://gg.com
-      </withTheme(Heading)>
-      <Small
-        marginBottom={20}
-        marginLeft={10}
-        marginTop={20}
-      >
-         (49.4.3.212)
-      </Small>
-    </withTheme(Pane)>
-    <withTheme(Badge)
-      color="purple"
-      height={40}
-      marginRight={8}
-      padding={12}
-      width={80}
-    >
-      Critical
-    </withTheme(Badge)>
-  </withTheme(Pane)>
-  <hr />
-</withTheme(Pane)>
+        Critical
+      </span>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`Report page component Testing Table component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="targetsCollapseDataTableContainer"
   data-test="dataTableComponent"
 >
-  <Table
-    border={true}
+  <div
+    className="targetsCollapseDataTableContainer__headerContainer"
   >
-    <TableHead
-      accountForScrollbar={true}
-      height={32}
+    <span>
+      RUNTIME
+    </span>
+    <span>
+      TIME INTERVAL
+    </span>
+    <span>
+      STATUS
+    </span>
+    <span>
+      OUTPUT FILES
+    </span>
+    <span>
+      ACTIONS
+    </span>
+  </div>
+  <div
+    className="targetsCollapseDataTableContainer__bodyContainer"
+  >
+    <div
+      className="targetsCollapseDataTableContainer__bodyContainer__rowContainer"
     >
-      <TextTableHeaderCell>
-        RUNTIME
-      </TextTableHeaderCell>
-      <TextTableHeaderCell>
-        TIME INTERVAL
-      </TextTableHeaderCell>
-      <TextTableHeaderCell>
-        STATUS
-      </TextTableHeaderCell>
-      <TextTableHeaderCell>
-        OUTPUT FILES
-      </TextTableHeaderCell>
-      <TextTableHeaderCell>
-        ACTIONS
-      </TextTableHeaderCell>
-    </TableHead>
-    <TableVirtualBody
-      allowAutoHeight={false}
-      defaultHeight={48}
-      height={60}
-      overscanCount={5}
-      useAverageAutoHeightEstimation={true}
-    >
-      <withTheme(TableRow)>
-        <TextTableCell
-          isNumber={false}
-        />
-        <TextTableCell
-          isNumber={false}
+      <div
+        className="targetsCollapseDataTableContainer__bodyContainer__rowContainer__runTime"
+      />
+      <div
+        className="targetsCollapseDataTableContainer__bodyContainer__rowContainer__time"
+      >
+        <br />
+      </div>
+      <div
+        className="targetsCollapseDataTableContainer__bodyContainer__rowContainer__status"
+      />
+      <div
+        className="targetsCollapseDataTableContainer__bodyContainer__rowContainer__outputfiles"
+      >
+        <Link
+          replace={false}
+          to="/output_files/undefined/"
         >
-          <br />
-        </TextTableCell>
-        <TextTableCell
-          isNumber={false}
-        />
-        <withTheme(TableCell)>
-          <withTheme(Link)
-            href="/output_files/undefined/"
+          <button
+            disabled={false}
           >
-            <withTheme(Button)
-              appearance="primary"
-              disabled={false}
-            >
-              Browse
-            </withTheme(Button)>
-          </withTheme(Link)>
-        </withTheme(TableCell)>
-        <withTheme(TableCell)>
-          <withTheme(IconButton)
-            icon="refresh"
-            intent="success"
-            onClick={[Function]}
-            title="Rerun plugin"
-          />
-          <withTheme(IconButton)
-            icon="cross"
-            intent="danger"
-            onClick={[Function]}
-            title="Delete plugin output"
-          />
-        </withTheme(TableCell)>
-      </withTheme(TableRow)>
-    </TableVirtualBody>
-  </Table>
-  <withTheme(Pane)
-    display="flex"
-    flexDirection="column"
-    marginTop={10}
+            Browse
+          </button>
+        </Link>
+      </div>
+      <div
+        className="targetsCollapseDataTableContainer__bodyContainer__rowContainer__actionButtons"
+      >
+        <button
+          className="targetsCollapseDataTableContainer__bodyContainer__rowContainer__actionButtons__reRunPlugin"
+          onClick={[Function]}
+          title="Rerun plugin"
+        >
+          <GiRecycle />
+        </button>
+        <button
+          className="targetsCollapseDataTableContainer__bodyContainer__rowContainer__actionButtons__deletePlugin"
+          onClick={[Function]}
+          title="Delete plugin output"
+        >
+          <AiOutlineClose />
+        </button>
+      </div>
+    </div>
+  </div>
+  <div
+    className="targetsCollapseDataTableContainer__notesAndDetailsContainer"
   >
-    <withTheme(Pane)
-      marginBottom={20}
+    <div
+      className="targetsCollapseDataTableContainer__notesAndDetailsContainer__toggleButtonAndEditor"
     >
-      <withTheme(Button)
-        height={32}
-        iconBefore="edit"
-        intent="none"
+      <button
         onClick={[Function]}
         title="Click to open the text editor"
       >
         Notes
-      </withTheme(Button)>
-    </withTheme(Pane)>
-    <withTheme(Pane)
-      border={true}
-      padding={10}
+      </button>
+    </div>
+    <div
+      className="targetsCollapseDataTableContainer__notesAndDetailsContainer__moreDetailsContainer"
     >
-      <withTheme(Heading)>
+      <h2>
         MORE DETAILS
-      </withTheme(Heading)>
-      <Table
-        border={true}
-        margin={5}
-        padding={10}
-      >
-        Output not available
-      </Table>
-    </withTheme(Pane)>
-  </withTheme(Pane)>
-</withTheme(Pane)>
+      </h2>
+      Output not available
+    </div>
+  </div>
+</div>
 `;
 
 exports[`Report page component Testing dumb Accordian component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="accordriansContainer__accordianCollapseContainer"
   data-test="accordianComponent"
   key="Test plugin"
 >
-  <withTheme(Pane)
-    alignItems="center"
-    background="none"
-    display="flex"
-    elevation={1}
-    flexDirection="row"
-    height={100}
-    marginBottom={10}
+  <div
+    className="accordriansContainer__accordianCollapseContainer__accordianContainer"
   >
-    <withTheme(Pane)
-      width={100}
+    <div
+      className="accordriansContainer__accordianCollapseContainer__accordianContainer__headingContainer"
     >
-      <withTheme(Button)
-        appearance="primary"
-        height={20}
-        intent="none"
+      <h2
+        onClick={[Function]}
+      >
+        OWTF-ABrF-001 Password Bruteforce Testing plugin
+      </h2>
+      <small>
+        Password Bruteforce 
+      </small>
+    </div>
+    <div
+      className="accordriansContainer__accordianCollapseContainer__accordianContainer__buttonsContainer"
+    >
+      <button
         key="Test pluginbruteforce"
         onClick={[Function]}
       >
         Bruteforce
-      </withTheme(Button)>
-    </withTheme(Pane)>
-    <withTheme(Pane)
-      alignItems="center"
-      display="flex"
-      flex={1}
-      flexDirection="row"
-    >
-      <withTheme(Heading)
-        className="heading"
-        cursor="pointer"
-        onClick={[Function]}
-        size={700}
-      >
-        OWTF-ABrF-001 Password Bruteforce Testing plugin
-      </withTheme(Heading)>
-      <Small
-        marginLeft={5}
-        marginTop={5}
-      >
-        Password Bruteforce 
-      </Small>
-    </withTheme(Pane)>
-    <withTheme(Pane)
-      marginRight={20}
+      </button>
+    </div>
+    <div
+      className="accordriansContainer__accordianCollapseContainer__accordianContainer__severityContainer"
     />
-  </withTheme(Pane)>
+  </div>
   <Collapse
     deletePluginOutput={[Function]}
     handlePluginBtnOnAccordian={[Function]}
@@ -483,11 +417,12 @@ exports[`Report page component Testing dumb Accordian component Should render wi
     sideSheetOpen={false}
     targetData={Object {}}
   />
-</withTheme(Pane)>
+</div>
 `;
 
 exports[`Report page component Testing dumb Accordians component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="AccordriansContainer"
   data-test="accordiansComponent"
   id="pluginOutputs"
 >
@@ -521,346 +456,278 @@ exports[`Report page component Testing dumb Accordians component Should render w
     key="OWTF-ABrF-001"
     targetData={Object {}}
   />
-</withTheme(Pane)>
+</div>
 `;
 
 exports[`Report page component Testing dumb SideFilters component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="targetContainer__sideFilterContainer"
   data-test="sideFiltersComponent"
-  display="flex"
-  flexDirection="column"
 >
-  <Strong
-    marginBottom={10}
+  <div
+    className="targetContainer__sideFilterContainer__actionsContainer"
   >
-     Actions
-  </Strong>
-  <Tablist
-    display="flex"
-    flexDirection="column"
-    marginBottom={30}
-    width={200}
-  >
-    <withTheme(Tab)
-      justifyContent="left"
-      key="filter"
-      onSelect={[Function]}
+    <strong>
+      Actions : 
+    </strong>
+    <div
+      className="targetContainer__sideFilterContainer__actionsContainer__optionsWrapper"
     >
-      <Icon
-        color="info"
-        icon="filter"
-        marginRight={10}
-      />
-      <withTheme(Text)
-        color="#337ab7"
+      <span
+        key="filter"
+        onClick={[Function]}
       >
         Filter
-      </withTheme(Text)>
-    </withTheme(Tab)>
-    <withTheme(Tab)
-      justifyContent="left"
-      key="refresh"
-      onSelect={[MockFunction]}
-    >
-      <Icon
-        color="success"
-        icon="refresh"
-        marginRight={10}
-      />
-      <withTheme(Text)
-        color="#337ab7"
+      </span>
+      <span
+        key="refresh"
+        onClick={[MockFunction]}
       >
         Refresh
-      </withTheme(Text)>
-    </withTheme(Tab)>
-    <withTheme(Tab)
-      justifyContent="left"
-      key="plugins"
-      onSelect={[Function]}
-    >
-      <Icon
-        color="danger"
-        icon="fork"
-        marginRight={10}
-      />
-      <withTheme(Text)
-        color="#337ab7"
+      </span>
+      <span
+        key="plugins"
+        onClick={[Function]}
       >
         Run Plugins
-      </withTheme(Text)>
-    </withTheme(Tab)>
-    <withTheme(Tab)
-      justifyContent="left"
-      key="sessions"
-    >
-      <Icon
-        color="warning"
-        icon="flag"
-        marginRight={10}
-      />
-      <withTheme(Text)
-        color="#337ab7"
+      </span>
+      <span
+        key="sessions"
       >
         User Sessions
-      </withTheme(Text)>
-    </withTheme(Tab)>
-    <Popover
-      animationDuration={300}
-      bringFocusInside={false}
-      content={
-        <Menu>
-          <MenuGroup
-            title="Select template"
-          />
-        </Menu>
-      }
-      minHeight={40}
-      minWidth={200}
-      onBodyClick={[Function]}
-      onClose={[Function]}
-      onCloseComplete={[Function]}
-      onOpen={[Function]}
-      onOpenComplete={[Function]}
-      position="bottom-left"
-      shouldCloseOnExternalClick={true}
-      trigger="click"
-    >
-      <withTheme(Tab)
-        justifyContent="left"
-        key="export"
+      </span>
+      <Popover
+        animationDuration={300}
+        bringFocusInside={false}
+        content={
+          <Menu>
+            <MenuGroup
+              title="Select template"
+            />
+          </Menu>
+        }
+        minHeight={40}
+        minWidth={200}
+        onBodyClick={[Function]}
+        onClose={[Function]}
+        onCloseComplete={[Function]}
+        onOpen={[Function]}
+        onOpenComplete={[Function]}
+        position="bottom-left"
+        shouldCloseOnExternalClick={true}
+        trigger="click"
       >
-        <Icon
-          icon="export"
-          marginRight={10}
-        />
-        <withTheme(Text)
-          color="#337ab7"
+        <span
+          key="export"
+          onClick={[MockFunction]}
         >
           Export Report
-        </withTheme(Text)>
-        <Icon
-          icon="caret-down"
-          marginLeft={5}
-        />
-      </withTheme(Tab)>
-    </Popover>
-  </Tablist>
-  <Strong
-    marginBottom={10}
+        </span>
+      </Popover>
+    </div>
+  </div>
+  <div
+    className="targetContainer__sideFilterContainer__groupsContainer"
   >
-     Plugin Group
-  </Strong>
-  <Tablist
-    display="flex"
-    flexDirection="column"
-    marginBottom={30}
-    width={200}
-  >
-    <withTheme(Tab)
-      aria-controls="panel-web"
-      id={0}
-      isSelected={false}
-      justifyContent="left"
-      key="0"
-      onSelect={[Function]}
+    <strong>
+       Plugin Group : 
+    </strong>
+    <div
+      className="targetContainer__sideFilterContainer__groupsContainer__optionsWrapper"
     >
-      <withTheme(Text)
-        color="#337ab7"
+      <span
+        aria-controls="panel-web"
+        id={0}
+        key="0"
+        onClick={[Function]}
+        style={
+          Object {
+            "backgroundColor": "transparent",
+          }
+        }
       >
         web
-      </withTheme(Text)>
-    </withTheme(Tab)>
-    <withTheme(Tab)
-      aria-controls="panel-network"
-      id={1}
-      isSelected={false}
-      justifyContent="left"
-      key="1"
-      onSelect={[Function]}
-    >
-      <withTheme(Text)
-        color="#337ab7"
+      </span>
+      <span
+        aria-controls="panel-network"
+        id={1}
+        key="1"
+        onClick={[Function]}
+        style={
+          Object {
+            "backgroundColor": "transparent",
+          }
+        }
       >
         network
-      </withTheme(Text)>
-    </withTheme(Tab)>
-    <withTheme(Tab)
-      aria-controls="panel-auxiliary"
-      id={2}
-      isSelected={false}
-      justifyContent="left"
-      key="2"
-      onSelect={[Function]}
-    >
-      <withTheme(Text)
-        color="#337ab7"
+      </span>
+      <span
+        aria-controls="panel-auxiliary"
+        id={2}
+        key="2"
+        onClick={[Function]}
+        style={
+          Object {
+            "backgroundColor": "transparent",
+          }
+        }
       >
         auxiliary
-      </withTheme(Text)>
-    </withTheme(Tab)>
-  </Tablist>
-  <Strong
-    marginBottom={10}
+      </span>
+    </div>
+  </div>
+  <div
+    className="targetContainer__sideFilterContainer__typeContainer"
   >
-     Plugin Type
-  </Strong>
-  <Tablist
-    display="flex"
-    flexDirection="column"
-    marginBottom="110%"
-    width={200}
-  >
-    <withTheme(Tab)
-      aria-controls="panel-exploit"
-      id={0}
-      isSelected={false}
-      justifyContent="left"
-      key="0"
-      onSelect={[Function]}
+    <strong>
+       Plugin Type : 
+    </strong>
+    <div
+      className="targetContainer__sideFilterContainer__typeContainer__optionsWrapper"
     >
-      <withTheme(Text)
-        color="#337ab7"
+      <span
+        aria-controls="panel-exploit"
+        id={0}
+        key="0"
+        onClick={[Function]}
+        style={
+          Object {
+            "backgroundColor": "transparent",
+          }
+        }
       >
         exploit
-      </withTheme(Text)>
-    </withTheme(Tab)>
-    <withTheme(Tab)
-      aria-controls="panel-semi_passive"
-      id={1}
-      isSelected={false}
-      justifyContent="left"
-      key="1"
-      onSelect={[Function]}
-    >
-      <withTheme(Text)
-        color="#337ab7"
+      </span>
+      <span
+        aria-controls="panel-semi_passive"
+        id={1}
+        key="1"
+        onClick={[Function]}
+        style={
+          Object {
+            "backgroundColor": "transparent",
+          }
+        }
       >
         semi passive
-      </withTheme(Text)>
-    </withTheme(Tab)>
-    <withTheme(Tab)
-      aria-controls="panel-dos"
-      id={2}
-      isSelected={false}
-      justifyContent="left"
-      key="2"
-      onSelect={[Function]}
-    >
-      <withTheme(Text)
-        color="#337ab7"
+      </span>
+      <span
+        aria-controls="panel-dos"
+        id={2}
+        key="2"
+        onClick={[Function]}
+        style={
+          Object {
+            "backgroundColor": "transparent",
+          }
+        }
       >
         dos
-      </withTheme(Text)>
-    </withTheme(Tab)>
-    <withTheme(Tab)
-      aria-controls="panel-selenium"
-      id={3}
-      isSelected={false}
-      justifyContent="left"
-      key="3"
-      onSelect={[Function]}
-    >
-      <withTheme(Text)
-        color="#337ab7"
+      </span>
+      <span
+        aria-controls="panel-selenium"
+        id={3}
+        key="3"
+        onClick={[Function]}
+        style={
+          Object {
+            "backgroundColor": "transparent",
+          }
+        }
       >
         selenium
-      </withTheme(Text)>
-    </withTheme(Tab)>
-    <withTheme(Tab)
-      aria-controls="panel-smb"
-      id={4}
-      isSelected={false}
-      justifyContent="left"
-      key="4"
-      onSelect={[Function]}
-    >
-      <withTheme(Text)
-        color="#337ab7"
+      </span>
+      <span
+        aria-controls="panel-smb"
+        id={4}
+        key="4"
+        onClick={[Function]}
+        style={
+          Object {
+            "backgroundColor": "transparent",
+          }
+        }
       >
         smb
-      </withTheme(Text)>
-    </withTheme(Tab)>
-    <withTheme(Tab)
-      aria-controls="panel-active"
-      id={5}
-      isSelected={false}
-      justifyContent="left"
-      key="5"
-      onSelect={[Function]}
-    >
-      <withTheme(Text)
-        color="#337ab7"
+      </span>
+      <span
+        aria-controls="panel-active"
+        id={5}
+        key="5"
+        onClick={[Function]}
+        style={
+          Object {
+            "backgroundColor": "transparent",
+          }
+        }
       >
         active
-      </withTheme(Text)>
-    </withTheme(Tab)>
-    <withTheme(Tab)
-      aria-controls="panel-bruteforce"
-      id={6}
-      isSelected={false}
-      justifyContent="left"
-      key="6"
-      onSelect={[Function]}
-    >
-      <withTheme(Text)
-        color="#337ab7"
+      </span>
+      <span
+        aria-controls="panel-bruteforce"
+        id={6}
+        key="6"
+        onClick={[Function]}
+        style={
+          Object {
+            "backgroundColor": "transparent",
+          }
+        }
       >
         bruteforce
-      </withTheme(Text)>
-    </withTheme(Tab)>
-    <withTheme(Tab)
-      aria-controls="panel-external"
-      id={7}
-      isSelected={false}
-      justifyContent="left"
-      key="7"
-      onSelect={[Function]}
-    >
-      <withTheme(Text)
-        color="#337ab7"
+      </span>
+      <span
+        aria-controls="panel-external"
+        id={7}
+        key="7"
+        onClick={[Function]}
+        style={
+          Object {
+            "backgroundColor": "transparent",
+          }
+        }
       >
         external
-      </withTheme(Text)>
-    </withTheme(Tab)>
-    <withTheme(Tab)
-      aria-controls="panel-grep"
-      id={8}
-      isSelected={false}
-      justifyContent="left"
-      key="8"
-      onSelect={[Function]}
-    >
-      <withTheme(Text)
-        color="#337ab7"
+      </span>
+      <span
+        aria-controls="panel-grep"
+        id={8}
+        key="8"
+        onClick={[Function]}
+        style={
+          Object {
+            "backgroundColor": "transparent",
+          }
+        }
       >
         grep
-      </withTheme(Text)>
-    </withTheme(Tab)>
-    <withTheme(Tab)
-      aria-controls="panel-passive"
-      id={9}
-      isSelected={false}
-      justifyContent="left"
-      key="9"
-      onSelect={[Function]}
-    >
-      <withTheme(Text)
-        color="#337ab7"
+      </span>
+      <span
+        aria-controls="panel-passive"
+        id={9}
+        key="9"
+        onClick={[Function]}
+        style={
+          Object {
+            "backgroundColor": "transparent",
+          }
+        }
       >
         passive
-      </withTheme(Text)>
-    </withTheme(Tab)>
-  </Tablist>
-  <withTheme(Dialog)
-    confirmLabel="Clear Filters"
-    intent="danger"
-    isShown={false}
-    onCloseComplete={[Function]}
-    onConfirm={[MockFunction]}
-    title="Advance filter"
+      </span>
+    </div>
+  </div>
+  <div
+    className="dialogWrapper"
   >
-    Dialog content
-  </withTheme(Dialog)>
+    <Dialog
+      isDialogOpened={false}
+      onClose={[Function]}
+      title="Advance filter"
+    >
+      Dialog content
+    </Dialog>
+  </div>
   <Connect(Plugins)
     handleAlertMsg={[Function]}
     handlePluginClose={[Function]}
@@ -872,46 +739,43 @@ exports[`Report page component Testing dumb SideFilters component Should render 
       ]
     }
   />
-</withTheme(Pane)>
+</div>
 `;
 
 exports[`Report page component Testing dumb report component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="targetContainer"
   data-test="reportComponent"
-  display="flex"
-  flexDirection="row"
-  marginTop={-20}
 >
-  <withTheme(Pane)
-    background="tint2"
-    flex="none"
-    padding={20}
-    width={220}
-  >
-    <Connect(SideFilters)
-      clearFilters={[Function]}
-      selectedGroup={Array []}
-      selectedType={Array []}
-      targetData={
-        Array [
-          undefined,
-        ]
-      }
-      updateFilter={[Function]}
-      updateReport={[Function]}
-    />
-  </withTheme(Pane)>
-  <withTheme(Pane)
-    flex={1}
-    padding={30}
+  <Connect(SideFilters)
+    clearFilters={[Function]}
+    selectedGroup={Array []}
+    selectedType={Array []}
+    targetData={
+      Array [
+        undefined,
+      ]
+    }
+    updateFilter={[Function]}
+    updateReport={[Function]}
+  />
+  <div
+    className="targetContainer__headerToolbarContainer"
   >
     <Header
       targetData={Object {}}
     />
-    <Toolbar
-      selectedRank={Array []}
-      updateFilter={[Function]}
-    />
+    <div
+      className="targetContainer__severityContainer"
+    >
+      <strong>
+        Severity : 
+      </strong>
+      <Toolbar
+        selectedRank={Array []}
+        updateFilter={[Function]}
+      />
+    </div>
     <br />
     <Connect(Accordians)
       selectedGroup={Array []}
@@ -922,6 +786,6 @@ exports[`Report page component Testing dumb report component Should render witho
       selectedType={Array []}
       targetData={Object {}}
     />
-  </withTheme(Pane)>
-</withTheme(Pane)>
+  </div>
+</div>
 `;

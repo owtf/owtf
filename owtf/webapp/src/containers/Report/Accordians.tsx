@@ -16,12 +16,25 @@ import {
   makeSelectPluginOutputNamesLoading,
   makeSelectPluginOutputNamesError
 } from "./selectors";
-import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import { Paragraph, Pane, Spinner } from "evergreen-ui";
 
-export class Accordians extends React.Component {
+interface propTypes {
+  targetData: { id: any };
+  loadingNames: boolean;
+  errorNames: object | boolean;
+  pluginOutputNames: object | boolean;
+  onFetchPluginOutputNames: Function;
+  selectedGroup: any;
+  selectedType: any;
+  selectedRank: any;
+  selectedOwtfRank: any;
+  selectedMapping: any;
+  selectedStatus: any;
+}
+
+export class Accordians extends React.Component<propTypes> {
   constructor(props, context) {
     super(props, context);
   }
@@ -98,17 +111,6 @@ export class Accordians extends React.Component {
   }
 }
 
-Accordians.propTypes = {
-  targetData: PropTypes.object,
-  loadingNames: PropTypes.bool,
-  errorNames: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  pluginOutputNames: PropTypes.oneOfType([
-    PropTypes.object.isRequired,
-    PropTypes.bool.isRequired
-  ]),
-  onFetchPluginOutputNames: PropTypes.func
-};
-
 const mapStateToProps = createStructuredSelector({
   pluginOutputNames: makeSelectFetchPluginOutputNames,
   loadingNames: makeSelectPluginOutputNamesLoading,
@@ -122,4 +124,5 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
+//@ts-ignore
 export default connect(mapStateToProps, mapDispatchToProps)(Accordians);

@@ -2,10 +2,15 @@
  * Fetch, Create and Change the plugins from API
  */
 
-import { call, put, takeLatest } from 'redux-saga/effects';
-import { LOAD_PLUGINS, POST_TO_WORKLIST } from './constants';
-import { pluginsLoaded, pluginsLoadingError, targetPosted, targetPostingError } from './actions';
-import { loadTargets } from '../TargetsPage/actions';
+import { call, put, takeLatest } from "redux-saga/effects";
+import { LOAD_PLUGINS, POST_TO_WORKLIST } from "./constants";
+import {
+  pluginsLoaded,
+  pluginsLoadingError,
+  targetPosted,
+  targetPostingError
+} from "./actions";
+import { loadTargets } from "../TargetsPage/actions";
 import { getPluginsAPI, postTargetsToWorklistAPI } from "./api";
 import "@babel/polyfill";
 
@@ -27,15 +32,15 @@ export function* getPlugins() {
  * Post Targets to worklist request/response handler
  */
 export function* postTargetsToWorklist(action) {
-    const postAPI = postTargetsToWorklistAPI();
-    try {
-      yield call(postAPI, { plugin_data: action.plugin_data });
-      yield put(targetPosted());
-      yield put(loadTargets());
-    } catch (error) {
-      yield put(targetPostingError(error));
-    }
+  const postAPI = postTargetsToWorklistAPI();
+  try {
+    yield call(postAPI, { plugin_data: action.plugin_data });
+    yield put(targetPosted());
+    yield put(loadTargets());
+  } catch (error) {
+    yield put(targetPostingError(error));
   }
+}
 
 /**
  * Root saga manages watcher lifecycle
