@@ -40,5 +40,6 @@ Sublist3r:
 Subjack:
   command : "go install github.com/haccer/subjack@latest"
   directory: tools/restricted/subjack
-
- 
+Gobuster:
+  command : "go install github.com/OJ/gobuster/v3@latest"
+  directory: tools/restricted/gobuster
