@@ -200,6 +200,9 @@ pip install pre-commit==1.8.2
 pip install black==18.4a3
 pre-commit install
 
+#Installing pip tool in isolated environment
+pipx install bbot==1.1.0.2124
+
 # Copy all necessary directories
 for dir in ${ROOT_DIR}/data/*; do
     copy_dirs "$dir" "${OWTF_DIR}/$(basename $OWTF_DIR/$dir)"

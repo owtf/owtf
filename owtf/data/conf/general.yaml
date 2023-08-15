@@ -73,7 +73,7 @@ TOOLS:
   - config: TOOL_SSLLABS_SCAN_DIR
     value: ~/.owtf/tools/restricted/ssllabs-scan/
   - config: TOOL_GOBUSTER
-    value: ~/.owtf/tools/restricted/gobuster/
+    value: /usr/bin/gobuster
 
 DICTIONARIES:
 # ************************* Password brute-force dictionaries / defaults ******************************

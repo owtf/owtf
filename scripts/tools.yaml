@@ -43,3 +43,6 @@ Subjack:
 Gobuster:
   command : "go install github.com/OJ/gobuster/v3@latest"
   directory: tools/restricted/gobuster
+Seclists:
+  command : "wget -c https://github.com/danielmiessler/SecLists/archive/master.zip -O SecList.zip ; unzip SecList.zip; rm -f SecList.zip"
+  directory: dictionaries/restricted/seclists
