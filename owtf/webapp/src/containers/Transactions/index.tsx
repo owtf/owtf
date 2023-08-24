@@ -208,6 +208,7 @@ export class Transactions extends React.Component<propsType, stateType> {
   }
 
   render() {
+    
     const TransactionHeaderProps = {
       target_id: this.state.target_id,
       transactionHeaderData: this.state.transactionHeaderData,

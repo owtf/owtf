@@ -21,6 +21,7 @@ import { getErrorsAPI, postErrorAPI, deleteErrorAPI, getSeverityAPI, getTargetSe
 import { Dashboard } from "./index";
 import "@babel/polyfill";
 
+//@ts-ignore
 const dashboard = new Dashboard();
 /**
  * Fetch Errors request/response handler

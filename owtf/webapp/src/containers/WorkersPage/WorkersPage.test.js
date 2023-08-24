@@ -84,7 +84,7 @@ describe("Workers Page component", () => {
         onDeleteWorker: jest.fn(),
         onCreateWorker: jest.fn(),
         onFetchWorkerProgress: jest.fn(),
-        onFetchWorkerLogs: jest.fn()
+        onFetchWorkerLogs: jest.fn(),
       };
       wrapper = shallow(<WorkersPage {...props} />);
     });
@@ -107,7 +107,7 @@ describe("Workers Page component", () => {
         onDeleteWorker: () => {},
         onCreateWorker: () => {},
         onFetchWorkerProgress: () => {},
-        onFetchWorkerLogs: () => {}
+        onFetchWorkerLogs: () => {},
       };
       const propsErr = checkProps(WorkersPage, expectedProps);
       expect(propsErr).toBeUndefined();
@@ -120,6 +120,7 @@ describe("Workers Page component", () => {
     });
 
     it("Should correctly render its sub-components", () => {
+
       const button = wrapper.find("button");
       const progressbar = wrapper.find("ProgressBar");
       const workerpanel = wrapper.find("WorkerPanel");
@@ -181,19 +182,19 @@ describe("Workers Page component", () => {
         loading: false,
         error: false,
         workerProgress: { left_count: 50, complete_count: 100 }
-      };
+      }
       const workerLogsLoad = {
         loading: false,
         error: false,
         workerLogs: "Test worker logs"
-      };
+      }
       const workers = {
         load: workersLoad,
         create: workerCreate,
         change: workerChange,
         delete: workerDelete,
         loadWorkerProgress: workerProgressLoad,
-        loadWorkerLogs: workerLogsLoad
+        loadWorkerLogs: workerLogsLoad,
       };
       initialState = fromJS({
         workers
@@ -230,7 +231,7 @@ describe("Workers Page component", () => {
         .get("workers")
         .get("loadWorkerProgress")
         .get("workerProgress");
-      const workerLogsProp = initialState
+        const workerLogsProp = initialState
         .get("workers")
         .get("loadWorkerLogs")
         .get("workerLogs");
@@ -267,7 +268,7 @@ describe("Workers Page component", () => {
         logDialogShow: false,
         onFetchWorkerLogs: jest.fn(),
         logDialogContent: "Test content",
-        handleLogDialogContent: jest.fn()
+        handleLogDialogContent: jest.fn(),
       };
       wrapper = shallow(<WorkerPanel {...props} />);
     });
@@ -283,7 +284,7 @@ describe("Workers Page component", () => {
         logDialogShow: true,
         onFetchWorkerLogs: () => {},
         logDialogContent: "",
-        handleLogDialogContent: () => {}
+        handleLogDialogContent: () => {},
       };
       const propsErr = checkProps(WorkerPanel, expectedProps);
       expect(propsErr).toBeUndefined();
@@ -300,6 +301,7 @@ describe("Workers Page component", () => {
 
       expect(heading.length).toBe(1);
       expect(heading.props().children[1]).toEqual("Worker 4");
+     
 
       const testWorker = {
         busy: true,
@@ -310,13 +312,12 @@ describe("Workers Page component", () => {
         worker: 29693
       };
       wrapper.setProps({ worker: testWorker });
+      
     });
 
     it("Should update state after logs button click", () => {
       expect(wrapper.instance().state.showLogs).toBe(false);
-      const logbutton = wrapper.find(
-        ".workerPanelContainer__infoContainer__showLogsButton"
-      );
+      const logbutton = wrapper.find(".workerPanelContainer__infoContainer__showLogsButton");
       logbutton.simulate("click");
       expect(wrapper.instance().state.showLogs).toBe(true);
     });

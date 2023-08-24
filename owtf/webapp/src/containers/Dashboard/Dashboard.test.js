@@ -9,7 +9,7 @@ import Chart from "./Chart";
 import GithubReport from "./GithubReport";
 import Panel from "./Panel";
 import WorkerPanel from "./WorkerPanel";
-import { WorkerLegend, Worker, ProgressBar} from "./WorkerPanel";
+import { WorkerLegend, Worker, ProgressBar } from "./WorkerPanel";
 
 import { fromJS } from "immutable";
 
@@ -24,7 +24,7 @@ import {
   severityLoaded,
   severityLoadingError,
   targetSeverityLoaded,
-  targetSeverityLoadingError,
+  targetSeverityLoadingError
 } from "./actions";
 
 import {
@@ -42,19 +42,25 @@ import {
   LOAD_SEVERITY_ERROR,
   LOAD_TARGET_SEVERITY,
   LOAD_TARGET_SEVERITY_SUCCESS,
-  LOAD_TARGET_SEVERITY_ERROR,
+  LOAD_TARGET_SEVERITY_ERROR
 } from "./constants";
 
-import { getErrors, postError, deleteError, getSeverity, getTargetSeverity } from "./saga";
+import {
+  getErrors,
+  postError,
+  deleteError,
+  getSeverity,
+  getTargetSeverity
+} from "./saga";
 import { runSaga } from "redux-saga";
 import * as api from "./api";
 
 import {
-	errorsLoadReducer,
-	errorCreateReducer,
-	errorDeleteReducer,
-	severityLoadReducer,
-	targetSeverityLoadReducer,
+  errorsLoadReducer,
+  errorCreateReducer,
+  errorDeleteReducer,
+  severityLoadReducer,
+  targetSeverityLoadReducer
 } from "./reducer";
 
 const setUp = (initialState = {}) => {
@@ -71,51 +77,53 @@ describe("Dashboard component", () => {
     beforeEach(() => {
       props = {
         fetchLoading: false,
-				fetchError: false,
-				errors: [
-					{
-						owtf_message:	"Test message",
-						reported:	false,
-						github_issue_url:	null,
-						traceback: "Test traceback",
-						user_message:	null,
-						id: 1
-					}
-				],
-				deleteError: false,
-				createError: false,
-				severityLoading: false,
-				severityError: false,
-				severity: [
-					{
-						id:	5,
-						value:	0,
-						label:	"Test label"
-					}
-				],
-				targetSeverityLoading: false,
-				targetSeverityError: false,
-				targetSeverity: {
-					data: [{
-						color:	"#A9A9A9",
-						id:	0,
-						value:	100,
-						label:	"Test label"
-					}]
-				},
-				workerProgressLoading: false,
-				workerProgressError: false,
-				workerProgress: { left_count: 280, complete_count: 6 },
-				workerLogs: "Test logs",
-				workers: [],
-				onFetchErrors: jest.fn(),
-				onDeleteError: jest.fn(),
-				onCreateError: jest.fn(),
-				onFetchSeverity: jest.fn(),
-				onFetchTargetSeverity: jest.fn(),
-				onFetchWorkers: jest.fn(),
-				onFetchWorkerProgress: jest.fn(),
- 				onFetchWorkerLogs: jest.fn(),
+        fetchError: false,
+        errors: [
+          {
+            owtf_message: "Test message",
+            reported: false,
+            github_issue_url: null,
+            traceback: "Test traceback",
+            user_message: null,
+            id: 1
+          }
+        ],
+        deleteError: false,
+        createError: false,
+        severityLoading: false,
+        severityError: false,
+        severity: [
+          {
+            id: 5,
+            value: 0,
+            label: "Test label"
+          }
+        ],
+        targetSeverityLoading: false,
+        targetSeverityError: false,
+        targetSeverity: {
+          data: [
+            {
+              color: "#A9A9A9",
+              id: 0,
+              value: 100,
+              label: "Test label"
+            }
+          ]
+        },
+        workerProgressLoading: false,
+        workerProgressError: false,
+        workerProgress: { left_count: 280, complete_count: 6 },
+        workerLogs: "Test logs",
+        workers: [],
+        onFetchErrors: jest.fn(),
+        onDeleteError: jest.fn(),
+        onCreateError: jest.fn(),
+        onFetchSeverity: jest.fn(),
+        onFetchTargetSeverity: jest.fn(),
+        onFetchWorkers: jest.fn(),
+        onFetchWorkerProgress: jest.fn(),
+        onFetchWorkerLogs: jest.fn()
       };
       wrapper = shallow(<Dashboard {...props} />);
     });
@@ -123,29 +131,29 @@ describe("Dashboard component", () => {
     it("Should have correct prop-types", () => {
       const expectedProps = {
         fetchLoading: false,
-				fetchError: false,
-				errors: [],
-				deleteError: false,
-				createError: true,
-				severityLoading: false,
-				severityError: false,
-				severity: [],
-				targetSeverityLoading: false,
-				targetSeverityError: false,
-				targetSeverity: false,
-				workerProgressLoading: false,
-				workerProgressError: false,
-				workerProgress: { left_count: 280, complete_count: 6 },
-				workerLogs: "",
-				workers: false,
-				onFetchErrors: () => {},
-				onDeleteError: () => {},
-				onCreateError: () => {},
-				onFetchSeverity: () => {},
-				onFetchTargetSeverity: () => {},
-				onFetchWorkers: () => {},
-				onFetchWorkerProgress: () => {},
-  			onFetchWorkerLogs: () => {},
+        fetchError: false,
+        errors: [],
+        deleteError: false,
+        createError: true,
+        severityLoading: false,
+        severityError: false,
+        severity: [],
+        targetSeverityLoading: false,
+        targetSeverityError: false,
+        targetSeverity: false,
+        workerProgressLoading: false,
+        workerProgressError: false,
+        workerProgress: { left_count: 280, complete_count: 6 },
+        workerLogs: "",
+        workers: false,
+        onFetchErrors: () => {},
+        onDeleteError: () => {},
+        onCreateError: () => {},
+        onFetchSeverity: () => {},
+        onFetchTargetSeverity: () => {},
+        onFetchWorkers: () => {},
+        onFetchWorkerProgress: () => {},
+        onFetchWorkerLogs: () => {}
       };
       const propsErr = checkProps(Dashboard, expectedProps);
       expect(propsErr).toBeUndefined();
@@ -155,49 +163,50 @@ describe("Dashboard component", () => {
       const component = findByTestAtrr(wrapper, "dashboardComponent");
       expect(component.length).toBe(1);
       expect(toJson(component)).toMatchSnapshot();
-		});
-		
-		it("Should correctly render its sub-components", () => {
-			const breadcrumb = wrapper.find("Breadcrumb");
-			const heading = wrapper.find("withTheme(Heading)");
-			const small = wrapper.find("Small");
-			const githubreport = wrapper.find("GithubReport");
-			const panel = wrapper.find("VulnerabilityPanel");
-			const chart = wrapper.find("Chart");
-			const workerpanel = wrapper.find("WorkerPanel");
+    });
 
-			expect(breadcrumb.length).toBe(1);
-			expect(heading.length).toBe(4);
-			expect(heading.at(0).props().children).toEqual("Welcome to OWTF");
-			expect(heading.at(1).props().children).toEqual("Current Vulnerabilities");
-			expect(heading.at(2).props().children).toEqual("Previous Targets Analytics");
-			expect(heading.at(3).props().children).toEqual("Worker Panel");
-			expect(small.length).toBe(1);
-			expect(small.props().children).toEqual(", this is your dashboard");
-			expect(githubreport.length).toBe(1);
-			expect(panel.length).toBe(1);
-			expect(chart.length).toBe(1);
-			expect(workerpanel.length).toBe(1);
-			wrapper.setProps({ errors: false });
-			expect(wrapper.find("GithubReport").length).toBe(0);
-		});
+    it("Should correctly render its sub-components", () => {
+      const heading = wrapper.find("h2");
+      const small = wrapper.find("small");
+      const githubreport = wrapper.find("GithubReport");
+      const panel = wrapper.find("VulnerabilityPanel");
+      const chart = wrapper.find("Chart");
+      const workerpanel = wrapper.find("WorkerPanel");
 
-		it("Should pass correct props to its child components", () => {
-			const githubreport = wrapper.find("GithubReport");
-			const panel = wrapper.find("VulnerabilityPanel");
-			const chart = wrapper.find("Chart");
-			const workerpanel = wrapper.find("WorkerPanel");
+      expect(heading.length).toBe(4);
+      expect(heading.at(0).props().children).toEqual("Welcome to OWTF,");
+      expect(heading.at(1).props().children).toEqual("Current Vulnerabilities");
+      expect(heading.at(2).props().children).toEqual("Worker Panel");
+      expect(heading.at(3).props().children).toEqual(
+        "Previous Targets Analytics"
+      );
 
-			expect(githubreport.props().errors).toEqual(props.errors);
-			expect(panel.props().panelData).toEqual(props.severity);
-			expect(chart.props().chartData).toEqual(props.targetSeverity.data);
-			expect(workerpanel.props().progressData).toEqual(props.workerProgress);
-			expect(workerpanel.props().workerData).toEqual(props.workers);
-			expect(workerpanel.props().workerLogs).toEqual(props.workerLogs);
-		});
-	});
+      expect(small.length).toBe(1);
+      expect(small.props().children).toEqual("this is your dashboard");
+      expect(githubreport.length).toBe(1);
+      expect(panel.length).toBe(1);
+      expect(chart.length).toBe(1);
+      expect(workerpanel.length).toBe(1);
+      wrapper.setProps({ errors: false });
+      expect(wrapper.find("GithubReport").length).toBe(0);
+    });
 
-	describe("Testing connected Dashbboard component", () => {
+    it("Should pass correct props to its child components", () => {
+      const githubreport = wrapper.find("GithubReport");
+      const panel = wrapper.find("VulnerabilityPanel");
+      const chart = wrapper.find("Chart");
+      const workerpanel = wrapper.find("WorkerPanel");
+
+      expect(githubreport.props().errors).toEqual(props.errors);
+      expect(panel.props().panelData).toEqual(props.severity);
+      expect(chart.props().chartData).toEqual(props.targetSeverity.data);
+      expect(workerpanel.props().progressData).toEqual(props.workerProgress);
+      expect(workerpanel.props().workerData).toEqual(props.workers);
+      expect(workerpanel.props().workerLogs).toEqual(props.workerLogs);
+    });
+  });
+
+  describe("Testing connected Dashbboard component", () => {
     let wrapper;
     let initialState;
     beforeEach(() => {
@@ -213,26 +222,26 @@ describe("Dashboard component", () => {
       const errorDelete = {
         loading: true,
         error: false
-			};
-			const severityLoad = {
+      };
+      const severityLoad = {
         loading: true,
-				error: false,
-				severity: false
-			};
-			const targetSeverityLoad = {
+        error: false,
+        severity: false
+      };
+      const targetSeverityLoad = {
         loading: true,
-				error: false,
-				targetSeverity: false
-			};
-			const dashboard = {
-				load: errorsLoad,
-				create: errorCreate,
-				delete: errorDelete,
-				loadSeverity: severityLoad,
-  			loadTargetSeverity: targetSeverityLoad,
-			}
+        error: false,
+        targetSeverity: false
+      };
+      const dashboard = {
+        load: errorsLoad,
+        create: errorCreate,
+        delete: errorDelete,
+        loadSeverity: severityLoad,
+        loadTargetSeverity: targetSeverityLoad
+      };
 
-			const workersLoad = {
+      const workersLoad = {
         loading: false,
         error: false,
         workers: false
@@ -241,19 +250,19 @@ describe("Dashboard component", () => {
         loading: false,
         error: false,
         workerProgress: { left_count: 50, complete_count: 100 }
-      }
+      };
       const workerLogsLoad = {
         loading: false,
         error: false,
         workerLogs: "Test worker logs"
-      }
+      };
       const workers = {
         load: workersLoad,
         loadWorkerProgress: workerProgressLoad,
-        loadWorkerLogs: workerLogsLoad,
+        loadWorkerLogs: workerLogsLoad
       };
       initialState = fromJS({
-				dashboard,
+        dashboard,
         workers
       });
       wrapper = setUp(initialState);
@@ -279,12 +288,12 @@ describe("Dashboard component", () => {
       const createErrorProp = initialState
         .get("dashboard")
         .get("create")
-				.get("error");
-			const severityProp = initialState
+        .get("error");
+      const severityProp = initialState
         .get("dashboard")
         .get("loadSeverity")
-				.get("severity");
-			const targetSeverityProp = initialState
+        .get("severity");
+      const targetSeverityProp = initialState
         .get("dashboard")
         .get("loadTargetSeverity")
         .get("targetSeverity");
@@ -292,7 +301,7 @@ describe("Dashboard component", () => {
         .get("workers")
         .get("loadWorkerProgress")
         .get("workerProgress");
-        const workerLogsProp = initialState
+      const workerLogsProp = initialState
         .get("workers")
         .get("loadWorkerLogs")
         .get("workerLogs");
@@ -307,32 +316,32 @@ describe("Dashboard component", () => {
       expect(wrapper.props().workerProgress).toEqual(workerProgressProp);
       expect(wrapper.props().workerLogs).toEqual(workerLogsProp);
     });
-	});
-	
-	describe("Testing GithubReport component", () => {
+  });
+
+  describe("Testing GithubReport component", () => {
     let wrapper;
     let props;
     beforeEach(() => {
       props = {
         errors: [
-					{
-						owtf_message:	"Test message",
-						reported:	false,
-						github_issue_url:	null,
-						traceback: "Test traceback",
-						user_message:	null,
-						id: 1
-					}
-				],
-  			onDeleteError: jest.fn()
+          {
+            owtf_message: "Test message",
+            reported: false,
+            github_issue_url: null,
+            traceback: "Test traceback",
+            user_message: null,
+            id: 1
+          }
+        ],
+        onDeleteError: jest.fn()
       };
       wrapper = shallow(<GithubReport {...props} />);
     });
 
     it("Should have correct prop-types", () => {
       const expectedProps = {
-				errors: [],
-  			onDeleteError: () => {}
+        errors: [],
+        onDeleteError: () => {}
       };
       const propsErr = checkProps(GithubReport, expectedProps);
       expect(propsErr).toBeUndefined();
@@ -342,53 +351,57 @@ describe("Dashboard component", () => {
       const component = findByTestAtrr(wrapper, "githubReportComponent");
       expect(component.length).toBe(1);
       expect(toJson(component)).toMatchSnapshot();
-		});
-		
-		it("Should correctly render its child components", () => {
-			const button = wrapper.find("withTheme(Button)");
-			const dialogbox = wrapper.find("withTheme(Dialog)");
+    });
 
-			expect(button.length).toBe(2);
-			expect(button.at(0).props().children).toEqual("Report Errors on GitHub");
-			expect(dialogbox.length).toBe(1);
+    it("Should correctly render its child components", () => {
+      const button = wrapper.find("button");
+      const dialogbox = wrapper.find("Dialog");
 
-			wrapper.setState({ 
-				selectedError: 0,
-				errorUser: "Test user"
-			});
-			const textinput = wrapper.find("TextInputField");
-			const textarea = wrapper.find("withTheme(Textarea)");
-			expect(textinput.length).toBe(2);
-			expect(textarea.length).toBe(1);
-			expect(textinput.at(0).props().value).toEqual(wrapper.instance().state.errorUser);
-			expect(textinput.at(1).props().value).toEqual(wrapper.instance().state.errorTitle);
-			expect(textarea.props().value).toEqual(wrapper.instance().state.errorBody);
-			const deletebutton = wrapper.find("withTheme(Button)").at(3);
-			expect(deletebutton.props().children).toEqual("Delete error");
-			deletebutton.simulate("click");
-			expect(props.onDeleteError.mock.calls.length).toBe(1);
-		});
-	});
+      expect(button.length).toBe(1);
+      expect(dialogbox.length).toBe(1);
 
-	describe("Testing Vulnerability panel component", () => {
+      wrapper.setState({
+        selectedError: 0,
+        errorUser: "Test user"
+      });
+      const textinput = wrapper.find("input");
+      const textarea = wrapper.find("textarea");
+      expect(textinput.length).toBe(2);
+      expect(textarea.length).toBe(1);
+      expect(textinput.at(0).props().value).toEqual(
+        wrapper.instance().state.errorUser
+      );
+      expect(textinput.at(1).props().value).toEqual(
+        wrapper.instance().state.errorTitle
+      );
+      expect(textarea.props().value).toEqual(
+        wrapper.instance().state.errorBody
+      );
+      const deletebutton = wrapper.find("button").at(2);
+      deletebutton.simulate("click");
+      expect(props.onDeleteError.mock.calls.length).toBe(1);
+    });
+  });
+
+  describe("Testing Vulnerability panel component", () => {
     let wrapper;
     let props;
     beforeEach(() => {
       props = {
         panelData: [
-					{
-						id:	5,
-						value:	0,
-						label:	"Test label"
-					}
-				]
+          {
+            id: 5,
+            value: 0,
+            label: "Test label"
+          }
+        ]
       };
       wrapper = shallow(<Panel {...props} />);
     });
 
     it("Should have correct prop-types", () => {
       const expectedProps = {
-				panelData: []
+        panelData: []
       };
       const propsErr = checkProps(Panel, expectedProps);
       expect(propsErr).toBeUndefined();
@@ -398,29 +411,29 @@ describe("Dashboard component", () => {
       const component = wrapper.find("Bar");
       expect(component.length).toBe(1);
       expect(toJson(component)).toMatchSnapshot();
-		});
-	});
+    });
+  });
 
-	describe("Testing Severity chart component", () => {
+  describe("Testing Severity chart component", () => {
     let wrapper;
     let props;
     beforeEach(() => {
       props = {
         chartData: [
-					{
-						color:	"#A9A9A9",
-						id:	0,
-						value:	100,
-						label:	"Test label"
-					}
-				]
+          {
+            color: "#A9A9A9",
+            id: 0,
+            value: 100,
+            label: "Test label"
+          }
+        ]
       };
       wrapper = shallow(<Chart {...props} />);
     });
 
     it("Should have correct prop-types", () => {
       const expectedProps = {
-				chartData: []
+        chartData: []
       };
       const propsErr = checkProps(Chart, expectedProps);
       expect(propsErr).toBeUndefined();
@@ -430,16 +443,16 @@ describe("Dashboard component", () => {
       const component = wrapper.find("Pie");
       expect(component.length).toBe(1);
       expect(toJson(component)).toMatchSnapshot();
-		});
-	});
+    });
+  });
 
-	describe("Testing Worker panel component", () => {
+  describe("Testing Worker panel component", () => {
     let wrapper;
     let props;
     beforeEach(() => {
       props = {
         progressData: { left_count: 280, complete_count: 6 },
-				workerData: [
+        workerData: [
           {
             busy: false,
             id: 4,
@@ -448,21 +461,21 @@ describe("Dashboard component", () => {
             work: [],
             worker: 29693
           }
-        ], 
-				workerLogs: false,
-				onFetchWorkerLogs: jest.fn(),
-				pollInterval: 1300
+        ],
+        workerLogs: false,
+        onFetchWorkerLogs: jest.fn(),
+        pollInterval: 1300
       };
       wrapper = shallow(<WorkerPanel {...props} />);
     });
 
     it("Should have correct prop-types", () => {
       const expectedProps = {
-				progressData: { left_count: 100, complete_count: 6 },
-				workerData: [], 
-				workerLogs: false,
-				onFetchWorkerLogs: () => {},
-				pollInterval: 10
+        progressData: { left_count: 100, complete_count: 6 },
+        workerData: [],
+        workerLogs: false,
+        onFetchWorkerLogs: () => {},
+        pollInterval: 10
       };
       const propsErr = checkProps(WorkerPanel, expectedProps);
       expect(propsErr).toBeUndefined();
@@ -472,160 +485,162 @@ describe("Dashboard component", () => {
       const component = findByTestAtrr(wrapper, "workerPanelComponent");
       expect(component.length).toBe(1);
       expect(toJson(component)).toMatchSnapshot();
-		});
+    });
 
-		it("Should correctly render its child components", () => {
-			const progressbar = wrapper.find("ProgressBar");
-			const workerlegend = wrapper.find("WorkerLegend");
-			expect(progressbar.length).toBe(1);
-			expect(workerlegend.length).toBe(1);
-		});
+    it("Should correctly render its child components", () => {
+      const progressbar = wrapper.find("ProgressBar");
+      const workerlegend = wrapper.find("WorkerLegend");
+      expect(progressbar.length).toBe(1);
+      expect(workerlegend.length).toBe(1);
+    });
 
-		it("Should pass correct props to its child components", () => {
-			const progressbar = wrapper.find("ProgressBar");
-			const workerlegend = wrapper.find("WorkerLegend");
+    it("Should pass correct props to its child components", () => {
+      const progressbar = wrapper.find("ProgressBar");
+      const workerlegend = wrapper.find("WorkerLegend");
 
-			expect(progressbar.props().pollInterval).toEqual(props.pollInterval);
-			expect(progressbar.props().progressData).toEqual(props.progressData);
-			expect(workerlegend.props().workerData).toEqual(props.workerData);
-			expect(workerlegend.props().workerLogs).toEqual(props.workerLogs);
-		});
+      expect(progressbar.props().pollInterval).toEqual(props.pollInterval);
+      expect(progressbar.props().progressData).toEqual(props.progressData);
+      expect(workerlegend.props().workerData).toEqual(props.workerData);
+      expect(workerlegend.props().workerLogs).toEqual(props.workerLogs);
+    });
 
-		describe("Testing progress bar component", () => {
-			let wrapper;
-			let props;
-			beforeEach(() => {
-				props = {
-					progressData: { left_count: 280, complete_count: 6 },
-					pollInterval: 1300
-				};
-				wrapper = shallow(<ProgressBar {...props} />);
-			});
-	
-			it("Should have correct prop-types", () => {
-				const expectedProps = {
-					progressData: { left_count: 100, complete_count: 6 },
-					pollInterval: 10
-				};
-				const propsErr = checkProps(ProgressBar, expectedProps);
-				expect(propsErr).toBeUndefined();
-			});
-	
-			it("Should render without errors", () => {
-				wrapper.setState({ percent: 60 });
-				const component = wrapper.find("Progress");
-				expect(component.length).toBe(1);
-				expect(component.props().percent).toEqual(wrapper.instance().state.percent);
-				expect(toJson(component)).toMatchSnapshot();
-			});
-		});
+    describe("Testing progress bar component", () => {
+      let wrapper;
+      let props;
+      beforeEach(() => {
+        props = {
+          progressData: { left_count: 280, complete_count: 6 },
+          pollInterval: 1300
+        };
+        wrapper = shallow(<ProgressBar {...props} />);
+      });
 
-		describe("Testing worker legend component", () => {
-			let wrapper;
-			let props;
-			beforeEach(() => {
-				props = {
-					workerData: [
-						{
-							busy: false,
-							id: 4,
-							name: "Worker-4",
-							paused: false,
-							work: [],
-							worker: 29693
-						}
-					], 
-					workerLogs: false,
-					onFetchWorkerLogs: jest.fn(),
-					pollInterval: 1300
-				};
-				wrapper = shallow(<WorkerLegend {...props} />);
-			});
-	
-			it("Should have correct prop-types", () => {
-				const expectedProps = {
-					workerData: [], 
-					workerLogs: false,
-					onFetchWorkerLogs: () => {},
-					pollInterval: 10
-				};
-				const propsErr = checkProps(WorkerLegend, expectedProps);
-				expect(propsErr).toBeUndefined();
-			});
-	
-			it("Should render without errors", () => {
-				const component = findByTestAtrr(wrapper, "workerLegendComponent");
-				expect(component.length).toBe(1);
-				expect(toJson(component)).toMatchSnapshot();
-			});
+      it("Should have correct prop-types", () => {
+        const expectedProps = {
+          progressData: { left_count: 100, complete_count: 6 },
+          pollInterval: 10
+        };
+        const propsErr = checkProps(ProgressBar, expectedProps);
+        expect(propsErr).toBeUndefined();
+      });
 
-			it("Should correctly render its child components", () => {
-				const worker = wrapper.find("Worker");
-				expect(worker.length).toBe(props.workerData.length);
-			});
-	
-			it("Should pass correct props to its child components", () => {
-				const worker = wrapper.find("Worker");	
-				expect(worker.at(0).props().data).toEqual(props.workerData[0]);
-				expect(worker.props().workerLogs).toEqual(props.workerLogs);
-			});
-		});
+      it("Should render without errors", () => {
+        wrapper.setState({ percent: 60 });
+        const component = wrapper.find("Progress");
+        expect(component.length).toBe(1);
+        expect(component.props().percent).toEqual(
+          wrapper.instance().state.percent
+        );
+        expect(toJson(component)).toMatchSnapshot();
+      });
+    });
 
-		describe("Testing worker component", () => {
-			let wrapper;
-			let props;
-			beforeEach(() => {
-				props = {
-					data: {
-						busy: false,
-						id: 4,
-						name: "Worker-4",
-						paused: false,
-						work: [],
-						worker: 29693
-					},
-					workerLogs: "Test logs",
-					onFetchWorkerLogs: jest.fn(),
-				};
-				wrapper = shallow(<Worker {...props} />);
-			});
-	
-			it("Should have correct prop-types", () => {
-				const expectedProps = {
-					workerData: {}, 
-					workerLogs: false,
-					onFetchWorkerLogs: () => {},
-				};
-				const propsErr = checkProps(Worker, expectedProps);
-				expect(propsErr).toBeUndefined();
-			});
-	
-			it("Should render without errors", () => {
-				const component = findByTestAtrr(wrapper, "workerComponent");
-				expect(component.length).toBe(1);
-				expect(toJson(component)).toMatchSnapshot();
-			});
+    describe("Testing worker legend component", () => {
+      let wrapper;
+      let props;
+      beforeEach(() => {
+        props = {
+          workerData: [
+            {
+              busy: false,
+              id: 4,
+              name: "Worker-4",
+              paused: false,
+              work: [],
+              worker: 29693
+            }
+          ],
+          workerLogs: false,
+          onFetchWorkerLogs: jest.fn(),
+          pollInterval: 1300
+        };
+        wrapper = shallow(<WorkerLegend {...props} />);
+      });
 
-			it("Should correctly render its child components", () => {
-				const image = wrapper.find("img");
-				const paragraph = wrapper.find("withTheme(Paragraph)");
-				const button = wrapper.find("withTheme(Button)");
-				const dialogbox = wrapper.find("withTheme(Dialog)");
-				expect(image.length).toBe(1);
-				expect(paragraph.length).toBe(1);
-				expect(button.length).toBe(1);
-				expect(dialogbox.length).toBe(1);
-			});
-	
-			it("Should call onFetchWorkerLogs on logs button click", () => {
-				const button = wrapper.find("withTheme(Button)");
-				button.simulate("click");
-				expect(props.onFetchWorkerLogs.mock.calls.length).toBe(1);
-			});
-		});
-	});
+      it("Should have correct prop-types", () => {
+        const expectedProps = {
+          workerData: [],
+          workerLogs: false,
+          onFetchWorkerLogs: () => {},
+          pollInterval: 10
+        };
+        const propsErr = checkProps(WorkerLegend, expectedProps);
+        expect(propsErr).toBeUndefined();
+      });
 
-	describe("Testing the sagas", () => {
+      it("Should render without errors", () => {
+        const component = findByTestAtrr(wrapper, "workerLegendComponent");
+        expect(component.length).toBe(1);
+        expect(toJson(component)).toMatchSnapshot();
+      });
+
+      it("Should correctly render its child components", () => {
+        const worker = wrapper.find("Worker");
+        expect(worker.length).toBe(props.workerData.length);
+      });
+
+      it("Should pass correct props to its child components", () => {
+        const worker = wrapper.find("Worker");
+        expect(worker.at(0).props().data).toEqual(props.workerData[0]);
+        expect(worker.props().workerLogs).toEqual(props.workerLogs);
+      });
+    });
+
+    describe("Testing worker component", () => {
+      let wrapper;
+      let props;
+      beforeEach(() => {
+        props = {
+          data: {
+            busy: false,
+            id: 4,
+            name: "Worker-4",
+            paused: false,
+            work: [],
+            worker: 29693
+          },
+          workerLogs: "Test logs",
+          onFetchWorkerLogs: jest.fn()
+        };
+        wrapper = shallow(<Worker {...props} />);
+      });
+
+      it("Should have correct prop-types", () => {
+        const expectedProps = {
+          workerData: {},
+          workerLogs: false,
+          onFetchWorkerLogs: () => {}
+        };
+        const propsErr = checkProps(Worker, expectedProps);
+        expect(propsErr).toBeUndefined();
+      });
+
+      it("Should render without errors", () => {
+        const component = findByTestAtrr(wrapper, "workerComponent");
+        expect(component.length).toBe(1);
+        expect(toJson(component)).toMatchSnapshot();
+      });
+
+      it("Should correctly render its child components", () => {
+        const image = wrapper.find("img");
+        const paragraph = wrapper.find("p");
+        const button = wrapper.find("button");
+        const dialogbox = wrapper.find("Dialog");
+        expect(image.length).toBe(1);
+        expect(paragraph.length).toBe(1);
+        expect(button.length).toBe(1);
+        expect(dialogbox.length).toBe(1);
+      });
+
+      it("Should call onFetchWorkerLogs on logs button click", () => {
+        const button = wrapper.find("button");
+        button.simulate("click");
+        expect(props.onFetchWorkerLogs.mock.calls.length).toBe(1);
+      });
+    });
+  });
+
+  describe("Testing the sagas", () => {
     describe("Testing getErrors saga", () => {
       it("Should load errors in case of success", async () => {
         // we push all dispatched actions to make assertions easier
@@ -636,14 +651,16 @@ describe("Dashboard component", () => {
         // so we will mock the fetchAPI api with jest
         // this will mutate the dependency which we may reset if other tests
         // are dependent on it
-        const mockedErrors = [{
-					owtf_message:	"Test message",
-					reported:	false,
-					github_issue_url:	null,
-					traceback: "Test traceback",
-					user_message:	null,
-					id: 1
-				}];
+        const mockedErrors = [
+          {
+            owtf_message: "Test message",
+            reported: false,
+            github_issue_url: null,
+            traceback: "Test traceback",
+            user_message: null,
+            id: 1
+          }
+        ];
         api.getErrorsAPI = jest.fn(() =>
           jest.fn(() => Promise.resolve(mockedErrors))
         );
@@ -657,9 +674,7 @@ describe("Dashboard component", () => {
         await runSaga(fakeStore, getErrors).done;
 
         expect(api.getErrorsAPI.mock.calls.length).toBe(1);
-        expect(dispatchedActions).toContainEqual(
-          errorsLoaded(mockedErrors)
-        );
+        expect(dispatchedActions).toContainEqual(errorsLoaded(mockedErrors));
       });
 
       it("Should handle load errors in case of failure", async () => {
@@ -680,14 +695,14 @@ describe("Dashboard component", () => {
         expect(api.getErrorsAPI.mock.calls.length).toBe(1);
         expect(dispatchedActions).toContainEqual(errorsLoadingError(error));
       });
-		});
+    });
 
-		describe("Testing postError saga", () => {
+    describe("Testing postError saga", () => {
       let fakeAction;
       beforeEach(() => {
         fakeAction = {
-					type: CREATE_ERROR,
-					post_data: {}
+          type: CREATE_ERROR,
+          post_data: {}
         };
       });
 
@@ -721,9 +736,9 @@ describe("Dashboard component", () => {
         expect(api.postErrorAPI.mock.calls.length).toBe(1);
         expect(dispatchedActions).toContainEqual(errorCreatingError(error));
       });
-		});
-		
-		describe("Testing deleteError saga", () => {
+    });
+
+    describe("Testing deleteError saga", () => {
       let fakeAction;
       beforeEach(() => {
         fakeAction = {
@@ -765,18 +780,20 @@ describe("Dashboard component", () => {
         expect(api.deleteErrorAPI.mock.calls.length).toBe(1);
         expect(dispatchedActions).toContainEqual(errorDeletingError(error));
       });
-		});
+    });
 
-		describe("Testing getSeverity saga", () => {
+    describe("Testing getSeverity saga", () => {
       it("Should load severity in case of success", async () => {
         const dispatchedActions = [];
         const mockedSeverity = {
-					data: [{
-						id:	5,
-						value:	0,
-						label:	"Test label"
-					}]
-				};
+          data: [
+            {
+              id: 5,
+              value: 0,
+              label: "Test label"
+            }
+          ]
+        };
         api.getSeverityAPI = jest.fn(() =>
           jest.fn(() => Promise.resolve(mockedSeverity))
         );
@@ -789,13 +806,17 @@ describe("Dashboard component", () => {
         await runSaga(fakeStore, getSeverity).done;
 
         expect(api.getSeverityAPI.mock.calls.length).toBe(1);
-        expect(dispatchedActions).toContainEqual(severityLoaded(mockedSeverity.data));
+        expect(dispatchedActions).toContainEqual(
+          severityLoaded(mockedSeverity.data)
+        );
       });
 
       it("Should handle severity load errors in case of failure", async () => {
         const dispatchedActions = [];
         const error = "API server is down";
-        api.getSeverityAPI = jest.fn(() => jest.fn(() => Promise.reject(error)));
+        api.getSeverityAPI = jest.fn(() =>
+          jest.fn(() => Promise.reject(error))
+        );
 
         const fakeStore = {
           getState: () => ({ state: "test" }),
@@ -807,24 +828,24 @@ describe("Dashboard component", () => {
         expect(api.getSeverityAPI.mock.calls.length).toBe(1);
         expect(dispatchedActions).toContainEqual(severityLoadingError(error));
       });
-		});
-		
-		describe("Testing getTargetSeverity saga", () => {
+    });
+
+    describe("Testing getTargetSeverity saga", () => {
       it("Should load targetSeverity in case of success", async () => {
         const dispatchedActions = [];
         const mockedTargetSeverity = {
-					status: "success",
-					data: {	
-						data: [
-							{
-								color: "#A9A9A9",
-								id:	0,
-								value: 100,
-								label: "Not Ranked"
-							}
-						]
-					}
-				};
+          status: "success",
+          data: {
+            data: [
+              {
+                color: "#A9A9A9",
+                id: 0,
+                value: 100,
+                label: "Not Ranked"
+              }
+            ]
+          }
+        };
         api.getTargetSeverityAPI = jest.fn(() =>
           jest.fn(() => Promise.resolve(mockedTargetSeverity))
         );
@@ -837,13 +858,17 @@ describe("Dashboard component", () => {
         await runSaga(fakeStore, getTargetSeverity).done;
 
         expect(api.getTargetSeverityAPI.mock.calls.length).toBe(1);
-        expect(dispatchedActions).toContainEqual(targetSeverityLoaded(mockedTargetSeverity.data));
+        expect(dispatchedActions).toContainEqual(
+          targetSeverityLoaded(mockedTargetSeverity.data)
+        );
       });
 
       it("Should handle targetSeverity load errors in case of failure", async () => {
         const dispatchedActions = [];
         const error = "API server is down";
-        api.getTargetSeverityAPI = jest.fn(() => jest.fn(() => Promise.reject(error)));
+        api.getTargetSeverityAPI = jest.fn(() =>
+          jest.fn(() => Promise.reject(error))
+        );
 
         const fakeStore = {
           getState: () => ({ state: "test" }),
@@ -853,12 +878,14 @@ describe("Dashboard component", () => {
         await runSaga(fakeStore, getTargetSeverity).done;
 
         expect(api.getTargetSeverityAPI.mock.calls.length).toBe(1);
-        expect(dispatchedActions).toContainEqual(targetSeverityLoadingError(error));
+        expect(dispatchedActions).toContainEqual(
+          targetSeverityLoadingError(error)
+        );
       });
     });
-	});
+  });
 
-	describe("Testing reducers", () => {
+  describe("Testing reducers", () => {
     describe("Testing errorsLoadReducer", () => {
       let initialState;
       beforeEach(() => {
@@ -887,15 +914,15 @@ describe("Dashboard component", () => {
 
       it("Should handle LOAD_ERRORS_SUCCESS", () => {
         const errors = [
-					{
-						owtf_message:	"Test message",
-						reported:	false,
-						github_issue_url:	null,
-						traceback: "Test traceback",
-						user_message:	null,
-						id: 1
-					}
-				];
+          {
+            owtf_message: "Test message",
+            reported: false,
+            github_issue_url: null,
+            traceback: "Test traceback",
+            user_message: null,
+            id: 1
+          }
+        ];
         const newState = errorsLoadReducer(
           fromJS({
             loading: true,
@@ -932,9 +959,9 @@ describe("Dashboard component", () => {
           errors: false
         });
       });
-		});
+    });
 
-		describe("Testing errorCreateReducer", () => {
+    describe("Testing errorCreateReducer", () => {
       let initialState;
       beforeEach(() => {
         initialState = {
@@ -989,7 +1016,7 @@ describe("Dashboard component", () => {
       });
     });
 
-		describe("Testing errorDeleteReducer", () => {
+    describe("Testing errorDeleteReducer", () => {
       let initialState;
       beforeEach(() => {
         initialState = {
@@ -1043,10 +1070,9 @@ describe("Dashboard component", () => {
           error: "Test deleting error"
         });
       });
-		});
-		
+    });
 
-		describe("Testing severityLoadReducer", () => {
+    describe("Testing severityLoadReducer", () => {
       let initialState;
       beforeEach(() => {
         initialState = {
@@ -1074,12 +1100,12 @@ describe("Dashboard component", () => {
 
       it("Should handle LOAD_SEVERITY_SUCCESS", () => {
         const severity = [
-					{
-						id:	5,
-						value:	0,
-						label:	"Test label"
-					}
-				];
+          {
+            id: 5,
+            value: 0,
+            label: "Test label"
+          }
+        ];
         const newState = severityLoadReducer(
           fromJS({
             loading: true,
@@ -1116,9 +1142,9 @@ describe("Dashboard component", () => {
           severity: false
         });
       });
-		});
+    });
 
-		describe("Testing targetSeverityLoadReducer", () => {
+    describe("Testing targetSeverityLoadReducer", () => {
       let initialState;
       beforeEach(() => {
         initialState = {
@@ -1146,15 +1172,15 @@ describe("Dashboard component", () => {
 
       it("Should handle LOAD_TARGET_SEVERITY_SUCCESS", () => {
         const targetSeverity = {
-					data: [
-						{
-							color: "#A9A9A9",
-							id:	0,
-							value: 100,
-							label: "Not Ranked"
-						}
-					]
-				};
+          data: [
+            {
+              color: "#A9A9A9",
+              id: 0,
+              value: 100,
+              label: "Not Ranked"
+            }
+          ]
+        };
         const newState = targetSeverityLoadReducer(
           fromJS({
             loading: true,
@@ -1191,6 +1217,6 @@ describe("Dashboard component", () => {
           targetSeverity: false
         });
       });
-		});
-	});
+    });
+  });
 });

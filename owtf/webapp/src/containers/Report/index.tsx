@@ -26,23 +26,24 @@ import { createStructuredSelector } from "reselect";
 import update from "immutability-helper";
 import "style.scss";
 
-interface propTypes {
-  targetLoading: boolean;
-  targetError: object | boolean;
-  target: any;
-  onFetchTarget: Function;
-  match: any;
-}
 
-interface stateTypes {
-  selectedGroup: [];
-  selectedType: [];
-  selectedRank: [];
-  selectedOwtfRank: [];
-  selectedMapping: string;
-  selectedStatus: [];
-}
-export class Report extends React.Component<propTypes, stateTypes> {
+interface propTypes{
+  targetLoading: boolean,
+  targetError:object | boolean,
+  target: any,
+  onFetchTarget: Function,
+  match:any
+};
+
+interface stateTypes{
+  selectedGroup: [],
+      selectedType: [],
+      selectedRank: [],
+      selectedOwtfRank: [],
+      selectedMapping: string,
+      selectedStatus: []
+};
+export class Report extends React.Component<propTypes,stateTypes> {
   constructor(props, context) {
     super(props, context);
 
@@ -92,20 +93,16 @@ export class Report extends React.Component<propTypes, stateTypes> {
 
     const index = this.state[type].indexOf(val);
 
-    {
-      /* @ts-ignore */
-    }
-    if (index > -1) {
-      this.setState({
+    {/* @ts-ignore */}
+    if (index > -1) {this.setState({
         [type]: update(this.state[type], {
           $splice: [[index, 1]]
         })
       });
     } else {
-      {
-        /* @ts-ignore */
-      }
-      this.setState({ [type]: update(this.state[type], { $push: [val] }) });
+      {/* @ts-ignore */}
+      this.setState({[type]: update(this.state[type], { $push: [val] })
+      });
     }
   }
 
@@ -149,18 +146,20 @@ export class Report extends React.Component<propTypes, stateTypes> {
       targetData: this.props.target
     };
     return (
-      <div className="targetContainer" data-test="reportComponent">
+      <div className="targetContainer"
+        data-test="reportComponent"
+      >
         {/* @ts-ignore */}
         <SideFilters {...SideFiltersProps} />
-        <div className="targetContainer__headerToolbarContainer">
+        <div className = "targetContainer__headerToolbarContainer">
           {/* @ts-ignore */}
           {this.props.target !== false ? <Header {...HeaderProps} /> : null}
 
-          <div className="targetContainer__severityContainer">
-            <strong>Severity : </strong>
-            <Toolbar {...ToolbarProps} />
+          <div className = "targetContainer__severityContainer">
+          <strong>Severity : </strong>
+          <Toolbar {...ToolbarProps} />
           </div>
-
+        
           <br />
           {this.props.target !== false ? (
             //@ts-ignore
@@ -171,6 +170,8 @@ export class Report extends React.Component<propTypes, stateTypes> {
     );
   }
 }
+
+
 
 const mapStateToProps = createStructuredSelector({
   target: makeSelectFetchTarget,

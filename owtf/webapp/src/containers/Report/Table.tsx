@@ -4,7 +4,7 @@
  */
 
 import React from "react";
-import { toaster } from "evergreen-ui";
+import {  toaster} from "evergreen-ui";
 import { Link } from "react-router-dom";
 import CKEditor from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
@@ -16,24 +16,24 @@ import {
   makeSelectChangeNotesLoading,
   makeSelectChangeNotesError
 } from "./selectors";
-import { GiRecycle } from "react-icons/gi";
-import { AiOutlineClose } from "react-icons/ai";
+import { GiRecycle } from 'react-icons/gi';
+import { AiOutlineClose } from 'react-icons/ai';
 
 interface propsType {
-  targetData: any;
-  deletePluginOutput: Function;
-  postToWorklist: Function;
-  obj: object;
-  changeNotesLoading: boolean;
-  changeNotesError: object | boolean;
-  onChangeUserNotes: Function;
+  targetData: any,
+  deletePluginOutput: Function,
+  postToWorklist: Function,
+  obj: object,
+  changeNotesLoading: boolean,
+  changeNotesError: object | boolean,
+  onChangeUserNotes: Function
 }
 interface stateType {
-  editorData: string;
-  editorShow: boolean;
+  editorData: string, 
+  editorShow: boolean, 
 }
 
-export class DataTable extends React.Component<propsType, stateType> {
+export class DataTable extends React.Component<propsType ,stateType> {
   constructor(props, context) {
     super(props, context);
 
@@ -123,57 +123,58 @@ export class DataTable extends React.Component<propsType, stateType> {
     const user_notes = obj["user_notes"];
     const editorShow = this.state.editorShow;
     let resourceList = [];
-    let ResourceListName = "";
+    let ResourceListName = ''
     try {
       output.map(singleOutput => {
-        if (singleOutput.hasOwnProperty("output")) {
-          if (singleOutput.output.hasOwnProperty("ResourceList")) {
-            resourceList = singleOutput.output.ResourceList;
+        if (singleOutput.hasOwnProperty('output')) {
+          if (singleOutput.output.hasOwnProperty('ResourceList')) {
+            resourceList = singleOutput.output.ResourceList
           }
-          if (singleOutput.output.hasOwnProperty("ResourceListName")) {
-            ResourceListName = singleOutput.output.ResourceListName;
+          if (singleOutput.output.hasOwnProperty('ResourceListName')) {
+            ResourceListName = singleOutput.output.ResourceListName
           }
         }
-      });
+      })
     } catch (_) {
-      resourceList = [];
+      resourceList = []
     }
     return (
-      <div
-        className="targetsCollapseDataTableContainer"
-        data-test="dataTableComponent"
-      >
+      <div className="targetsCollapseDataTableContainer" data-test="dataTableComponent">
+
         <div className="targetsCollapseDataTableContainer__headerContainer">
           <span>RUNTIME</span>
           <span>TIME INTERVAL</span>
           <span>STATUS</span>
           {(() => {
             if (output_path !== undefined) {
-              return <span>OUTPUT FILES</span>;
+              return (
+                <span>OUTPUT FILES</span>
+              );
             }
           })()}
           <span>ACTIONS</span>
         </div>
 
+
         <div className="targetsCollapseDataTableContainer__bodyContainer">
           <div className="targetsCollapseDataTableContainer__bodyContainer__rowContainer">
-            <div className="targetsCollapseDataTableContainer__bodyContainer__rowContainer__runTime">
-              {run_time}
-            </div>
+            <div className="targetsCollapseDataTableContainer__bodyContainer__rowContainer__runTime">{run_time}</div>
             <div className="targetsCollapseDataTableContainer__bodyContainer__rowContainer__time">
               {start_time}
               <br />
               {end_time}
             </div>
-            <div className="targetsCollapseDataTableContainer__bodyContainer__rowContainer__status">
-              {status}
-            </div>
+            <div className="targetsCollapseDataTableContainer__bodyContainer__rowContainer__status">{status}</div>
             {(() => {
               if (output_path !== undefined) {
                 return (
                   <div className="targetsCollapseDataTableContainer__bodyContainer__rowContainer__outputfiles">
                     <Link to={"/output_files/" + output_path}>
-                      <button disabled={output_path === null}>Browse</button>
+                      <button
+                        disabled={output_path === null}
+                      >
+                        Browse
+                      </button>
                     </Link>
                   </div>
                 );
@@ -193,16 +194,16 @@ export class DataTable extends React.Component<propsType, stateType> {
                     true
                   )
                 }
-              >
-                <GiRecycle />
+              ><GiRecycle />
               </button>
               <button
                 className="targetsCollapseDataTableContainer__bodyContainer__rowContainer__actionButtons__deletePlugin"
                 title="Delete plugin output"
                 onClick={() => deletePluginOutput(group, type, code)}
-              >
-                <AiOutlineClose />
+              ><AiOutlineClose />
               </button>
+
+
             </div>
           </div>
         </div>
@@ -234,29 +235,33 @@ export class DataTable extends React.Component<propsType, stateType> {
 
           <div className="targetsCollapseDataTableContainer__notesAndDetailsContainer__moreDetailsContainer">
             <h2>MORE DETAILS</h2>
-
-            {resourceList.length > 0 ? (
-              <div className="targetsCollapseDataTableContainer__notesAndDetailsContainer__moreDetailsContainer__linksContanier">
-                {ResourceListName}
-                <ul>
-                  {resourceList.map((resource, index) => (
-                    <li key={index}>
-                      <Link to={resource[1]} target="__blank">
-                        {resource[0]}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              "Output not available"
-            )}
-          </div>
+            
+              {
+                (resourceList.length > 0) ?
+                  <div className="targetsCollapseDataTableContainer__notesAndDetailsContainer__moreDetailsContainer__linksContanier">
+                    {ResourceListName}
+                    <ul>
+                      {resourceList.map(
+                        (resource, index) => 
+                        <li key={index}>
+                          <Link to={resource[1]} target="__blank">
+                            {resource[0]}
+                          </Link>
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                  :
+                  'Output not available'
+              }
+            </div>
+        
         </div>
       </div>
     );
   }
 }
+
 
 const mapStateToProps = createStructuredSelector({
   changeNotesError: makeSelectChangeNotesError,
@@ -270,4 +275,4 @@ const mapDispatchToProps = dispatch => {
 };
 
 //@ts-ignore
-export default connect(mapStateToProps, mapDispatchToProps)(DataTable);
+export default connect(mapStateToProps,  mapDispatchToProps)(DataTable);

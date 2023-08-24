@@ -2,16 +2,10 @@
  * Fetch, Create and Change the configurations from API
  */
 
-import { call, put, takeLatest } from "redux-saga/effects";
-import { LOAD_CONFIGURATIONS, CHANGE_CONFIGURATIONS } from "./constants";
-import {
-  configurationsLoaded,
-  configurationsLoadingError,
-  configurationsChangingError,
-  configurationsChanged,
-  loadConfigurations
-} from "./actions";
-import { fetchConfigAPI, patchConfigAPI } from "./api";
+import { call, put, takeLatest } from 'redux-saga/effects';
+import { LOAD_CONFIGURATIONS, CHANGE_CONFIGURATIONS } from './constants';
+import { configurationsLoaded, configurationsLoadingError, configurationsChangingError, configurationsChanged, loadConfigurations } from './actions';
+import { fetchConfigAPI, patchConfigAPI } from './api';
 import "@babel/polyfill";
 
 /**

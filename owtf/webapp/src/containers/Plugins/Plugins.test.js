@@ -92,12 +92,9 @@ describe("Plugins componemt", () => {
     });
 
     it("Should correctly render its sub-components", () => {
-      const tabList = wrapper.find(
-        ".pluginsContainer__headerContainer__launchingOptionsContainer"
-      );
-      const tabs = wrapper.find(
-        ".pluginsContainer__headerContainer__launchingOptionsContainer__tab"
-      );
+     
+      const tabList = wrapper.find(".pluginsContainer__headerContainer__launchingOptionsContainer");
+      const tabs = wrapper.find(".pluginsContainer__headerContainer__launchingOptionsContainer__tab");
       const individualPanel = wrapper.find("#panel-individual");
       const groupPanel = wrapper.find("#panel-group");
       const checkbox = wrapper.find("#force-overwrite");
@@ -114,16 +111,8 @@ describe("Plugins componemt", () => {
     });
 
     it("Should properly switch panels on tab click", () => {
-      const individualTab = wrapper
-        .find(
-          ".pluginsContainer__headerContainer__launchingOptionsContainer span"
-        )
-        .at(0);
-      const groupTab = wrapper
-        .find(
-          ".pluginsContainer__headerContainer__launchingOptionsContainer span"
-        )
-        .at(1);
+      const individualTab = wrapper.find(".pluginsContainer__headerContainer__launchingOptionsContainer span").at(0);
+      const groupTab = wrapper.find(".pluginsContainer__headerContainer__launchingOptionsContainer span").at(1);
       groupTab.simulate("select");
       expect(wrapper.instance().state.selectedIndex).toEqual(1);
       individualTab.simulate("select");
@@ -236,21 +225,11 @@ describe("Plugins componemt", () => {
     });
 
     it("Should correctly render table's sub-components", () => {
-      const searchHeader = wrapper.find(
-        ".pluginsTableContainer__headerContainer input"
-      );
-      const checkBoxHeader = wrapper.find(
-        ".pluginsTableContainer__headerContainer__checkbox"
-      );
-      const tableRow = wrapper.find(
-        ".pluginsTableContainer__bodyContainer__rowContainer"
-      );
-      const cell = wrapper.find(
-        ".pluginsTableContainer__bodyContainer__rowContainer__checkbox"
-      );
-      const checkBox = wrapper.find(
-        ".pluginsTableContainer__bodyContainer__rowContainer input"
-      );
+      const searchHeader = wrapper.find(".pluginsTableContainer__headerContainer input");
+      const checkBoxHeader = wrapper.find(".pluginsTableContainer__headerContainer__checkbox");
+      const tableRow = wrapper.find(".pluginsTableContainer__bodyContainer__rowContainer");
+      const cell = wrapper.find(".pluginsTableContainer__bodyContainer__rowContainer__checkbox");
+      const checkBox = wrapper.find(".pluginsTableContainer__bodyContainer__rowContainer input");
 
       expect(searchHeader.length).toBe(6);
       expect(searchHeader.at(1).props().placeholder).toEqual("Code");
@@ -277,10 +256,7 @@ describe("Plugins componemt", () => {
 
     it("Should filter the plugins correctly", () => {
       wrapper.setState({ codeSearch: "IG" });
-      expect(
-        wrapper.find(".pluginsTableContainer__bodyContainer__rowContainer")
-          .length
-      ).toBe(1);
+      expect(wrapper.find(".pluginsTableContainer__bodyContainer__rowContainer").length).toBe(1);
       expect(
         wrapper
           .find(".pluginsTableContainer__bodyContainer__rowContainer div")
@@ -288,28 +264,19 @@ describe("Plugins componemt", () => {
           .props().children
       ).toEqual("OWTF-IG-004");
       wrapper.setState({ codeSearch: "", nameSearch: "DoS" });
-      expect(
-        wrapper.find(".pluginsTableContainer__bodyContainer__rowContainer")
-          .length
-      ).toBe(1);
+      expect(wrapper.find(".pluginsTableContainer__bodyContainer__rowContainer").length).toBe(1);
       wrapper.setState({
         nameSearch: "",
         typeSearch: "dos",
         groupSearch: "web"
       });
-      expect(
-        wrapper.find(".pluginsTableContainer__bodyContainer__rowContainer")
-          .length
-      ).toBe(0);
+      expect(wrapper.find(".pluginsTableContainer__bodyContainer__rowContainer").length).toBe(0);
       wrapper.setState({
         helpSearch: "Denial",
         typeSearch: "",
         groupSearch: ""
       });
-      expect(
-        wrapper.find(".pluginsTableContainer__bodyContainer__rowContainer")
-          .length
-      ).toBe(1);
+      expect(wrapper.find(".pluginsTableContainer__bodyContainer__rowContainer").length).toBe(1);
       expect(
         wrapper
           .find(".pluginsTableContainer__bodyContainer__rowContainer div")

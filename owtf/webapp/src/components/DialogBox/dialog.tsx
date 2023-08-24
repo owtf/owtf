@@ -6,9 +6,9 @@ import { IoCloseSharp } from "react-icons/io5";
 const modalContainer = document.querySelector("#modalContainer");
 
 interface propsType {
-  isDialogOpened: boolean;
-  onClose: Function;
-  title: string;
+  isDialogOpened: boolean,
+  onClose: Function,
+  title: string
 }
 
 export default class Dialog extends Component<propsType> {
