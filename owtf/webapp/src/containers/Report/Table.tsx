@@ -4,21 +4,11 @@
  */
 
 import React from "react";
-import {
-  Button,
-  Pane,
-  Table,
-  IconButton,
-  Heading,
-  toaster,
-  UnorderedList,
-  ListItem
-} from "evergreen-ui";
+import { toaster } from "evergreen-ui";
 import { Link } from "react-router-dom";
 import CKEditor from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import "./style.scss";
-import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import { changeUserNotes } from "./actions";
@@ -29,7 +19,21 @@ import {
 import { GiRecycle } from "react-icons/gi";
 import { AiOutlineClose } from "react-icons/ai";
 
-export class DataTable extends React.Component {
+interface propsType {
+  targetData: any;
+  deletePluginOutput: Function;
+  postToWorklist: Function;
+  obj: object;
+  changeNotesLoading: boolean;
+  changeNotesError: object | boolean;
+  onChangeUserNotes: Function;
+}
+interface stateType {
+  editorData: string;
+  editorShow: boolean;
+}
+
+export class DataTable extends React.Component<propsType, stateType> {
   constructor(props, context) {
     super(props, context);
 
@@ -208,7 +212,6 @@ export class DataTable extends React.Component {
             <button
               ref={"editor_" + group + "_" + type + "_" + code}
               onClick={() => this.handleEditor(group, type, code)}
-              iconBefore={editorShow ? "tick" : "edit"}
               title={
                 editorShow
                   ? "Click to save the notes"
@@ -255,16 +258,6 @@ export class DataTable extends React.Component {
   }
 }
 
-DataTable.propTypes = {
-  targetData: PropTypes.object,
-  deletePluginOutput: PropTypes.func,
-  postToWorklist: PropTypes.func,
-  obj: PropTypes.object,
-  changeNotesLoading: PropTypes.bool,
-  changeNotesError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-  onChangeUserNotes: PropTypes.func
-};
-
 const mapStateToProps = createStructuredSelector({
   changeNotesError: makeSelectChangeNotesError,
   changeNotesLoading: makeSelectChangeNotesLoading
@@ -276,4 +269,5 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
+//@ts-ignore
 export default connect(mapStateToProps, mapDispatchToProps)(DataTable);

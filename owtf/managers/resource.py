@@ -105,7 +105,7 @@ def get_resources_from_file(resource_file):
         resource_file, "r"
     ).read().splitlines()  # To remove stupid '\n' at the end
     for line in config_file:
-        if "#" == line[0]:
+        if line.startswith("#"):
             continue  # Skip comment lines
         try:
             type, name, resource = line.split("_____")

@@ -69,7 +69,7 @@ echo
 echo "[*] Level 1 Done!!"
 }
 
-#Find Subdomains using Sublist3r and Amass
+#Find Subdomains using Sublist3r, Amass and bbot
 subdomain_with_tools()
 {
 echo
@@ -84,6 +84,8 @@ echo
 python3 $SUBLIST3R_PATH/sublist3r.py -d $1 -o sublist3r_$1.txt
 #Appending file contents to subdomain.txt(Not appending directly because ASCII art in Sublist3r is being obfuscated,due to which junk data is being added to subdomains list)
 cat sublist3r_$1.txt >> subdomain_$1.txt
+bbot -y -s -t google.com -f subdomain-enum -om human | grep '[DNS_NAME]' | cut -f2 >> bbot_$1.txt
+cat bbot_$1.txt >> subdomain_$1.txt
 
 
 echo
@@ -120,6 +122,7 @@ checkTakeover $1
 #Removing temporary files
 rm -r subdomain_$1.txt
 rm -r sublist3r_$1.txt
+rm -r bbot_$1.txt
 
 #OutputInformation
 echo "[*]Output Information:"

@@ -7,9 +7,18 @@
 
 import React from "react";
 import "./style.scss";
-import PropTypes from "prop-types";
 
-export default class Header extends React.Component {
+interface propTypes {
+  targetData: any;
+  scrollStepInPx: number;
+  delayInMs: number;
+}
+
+interface stateTypes {
+  intervalId: any;
+}
+
+export default class Header extends React.Component<propTypes, stateTypes> {
   constructor(props, context) {
     super(props, context);
 
@@ -85,7 +94,10 @@ export default class Header extends React.Component {
 
   render() {
     return (
-      <div className="targetContainer__headerToolbarContainer__headerContainer">
+      <div
+        className="targetContainer__headerToolbarContainer__headerContainer"
+        data-test="headerComponent"
+      >
         <div className="targetContainer__headerToolbarContainer__headerContainer__heading">
           <h2>{this.props.targetData.target_url}</h2>
           <small>{" (" + this.props.targetData.host_ip + ")"}</small>
@@ -97,7 +109,3 @@ export default class Header extends React.Component {
     );
   }
 }
-
-Header.propTypes = {
-  targetData: PropTypes.object
-};
