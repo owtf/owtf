@@ -21,18 +21,18 @@ import { createStructuredSelector } from "reselect";
 import { Paragraph, Pane, Spinner } from "evergreen-ui";
 
 interface propTypes {
-  targetData: { id: any };
-  loadingNames: boolean;
-  errorNames: object | boolean;
-  pluginOutputNames: object | boolean;
-  onFetchPluginOutputNames: Function;
-  selectedGroup: any;
-  selectedType: any;
-  selectedRank: any;
-  selectedOwtfRank: any;
-  selectedMapping: any;
-  selectedStatus: any;
-}
+  targetData: { id: any }
+  loadingNames: boolean,
+  errorNames: object | boolean,
+  pluginOutputNames: object | boolean,
+  onFetchPluginOutputNames: Function,
+  selectedGroup: any,
+  selectedType: any,
+  selectedRank: any,
+  selectedOwtfRank: any,
+  selectedMapping: any,
+  selectedStatus: any
+};
 
 export class Accordians extends React.Component<propTypes> {
   constructor(props, context) {
@@ -82,6 +82,7 @@ export class Accordians extends React.Component<propTypes> {
             justifyContent: "center",
             marginTop: "10rem"
           }}
+
         >
           <p style={{ fontSize: "2.5rem" }}>No plugins found</p>
         </div>
@@ -90,12 +91,8 @@ export class Accordians extends React.Component<propTypes> {
 
     if (pluginOutputNames !== false) {
       return (
-        <div
-          className="AccordriansContainer"
-          id="pluginOutputs"
-          data-test="accordiansComponent"
-        >
-          {Object.keys(pluginOutputNames).map(function(key) {
+        <div className="AccordriansContainer" id="pluginOutputs" data-test="accordiansComponent">
+          {Object.keys(pluginOutputNames).map(function (key) {
             return (
               <Accordian
                 {...AccordianProps}
@@ -110,6 +107,8 @@ export class Accordians extends React.Component<propTypes> {
     }
   }
 }
+
+
 
 const mapStateToProps = createStructuredSelector({
   pluginOutputNames: makeSelectFetchPluginOutputNames,

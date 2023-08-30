@@ -7,15 +7,15 @@
 import React from "react";
 
 interface propsType {
-  selectedRank: [];
-  updateFilter: Function;
+  selectedRank: [],
+  updateFilter: Function
 }
 interface stateType {
-  show: boolean;
-  newSessionName: string;
+  show: boolean, 
+  newSessionName: string, 
 }
 
-export default class Toolbar extends React.Component<propsType, stateType> {
+export default class Toolbar extends React.Component<propsType,stateType> {
   constructor(props, context) {
     super(props, context);
 
@@ -32,7 +32,7 @@ export default class Toolbar extends React.Component<propsType, stateType> {
 
   render() {
     const selectedRank = this.props.selectedRank;
-    const severities: object = {
+    const severities:object = {
       Unranked: -1,
       Passing: 0,
       Info: 1,
@@ -42,24 +42,20 @@ export default class Toolbar extends React.Component<propsType, stateType> {
       Critical: 5
     };
     return (
+
       <div className="targetContainer__headerToolbarContainer__toolbarContainer">
         {Object.keys(severities).map((severity, index) => (
           //@ts-ignore
-          <span
-            key={index}
-            id={index}
-            onClick={() => this.handleSeveritySelect(severities[severity])}
-            style={{
-              backgroundColor:
-                selectedRank.indexOf(severities[severity]) > -1
-                  ? "rgba(0, 0, 0, 0.178)"
-                  : "transparent"
-            }}
+          <span key={index} id={index}  onClick={() => this.handleSeveritySelect(severities[severity])} style = {{backgroundColor:selectedRank.indexOf(severities[severity]) > -1 ?"rgba(0, 0, 0, 0.178)":"transparent"}}
+
           >
             {severity}
           </span>
         ))}
+
       </div>
+
     );
   }
 }
+

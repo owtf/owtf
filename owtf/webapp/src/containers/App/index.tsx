@@ -39,15 +39,16 @@ import {
 import "../../styles/main.css";
 
 interface propsType {
-  tryAutoLogin: Function;
-  isAuthenticated: string;
-  username: string;
+  tryAutoLogin: Function,
+  isAuthenticated: string,
+  username: string
 }
 
+
 export class App extends React.Component<propsType> {
-  navbar = {
-    brand: {},
-    links: []
+  navbar=  {
+    brand:{},
+    links:[]
   };
 
   constructor(props, context) {
@@ -60,8 +61,8 @@ export class App extends React.Component<propsType> {
 
   render() {
     this.navbar = {
-      brand: {},
-      links: []
+      brand:{},
+      links:[]
     };
     this.navbar.brand = { linkTo: "/", text: "OWASP OWTF" };
     this.navbar.links = [
@@ -189,6 +190,8 @@ function PrivateRoute({ component: Component, authenticated, ...rest }) {
     />
   );
 }
+
+
 
 const mapStateToProps = createStructuredSelector({
   isAuthenticated: makeSelectLoginIsAuthenticated,

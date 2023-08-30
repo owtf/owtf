@@ -29,41 +29,42 @@ import "./style.scss";
 import Collapse from "./Collapse";
 import update from "immutability-helper";
 
+
 interface propTypes {
-  targetData: { id: any };
-  selectedGroup: any;
-  selectedType: any;
-  selectedRank: any;
-  selectedOwtfRank: any;
-  selectedMapping: string;
-  selectedStatus: any;
-  data: object;
-  code: string;
-  loading: boolean;
-  error: object | boolean;
-  pluginOutput: [] | boolean;
-  changeLoading: boolean;
-  changeError: object | boolean;
-  deleteLoading: boolean;
-  deleteError: object | boolean;
-  postToWorklistError: object | boolean;
-  onFetchPluginOutput: Function;
-  onChangeUserRank: Function;
-  onPostToWorklist: Function;
-  onDeletePluginOutput: Function;
-}
+  targetData: { id: any },
+  selectedGroup: any,
+  selectedType: any,
+  selectedRank: any,
+  selectedOwtfRank: any,
+  selectedMapping: string,
+  selectedStatus: any,
+  data: object,
+  code: string,
+  loading: boolean,
+  error: object | boolean,
+  pluginOutput: [] | boolean,
+  changeLoading: boolean,
+  changeError: object | boolean,
+  deleteLoading: boolean,
+  deleteError: object | boolean,
+  postToWorklistError: object | boolean,
+  onFetchPluginOutput: Function,
+  onChangeUserRank: Function,
+  onPostToWorklist: Function,
+  onDeletePluginOutput: Function
+};
 
 interface stateTypes {
-  pactive: string;
-  details: object;
-  pluginData: any;
-  pluginCollapseData: any;
-  isClicked: boolean;
-  sideSheetOpen: boolean;
-  code: any;
+  pactive: string,
+  details: object,
+  pluginData: any,
+  pluginCollapseData: any,
+  isClicked: boolean,
+  sideSheetOpen: boolean,
+  code: any
 }
 
-export class Accordian extends React.Component<propTypes, stateTypes> {
+export class Accordian extends React.Component<propTypes, stateTypes>{
   constructor(props, context) {
     super(props, context);
 
@@ -255,7 +256,7 @@ export class Accordian extends React.Component<propTypes, stateTypes> {
     selectedPluginData["id"] = this.props.targetData.id;
     selectedPluginData["force_overwrite"] = force_overwrite;
     const data = Object.keys(selectedPluginData)
-      .map(function(key) {
+      .map(function (key) {
         //seriliaze the selectedPluginData object
         return (
           encodeURIComponent(key) +
@@ -293,7 +294,7 @@ export class Accordian extends React.Component<propTypes, stateTypes> {
         toaster.danger("Server replied: " + this.props.deleteError);
       } else {
         toaster.success("Deleted plugin output for " + type + "@" + code);
-        let i: number = 0;
+        let i:number = 0;
         for (i = 0; i < pluginData.length; i++) {
           if (
             pluginData[i]["plugin_type"] === type &&
@@ -320,6 +321,7 @@ export class Accordian extends React.Component<propTypes, stateTypes> {
     }, 500);
   }
 
+
   /**
    * Function renders the plugin severity on top of the accordian panel based on plugin ranking
    * @param {number} testCaseMax plugin severity ranking
@@ -327,7 +329,8 @@ export class Accordian extends React.Component<propTypes, stateTypes> {
   renderSeverity(testCaseMax) {
     if (testCaseMax == 0)
       return (
-        <span style={{ backgroundColor: "rgba(238, 130, 238, 0.466)" }}>
+        <span style={{ backgroundColor: "rgba(238, 130, 238, 0.466)" }}
+        >
           Passing
         </span>
       );
@@ -339,7 +342,9 @@ export class Accordian extends React.Component<propTypes, stateTypes> {
       );
     else if (testCaseMax == 2)
       return (
-        <span style={{ backgroundColor: "rgba(0, 0, 255, 0.507)" }}>Low</span>
+        <span style={{ backgroundColor: "rgba(0, 0, 255, 0.507)" }}>
+          Low
+        </span>
       );
     else if (testCaseMax == 3)
       return (
@@ -349,11 +354,13 @@ export class Accordian extends React.Component<propTypes, stateTypes> {
       );
     else if (testCaseMax == 4)
       return (
-        <span style={{ backgroundColor: "rgba(255, 0, 0, 0.507)" }}>High</span>
+        <span style={{ backgroundColor: "rgba(255, 0, 0, 0.507)" }}>
+          High
+        </span>
       );
     else if (testCaseMax == 5)
       return (
-        <span style={{ backgroundColor: "rgba(128, 0, 128, 0.466)" }}>
+        <span style={{ backgroundColor: "rgba(128, 0, 128, 0.466)" }} >
           Critical
         </span>
       );
@@ -412,14 +419,13 @@ export class Accordian extends React.Component<propTypes, stateTypes> {
     };
     if (count > 0) {
       return (
-        <div
-          className="accordriansContainer__accordianCollapseContainer"
-          key={code}
-          data-test="accordianComponent"
-        >
+        <div className="accordriansContainer__accordianCollapseContainer" key={code} data-test="accordianComponent">
           <div className="accordriansContainer__accordianCollapseContainer__accordianContainer">
-            <div className="accordriansContainer__accordianCollapseContainer__accordianContainer__headingContainer">
-              <h2 onClick={this.fetchData}>
+
+            <div className="accordriansContainer__accordianCollapseContainer__accordianContainer__headingContainer" >
+              <h2
+                onClick={this.fetchData}
+              >
                 {(() => {
                   if (
                     mapping === "" ||
@@ -435,7 +441,9 @@ export class Accordian extends React.Component<propTypes, stateTypes> {
                   }
                 })()}
               </h2>
-              <small>{details["hint"].split("_").join(" ")}</small>
+              <small>
+                {details["hint"].split("_").join(" ")}
+              </small>
             </div>
             <div className="accordriansContainer__accordianCollapseContainer__accordianContainer__buttonsContainer">
               {pluginData.map((obj, index) => {
@@ -472,9 +480,7 @@ export class Accordian extends React.Component<propTypes, stateTypes> {
                 }
               })}
             </div>
-            <div className="accordriansContainer__accordianCollapseContainer__accordianContainer__severityContainer">
-              {this.renderSeverity(testCaseMax)}
-            </div>
+            <div className="accordriansContainer__accordianCollapseContainer__accordianContainer__severityContainer">{this.renderSeverity(testCaseMax)}</div>
           </div>
           <Collapse {...CollapseProps} />
         </div>
@@ -484,6 +490,8 @@ export class Accordian extends React.Component<propTypes, stateTypes> {
     }
   }
 }
+
+
 
 const mapStateToProps = createStructuredSelector({
   pluginOutput: makeSelectFetchPluginOutput,

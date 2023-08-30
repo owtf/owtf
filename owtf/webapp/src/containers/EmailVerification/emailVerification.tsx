@@ -2,31 +2,33 @@
  * Component to show when email is being verified.
  */
 
-import React, { useEffect } from "react";
+import React from "react";
 import { emailVerificationStart } from "./actions";
 import { connect } from "react-redux";
 
-interface IEmailVerificationProps{
-  onLoad: any;
-  match: any;
+interface propsType{
+  onLoad: Function,
+  match:any
+}
+export class EmailVerfication extends React.Component<propsType> {
+  constructor(props, context) {
+    super(props, context);
+  }
+
+  componentDidMount() {
+    this.props.onLoad(this.props.match.params.link);
+  }
+
+  render() {
+    return <p>Email verification in progress</p>;
+  }
 }
 
-export function EmailVerfication({ onLoad, match }: IEmailVerificationProps) {
-
-  useEffect(() => {
-    onLoad(match.params.link);
-  }, []);
-
-  return <p>Email verification in progress</p>;
-}
-
-const mapDispatchToProps = ( dispatch: Function ) => {
+const mapDispatchToProps = dispatch => {
   return {
-    onLoad: (link: string) => dispatch(emailVerificationStart(link))
+    onLoad: link => dispatch(emailVerificationStart(link))
   };
 };
 
-export default connect(
-  null,
-  mapDispatchToProps
-)(EmailVerfication);
+//@ts-ignore
+export default connect(null,  mapDispatchToProps)(EmailVerfication);

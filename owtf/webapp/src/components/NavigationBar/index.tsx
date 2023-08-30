@@ -10,16 +10,13 @@ import { FiMenu } from "react-icons/fi";
 import { RiCloseFill } from "react-icons/ri";
 
 interface navgationBarPropsType {
-  brand: any;
-  links: any;
+  brand: any
+  links: any
 }
 interface navgationBarStateType {
-  menuToggle: boolean;
+  menuToggle: boolean
 }
-export default class NavigationBar extends Component<
-  navgationBarPropsType,
-  navgationBarStateType
-> {
+export default class NavigationBar extends Component<navgationBarPropsType, navgationBarStateType>{
   constructor(props) {
     super(props);
 
@@ -51,9 +48,8 @@ export default class NavigationBar extends Component<
           <img src={logo} alt="owtf logo" />
         </div>
         <div
-          className={`navigationBar__navLinksContainer ${
-            menuToggle ? "navMenuSlideIn" : ""
-          }`}
+          className={`navigationBar__navLinksContainer ${menuToggle ? "navMenuSlideIn" : ""
+            }`}
         >
           <NavMenu
             links={this.props.links}
@@ -79,11 +75,11 @@ export default class NavigationBar extends Component<
 }
 
 interface NavMenuPropsType {
-  menuToggle: Function;
-  links: any;
+  menuToggle: Function
+  links: any
 }
 interface NavMenuStateType {
-  isMenuDropped: boolean;
+  isMenuDropped: boolean
 }
 export class NavMenu extends Component<NavMenuPropsType, NavMenuStateType> {
   constructor(props) {
@@ -158,23 +154,20 @@ export class NavMenu extends Component<NavMenuPropsType, NavMenuStateType> {
 }
 
 interface NavLinkDropdownPropsType {
-  index: number;
-  links: any;
-  text: string;
-  toggle: Function;
+  index: number
+  links: any
+  text: string
+  toggle: Function
 }
 interface NavLinkDropdownStateType {
-  isMenuDropped: boolean;
+  isMenuDropped: boolean
 }
 
-export class NavLinkDropdown extends Component<
-  NavLinkDropdownPropsType,
-  NavLinkDropdownStateType
-> {
+export class NavLinkDropdown extends Component<NavLinkDropdownPropsType, NavLinkDropdownStateType>{
   render() {
     const handleDropDown = this.props.toggle;
 
-    const links = this.props.links.map(function(link, index) {
+    const links = this.props.links.map(function (link, index) {
       return (
         <div
           className="navigationBar__navLinksContainer__linksContainer__linkDropDownContainer__droppedLinksContainer__link"

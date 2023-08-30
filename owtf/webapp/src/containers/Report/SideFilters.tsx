@@ -8,7 +8,12 @@
 import React from "react";
 import Plugins from "../Plugins/index";
 import { templatesNames, getDocxReportFromJSON } from "./Export";
-import { Menu, Popover, Position, toaster } from "evergreen-ui";
+import {
+  Menu,
+  Popover,
+  Position,
+  toaster
+} from "evergreen-ui";
 import Dialog from "../../components/DialogBox/dialog";
 import { loadTargetExport } from "./actions";
 import {
@@ -20,24 +25,24 @@ import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 
 interface propTypes {
-  targetData: [];
-  selectedGroup: [];
-  selectedType: [];
-  updateFilter: Function;
-  clearFilters: Function;
-  updateReport: Function;
-  exportLoading: boolean;
-  exportError: object | boolean;
-  exportData: any;
-  onFetchTargetExport: Function;
-}
+  targetData: [],
+  selectedGroup: [],
+  selectedType: [],
+  updateFilter: Function,
+  clearFilters: Function,
+  updateReport: Function,
+  exportLoading: boolean,
+  exportError: object | boolean,
+  exportData: any,
+  onFetchTargetExport: Function,
+};
 
 interface stateType {
-  filterShow: boolean;
-  pluginShow: boolean;
-}
+  filterShow: boolean,
+  pluginShow: boolean
+};
 
-export class SideFilters extends React.Component<propTypes, stateType> {
+export class SideFilters extends React.Component<propTypes, stateType>{
   constructor(props, context) {
     super(props, context);
 
@@ -49,9 +54,7 @@ export class SideFilters extends React.Component<propTypes, stateType> {
     this.handlePluginClose = this.handlePluginClose.bind(this);
     this.handleAlertMsg = this.handleAlertMsg.bind(this);
     this.resetTargetState = this.resetTargetState.bind(this);
-    {
-      /* @ts-ignore */
-    }
+     {/* @ts-ignore */}
     this.getDocxReportFromJSON = getDocxReportFromJSON.bind(this);
     this.getDocx = this.getDocx.bind(this);
 
@@ -68,17 +71,13 @@ export class SideFilters extends React.Component<propTypes, stateType> {
    */
 
   getDocx(template) {
-    {
-      /* @ts-ignore */
-    }
+     {/* @ts-ignore */}
     this.props.onFetchTargetExport(this.props.targetData[0]);
     setTimeout(() => {
       if (this.props.exportError !== false) {
         toaster.danger("Server replied: " + this.props.exportError);
       } else {
-        {
-          /* @ts-ignore */
-        }
+         {/* @ts-ignore */}
         this.getDocxReportFromJSON(this.props.exportData, template);
       }
     }, 500);
@@ -183,22 +182,34 @@ export class SideFilters extends React.Component<propTypes, stateType> {
         data-test="sideFiltersComponent"
       >
         <div className="targetContainer__sideFilterContainer__actionsContainer">
+
           <strong>Actions : </strong>
-          <div className="targetContainer__sideFilterContainer__actionsContainer__optionsWrapper">
-            <span key="filter" onClick={this.handleFilterShow}>
+          <div className="targetContainer__sideFilterContainer__actionsContainer__optionsWrapper"
+          >
+            <span
+              key="filter"
+              onClick={this.handleFilterShow}
+            >
+
               Filter
             </span>
             {/* @ts-ignore */}
             <span key="refresh" onClick={updateReport}>
+
               Refresh
             </span>
-            <span key="plugins" onClick={this.handlePluginShow}>
+            <span
+              key="plugins"
+              onClick={this.handlePluginShow}
+            >
+
               Run Plugins
             </span>
             <span
               key="sessions"
               // onClick={() => this.handleGroupSelect(group)}
             >
+
               User Sessions
             </span>
             <Popover
@@ -223,6 +234,7 @@ export class SideFilters extends React.Component<propTypes, stateType> {
             >
               {/* @ts-ignore */}
               <span key="export" onClick={updateReport}>
+
                 Export Report
               </span>
             </Popover>
@@ -234,21 +246,19 @@ export class SideFilters extends React.Component<propTypes, stateType> {
         {/* Group filter starts*/}
 
         <div className="targetContainer__sideFilterContainer__groupsContainer">
-          <strong> Plugin Group : </strong>
-          <div className="targetContainer__sideFilterContainer__groupsContainer__optionsWrapper">
-            {groups.map((group: any, index: any) => (
+          <strong > Plugin Group : </strong>
+          <div className="targetContainer__sideFilterContainer__groupsContainer__optionsWrapper"
+          >
+  
+            {groups.map((group:any, index:any) => (
+              
               <span
                 key={index}
                 id={index}
                 onClick={() => this.handleGroupSelect(group)}
                 aria-controls={`panel-${group}`}
                 //@ts-ignore
-                style={{
-                  backgroundColor:
-                    selectedGroup.indexOf(group) > -1
-                      ? "rgba(0, 0, 0, 0.178)"
-                      : "transparent"
-                }}
+                style={{ backgroundColor: selectedGroup.indexOf(group) > -1 ? "rgba(0, 0, 0, 0.178)" : "transparent" }}
               >
                 {group.replace("_", " ")}
               </span>
@@ -261,23 +271,17 @@ export class SideFilters extends React.Component<propTypes, stateType> {
         {/* Type Filter starts*/}
 
         <div className="targetContainer__sideFilterContainer__typeContainer">
-          <strong> Plugin Type : </strong>
+          <strong > Plugin Type : </strong>
           <div className="targetContainer__sideFilterContainer__typeContainer__optionsWrapper">
-            {types.map((type: any, index: any) => (
+            {types.map((type:any, index:any) => (
               <span
                 key={index}
                 id={index}
                 onClick={() => this.handleTypeSelect(type)}
                 //@ts-ignore
-                style={{
-                  backgroundColor:
-                    selectedType.indexOf(type) > -1
-                      ? "rgba(0, 0, 0, 0.178)"
-                      : "transparent"
-                }}
+                style={{ backgroundColor: selectedType.indexOf(type) > -1 ? "rgba(0, 0, 0, 0.178)" : "transparent" }}
                 aria-controls={`panel-${type}`}
-              >
-                {type.replace("_", " ")}
+              >{type.replace("_", " ")}
               </span>
             ))}
           </div>
@@ -302,6 +306,8 @@ export class SideFilters extends React.Component<propTypes, stateType> {
   }
 }
 
+
+
 const mapStateToProps = createStructuredSelector({
   exportData: makeSelectFetchTargetExport,
   exportLoading: makeSelectTargetExportLoading,
@@ -315,4 +321,4 @@ const mapDispatchToProps = dispatch => {
 };
 
 //@ts-ignore
-export default connect(mapStateToProps, mapDispatchToProps)(SideFilters);
+export default connect( mapStateToProps, mapDispatchToProps)(SideFilters);

@@ -21,7 +21,8 @@
  *    {
  *      "color": "#337ab7",
  *      "id": 3,
- *      "value": <int>,
+ *      "value": <int>
+                background-color: red;,
  *      "label": "Low"
  *    },
  *    {
@@ -42,31 +43,35 @@
  */
 
 import React from "react";
-import { Pie } from 'react-chartjs-2';
+import { Pie } from "react-chartjs-2";
 
-export default class Chart extends React.Component {
+interface propsType {
+  chartData: []
+}
+
+export default class Chart extends React.Component <propsType>{
   render() {
-      const chartData = {
-        labels: this.props.chartData.map(severity => severity.label),
-        datasets:[
-          { 
-            data: this.props.chartData.map(severity => severity.value),
-            backgroundColor: this.props.chartData.map(severity => severity.color)
-          }
-        ]
-      }
+    const chartData = {
+      labels: this.props.chartData.map((severity:any) => severity.label),
+      datasets: [
+        {
+          data: this.props.chartData.map((severity:any) => severity.value),
+          backgroundColor: this.props.chartData.map((severity:any) => severity.color)
+        }
+      ]
+    };
     return (
       <Pie
         data={chartData}
-        width={100}
-        height={100}
+        width={60}
+        height={60}
         options={{
-          title:{
-            display:false
+          title: {
+            display: false
           },
-          legend:{
-            display:true,
-            position:"left"
+          legend: {
+            display: true,
+            position: "left"
           },
           maintainAspectRatio: false
         }}

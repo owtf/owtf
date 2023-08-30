@@ -55,17 +55,17 @@ describe("NewPasswordPage component", () => {
         hidePassword: true,
         hideConfirmPassword: true
       });
-      const pane = wrapper.find("withTheme(Pane)");
-      const heading = wrapper.find("withTheme(Heading)");
-      const textInputField = wrapper.find("TextInputField");
-      const paragraph = wrapper.find("withTheme(Paragraph)");
-      const button = wrapper.find("withTheme(Button)");
+      const pane = wrapper.find("div");
+      const heading = wrapper.find("h2");
+      const textInputField = wrapper.find("input");
+      const paragraph = wrapper.find("p");
+      const button = wrapper.find("button");
 
-      expect(pane.length).toBe(6);
+      expect(pane.length).toBe(5);
       expect(heading.length).toBe(1);
       expect(heading.at(0).props().children).toEqual("Reset Password");
       expect(textInputField.length).toBe(2);
-      expect(paragraph.length).toBe(1);
+      expect(paragraph.length).toBe(3);
       expect(paragraph.at(0).props().children).toEqual(
         "Your current password has expired. Please create a new password."
       );
@@ -75,7 +75,7 @@ describe("NewPasswordPage component", () => {
 
     it("Should call onNewPassword on resend link click", () => {
       expect(props.onNewPassword.mock.calls.length).toBe(0);
-      const resendButton = wrapper.find("withTheme(Button)");
+      const resendButton = wrapper.find("button");
       resendButton.simulate("click");
       expect(props.onNewPassword.mock.calls.length).toBe(1);
     });

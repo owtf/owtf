@@ -1,38 +1,26 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`HelpPage component Should render without errors 1`] = `
-<withTheme(Pane)
-  clearfix={true}
+<div
+  className="helpPageContainer"
   data-test="helpComponent"
-  display="flex"
-  flexDirection="row"
-  flexWrap="wrap"
-  justifyContent="center"
 >
-  <withTheme(Pane)
+  <div
+    className="helpPageContainer__exploitationContainer"
     data-test="helpBox"
-    display="flex"
-    elevation={1}
-    flexDirection="column"
-    margin={20}
-    width={350}
   >
-    <withTheme(Heading)
-      background="#e1eaea"
-      height={40}
+    <div
+      className="helpPageContainer__exploitationContainer__headingContainer"
     >
-      <withTheme(Pane)
-        margin={10}
-      >
-        <Icon
-          icon="search"
-        />
-         Exploitation
-         
-      </withTheme(Pane)>
-    </withTheme(Heading)>
-    <withTheme(Text)
-      margin={20}
+      <span>
+        <GoSearch />
+      </span>
+      <h2>
+        Exploitation
+      </h2>
+    </div>
+    <div
+      className="helpPageContainer__exploitationContainer__linksContainer"
     >
       <ul>
         <li
@@ -80,32 +68,24 @@ exports[`HelpPage component Should render without errors 1`] = `
           </a>
         </li>
       </ul>
-    </withTheme(Text)>
-  </withTheme(Pane)>
-  <withTheme(Pane)
+    </div>
+  </div>
+  <div
+    className="helpPageContainer__methodologyContainer"
     data-test="helpBox"
-    display="flex"
-    elevation={1}
-    flexDirection="column"
-    margin={20}
-    width={350}
   >
-    <withTheme(Heading)
-      background="#e1eaea"
-      height={40}
+    <div
+      className="helpPageContainer__methodologyContainer__headingContainer"
     >
-      <withTheme(Pane)
-        margin={10}
-      >
-        <Icon
-          icon="horizontal-bar-chart-desc"
-        />
-         Methodology
-         
-      </withTheme(Pane)>
-    </withTheme(Heading)>
-    <withTheme(Text)
-      margin={20}
+      <span>
+        <BiMenuAltLeft />
+      </span>
+      <h2>
+        Methodology
+      </h2>
+    </div>
+    <div
+      className="helpPageContainer__methodologyContainer__linksContainer"
     >
       <ul>
         <li
@@ -142,32 +122,24 @@ exports[`HelpPage component Should render without errors 1`] = `
           </a>
         </li>
       </ul>
-    </withTheme(Text)>
-  </withTheme(Pane)>
-  <withTheme(Pane)
+    </div>
+  </div>
+  <div
+    className="helpPageContainer__calculatorsContainer"
     data-test="helpBox"
-    display="flex"
-    elevation={1}
-    flexDirection="column"
-    margin={20}
-    width={350}
   >
-    <withTheme(Heading)
-      background="#e1eaea"
-      height={40}
+    <div
+      className="helpPageContainer__calculatorsContainer__headingContainer"
     >
-      <withTheme(Pane)
-        margin={10}
-      >
-        <Icon
-          icon="calculator"
-        />
-         Calculators
-         
-      </withTheme(Pane)>
-    </withTheme(Heading)>
-    <withTheme(Text)
-      margin={20}
+      <span>
+        <BsCalculator />
+      </span>
+      <h2>
+        Calculators
+      </h2>
+    </div>
+    <div
+      className="helpPageContainer__calculatorsContainer__linksContainer"
     >
       <ul>
         <li
@@ -193,32 +165,24 @@ exports[`HelpPage component Should render without errors 1`] = `
           </a>
         </li>
       </ul>
-    </withTheme(Text)>
-  </withTheme(Pane)>
-  <withTheme(Pane)
+    </div>
+  </div>
+  <div
+    className="helpPageContainer__testLearnContainer"
     data-test="helpBox"
-    display="flex"
-    elevation={1}
-    flexDirection="column"
-    margin={20}
-    width={500}
   >
-    <withTheme(Heading)
-      background="#e1eaea"
-      height={40}
+    <div
+      className="helpPageContainer__testLearnContainer__headingContainer"
     >
-      <withTheme(Pane)
-        margin={10}
-      >
-        <Icon
-          icon="book"
-        />
-         Test/Learn
-         
-      </withTheme(Pane)>
-    </withTheme(Heading)>
-    <withTheme(Text)
-      margin={20}
+      <span>
+        <RiBookletFill />
+      </span>
+      <h2>
+        Test/Learn
+      </h2>
+    </div>
+    <div
+      className="helpPageContainer__testLearnContainer__linksContainer"
     >
       <ul>
         <li
@@ -255,167 +219,143 @@ exports[`HelpPage component Should render without errors 1`] = `
           </a>
         </li>
       </ul>
-    </withTheme(Text)>
-  </withTheme(Pane)>
-  <withTheme(Pane)
+    </div>
+  </div>
+  <div
+    className="helpPageContainer__helpLinksContainer"
     data-test="helpBox"
-    display="flex"
-    elevation={1}
-    flexDirection="column"
-    margin={20}
-    width={600}
   >
-    <withTheme(Heading)
-      background="#e1eaea"
-      height={40}
+    <div
+      className="helpPageContainer__helpLinksContainer__headingContainer"
     >
-      <withTheme(Pane)
-        margin={10}
-      >
-        <Icon
-          icon="help"
-        />
-         OWTF Help Links
-         
-      </withTheme(Pane)>
-    </withTheme(Heading)>
-    <withTheme(Pane)
-      display="flex"
-      flexDirection="row"
+      <span>
+        <IoHelpCircleSharp />
+      </span>
+      <h2>
+        OWTF Help Links
+      </h2>
+    </div>
+    <div
+      className="helpPageContainer__helpLinksContainer__linksWrapper"
     >
-      <withTheme(Pane)
-        display="flex"
-        flexDirection="column"
+      <div
+        className="helpPageContainer__helpLinksContainer__linksWrapper__linksContainer"
       >
-        <withTheme(Text)
-          margin={20}
-        >
-          <ul>
-            <li
-              key="1"
+        <ul>
+          <li
+            key="1"
+          >
+            <a
+              href="https://github.com/owtf/owtf/wiki"
+              rel="noopener noreferrer"
+              target="_blank"
             >
-              <a
-                href="https://github.com/owtf/owtf/wiki"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Github Wiki
-              </a>
-            </li>
-            <li
-              key="2"
+              Github Wiki
+            </a>
+          </li>
+          <li
+            key="2"
+          >
+            <a
+              href="http://www.youtube.com/user/owtfproject"
+              rel="noopener noreferrer"
+              target="_blank"
             >
-              <a
-                href="http://www.youtube.com/user/owtfproject"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Youtube channel
-              </a>
-            </li>
-            <li
-              key="3"
+              Youtube channel
+            </a>
+          </li>
+          <li
+            key="3"
+          >
+            <a
+              href="http://blog.7-a.org/search/label/OWTF%20Release"
+              rel="noopener noreferrer"
+              target="_blank"
             >
-              <a
-                href="http://blog.7-a.org/search/label/OWTF%20Release"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Release notes
-              </a>
-            </li>
-          </ul>
-        </withTheme(Text)>
-      </withTheme(Pane)>
-      <withTheme(Pane)
-        display="flex"
-        flexDirection="column"
+              Release notes
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div
+        className="helpPageContainer__helpLinksContainer__linksWrapper__linksContainer"
       >
-        <withTheme(Text)
-          margin={20}
-        >
-          <ul>
-            <li
-              key="1"
+        <ul>
+          <li
+            key="1"
+          >
+            <a
+              href="https://github.com/owtf/owtf"
+              rel="noopener noreferrer"
+              target="_blank"
             >
-              <a
-                href="https://github.com/owtf/owtf"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Github repository
-              </a>
-            </li>
-            <li
-              key="2"
+              Github repository
+            </a>
+          </li>
+          <li
+            key="2"
+          >
+            <a
+              href="https://github.com/owtf/owtf/issues"
+              rel="noopener noreferrer"
+              target="_blank"
             >
-              <a
-                href="https://github.com/owtf/owtf/issues"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Issue tracker
-              </a>
-            </li>
-          </ul>
-        </withTheme(Text)>
-      </withTheme(Pane)>
-      <withTheme(Pane)
-        display="flex"
-        flexDirection="column"
+              Issue tracker
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div
+        className="helpPageContainer__helpLinksContainer__linksWrapper__linksContainer"
       >
-        <withTheme(Text)
-          margin={20}
-        >
-          <ul>
-            <li
-              key="1"
+        <ul>
+          <li
+            key="1"
+          >
+            <a
+              href="https://lists.owasp.org/mailman/listinfo/owasp_owtf"
+              rel="noopener noreferrer"
+              target="_blank"
             >
-              <a
-                href="https://lists.owasp.org/mailman/listinfo/owasp_owtf"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Mailing List
-              </a>
-            </li>
-            <li
-              key="2"
+              Mailing List
+            </a>
+          </li>
+          <li
+            key="2"
+          >
+            <a
+              href="https://twitter.com/owtfp"
+              rel="noopener noreferrer"
+              target="_blank"
             >
-              <a
-                href="https://twitter.com/owtfp"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Twitter
-              </a>
-            </li>
-            <li
-              key="3"
+              Twitter
+            </a>
+          </li>
+          <li
+            key="3"
+          >
+            <a
+              href="https://medium.com/@owtf"
+              rel="noopener noreferrer"
+              target="_blank"
             >
-              <a
-                href="https://medium.com/@owtf"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Medium Blog
-              </a>
-            </li>
-            <li
-              key="4"
+              Medium Blog
+            </a>
+          </li>
+          <li
+            key="4"
+          >
+            <a
+              href="http://blog.7-a.org"
+              rel="noopener noreferrer"
+              target="_blank"
             >
-              <a
-                href="http://blog.7-a.org"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Author's blog
-              </a>
-            </li>
-          </ul>
-        </withTheme(Text)>
-      </withTheme(Pane)>
-    </withTheme(Pane)>
-  </withTheme(Pane)>
-</withTheme(Pane)>
+              Author's blog
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
 `;

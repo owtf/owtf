@@ -5,7 +5,7 @@
  * This file contains a util functions to make network requests.
  */
 
-import "whatwg-fetch";
+import 'whatwg-fetch';
 
 /**
  * Requests a URL, returning a promise
@@ -18,9 +18,10 @@ import "whatwg-fetch";
 export default class Request {
   private _url: string;
   private _options: object;
-  constructor(url: string, options: object) {
-    this._url = url;
-    this._options = options === undefined ? {} : options;
+  constructor(url:string, options:object) {
+    this._url= url;
+    this._options = (options === undefined) ? {} : options;
+    
   }
 
   /**
@@ -31,11 +32,11 @@ export default class Request {
    *
    * @return {object} The parsed data in required format from the request
    */
-  static _parseResponse(type: string, response: any): any {
+  static _parseResponse(type:string ,response:any) :any{
     if (response.status === 204 || response.status === 205) {
       return null;
     }
-    return type === "json" ? response.json() : response.text();
+    return (type === 'json') ? response.json() : response.text();
   }
 
   /**
@@ -45,12 +46,12 @@ export default class Request {
    *
    * @return {object|undefined} Returns either the response, or throws an error
    */
-  static _checkStatus(response: any) {
+  static _checkStatus(response:any) {
     if (response.status >= 200 && response.status < 300) {
       return response;
     }
 
-    const error: any = new Error(response.statusText);
+    const error :any= new Error(response.statusText);
     error.response = response;
     throw error;
   }
@@ -63,11 +64,9 @@ export default class Request {
    * @return {string} string to append in URL.
    */
 
-  _getQuery(queryParams: object): string {
-    const arr = Object.keys(queryParams).map(
-      k => `${k}=${encodeURIComponent(queryParams[k])}`
-    );
-    return `?${arr.join("&")}`;
+  _getQuery(queryParams:object):string {
+    const arr = Object.keys(queryParams).map(k => `${k}=${encodeURIComponent(queryParams[k])}`);
+    return `?${arr.join('&')}`;
   }
 
   /**
@@ -78,14 +77,14 @@ export default class Request {
    * @return {string} form-url-encoded string
    */
 
-  _getFormEncodedData(data: any): string {
+  _getFormEncodedData(data:any):string {
     const formBody = [];
     for (const property in data) {
       const encodedKey = encodeURIComponent(property);
       const encodedValue = encodeURIComponent(data[property]);
       formBody.push(`${encodedKey}=${encodedValue}`);
     }
-    return formBody.join("&");
+    return formBody.join('&');
   }
 
   /**
@@ -95,7 +94,7 @@ export default class Request {
    * @param  {object} headers Default headers to add.
    */
 
-  static _addDefaults(target: object, headers: object) {
+  static _addDefaults(target:object, headers:object) {
     for (const prop in headers) {
       target[prop] = target[prop] || headers[prop];
     }
@@ -113,22 +112,13 @@ export default class Request {
    * @return {object} The response data.
    */
 
-  _fetch(
-    method: string,
-    url: string,
-    opts: any,
-    data: any = null,
-    queryParams: any = null
-  ): object {
+  _fetch(method:string, url:string, opts:any, data :any= null, queryParams :any= null):object {
     opts.method = method;
     opts.headers = opts.headers || {};
-    opts.responseAs =
-      opts.responseAs && ["json", "text"].includes(opts.responseAs)
-        ? opts.responseAs
-        : "json";
+    opts.responseAs = (opts.responseAs && ['json', 'text'].includes(opts.responseAs)) ? opts.responseAs : 'json';
 
     Request._addDefaults(opts.headers, {
-      Accept: "application/json"
+      Accept: 'application/json',
     });
 
     if (queryParams) {
@@ -154,8 +144,8 @@ export default class Request {
    * @return {object} The response data.
    */
 
-  get(queryParams: object): object {
-    return this._fetch("GET", this._url, this._options, null, queryParams);
+  get(queryParams:object):object {
+    return this._fetch('GET', this._url, this._options, null, queryParams);
   }
 
   /**
@@ -166,8 +156,8 @@ export default class Request {
    * @return {object} The response data.
    */
 
-  post(data: object): object {
-    return this._fetch("POST", this._url, this._options, data);
+  post(data:object) : object {
+    return this._fetch('POST', this._url, this._options, data);
   }
 
   /**
@@ -178,8 +168,8 @@ export default class Request {
    * @return {object} The response data.
    */
 
-  patch(data: object): object {
-    return this._fetch("PATCH", this._url, this._options, data);
+  patch(data:object):object {
+    return this._fetch('PATCH', this._url, this._options, data);
   }
 
   /**
@@ -190,8 +180,8 @@ export default class Request {
    * @return {object} The response data.
    */
 
-  put(data: object): object {
-    return this._fetch("PUT", this._url, this._options, data);
+  put(data:object) :object{
+    return this._fetch('PUT', this._url, this._options, data);
   }
 
   /**
@@ -200,7 +190,7 @@ export default class Request {
    * @return {object} The response data.
    */
 
-  delete(): object {
-    return this._fetch("DELETE", this._url, this._options);
+  delete():object {
+    return this._fetch('DELETE', this._url, this._options);
   }
 }

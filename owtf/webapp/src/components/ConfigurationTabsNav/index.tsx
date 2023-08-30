@@ -3,11 +3,12 @@
  */
 import React from "react";
 
-interface propsType {
-  configurations: object;
-  handleTabSelect: Function;
-  selectedIndex: number;
+interface propsType{
+  configurations: object,
+  handleTabSelect: Function,
+  selectedIndex: number
 }
+
 
 export default class ConfigurationTabsNav extends React.Component<propsType> {
   render() {
@@ -29,3 +30,4 @@ export default class ConfigurationTabsNav extends React.Component<propsType> {
     );
   }
 }
+

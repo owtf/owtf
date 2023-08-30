@@ -13,16 +13,17 @@ import { makeSelectForgotEmail } from "../ForgotPasswordPage/selectors";
 import logo from "../../../public/img/logo.png";
 
 interface propsType {
-  onSubmit: Function;
-  onResend: Function;
-  emailOrUsername: string;
+  onSubmit: Function,
+  onResend: Function,
+  emailOrUsername: string
 }
 interface stateType {
-  otp: string;
-  otpError: string;
+  otp: string,
+  otpError: string
 }
 
-export class OtpPage extends React.Component<propsType, stateType> {
+
+export class OtpPage extends React.Component<propsType, stateType>  {
   constructor(props, context) {
     super(props, context);
 
@@ -36,9 +37,9 @@ export class OtpPage extends React.Component<propsType, stateType> {
     this.props.onSubmit(this.props.emailOrUsername, this.state.otp);
   };
 
-  isNumeric = str => {
+  isNumeric = (str) => {
     if (typeof str != "string") return false; // only process strings!
-
+    
     return (
       //@ts-ignore
       !isNaN(str) && !isNaN(parseFloat(str)) // use type coercion to parse the _entirety_ of the string
@@ -127,6 +128,8 @@ export class OtpPage extends React.Component<propsType, stateType> {
     );
   }
 }
+
+
 
 const mapStateToProps = createStructuredSelector({
   emailOrUsername: makeSelectForgotEmail

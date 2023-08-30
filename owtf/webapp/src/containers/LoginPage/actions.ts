@@ -13,7 +13,7 @@ import {
  *
  * @return {object} An action object with a type of LOGIN_FAIL passing the error
  */
-export function loginFail(error) {
+export function loginFail(error: object): { type: string, error: object } {
   return {
     type: LOGIN_FAIL,
     error
@@ -28,7 +28,7 @@ export function loginFail(error) {
  *
  * @return {object} An action object with a type of LOGIN_START passing the email and password
  */
-export function loginStart(emailOrUsername, password) {
+export function loginStart(emailOrUsername: string, password: string): { type: string, emailOrUsername: string, password: string } {
   return {
     type: LOGIN_START,
     emailOrUsername: emailOrUsername,
@@ -44,7 +44,7 @@ export function loginStart(emailOrUsername, password) {
  *
  * @return {object} An action object with a type of LOGIN_SUCCESS passing the token
  */
-export function loginSuccess(token, username) {
+export function loginSuccess(token: string, username: string): { type: string, token: string, username: string } {
   return {
     type: LOGIN_SUCCESS,
     token,
@@ -57,7 +57,7 @@ export function loginSuccess(token, username) {
  *
  * @return {object} An action object with a type of LOGOUT
  */
-export function logout() {
+export function logout(): { type: string } {
   return {
     type: LOGOUT
   };
@@ -68,7 +68,7 @@ export function logout() {
  *
  * @return {object} An action object with a type of LOGIN_AUTO_CHECK
  */
-export const loginAutoCheck = () => {
+export function loginAutoCheck(): { type: string } {
   return {
     type: LOGIN_AUTO_CHECK
   };

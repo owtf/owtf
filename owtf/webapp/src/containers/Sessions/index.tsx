@@ -5,36 +5,27 @@
  * Handles creating, changing, deleting a session
  */
 
-import React from "react";
-import PropTypes from "prop-types";
-import { connect } from "react-redux";
-import { createStructuredSelector } from "reselect";
-import {
-  makeSelectFetchError,
-  makeSelectFetchLoading,
-  makeSelectFetchSessions
-} from "./selectors";
-import {
-  loadSessions,
-  createSession,
-  changeSession,
-  deleteSession
-} from "./actions";
-import SessionsTable from "./SessionTable";
+import React from 'react';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { createStructuredSelector } from 'reselect';
+import { makeSelectFetchError, makeSelectFetchLoading, makeSelectFetchSessions } from './selectors';
+import { loadSessions, createSession, changeSession, deleteSession } from "./actions";
+import SessionsTable from './SessionTable';
 import Dialog from "../../components/DialogBox/dialog";
 
 interface propsType {
-  loading: boolean;
-  error: object | boolean;
-  sessions: any;
-  onFetchSession: Function;
-  onCreateSession: Function;
-  onChangeSession: Function;
-  onDeleteSession: Function;
+  loading: boolean,
+  error: object | boolean
+  sessions:any,
+  onFetchSession: Function,
+  onCreateSession: Function,
+  onChangeSession: Function,
+  onDeleteSession: Function,
 }
 interface stateType {
-  show: boolean;
-  newSessionName: string;
+  show: boolean, 
+  newSessionName: string, 
 }
 
 export class Sessions extends React.Component<propsType, stateType> {
@@ -49,7 +40,7 @@ export class Sessions extends React.Component<propsType, stateType> {
 
     this.state = {
       show: false, //handles the apperance of session dialog box
-      newSessionName: "" //name of the session to be added
+      newSessionName: "", //name of the session to be added
     };
   }
 
@@ -101,13 +92,7 @@ export class Sessions extends React.Component<propsType, stateType> {
   }
 
   render() {
-    const {
-      loading,
-      error,
-      sessions,
-      onChangeSession,
-      onDeleteSession
-    } = this.props;
+    const { loading, error, sessions, onChangeSession, onDeleteSession } = this.props;
     const currentSession = this.getCurrentSession();
     const sessionsTableProps = {
       loading,
@@ -118,21 +103,17 @@ export class Sessions extends React.Component<propsType, stateType> {
     };
 
     return (
-      <div data-test="sessionsComponent" className="sessionsContainer">
+      <div data-test="sessionsComponent" className='sessionsContainer'>
         <input
-          className="sessionsContainer__currentSessionInput"
+          className='sessionsContainer__currentSessionInput'
           type="text"
           name="currentSession"
-          placeholder={
-            currentSession !== undefined
-              ? currentSession.name
-              : "No session selected!"
-          }
+          placeholder={currentSession !== undefined ? currentSession.name : "No session selected!"}
           disabled
         />
-        <button className="sessionsContainer__button" onClick={this.handleShow}>
-          Session
-        </button>
+        <button className='sessionsContainer__button'
+          onClick={this.handleShow}>
+          Session</button>
 
         <div className="dialogWrapper">
           <Dialog
@@ -140,9 +121,9 @@ export class Sessions extends React.Component<propsType, stateType> {
             isDialogOpened={this.state.show}
             onClose={this.handleClose}
           >
-            <div className="sessionsContainer__newSessionContainer">
+            <div className='sessionsContainer__newSessionContainer'>
               <input
-                className="sessionsContainer__newSessionContainer__input"
+                className='sessionsContainer__newSessionContainer__input'
                 type="text"
                 name="newSessionName"
                 placeholder="Enter new session...."
@@ -150,10 +131,9 @@ export class Sessions extends React.Component<propsType, stateType> {
                 value={this.state.newSessionName}
               />
               <button
-                className="sessionsContainer__newSessionContainer__button"
+                className='sessionsContainer__newSessionContainer__button'
                 disabled={this.state.newSessionName.length === 0}
-                onClick={this.handleAddSession}
-              >
+                onClick={this.handleAddSession}>
                 Add!
               </button>
             </div>
@@ -165,18 +145,19 @@ export class Sessions extends React.Component<propsType, stateType> {
   }
 }
 
+
 const mapStateToProps = createStructuredSelector({
   sessions: makeSelectFetchSessions,
   loading: makeSelectFetchLoading,
-  error: makeSelectFetchError
+  error: makeSelectFetchError,
 });
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     onFetchSession: () => dispatch(loadSessions()),
-    onCreateSession: sessionName => dispatch(createSession(sessionName)),
-    onChangeSession: session => dispatch(changeSession(session)),
-    onDeleteSession: session => dispatch(deleteSession(session))
+    onCreateSession: (sessionName) => dispatch(createSession(sessionName)),
+    onChangeSession: (session) => dispatch(changeSession(session)),
+    onDeleteSession: (session) => dispatch(deleteSession(session))
   };
 };
 
