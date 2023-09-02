@@ -1,3 +1,4 @@
+import { ObjectBindingPattern } from "typescript";
 import {
   LOAD_ERRORS,
   LOAD_ERRORS_SUCCESS,
@@ -21,7 +22,7 @@ import {
  *
  * @return {object} An action object with a type of LOAD_ERRORS
  */
-export function loadErrors() {
+export function loadErrors() :{type:string}{
   return {
     type: LOAD_ERRORS
   };
@@ -34,7 +35,7 @@ export function loadErrors() {
  *
  * @return {object} An action object with a type of LOAD_ERRORS_SUCCESS passing the errors
  */
-export function errorsLoaded(errors) {
+export function errorsLoaded(errors:[]) :{type:string ,errors:[]}{
   return {
     type: LOAD_ERRORS_SUCCESS,
     errors
@@ -48,7 +49,7 @@ export function errorsLoaded(errors) {
  *
  * @return {object} An action object with a type of LOAD_ERRORS_ERROR passing the error
  */
-export function errorsLoadingError(error) {
+export function errorsLoadingError(error:object):{type:string ,error:object} {
   return {
     type: LOAD_ERRORS_ERROR,
     error
@@ -60,7 +61,7 @@ export function errorsLoadingError(error) {
  * @param {object} post_data Data required to create a new error
  * @return {object} An action object with a type of CREATE_ERROR
  */
-export function createError(post_data) {
+export function createError(post_data:object):{type:string ,post_data:object}  {
   return {
     type: CREATE_ERROR,
     post_data
@@ -72,7 +73,7 @@ export function createError(post_data) {
  *
  * @return {object} An action object with a type of CREATE_ERROR_SUCCESS
  */
-export function errorCreated() {
+export function errorCreated():{type:string }  {
   return {
     type: CREATE_ERROR_SUCCESS
   };
@@ -85,7 +86,7 @@ export function errorCreated() {
  *
  * @return {object} An action object with a type of CREATE_ERROR_ERROR passing the error
  */
-export function errorCreatingError(error) {
+export function errorCreatingError(error:object):{type:string ,error:object} {
   return {
     type: CREATE_ERROR_ERROR,
     error
@@ -99,7 +100,7 @@ export function errorCreatingError(error) {
  *
  * @return {object} An action object with a type of DELETE_ERROR
  */
-export function deleteError(error_id) {
+export function deleteError(error_id:number):{type:string ,error_id:number} {
   return {
     type: DELETE_ERROR,
     error_id
@@ -111,7 +112,7 @@ export function deleteError(error_id) {
  *
  * @return {object} An action object with a type of DELETE_ERROR_SUCCESS
  */
-export function errorDeleted() {
+export function errorDeleted() :{type:string }{
   return {
     type: DELETE_ERROR_SUCCESS
   };
@@ -124,7 +125,7 @@ export function errorDeleted() {
  *
  * @return {object} An action object with a type of DELETE_ERROR_ERROR passing the error
  */
-export function errorDeletingError(error) {
+export function errorDeletingError(error:object) :{type:string ,error:object}{
   return {
     type: DELETE_ERROR_ERROR,
     error
@@ -136,7 +137,7 @@ export function errorDeletingError(error) {
  *
  * @return {object} An action object with a type of LOAD_SEVERITY
  */
-export function loadSeverity() {
+export function loadSeverity() :{type:string }{
   return {
     type: LOAD_SEVERITY,
   };
@@ -149,7 +150,7 @@ export function loadSeverity() {
  *
  * @return {object} An action object with a type of LOAD_SEVERITY_SUCCESS passing the severity
  */
-export function severityLoaded(severity) {
+export function severityLoaded(severity:[]) :{type:string ,severity:[]} {
   return {
     type: LOAD_SEVERITY_SUCCESS,
     severity
@@ -163,7 +164,7 @@ export function severityLoaded(severity) {
  *
  * @return {object} An action object with a type of LOAD_SEVERITY_ERROR passing the error
  */
-export function severityLoadingError(error) {
+export function severityLoadingError(error:object) :{type:string ,error:object} {
   return {
     type: LOAD_SEVERITY_ERROR,
     error
@@ -175,7 +176,7 @@ export function severityLoadingError(error) {
  *
  * @return {object} An action object with a type of LOAD_TARGET_SEVERITY
  */
-export function loadTargetSeverity() {
+export function loadTargetSeverity():{type:string }  {
   return {
     type: LOAD_TARGET_SEVERITY,
   };
@@ -188,7 +189,7 @@ export function loadTargetSeverity() {
  *
  * @return {object} An action object with a type of LOAD_TARGET_SEVERITY_SUCCESS passing the severity
  */
-export function targetSeverityLoaded(targetSeverity) {
+export function targetSeverityLoaded(targetSeverity:object) :{type:string ,targetSeverity:object}{
   return {
     type: LOAD_TARGET_SEVERITY_SUCCESS,
     targetSeverity
@@ -202,7 +203,7 @@ export function targetSeverityLoaded(targetSeverity) {
  *
  * @return {object} An action object with a type of LOAD_TARGET_SEVERITY_ERROR passing the error
  */
-export function targetSeverityLoadingError(error) {
+export function targetSeverityLoadingError(error:object):{type:string ,error:object} {
   return {
     type: LOAD_TARGET_SEVERITY_ERROR,
     error

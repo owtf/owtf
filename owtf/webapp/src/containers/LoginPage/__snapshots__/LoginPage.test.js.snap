@@ -1,101 +1,92 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`LoginPage component Testing dumb login component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="loginPageContainer"
   data-test="loginPageComponent"
-  marginY={100}
 >
-  <withTheme(Pane)
-    elevation={1}
-    justifyContent="center"
-    margin="auto"
-    padding={5}
-    width="35%"
+  <div
+    className="loginPageContainer__loginComponentContainer"
   >
-    <withTheme(Heading)
-      marginBottom={20}
-      paddingTop={20}
-      size={700}
-      textAlign="center"
+    <div
+      className="loginPageContainer__loginComponentContainer__brandLogoContainer"
     >
-      Login
-    </withTheme(Heading)>
-    <TextInputField
-      inputHeight={32}
-      inputWidth="100%"
-      label="Your Username / Email Address"
-      marginBottom={20}
-      marginLeft="20%"
-      onChange={[Function]}
-      placeholder="Username / Email"
-      value=""
-      width="60%"
-    />
-    <withTheme(Pane)
-      position="relative"
+      <img
+        alt="brand-logo"
+        src=""
+      />
+    </div>
+    <h2
+      className="loginPageContainer__loginComponentContainer__heading"
     >
-      <withTheme(Pane)
-        marginLeft="75%"
-        position="absolute"
-        width="10%"
+      Login with an OWTF Account
+    </h2>
+    <div
+      className="loginPageContainer__loginComponentContainer__userNameInputContainer"
+    >
+      <label
+        htmlFor="loginPageUserNameInput"
       >
-        <Icon
-          cursor="pointer"
-          icon="eye-off"
-          marginX={-10}
-          marginY={32}
-          onMouseDown={[Function]}
-          onMouseUp={[Function]}
-        />
-      </withTheme(Pane)>
-      <TextInputField
-        inputHeight={32}
-        inputWidth="100%"
-        label="Your Password"
-        marginBottom={10}
-        marginLeft="20%"
+        Your Username / Email Address
+      </label>
+      <input
+        id="loginPageUserNameInput"
+        onChange={[Function]}
+        placeholder="Username / Email"
+        type="text"
+        value=""
+      />
+    </div>
+    <div
+      className="loginPageContainer__loginComponentContainer__passwordInputContainer"
+    >
+      <label
+        htmlFor="loginPagePasswordInput"
+      >
+        Your Password
+      </label>
+      <input
+        id="loginPagePasswordInput"
         onChange={[Function]}
         placeholder="Password"
         type="password"
         value=""
-        width="60%"
       />
-    </withTheme(Pane)>
-    <withTheme(Paragraph)
-      marginBottom={10}
-      marginLeft="20%"
-      width="60%"
+      <span
+        className="loginPageContainer__loginComponentContainer__passwordInputContainer__passwordViewTogglerContainer"
+        onMouseDown={[Function]}
+        onMouseUp={[Function]}
+      >
+        <AiFillEyeInvisible />
+      </span>
+    </div>
+    <div
+      className="loginPageContainer__loginComponentContainer__forgotPasswordLinkContainer"
     >
-      <withTheme(Link)
-        href="/forgot-password/email"
+      <Link
+        replace={false}
+        to="/forgot-password/email"
       >
         Forgot Password?
-      </withTheme(Link)>
-    </withTheme(Paragraph)>
-    <withTheme(Button)
-      appearance="primary"
-      intent="none"
-      justifyContent="center"
-      marginLeft="40%"
+      </Link>
+    </div>
+    <button
+      className="loginPageContainer__loginComponentContainer__submitButton"
       onClick={[Function]}
-      width="20%"
     >
       LOGIN
-    </withTheme(Button)>
-    <withTheme(Paragraph)
-      marginBottom={10}
-      marginLeft="20%"
-      marginTop={10}
-      size={300}
-      width="60%"
+    </button>
+    <div
+      className="loginPageContainer__loginComponentContainer__signupLinkContainer"
     >
       New to OWTF? 
-      <withTheme(Link)
-        href="/signup"
+      <Link
+        replace={false}
+        to="/signup"
       >
         Join now
-      </withTheme(Link)>
-    </withTheme(Paragraph)>
-  </withTheme(Pane)>
-</withTheme(Pane)>
+      </Link>
+    </div>
+  </div>
+</div>
 `;

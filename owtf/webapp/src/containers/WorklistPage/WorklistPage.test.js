@@ -265,16 +265,10 @@ describe("Worklist Page component", () => {
     });
 
     it("Should properly render its sub-components", () => {
-      const textTableHeaderCell = wrapper.find(
-        ".worklistTableContainer__headerContainer div"
-      );
+      const textTableHeaderCell = wrapper.find(".worklistTableContainer__headerContainer div");
       const tableRow = wrapper.find(".worklistTableContainer__bodyContainer");
-      const textTableCell = wrapper.find(
-        ".worklistTableContainer__bodyContainer__rowContainer div"
-      );
-      const textTableCellContent = wrapper.find(
-        ".worklistTableContainer__bodyContainer__rowContainer div span"
-      );
+      const textTableCell = wrapper.find(".worklistTableContainer__bodyContainer__rowContainer div");
+      const textTableCellContent = wrapper.find(".worklistTableContainer__bodyContainer__rowContainer div span");
       expect(textTableHeaderCell.length).toBe(6);
       expect(tableRow.length).toBe(1);
       expect(textTableCell.length).toBe(12);
@@ -285,9 +279,7 @@ describe("Worklist Page component", () => {
     });
 
     it("Should correctly render play/pause icon button", () => {
-      const playPauseDeleteButton = wrapper.find(
-        ".worklistTableContainer__bodyContainer__rowContainer__buttonContainer button"
-      );
+      const playPauseDeleteButton = wrapper.find(".worklistTableContainer__bodyContainer__rowContainer__buttonContainer button")
       expect(playPauseDeleteButton.length).toBe(4);
     });
 
@@ -305,15 +297,9 @@ describe("Worklist Page component", () => {
 
     it("Should correctly filter the worklist", () => {
       wrapper.setState({ groupSearch: "web" });
-      expect(
-        wrapper.find(".worklistTableContainer__bodyContainer__rowContainer")
-          .length
-      ).toBe(1);
+      expect(wrapper.find(".worklistTableContainer__bodyContainer__rowContainer").length).toBe(1);
       wrapper.setProps({ globalSearch: "external" });
-      expect(
-        wrapper.find(".worklistTableContainer__bodyContainer__rowContainer")
-          .length
-      ).toBe(0);
+      expect(wrapper.find(".worklistTableContainer__bodyContainer__rowContainer").length).toBe(0);
     });
   });
 

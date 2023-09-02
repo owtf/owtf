@@ -5,7 +5,7 @@
  */
 
 // Needed for redux-saga es6 generator support
-// @ts-nocheck
+// @ts-nocheck 
 import "@babel/polyfill";
 
 // Import all the third party stuff

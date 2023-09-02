@@ -16,24 +16,24 @@ import PluginsTable from "./PluginsTable";
 import Dialog from "../../components/DialogBox/dialog";
 
 interface propsType {
-  loading: boolean;
-  error: object | boolean;
-  plugins: any;
-  postingError: object | boolean;
-  pluginShow: boolean;
-  onFetchPlugins: Function;
-  onPostToWorklist: Function;
-  handlePluginClose: Function;
-  selectedTargets: [];
-  handleAlertMsg: Function;
-  resetTargetState: Function;
+  loading: boolean,
+  error: object | boolean,
+  plugins: any,
+  postingError: object | boolean,
+  pluginShow: boolean,
+  onFetchPlugins: Function,
+  onPostToWorklist: Function,
+  handlePluginClose: Function,
+  selectedTargets: [],
+  handleAlertMsg: Function,
+  resetTargetState: Function
 }
 interface stateType {
-  selectedIndex: number;
-  selectedPlugins: [];
-  groupSelectedPlugins: object;
-  force_overwrite: boolean;
-  globalSearch: string;
+  selectedIndex: number,
+  selectedPlugins: [],
+  groupSelectedPlugins: object,
+  force_overwrite: boolean,
+  globalSearch: string
 }
 
 export class Plugins extends React.Component<propsType, stateType> {
@@ -154,7 +154,7 @@ export class Plugins extends React.Component<propsType, stateType> {
     selectedPluginData["id"] = this.props.selectedTargets;
     selectedPluginData["force_overwrite"] = this.state.force_overwrite;
     const data = Object.keys(selectedPluginData)
-      .map(function(key) {
+      .map(function (key) {
         //seriliaze the selectedPluginData object
         return (
           encodeURIComponent(key) +
@@ -207,6 +207,8 @@ export class Plugins extends React.Component<propsType, stateType> {
 
     return (
       <div className="dialogWrapper">
+
+
         <Dialog
           title="Plugins"
           isDialogOpened={pluginShow}
@@ -222,12 +224,7 @@ export class Plugins extends React.Component<propsType, stateType> {
                   key={1}
                   id="1"
                   onClick={() => this.setState({ selectedIndex: 1 })}
-                  style={{
-                    backgroundColor:
-                      this.state.selectedIndex === 1
-                        ? "rgba(0, 0, 0, 0.178)"
-                        : "transparent"
-                  }}
+                  style={{ backgroundColor: this.state.selectedIndex === 1 ? "rgba(0, 0, 0, 0.178)" : "transparent" }}
                   aria-controls={`panel-individual`}
                   className="pluginsContainer__headerContainer__launchingOptionsContainer__tab"
                 >
@@ -237,17 +234,13 @@ export class Plugins extends React.Component<propsType, stateType> {
                   key={2}
                   id="2"
                   onClick={() => this.setState({ selectedIndex: 2 })}
-                  style={{
-                    backgroundColor:
-                      this.state.selectedIndex === 2
-                        ? "rgba(0, 0, 0, 0.178)"
-                        : "transparent"
-                  }}
+                  style={{ backgroundColor: this.state.selectedIndex === 2 ? "rgba(0, 0, 0, 0.178)" : "transparent" }}
                   aria-controls={`panel-group`}
                   className="pluginsContainer__headerContainer__launchingOptionsContainer__tab"
                 >
                   Launch in groups
                 </span>
+
               </div>
               <div className="pluginsContainer__headerContainer__searchinputCheckboxContainer">
                 <div className="pluginsContainer__headerContainer__searchinputCheckboxContainer__searchinputContainer">
@@ -273,7 +266,10 @@ export class Plugins extends React.Component<propsType, stateType> {
                     onChange={this.forceOverwriteChange}
                   />
                 </div>
+
               </div>
+
+
             </div>
             <div className="pluginsContainer__bodyContainer">
               <div
@@ -282,36 +278,19 @@ export class Plugins extends React.Component<propsType, stateType> {
                 role="tabpanel"
                 aria-labelledby="individual"
                 aria-hidden={this.state.selectedIndex !== 1}
-                style={{
-                  display: this.state.selectedIndex === 1 ? "block" : "none"
-                }}
+                style={{ display: this.state.selectedIndex === 1 ? "block" : "none" }}
               >
                 {error !== false ? (
-                  <p
-                    style={{
-                      fontSize: "1.8rem",
-                      margin: "5rem auto",
-                      textAlign: "center"
-                    }}
-                  >
-                    Something went wrong, please try again!
-                  </p>
+                  <p style={{ fontSize: "1.8rem", margin: "5rem auto", textAlign: "center" }}>Something went wrong, please try again!</p>
                 ) : null}
                 {loading !== false ? (
-                  <div
-                    style={{
-                      margin: "5rem auto",
-                      display: "flex",
-                      justifyContent: "center"
-                    }}
-                  >
+                  <div style={{ margin: "5rem auto", display: "flex", justifyContent: "center" }}>
                     <Spinner size={64} />
                   </div>
                 ) : null}
-                {plugins !== false ? (
-                  <PluginsTable {...PluginsTableProps} />
-                ) : null}
+                {plugins !== false ? <PluginsTable {...PluginsTableProps} /> : null}
               </div>
+
 
               <div
                 key={2}
@@ -319,38 +298,31 @@ export class Plugins extends React.Component<propsType, stateType> {
                 role="tabpanel"
                 aria-labelledby="group"
                 aria-hidden={this.state.selectedIndex !== 2}
-                style={{
-                  display: this.state.selectedIndex === 2 ? "block" : "none"
-                }}
+                style={{ display: this.state.selectedIndex === 2 ? "block" : "none" }}
                 className="pluginsContainer__bodyContainer__pluginGroupContainer"
               >
+
                 <div className="pluginsContainer__bodyContainer__pluginGroupContainer__pluginGroupSelectContainer">
                   <h2>Plugin Groups</h2>
                   {groupArray[0].map((group, index) => {
                     return (
-                      <div
-                        className="pluginsContainer__bodyContainer__pluginGroupContainer__pluginGroupSelectContainer__inputContainer"
-                        key={index}
-                      >
-                        <label htmlFor={`plugins-group-select ${index}`}>
-                          {group}
-                        </label>
+                      <div className="pluginsContainer__bodyContainer__pluginGroupContainer__pluginGroupSelectContainer__inputContainer" key={index}>
+                        <label htmlFor={`plugins-group-select ${index}`}>{group}</label>
                         <input
                           type="checkbox"
                           id={`plugins-group-select ${index}`}
                           key={index}
                           checked={
                             this.state.groupSelectedPlugins["group"] !==
-                              undefined &&
-                            this.state.groupSelectedPlugins["group"].includes(
-                              group
-                            )
+                            undefined &&
+                            this.state.groupSelectedPlugins["group"].includes(group)
                           }
                           onChange={e =>
                             this.handleCheckboxChange(e, "group", group)
                           }
                         />
                       </div>
+
                     );
                   })}
                 </div>
@@ -359,32 +331,25 @@ export class Plugins extends React.Component<propsType, stateType> {
                   <h2>Plugin Types</h2>
                   {groupArray[1].map((type, index) => {
                     return (
-                      <div
-                        className="pluginsContainer__bodyContainer__pluginGroupContainer__pluginTypesContainer__inputContainer"
-                        key={index}
-                      >
-                        <label htmlFor={`plugins-type-select ${index}`}>
-                          {type.replace(/_/g, " ")}
-                        </label>
+                      <div className="pluginsContainer__bodyContainer__pluginGroupContainer__pluginTypesContainer__inputContainer" key={index}>
+                        <label htmlFor={`plugins-type-select ${index}`}>{type.replace(/_/g, " ")}</label>
                         <input
                           type="checkbox"
                           key={index}
                           id={`plugins-type-select ${index}`}
                           checked={
-                            this.state.groupSelectedPlugins["type"] !==
-                              undefined &&
-                            this.state.groupSelectedPlugins["type"].includes(
-                              type
-                            )
+                            this.state.groupSelectedPlugins["type"] !== undefined &&
+                            this.state.groupSelectedPlugins["type"].includes(type)
                           }
-                          onChange={e =>
-                            this.handleCheckboxChange(e, "type", type)
-                          }
+                          onChange={e => this.handleCheckboxChange(e, "type", type)}
                         />
                       </div>
+
                     );
                   })}
                 </div>
+
+
               </div>
             </div>
 
@@ -392,11 +357,14 @@ export class Plugins extends React.Component<propsType, stateType> {
               <button onClick={this.launchPlugins}>Run</button>
             </div>
           </div>
+
         </Dialog>
       </div>
     );
   }
 }
+
+
 
 const mapStateToProps = createStructuredSelector({
   plugins: makeSelectFetchPlugins,

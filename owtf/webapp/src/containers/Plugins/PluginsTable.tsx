@@ -5,26 +5,23 @@
  */
 import React from "react";
 import { filter } from "fuzzaldrin-plus";
-import { HiOutlineSearch } from "react-icons/hi";
+import { HiOutlineSearch } from 'react-icons/hi';
 
 interface propsType {
-  plugins: [];
-  globalSearch: string;
-  updateSelectedPlugins: Function;
+  plugins: [],
+  globalSearch: string,
+  updateSelectedPlugins: Function
 }
 interface stateType {
-  selectedRows: any;
-  codeSearch: string;
-  nameSearch: string;
-  typeSearch: string;
-  groupSearch: string;
-  helpSearch: string;
+  selectedRows: any, 
+  codeSearch: string, 
+  nameSearch: string, 
+  typeSearch: string, 
+  groupSearch: string, 
+  helpSearch: string 
 }
 
-export default class PluginsTable extends React.Component<
-  propsType,
-  stateType
-> {
+export default class PluginsTable extends React.Component<propsType, stateType>  {
   constructor(props, context) {
     super(props, context);
 
@@ -220,72 +217,67 @@ export default class PluginsTable extends React.Component<
             />
           </div>
 
-          <div className="pluginsTableContainer__headerContainer__codeInputContainer">
+          <div
+            className="pluginsTableContainer__headerContainer__codeInputContainer">
             <HiOutlineSearch />
             <input
               type="text"
-              onChange={e => {
-                this.handleCodeFilterChange(e.target.value);
-              }}
+              onChange={(e) => { this.handleCodeFilterChange(e.target.value) }}
               value={this.state.codeSearch}
               placeholder="Code"
             />
           </div>
 
-          <div className="pluginsTableContainer__headerContainer__nameInputContainer">
+          <div
+            className="pluginsTableContainer__headerContainer__nameInputContainer">
             <HiOutlineSearch />
             <input
               type="text"
-              onChange={e => {
-                this.handleNameFilterChange(e.target.value);
-              }}
+              onChange={(e) => { this.handleNameFilterChange(e.target.value) }}
               value={this.state.nameSearch}
               placeholder="Name"
             />
           </div>
-          <div className="pluginsTableContainer__headerContainer__typeInputContainer">
+          <div
+            className="pluginsTableContainer__headerContainer__typeInputContainer">
             <HiOutlineSearch />
             <input
               type="text"
-              onChange={e => {
-                this.handleTypeFilterChange(e.target.value);
-              }}
+              onChange={(e) => { this.handleTypeFilterChange(e.target.value) }}
               value={this.state.typeSearch}
               placeholder="Type"
             />
           </div>
 
-          <div className="pluginsTableContainer__headerContainer__groupInputContainer">
+          <div
+            className="pluginsTableContainer__headerContainer__groupInputContainer">
             <HiOutlineSearch />
             <input
               type="text"
-              onChange={e => {
-                this.handleGroupFilterChange(e.target.value);
-              }}
+              onChange={(e) => { this.handleGroupFilterChange(e.target.value) }}
               value={this.state.groupSearch}
               placeholder="Group"
             />
           </div>
 
-          <div className="pluginsTableContainer__headerContainer__helpInputContainer">
+
+          <div
+            className="pluginsTableContainer__headerContainer__helpInputContainer">
             <HiOutlineSearch />
             <input
               type="text"
-              onChange={e => {
-                this.handleHelpFilterChange(e.target.value);
-              }}
+              onChange={(e) => { this.handleHelpFilterChange(e.target.value) }}
               value={this.state.helpSearch}
               placeholder="Help"
             />
           </div>
+
+
         </div>
 
         <div className="pluginsTableContainer__bodyContainer">
-          {items.map((plugin, index) => (
-            <div
-              className="pluginsTableContainer__bodyContainer__rowContainer"
-              key={index}
-            >
+          {items.map((plugin,index) => (
+            <div className="pluginsTableContainer__bodyContainer__rowContainer" key={index}>
               <div className="pluginsTableContainer__bodyContainer__rowContainer__checkbox">
                 <input
                   type="checkbox"
@@ -309,12 +301,11 @@ export default class PluginsTable extends React.Component<
               <div className="pluginsTableContainer__bodyContainer__rowContainer__pluginGroup">
                 {plugin.group}
               </div>
-              <div
-                className="pluginsTableContainer__bodyContainer__rowContainer__pluginHelp"
-                title={plugin.descrip}
-              >
+              <div className="pluginsTableContainer__bodyContainer__rowContainer__pluginHelp" title={plugin.descrip}>
                 {plugin.descrip}
               </div>
+
+
             </div>
           ))}
         </div>
@@ -322,3 +313,4 @@ export default class PluginsTable extends React.Component<
     );
   }
 }
+

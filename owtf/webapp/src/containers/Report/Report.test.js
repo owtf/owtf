@@ -259,6 +259,7 @@ describe("Report page component", () => {
     });
 
     it("Should correctly render all the Tablists", () => {
+    
       const tabs = wrapper.find(".targetContainer__sideFilterContainer span");
       expect(tabs.length).toBe(18);
     });
@@ -285,9 +286,7 @@ describe("Report page component", () => {
     // });
 
     it("Should render Advanced Filter dialog on filter tab select", () => {
-      const filterTab = wrapper
-        .find(".targetContainer__sideFilterContainer span")
-        .at(0);
+      const filterTab = wrapper.find(".targetContainer__sideFilterContainer span").at(0);
       expect(wrapper.find("Dialog").length).toBe(1);
     });
   });
@@ -738,9 +737,7 @@ describe("Report page component", () => {
     it("Should correctly render its sub-components", () => {
       const heading = wrapper.find("h2");
       const paragraph = wrapper.find("p");
-      const tablist = wrapper.find(
-        ".accordriansContainer__accordianCollapseContainer__collapseContainer__headerContainer__typeContainer"
-      );
+      const tablist = wrapper.find(".accordriansContainer__accordianCollapseContainer__collapseContainer__headerContainer__typeContainer");
       const table = wrapper.find("Connect(DataTable)");
       const rankButtons = wrapper.find("RankButtons");
       expect(heading.length).toBe(1 + props.pluginCollapseData.length);
@@ -811,12 +808,8 @@ describe("Report page component", () => {
 
     it("Should correctly render its sub-components", () => {
       const button = wrapper.find("button");
-      const iconButton = wrapper.find(
-        ".targetsCollapseDataTableContainer__bodyContainer__rowContainer__actionButtons button"
-      );
-      const tableHeader = wrapper.find(
-        ".targetsCollapseDataTableContainer__headerContainer span"
-      );
+      const iconButton = wrapper.find(".targetsCollapseDataTableContainer__bodyContainer__rowContainer__actionButtons button");
+      const tableHeader = wrapper.find(".targetsCollapseDataTableContainer__headerContainer span");
       expect(button.length).toBe(4);
       expect(iconButton.length).toBe(2);
       expect(tableHeader.length).toBe(5);
@@ -866,7 +859,7 @@ describe("Report page component", () => {
     it("Should correctly render its sub-components", () => {
       const header = wrapper.find("h2");
       const ip = wrapper.find("small");
-
+      
       expect(header.length).toBe(1);
       expect(ip.length).toBe(1);
       expect(header.props().children).toEqual(props.targetData.target_url);

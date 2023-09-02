@@ -18,7 +18,7 @@ import {
  *
  * @return {object} An action object with a type of EMAIL_SEND_START passing the email
  */
-export function emailSendStart(email: string): object {
+export function emailSendStart(email:string):{type:string , email:string} {
   return {
     type: EMAIL_SEND_START,
     email
@@ -32,7 +32,7 @@ export function emailSendStart(email: string): object {
  *
  * @return {object} An action object with a type of EMAIL_SEND_SUCCESS passing the msg
  */
-export function emailSendSuccess(msg: string): object {
+export function emailSendSuccess(msg:string) :{type:string , msg:string} {
   return {
     type: EMAIL_SEND_SUCCESS,
     msg: msg
@@ -46,7 +46,7 @@ export function emailSendSuccess(msg: string): object {
  *
  * @return {object} An action object with a type of EMAIL_SEND_FAIL passing the error
  */
-export function emailSendFail(error: object): object {
+export function emailSendFail(error:object):{type:string , error:object}  {
   return {
     type: EMAIL_SEND_FAIL,
     error: error
@@ -60,7 +60,7 @@ export function emailSendFail(error: object): object {
  *
  * @return {object} An action object with a type of EMAIL_VERIFICATION_START passing the link
  */
-export function emailVerificationStart(link: string): object {
+export function emailVerificationStart(link:string) :{type:string , link:string} {
   return {
     type: EMAIL_VERIFICATION_START,
     link: link
@@ -74,7 +74,7 @@ export function emailVerificationStart(link: string): object {
  *
  * @return {object} An action object with a type of EMAIL_VERIFICATION_SUCCESS passing the msg
  */
-export function emailVerificationSuccess(msg: string): object {
+export function emailVerificationSuccess(msg:string) :{type:string , msg:string} {
   return {
     type: EMAIL_VERIFICATION_SUCCESS,
     msg: msg
@@ -88,7 +88,7 @@ export function emailVerificationSuccess(msg: string): object {
  *
  * @return {object} An action object with a type of EMAIL_VERIFICATION_FAIL passing the error
  */
-export function emailVerificationFail(err: object): object {
+export function emailVerificationFail(err:object) :{type:string , err:object}  {
   return {
     type: EMAIL_VERIFICATION_FAIL,
     err: err

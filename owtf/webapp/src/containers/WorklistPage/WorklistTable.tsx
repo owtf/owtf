@@ -246,6 +246,7 @@ export default class WorklistTable extends React.Component<
                 <span>{work.plugin.min_time}</span>
               </div>
               <div className="worklistTableContainer__bodyContainer__rowContainer__buttonContainer">
+
                 <button
                   title={work.active ? "Pause work" : "Resume work"}
                   onClick={
@@ -263,6 +264,7 @@ export default class WorklistTable extends React.Component<
                 >
                   <RiDeleteBinLine />
                 </button>
+                
               </div>
 
               <div
@@ -277,7 +279,7 @@ export default class WorklistTable extends React.Component<
               <div className="worklistTableContainer__bodyContainer__rowContainer__workPluginGroupContainer">
                 {work.plugin.group}
               </div>
-
+              
               <div className="worklistTableContainer__bodyContainer__rowContainer__pluginTypeContainer">
                 {work.plugin.type.replace(/_/g, " ")}
               </div>
@@ -288,6 +290,7 @@ export default class WorklistTable extends React.Component<
               >
                 {work.plugin.name.replace(/_/g, " ")}
               </div>
+
             </div>
           ))}
         </div>

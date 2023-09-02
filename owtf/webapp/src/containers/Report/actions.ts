@@ -29,9 +29,7 @@ import {
  *
  * @return {object} An action object with a type of LOAD_TARGET
  */
-export function loadTarget(
-  target_id: number
-): { type: string; target_id: number } {
+export function loadTarget(target_id:number):{type:string , target_id:number} {
   return {
     type: LOAD_TARGET,
     target_id
@@ -45,7 +43,7 @@ export function loadTarget(
  *
  * @return {object} An action object with a type of LOAD_TARGET_SUCCESS passing the target
  */
-export function targetLoaded(target: []): { type: string; target: [] } {
+export function targetLoaded(target:[]) :{type:string , target:[]} {
   return {
     type: LOAD_TARGET_SUCCESS,
     target
@@ -59,9 +57,7 @@ export function targetLoaded(target: []): { type: string; target: [] } {
  *
  * @return {object} An action object with a type of LOAD_TARGET_ERROR passing the error
  */
-export function targetLoadingError(
-  error: object
-): { type: string; error: object } {
+export function targetLoadingError(error:object)  :{type:string , error:object} {
   return {
     type: LOAD_TARGET_ERROR,
     error
@@ -75,9 +71,7 @@ export function targetLoadingError(
  *
  * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT
  */
-export function loadPluginOutputNames(
-  target_id: number
-): { type: string; target_id: number } {
+export function loadPluginOutputNames(target_id:number) :{type:string , target_id:number} {
   return {
     type: LOAD_PLUGIN_OUTPUT_NAMES,
     target_id
@@ -91,9 +85,7 @@ export function loadPluginOutputNames(
  *
  * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT_SUCCESS passing the plugins
  */
-export function pluginOutputNamesLoaded(
-  pluginOutputData: []
-): { type: string; pluginOutputData: [] } {
+export function pluginOutputNamesLoaded(pluginOutputData:[]) :{type:string , pluginOutputData:[]}{
   return {
     type: LOAD_PLUGIN_OUTPUT_NAMES_SUCCESS,
     pluginOutputData
@@ -107,9 +99,7 @@ export function pluginOutputNamesLoaded(
  *
  * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT_ERROR passing the error
  */
-export function pluginOutputNamesLoadingError(
-  error: object
-): { type: string; error: object } {
+export function pluginOutputNamesLoadingError(error:object) :{type:string , error:object}{
   return {
     type: LOAD_PLUGIN_OUTPUT_NAMES_ERROR,
     error
@@ -123,10 +113,7 @@ export function pluginOutputNamesLoadingError(
  *
  * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT
  */
-export function loadPluginOutput(
-  target_id: number,
-  plugin_code: number
-): { type: string; target_id: number; plugin_code: number } {
+export function loadPluginOutput(target_id:number, plugin_code:number) :{type:string , target_id:number,plugin_code:number}{
   return {
     type: LOAD_PLUGIN_OUTPUT,
     target_id,
@@ -141,9 +128,7 @@ export function loadPluginOutput(
  *
  * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT_SUCCESS passing the plugins
  */
-export function pluginOutputLoaded(
-  pluginOutputData: []
-): { type: string; pluginOutputData: [] } {
+export function pluginOutputLoaded(pluginOutputData:[]):{type:string , pluginOutputData:[]} {
   return {
     type: LOAD_PLUGIN_OUTPUT_SUCCESS,
     pluginOutputData
@@ -157,9 +142,7 @@ export function pluginOutputLoaded(
  *
  * @return {object} An action object with a type of LOAD_PLUGIN_OUTPUT_ERROR passing the error
  */
-export function pluginOutputLoadingError(
-  error: object
-): { type: string; error: object } {
+export function pluginOutputLoadingError(error:object):{type:string , error:object}{
   return {
     type: LOAD_PLUGIN_OUTPUT_ERROR,
     error
@@ -173,9 +156,7 @@ export function pluginOutputLoadingError(
  *
  * @return {object} An action object with a type of CHANGE_USER_RANK
  */
-export function changeUserRank(
-  plugin_data: object
-): { type: string; plugin_data: object } {
+export function changeUserRank(plugin_data:object) :{type:string , plugin_data:object}{
   return {
     type: CHANGE_USER_RANK,
     plugin_data
@@ -187,7 +168,7 @@ export function changeUserRank(
  *
  * @return {object} An action object with a type of CHANGE_USER_RANK_SUCCESS
  */
-export function userRankChanged(): { type: string } {
+export function userRankChanged() :{type:string}{
   return {
     type: CHANGE_USER_RANK_SUCCESS
   };
@@ -200,9 +181,7 @@ export function userRankChanged(): { type: string } {
  *
  * @return {object} An action object with a type of CHANGE_USER_RANK_ERROR passing the error
  */
-export function userRankChangingError(
-  error: object
-): { type: string; error: object } {
+export function userRankChangingError(error:object) :{type:string , error:object}{
   return {
     type: CHANGE_USER_RANK_ERROR,
     error
@@ -216,9 +195,7 @@ export function userRankChangingError(
  *
  * @return {object} An action object with a type of DELETE_PLUGIN_OUTPUT
  */
-export function deletePluginOutput(
-  plugin_data: object
-): { type: string; plugin_data: object } {
+export function deletePluginOutput(plugin_data:object)  :{type:string , plugin_data:object}{
   return {
     type: DELETE_PLUGIN_OUTPUT,
     plugin_data
@@ -230,7 +207,7 @@ export function deletePluginOutput(
  *
  * @return {object} An action object with a type of DELETE_PLUGIN_OUTPUT_SUCCESS
  */
-export function pluginOutputDeleted(): { type: string } {
+export function pluginOutputDeleted() :{type:string } {
   return {
     type: DELETE_PLUGIN_OUTPUT_SUCCESS
   };
@@ -243,9 +220,7 @@ export function pluginOutputDeleted(): { type: string } {
  *
  * @return {object} An action object with a type of DELETE_PLUGIN_OUTPUT_ERROR passing the error
  */
-export function pluginOutputDeletingError(
-  error: object
-): { type: string; error: object } {
+export function pluginOutputDeletingError(error:object) :{type:string , error:object} {
   return {
     type: DELETE_PLUGIN_OUTPUT_ERROR,
     error
@@ -259,9 +234,7 @@ export function pluginOutputDeletingError(
  *
  * @return {object} An action object with a type of CHANGE_USER_NOTES
  */
-export function changeUserNotes(
-  plugin_data: object
-): { type: string; plugin_data: object } {
+export function changeUserNotes(plugin_data:object) :{type:string , plugin_data:object} {
   return {
     type: CHANGE_USER_NOTES,
     plugin_data
@@ -273,7 +246,7 @@ export function changeUserNotes(
  *
  * @return {object} An action object with a type of CHANGE_USER_NOTES_SUCCESS
  */
-export function userNotesChanged(): { type: string } {
+export function userNotesChanged():{type:string } {
   return {
     type: CHANGE_USER_NOTES_SUCCESS
   };
@@ -286,9 +259,7 @@ export function userNotesChanged(): { type: string } {
  *
  * @return {object} An action object with a type of CHANGE_USER_NOTES_ERROR passing the error
  */
-export function userNotesChangingError(
-  error: object
-): { type: string; error: object } {
+export function userNotesChangingError(error:object) :{type:string , error:object}{
   return {
     type: CHANGE_USER_NOTES_ERROR,
     error
@@ -302,9 +273,7 @@ export function userNotesChangingError(
  *
  * @return {object} An action object with a type of LOAD_TARGET_EXPORT
  */
-export function loadTargetExport(
-  target_id: number
-): { type: string; target_id: number } {
+export function loadTargetExport(target_id:number) :{type:string , target_id:number}{
   return {
     type: LOAD_TARGET_EXPORT,
     target_id
@@ -318,9 +287,7 @@ export function loadTargetExport(
  *
  * @return {object} An action object with a type of LOAD_TARGET_EXPORT_SUCCESS passing the target and the export data
  */
-export function targetExportLoaded(
-  exportData: any
-): { type: string; exportData: any } {
+export function targetExportLoaded(exportData:any) :{type:string , exportData:any}{
   return {
     type: LOAD_TARGET_EXPORT_SUCCESS,
     exportData
@@ -334,9 +301,7 @@ export function targetExportLoaded(
  *
  * @return {object} An action object with a type of LOAD_TARGET_EXPORT_ERROR passing the error
  */
-export function targetExportLoadingError(
-  error: object
-): { type: string; error: object } {
+export function targetExportLoadingError(error:object):{type:string , error:object} {
   return {
     type: LOAD_TARGET_EXPORT_ERROR,
     error
