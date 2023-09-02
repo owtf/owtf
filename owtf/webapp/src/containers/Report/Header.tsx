@@ -9,16 +9,16 @@ import React from "react";
 import "./style.scss";
 
 interface propTypes {
-  targetData: any;
-  scrollStepInPx: number;
-  delayInMs: number;
-}
+  targetData: any,
+  scrollStepInPx:number,
+delayInMs:number
+};
 
 interface stateTypes {
-  intervalId: any;
-}
+  intervalId: any
+};
 
-export default class Header extends React.Component<propTypes, stateTypes> {
+export default class Header extends React.Component <propTypes,stateTypes>{
   constructor(props, context) {
     super(props, context);
 
@@ -71,7 +71,9 @@ export default class Header extends React.Component<propTypes, stateTypes> {
       );
     else if (localMax == 2)
       return (
-        <span style={{ backgroundColor: "rgba(0, 0, 255, 0.507)" }}>Low</span>
+        <span style={{ backgroundColor: "rgba(0, 0, 255, 0.507)" }} >
+          Low
+        </span>
       );
     else if (localMax == 3)
       return (
@@ -81,11 +83,15 @@ export default class Header extends React.Component<propTypes, stateTypes> {
       );
     else if (localMax == 4)
       return (
-        <span style={{ backgroundColor: "rgba(255, 0, 0, 0.507)" }}>High</span>
+        <span style={{ backgroundColor: "rgba(255, 0, 0, 0.507)" }}>
+          High
+        </span>
       );
     else if (localMax == 5)
       return (
-        <span style={{ backgroundColor: "rgba(128, 0, 128, 0.466)" }}>
+        <span
+          style={{ backgroundColor: "rgba(128, 0, 128, 0.466)" }}
+        >
           Critical
         </span>
       );
@@ -94,18 +100,25 @@ export default class Header extends React.Component<propTypes, stateTypes> {
 
   render() {
     return (
-      <div
-        className="targetContainer__headerToolbarContainer__headerContainer"
-        data-test="headerComponent"
-      >
+
+
+      <div className="targetContainer__headerToolbarContainer__headerContainer" data-test="headerComponent">
         <div className="targetContainer__headerToolbarContainer__headerContainer__heading">
-          <h2>{this.props.targetData.target_url}</h2>
-          <small>{" (" + this.props.targetData.host_ip + ")"}</small>
+          <h2>
+            {this.props.targetData.target_url}
+          </h2>
+          <small>
+            {" (" + this.props.targetData.host_ip + ")"}
+          </small>
           <div className="targetContainer__headerToolbarContainer__headerContainer__heading__severity">
             {this.renderSeverity()}
           </div>
+
         </div>
+
       </div>
+
     );
   }
 }
+

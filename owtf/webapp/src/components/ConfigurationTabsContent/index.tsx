@@ -4,14 +4,12 @@
 import React from "react";
 
 interface propsType {
-  configurations: object;
-  handleConfigurationChange: Function;
-  selectedIndex: number;
+  configurations: object,
+  handleConfigurationChange: Function,
+  selectedIndex: number
 }
 
-export default class ConfigurationTabsContent extends React.Component<
-  propsType
-> {
+export default class ConfigurationTabsContent extends React.Component<propsType> {
   render() {
     const {
       configurations,
@@ -28,20 +26,14 @@ export default class ConfigurationTabsContent extends React.Component<
           >
             {configurations[section].map((config, index) => (
               <>
+
                 <div className="configurationTabsContentContainer__tabContainer">
                   <label htmlFor={config.descrip}>
                     {config.key.replace(/_/g, " ")}
                   </label>
 
                   {/* @ts-ignore */}
-                  <input
-                    type="text"
-                    key={index}
-                    name={config.key}
-                    defaultValue={config.value}
-                    title={config.descrip}
-                    onChange={handleConfigurationChange}
-                    id={config.descrip}
+                  <input type="text" key={index} name={config.key} defaultValue={config.value} title={config.descrip} onChange={handleConfigurationChange} id={config.descrip}
                   />
                 </div>
               </>
@@ -52,3 +44,4 @@ export default class ConfigurationTabsContent extends React.Component<
     ));
   }
 }
+

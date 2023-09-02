@@ -2,26 +2,34 @@
  * Component to show when user is logged out.
  */
 
-import React, { useEffect } from "react";
+import React from "react";
 import { logout } from "./actions";
 import { connect } from "react-redux";
 
-export function LogoutPage ({ onLogout }: any) {
-  
-  useEffect(() => {
-    onLogout();
-  }, []);
 
-  return <p>Logout in progress</p>;
+interface propsType {
+  onLogout: Function,
 }
 
-const mapDispatchToProps = (dispatch: Function) => {
+export class LogoutPage extends React.Component<propsType> {
+  constructor(props, context) {
+    super(props, context);
+  }
+
+  componentDidMount() {
+    this.props.onLogout();
+  }
+
+  render() {
+    return <p>Logout in progress</p>;
+  }
+}
+
+const mapDispatchToProps = dispatch => {
   return {
     onLogout: () => dispatch(logout())
   };
 };
 
-export default connect(
-  null,
-  mapDispatchToProps
-)(LogoutPage);
+//@ts-ignore
+export default connect(null,mapDispatchToProps)(LogoutPage);

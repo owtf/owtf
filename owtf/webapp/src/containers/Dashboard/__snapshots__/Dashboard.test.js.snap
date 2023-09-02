@@ -1,71 +1,57 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Dashboard component Testing GithubReport component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="githubReportComponentContainer"
   data-test="githubReportComponent"
 >
-  <withTheme(Button)
-    appearance="primary"
-    className="pull-right"
-    iconBefore="git-branch"
-    intent="danger"
+  <button
+    className="githubReportComponentContainer__reportButton pull-right"
     onClick={[Function]}
   >
+    <span>
+      <BsGithub />
+    </span>
     Report Errors on GitHub
-  </withTheme(Button)>
-  <withTheme(Dialog)
-    hasFooter={false}
-    isShown={false}
-    onCloseComplete={[Function]}
-    title="Errors"
+  </button>
+  <div
+    className="dialogWrapper"
   >
-    <withTheme(Pane)
-      marginBottom={10}
+    <Dialog
+      isDialogOpened={false}
+      onClose={[Function]}
+      title="Errors"
     >
-      <Strong
-        marginRight={10}
+      <div
+        className="githubReportComponentContainer__errorSelectionContainer"
       >
-        Select an Error:
-      </Strong>
-      <SelectMenu
-        closeOnSelect={true}
-        filterIcon={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "compare": null,
-            "type": Object {
-              "$$typeof": Symbol(react.forward_ref),
-              "render": [Function],
-            },
-          }
-        }
-        filterPlaceholder="Filter..."
-        height={248}
-        isMultiSelect={false}
-        onDeselect={[Function]}
-        onSelect={[Function]}
-        options={
-          Array [
-            Object {
-              "label": "Error 1",
-              "value": "0",
-            },
-          ]
-        }
-        position="bottom-left"
-        selected="-1"
-        title="Select Error"
-        width={240}
-      >
-        <withTheme(Button)
-          intent="danger"
+        <strong>
+          Select an Error:
+        </strong>
+        <div
+          className="githubReportComponentContainer__errorSelectionContainer__dropdownMenuContainer"
         >
-          Select Error...
-        </withTheme(Button)>
-      </SelectMenu>
-    </withTheme(Pane)>
-  </withTheme(Dialog)>
-</withTheme(Pane)>
+          <select
+            onChange={[Function]}
+            value="-1"
+          >
+            <option
+              value={-1}
+            >
+              ---Select Error---
+            </option>
+            <option
+              key="0"
+              value="0"
+            >
+              Error 1
+            </option>
+          </select>
+        </div>
+      </div>
+    </Dialog>
+  </div>
+</div>
 `;
 
 exports[`Dashboard component Testing Severity chart component Should render without errors 1`] = `
@@ -87,7 +73,7 @@ exports[`Dashboard component Testing Severity chart component Should render with
       ],
     }
   }
-  height={100}
+  height={60}
   options={
     Object {
       "legend": Object {
@@ -100,7 +86,7 @@ exports[`Dashboard component Testing Severity chart component Should render with
       },
     }
   }
-  width={100}
+  width={60}
 />
 `;
 
@@ -111,12 +97,12 @@ exports[`Dashboard component Testing Vulnerability panel component Should render
       "datasets": Array [
         Object {
           "backgroundColor": Array [
-            "#800080",
-            "#c12e2a",
-            "#fc0",
-            "#337ab7",
-            "#b1d9f4",
-            "#32cd32",
+            "#c275f5",
+            "#ff7a7a",
+            "#f2f67e",
+            "#a3d3ff",
+            "#53b0ee",
+            "#85D262 ",
           ],
           "data": Array [
             0,
@@ -129,7 +115,7 @@ exports[`Dashboard component Testing Vulnerability panel component Should render
       ],
     }
   }
-  height={150}
+  height={270}
   options={
     Object {
       "legend": Object {
@@ -139,7 +125,7 @@ exports[`Dashboard component Testing Vulnerability panel component Should render
       "maintainAspectRatio": false,
       "title": Object {
         "display": false,
-        "fontSize": 30,
+        "fontSize": 40,
         "text": "Current Vulnerabilities",
       },
     }
@@ -148,12 +134,13 @@ exports[`Dashboard component Testing Vulnerability panel component Should render
 `;
 
 exports[`Dashboard component Testing Worker panel component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="workerPanelComponentContainer"
   data-test="workerPanelComponent"
-  display="flex"
-  flexDirection="row"
 >
-  <withTheme(Pane)>
+  <div
+    className="workerPanelComponentContainer__progressbarContainer"
+  >
     <ProgressBar
       pollInterval={1300}
       progressData={
@@ -163,10 +150,9 @@ exports[`Dashboard component Testing Worker panel component Should render withou
         }
       }
     />
-  </withTheme(Pane)>
-  <withTheme(Pane)
-    justifyContent="center"
-    marginLeft={100}
+  </div>
+  <div
+    className="workerPanelComponentContainer__workerLegendContainer"
   >
     <WorkerLegend
       onFetchWorkerLogs={[MockFunction]}
@@ -185,20 +171,20 @@ exports[`Dashboard component Testing Worker panel component Should render withou
       }
       workerLogs={false}
     />
-  </withTheme(Pane)>
-</withTheme(Pane)>
+  </div>
+</div>
 `;
 
 exports[`Dashboard component Testing Worker panel component Testing progress bar component Should render without errors 1`] = `
 <Progress
   className=""
   gapPosition="top"
-  height={200}
+  height={280}
   percent={60}
   prefixCls="rc-progress"
   strokeColor="#FE8C6A"
   strokeLinecap="round"
-  strokeWidth="6"
+  strokeWidth="5"
   style={Object {}}
   trailColor="#D9D9D9"
   trailWidth={1}
@@ -206,14 +192,12 @@ exports[`Dashboard component Testing Worker panel component Testing progress bar
 `;
 
 exports[`Dashboard component Testing Worker panel component Testing worker component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="workerPanelComponentContainer__workerLegendContainer__workerComponentWrapper__workerComponent"
   data-test="workerComponent"
 >
-  <withTheme(Pane)
-    alignItems="center"
-    display="flex"
-    flexDirection="row"
-    justifyContent="center"
+  <div
+    className="workerPanelComponentContainer__workerLegendContainer__workerComponentWrapper__workerComponent__workContainer"
   >
     <img
       className="workerpanel-labelimg"
@@ -223,93 +207,80 @@ exports[`Dashboard component Testing Worker panel component Testing worker compo
         }
       }
     />
-    <withTheme(Paragraph)
-      margin={10}
-    >
+    <p>
       Worker 4 - Not Running 
-    </withTheme(Paragraph)>
-    <withTheme(Button)
-      appearance="primary"
-      height={20}
+    </p>
+    <button
       onClick={[Function]}
     >
       Log
-    </withTheme(Button)>
-  </withTheme(Pane)>
-  <withTheme(Dialog)
-    hasFooter={false}
-    isShown={false}
-    onCloseComplete={[Function]}
+    </button>
+  </div>
+  <Dialog
+    isDialogOpened={false}
+    onClose={[Function]}
     title="Worker-Log"
   >
-    Nothing to show here!
-  </withTheme(Dialog)>
-</withTheme(Pane)>
+    <div
+      className="workerPanelComponentContainer__workerLegendContainer__workerComponentWrapper__workerComponent__workerLogContainer"
+    >
+      <textarea
+        cols={50}
+        disabled={true}
+        rows={20}
+        value="Nothing to show here!"
+      />
+    </div>
+  </Dialog>
+</div>
 `;
 
 exports[`Dashboard component Testing Worker panel component Testing worker legend component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="workerPanelComponentContainer__workerLegendContainer__workerComponentWrapper"
   data-test="workerLegendComponent"
 >
-  <Worker
-    data={
-      Object {
-        "busy": false,
-        "id": 4,
-        "name": "Worker-4",
-        "paused": false,
-        "work": Array [],
-        "worker": 29693,
-      }
-    }
+  <div
     key="4"
-    onFetchWorkerLogs={[MockFunction]}
-    workerLogs={false}
-  />
-</withTheme(Pane)>
+  >
+    <Worker
+      data={
+        Object {
+          "busy": false,
+          "id": 4,
+          "name": "Worker-4",
+          "paused": false,
+          "work": Array [],
+          "worker": 29693,
+        }
+      }
+      onFetchWorkerLogs={[MockFunction]}
+      workerLogs={false}
+    />
+  </div>
+</div>
 `;
 
 exports[`Dashboard component Testing dumb Dashboard component Should render without errors 1`] = `
-<withTheme(Pane)
+<div
+  className="dashboardContainer"
   data-test="dashboardComponent"
-  display="flex"
-  flexDirection="column"
-  paddingLeft={50}
-  paddingRight={50}
 >
-  <Breadcrumb
-    bsClass="breadcrumb"
+  <div
+    className="dashboardContainer__headerContainer"
   >
-    <BreadcrumbItem
-      active={false}
-      href="/"
+    <div
+      className="dashboardContainer__headerContainer__headingContainer"
     >
-      Home
-    </BreadcrumbItem>
-    <BreadcrumbItem
-      active={true}
-      href="/dashboard/"
-    >
-      Dashboard
-    </BreadcrumbItem>
-  </Breadcrumb>
-  <withTheme(Pane)
-    alignItems="center"
-    display="flex"
-    flexDirection="row"
-  >
-    <withTheme(Heading)
-      size={900}
-    >
-      Welcome to OWTF
-    </withTheme(Heading)>
-    <Small
-      marginTop={10}
-    >
-      , this is your dashboard
-    </Small>
-    <withTheme(Pane)
-      flex={1}
+      <h2>
+        Welcome to OWTF,
+      </h2>
+      <small>
+        this is your dashboard
+      </small>
+    </div>
+    <div
+      className="dashboardContainer__dashboardHeaderContainer__reportButtonContainer"
     >
       <GithubReport
         errors={
@@ -326,17 +297,16 @@ exports[`Dashboard component Testing dumb Dashboard component Should render with
         }
         onDeleteError={[MockFunction]}
       />
-    </withTheme(Pane)>
-  </withTheme(Pane)>
-  <withTheme(Pane)
-    marginTop={20}
-    padding={20}
+    </div>
+  </div>
+  <div
+    className="dashboardContainer__vulnerabilitiesContainer"
   >
-    <withTheme(Heading)
-      size={700}
+    <h2
+      className="dashboardContainer__vulnerabilitiesContainer__heading"
     >
       Current Vulnerabilities
-    </withTheme(Heading)>
+    </h2>
     <hr />
     <VulnerabilityPanel
       panelData={
@@ -349,46 +319,18 @@ exports[`Dashboard component Testing dumb Dashboard component Should render with
         ]
       }
     />
-  </withTheme(Pane)>
-  <withTheme(Pane)
-    display="flex"
-    flexDirection="row"
-    height={220}
+  </div>
+  <div
+    className="dashboardContainer__sectionsContainer"
   >
-    <withTheme(Pane)
-      marginTop={20}
-      paddingLeft={20}
-      width="50%"
+    <div
+      className="dashboardContainer__sectionsContainer__workersContainer"
     >
-      <withTheme(Heading)
-        size={700}
-      >
-        Previous Targets Analytics
-      </withTheme(Heading)>
-      <hr />
-      <Chart
-        chartData={
-          Array [
-            Object {
-              "color": "#A9A9A9",
-              "id": 0,
-              "label": "Test label",
-              "value": 100,
-            },
-          ]
-        }
-      />
-    </withTheme(Pane)>
-    <withTheme(Pane)
-      marginTop={20}
-      paddingRight={20}
-      width="50%"
-    >
-      <withTheme(Heading)
-        size={700}
+      <h2
+        className="dashboardContainer__sectionsContainer__workersContainer__heading"
       >
         Worker Panel
-      </withTheme(Heading)>
+      </h2>
       <hr />
       <WorkerPanel
         onFetchWorkerLogs={[MockFunction]}
@@ -402,7 +344,29 @@ exports[`Dashboard component Testing dumb Dashboard component Should render with
         workerData={Array []}
         workerLogs="Test logs"
       />
-    </withTheme(Pane)>
-  </withTheme(Pane)>
-</withTheme(Pane)>
+    </div>
+    <div
+      className="dashboardContainer__sectionsContainer__previousTargetsAnalyticsContainer"
+    >
+      <h2
+        className="dashboardContainer__sectionsContainer__previousTargetsAnalyticsContainer__heading"
+      >
+        Previous Targets Analytics
+      </h2>
+      <hr />
+      <Chart
+        chartData={
+          Array [
+            Object {
+              "color": "#A9A9A9",
+              "id": 0,
+              "label": "Test label",
+              "value": 100,
+            },
+          ]
+        }
+      />
+    </div>
+  </div>
+</div>
 `;

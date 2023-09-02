@@ -47,24 +47,26 @@ describe("LoginPage component", () => {
         hidePassword: true
       });
 
-      const heading = wrapper.find("withTheme(Heading)");
-      const textInputField = wrapper.find("TextInputField");
-      const paragraph = wrapper.find("withTheme(Paragraph)");
-      const button = wrapper.find("withTheme(Button)");
+      const heading = wrapper.find("h2");
+      const textInputField = wrapper.find("input");
+      const div = wrapper.find("div");
+      const button = wrapper.find("button");
       expect(heading.length).toBe(1);
-      expect(heading.at(0).props().children).toEqual("Login");
+      expect(heading.at(0).props().children).toEqual(
+        "Login with an OWTF Account"
+      );
       expect(textInputField.length).toBe(2);
       expect(textInputField.at(0).props().placeholder).toEqual(
         "Username / Email"
       );
       expect(textInputField.at(1).props().placeholder).toEqual("Password");
-      expect(paragraph.length).toBe(2);
+      expect(div.length).toBe(7);
       expect(button.length).toBe(1);
       expect(button.at(0).props().children).toEqual("LOGIN");
     });
 
     it("Should update state on TextInputField change event", () => {
-      const textInputFieldEmail = wrapper.find("TextInputField").at(0);
+      const textInputFieldEmail = wrapper.find("input").at(0);
       const eventEmail = {
         preventDefault() {},
         target: { value: "test_user@test.com", name: "text-input-email" }
@@ -75,7 +77,7 @@ describe("LoginPage component", () => {
         "test_user@test.com"
       );
 
-      const textInputFieldPassword = wrapper.find("TextInputField").at(1);
+      const textInputFieldPassword = wrapper.find("input").at(1);
       const eventPassword = {
         preventDefault() {},
         target: { value: "Test@12345", name: "text-input-password" }
@@ -87,7 +89,7 @@ describe("LoginPage component", () => {
 
     it("Should call onLogin on login button click", () => {
       expect(props.onLogin.mock.calls.length).toBe(0);
-      const loginButton = wrapper.find("withTheme(Button)");
+      const loginButton = wrapper.find("button");
       loginButton.simulate("click");
       expect(props.onLogin.mock.calls.length).toBe(1);
     });

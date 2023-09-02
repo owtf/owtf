@@ -1,11 +1,11 @@
 /**
  * Asynchronously loads the component for LoginPage.
  */
-import Loadable from "react-loadable";
+import Loadable from 'react-loadable';
 
-import PageLoadingIndicator from "../../components/PageLoadingIndicator";
+import PageLoadingIndicator from '../../components/PageLoadingIndicator';
 
 export default Loadable({
-  loader: () => import("./index.js"),
-  loading: PageLoadingIndicator
+  loader: () => import('./index'),
+  loading: PageLoadingIndicator,
 });

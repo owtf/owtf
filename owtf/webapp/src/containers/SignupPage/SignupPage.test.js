@@ -97,7 +97,9 @@ describe("SignupPage component", () => {
       textInputFieldPassword.simulate("change", eventChangePassword);
       expect(wrapper.instance().state.password).toEqual("Test@12345");
 
-      const textInputFieldConfirmPassword = wrapper.find("input").at(3);
+      const textInputFieldConfirmPassword = wrapper
+        .find("input")
+        .at(3);
       const eventChangeConfirmPassword = {
         preventDefault() {},
         target: { value: "Test@12345", name: "text-input-confirm-password" }
