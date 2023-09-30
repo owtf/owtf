@@ -44,11 +44,11 @@ Dependencies: Install Homebrew (<https://brew.sh/>) and follow the steps
 given below:
 
 ```{.sourceCode .bash}
-$ python3 -m venv ~/.virtualenvs/owtf
-$ source ~/.virtualenvs/owtf/bin/activate
-$ brew install coreutils gnu-sed openssl
+python3 -m venv ~/.virtualenvs/owtf
+source ~/.virtualenvs/owtf/bin/activate
+brew install coreutils gnu-sed openssl
 # We need to install 'cryptography' first to avoid issues
-$ pip install cryptography --global-option=build_ext --global-option="-L/usr/local/opt/openssl/lib" --global-option="-I/usr/local/opt/openssl/include"
+pip install cryptography --global-option=build_ext --global-option="-L/usr/local/opt/openssl/lib" --global-option="-I/usr/local/opt/openssl/include"
 ```
 
 # Installation
