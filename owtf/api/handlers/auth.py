@@ -114,7 +114,7 @@ class LogInHandler(APIRequestHandler):
                 "username": user.name,
             }
             jwt_token = jwt.encode(payload, JWT_SECRET_KEY, JWT_ALGORITHM)
-            data = {"jwt-token": jwt_token.decode("utf-8")}
+            data = {"jwt-token": jwt_token}
             UserLoginToken.add_user_login_token(self.session, jwt_token, user.id)
             self.success({"status": "success", "message": data})
         elif user and not user.is_active:
