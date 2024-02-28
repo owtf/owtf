@@ -8,7 +8,7 @@ import gzip
 import io
 import logging
 import zlib
-
+from http.cookies import SimpleCookie
 try:
     from http.client import responses as response_messages
 except ImportError:
@@ -172,7 +172,8 @@ class HTTPTransaction(object):
         cookies = []
         try:  # parsing may sometimes fail
             for cookie in self.cookies_list:
-                cookies.append({'name':cookie.split('=')[0],'value':cookie.split('=')[1]})
+                simpleCookie = SimpleCookie(cookie).items()
+                cookies.append([{'name':key,'value':morsel.value} for key,morsel in simpleCookie][0])
         except:
             logging.debug("Cannot not parse the cookies")
         return cookies
