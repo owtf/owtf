@@ -28,7 +28,7 @@ class UserLoginToken(Model):
     @classmethod
     def add_user_login_token(cls, session, token, user_id):
         """Adds an user_login_token to the DB"""
-        new_token = cls(user_id=user_id, token=token.decode('ascii'))
+        new_token = cls(user_id=user_id, token=token)
         session.add(new_token)
         session.commit()
 
