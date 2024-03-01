@@ -242,21 +242,21 @@ class URLDataHandler(APIRequestHandler):
             logging.warn(e.parameter)
             raise tornado.web.HTTPError(400)
 
-    @tornado.web.asynchronous
+    @tornado.gen.coroutine
     def post(self, target_url):
         raise tornado.web.HTTPError(405)
 
-    @tornado.web.asynchronous
+    @tornado.gen.coroutine
     def put(self):
         raise tornado.web.HTTPError(405)
 
-    @tornado.web.asynchronous
+    @tornado.gen.coroutine
     def patch(self):
         # TODO: allow modification of urls from the ui, may be adjusting scope etc.. but i don't understand
         # it's use yet ;)
         raise tornado.web.HTTPError(405)  # @UndefinedVariable
 
-    @tornado.web.asynchronous
+    @tornado.gen.coroutine
     def delete(self, target_id=None):
         # TODO: allow deleting of urls from the ui
         raise tornado.web.HTTPError(405)  # @UndefinedVariable

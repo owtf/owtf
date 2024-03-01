@@ -32,7 +32,7 @@ def load_config_file(file_path, fallback_file_path):
         # check if the config file exists
         abort_framework("Config file not found at: {}".format(file_path))
     try:
-        config_map = yaml.load(FileOperations.open(file_path, "r"))
+        config_map = yaml.safe_load(FileOperations.open(file_path, "r"))
         return config_map
     except yaml.YAMLError:
         abort_framework("Error parsing config file at: {}".format(file_path))

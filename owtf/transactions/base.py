@@ -8,13 +8,11 @@ import gzip
 import io
 import logging
 import zlib
-
+from http.cookies import SimpleCookie
 try:
     from http.client import responses as response_messages
 except ImportError:
     from httplib import responses as response_messages
-
-from cookies import Cookie, InvalidCookieError
 
 from owtf.utils.http import derive_http_method
 
@@ -174,8 +172,9 @@ class HTTPTransaction(object):
         cookies = []
         try:  # parsing may sometimes fail
             for cookie in self.cookies_list:
-                cookies.append(Cookie.from_string(cookie).to_dict())
-        except InvalidCookieError:
+                simpleCookie = SimpleCookie(cookie).items()
+                cookies.append([{'name':key,'value':morsel.value} for key,morsel in simpleCookie][0])
+        except:
             logging.debug("Cannot not parse the cookies")
         return cookies
 
