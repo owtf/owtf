@@ -8,7 +8,7 @@ from owtf.api.handlers.jwtauth import jwtauth
 from uuid import uuid4
 from owtf.models.api_token import ApiToken
 import jwt
-from owtf.settings import JWT_SECRET_KEY, JWT_OPTIONS
+from owtf.settings import JWT_SECRET_KEY, JWT_OPTIONS, JWT_ALGORITHM
 from owtf.lib.exceptions import APIError
 
 
@@ -50,7 +50,7 @@ class ApiTokenGenerateHandler(APIRequestHandler):
         api_key = str(uuid4())
         try:
             token = self.request.headers.get("Authorization").split()[1]
-            payload = jwt.decode(token, JWT_SECRET_KEY, options=JWT_OPTIONS)
+            payload = jwt.decode(token, JWT_SECRET_KEY, options=JWT_OPTIONS, algorithms=[JWT_ALGORITHM])
             user_id = payload.get("user_id", None)
             if not user_id:
                 raise APIError(400, "Invalid User Id")

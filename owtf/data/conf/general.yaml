@@ -74,9 +74,11 @@ TOOLS:
     value: ~/.owtf/tools/restricted/ssllabs-scan/
   - config: TOOL_GOBUSTER
     value: /usr/bin/gobuster
+  - config: TOOL_TESTSSL
+    value: ~/.owtf/tools/restricted/testssl/
   - config: TOOL_GCPBUCKETBRUTE
     value: ~/.owtf/tools/restricted/gcpcbucketbrute/gcpbucketbrute.py
-
+    
 DICTIONARIES:
 # ************************* Password brute-force dictionaries / defaults ******************************
 # This is possibly one of the best pages on the internet for password lists: http://www.skullsecurity.org/wiki/index.php/Passwords

@@ -46,6 +46,9 @@ Gobuster:
 Seclists:
   command : "wget -c https://github.com/danielmiessler/SecLists/archive/master.zip -O SecList.zip ; unzip SecList.zip; rm -f SecList.zip"
   directory: dictionaries/restricted/seclists
+Testssl:
+  command: "git clone https://github.com/drwetter/testssl.sh.git"
+  directory: tools/restricted/testssl
 GCPBucketBrute:
   command: "git clone https://github.com/RhinoSecurityLabs/GCPBucketBrute.git"
   directory: tools/restricted/gcpcbucketbrute
