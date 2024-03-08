@@ -244,9 +244,9 @@ export class DataTable extends React.Component<propsType ,stateType> {
                       {resourceList.map(
                         (resource, index) => 
                         <li key={index}>
-                          <Link to={resource[1]} target="__blank">
+                          <a href={resource[1]} target="__blank">
                             {resource[0]}
-                          </Link>
+                          </a>
                         </li>
                       )}
                     </ul>
