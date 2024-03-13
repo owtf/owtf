@@ -14,6 +14,7 @@ from owtf.api.handlers.base import FileRedirectHandler
 from owtf.api.handlers.report import ReportExportHandler
 from owtf.api.handlers.session import OWTFSessionHandler
 from owtf.api.handlers.targets import TargetConfigHandler, TargetConfigSearchHandler, TargetSeverityChartHandler
+from owtf.utils.file import get_dir_worker_logs
 from owtf.api.handlers.transactions import (
     TransactionDataHandler,
     TransactionHrtHandler,
@@ -106,6 +107,9 @@ API_v1_HANDLERS = [
 UI_HANDLERS = [
     tornado.web.url(r"/static/(.*)", tornado.web.StaticFileHandler, {"path": STATIC_ROOT}),
     tornado.web.url(r"/debug/health/?$", HealthCheckHandler),
+    tornado.web.url(
+        r"/logs/(.*)", tornado.web.StaticFileHandler, {"path": get_dir_worker_logs()}, name="logs_files_url"
+    ),
     tornado.web.url(r"/output_files/(.*)", FileRedirectHandler, name="file_redirect_url"),
-    tornado.web.url(r"^/(?!api|debug|static|output_files)(.*)$", IndexHandler),
+    tornado.web.url(r"^/(?!api|debug|static|output_files|logs)(.*)$", IndexHandler),
 ]
