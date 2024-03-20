@@ -53,9 +53,11 @@ export class NewPasswordPage extends React.Component<propsType, stateType>  {
       typeof this.state.newPassword !== "undefined"
     ) {
       if (this.state.newPassword.length < 8) {
-        error["newPassword"] = "Password is too short";
+        formIsValid = false;
+        errors["newPassword"] = "Password is too short";
       } else if (this.state.newPassword.length > 15) {
-        error["newPassword"] = "Password is too long";
+        formIsValid = false;
+        errors["newPassword"] = "Password is too long";
       } else if (
         !this.state.newPassword.match(
           /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/
