@@ -77,8 +77,8 @@ TOOLS:
   - config: TOOL_TESTSSL
     value: ~/.owtf/tools/restricted/testssl/
   - config: TOOL_GCPBUCKETBRUTE
-    value: ~/.owtf/tools/restricted/gcpcbucketbrute/gcpbucketbrute.py
-    
+    value: ~/.owtf/tools/restricted/gcpbucketbrute/
+
 DICTIONARIES:
 # ************************* Password brute-force dictionaries / defaults ******************************
 # This is possibly one of the best pages on the internet for password lists: http://www.skullsecurity.org/wiki/index.php/Passwords
@@ -142,7 +142,6 @@ DICTIONARIES:
     value: "@@@FRAMEWORK_DIR@@@/dictionaries/restricted/drupal/dir_buster.drupal_plugins.txt"
   - config: DICT_CMS_DRUPAL_THEMES_DIRBUSTER
     value: "@@@FRAMEWORK_DIR@@@/dictionaries/restricted/drupal/dir_buster.drupal_themes.txt"
-
 
 NETWORK_PORTS:
 # ************************* Ports for Network plugins ***************************** #

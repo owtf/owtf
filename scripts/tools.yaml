@@ -50,5 +50,5 @@ Testssl:
   command: "git clone https://github.com/drwetter/testssl.sh.git"
   directory: tools/restricted/testssl
 GCPBucketBrute:
-  command: "git clone https://github.com/RhinoSecurityLabs/GCPBucketBrute.git"
-  directory: tools/restricted/gcpcbucketbrute
+  command: "git clone https://github.com/RhinoSecurityLabs/GCPBucketBrute.git ."
+  directory: tools/restricted/gcpbucketbrute
