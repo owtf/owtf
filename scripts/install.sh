@@ -70,8 +70,20 @@ create_directory() {
 }
 
 check_sudo() {
-    timeout 2 sudo id && sudo=1 || sudo=0
-    return $sudo
+    # Check if the 'timeout' command is available
+    if ! command -v timeout > /dev/null; then
+        echo "${warning}[!] 'timeout' command not found. Skipping sudo check.${reset}"
+        return 0
+    fi
+
+    # Attempt to check sudo privileges with a timeout
+    if timeout 2 sudo -n true 2>/dev/null; then
+        echo "${info}[*] Sudo privileges are available.${reset}"
+        return 1
+    else
+        echo "${warning}[!] Sudo privileges are not available or require a password.${reset}"
+        return 0
+    fi
 }
 
 check_root() {
@@ -165,8 +177,9 @@ for dir in ${ROOT_DIR}/data/*; do
     copy_dirs "$dir" "${OWTF_DIR}/$(basename $OWTF_DIR/$dir)"
 done
 
-if [ ! "$(uname)" == "Darwin" ]; then
-    check_sudo > /dev/null
+# Solve the issue #1292
+if [ "$(uname)" != "Darwin" ]; then
+    check_sudo
 fi
 
 proxy_setup
