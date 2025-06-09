@@ -15,7 +15,7 @@ psycopg2==2.7.4
 owtf_ptp==0.4.3
 pyOpenSSL==17.2.0
 pyyaml==5.4
-requests==2.18.4
+requests==2.32.4
 selenium==3.4.3
 six==1.10.0
 SQLAlchemy==1.1.13
