@@ -1,5 +1,5 @@
 # Stage 1: Build the React app
-FROM node:18 AS builder
+FROM node:20 AS builder
 WORKDIR /owtf-webapp
 COPY ./owtf/webapp/package.json ./owtf/webapp/yarn.lock ./
 RUN yarn install --silent
