@@ -25,7 +25,7 @@ RUN apt -y update && \
     postgresql libcurl4-openssl-dev proxychains tor ca-certificates libpq-dev  \
     libxslt1-dev libldap2-dev libsasl2-dev libffi-dev net-tools lsof locales-all \
     make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
-    lbd theharvester tlssled nikto dnsrecon nmap whatweb skipfish dirbuster metasploit-framework wpscan wapiti hydra metagoofil o-saft amass && \
+    lbd theharvester tlssled nikto dnsrecon nmap whatweb skipfish dirbuster metasploit-framework wpscan wapiti hydra metagoofil amass && \
     apt -y install httpx-toolkit nuclei subfinder && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
@@ -68,7 +68,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Ensure pip and setuptools are at their latest versions
 RUN pip install --upgrade pip
-RUN pip install setuptools==57.5.0 cffi wheel
+RUN pip install setuptools cffi wheel
 
 
 #Installing python dependencies
