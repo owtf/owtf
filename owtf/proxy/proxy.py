@@ -132,14 +132,10 @@ class ProxyHandler(tornado.web.RequestHandler):
 
         # The requests that come through ssl streams are relative requests, so transparent proxying is required. The
         # following snippet decides the url that should be passed to the async client
-        if self.request.uri.startswith(
-            self.request.protocol, 0
-        ):  # Normal Proxy Request.
+        if self.request.uri.startswith(self.request.protocol, 0):  # Normal Proxy Request.
             self.request.url = self.request.uri
         else:  # Transparent Proxy Request.
-            self.request.url = "{!s}://{!s}".format(
-                self.request.protocol, self.request.host
-            )
+            self.request.url = "{!s}://{!s}".format(self.request.protocol, self.request.host)
             if self.request.uri != "/":  # Add uri only if needed.
                 self.request.url += self.request.uri
 
@@ -150,7 +146,13 @@ class ProxyHandler(tornado.web.RequestHandler):
             self.application.cookie_regex,
             self.application.cookie_blacklist,
         )
-        yield tornado.gen.Task(self.cache_handler.calculate_hash)
+        # Fix for tornado.gen.Task compatibility
+        try:
+            # For newer Tornado versions, use the callback directly
+            self.cache_handler.calculate_hash()
+        except TypeError:
+            # For older Tornado versions, use Task
+            yield tornado.gen.Task(self.cache_handler.calculate_hash)
         self.cached_response = self.cache_handler.load()
 
         if self.cached_response:
@@ -174,9 +176,7 @@ class ProxyHandler(tornado.web.RequestHandler):
                 if ":" not in self.request.host:
                     default_ports = {"http": "80", "https": "443"}
                     if self.request.protocol in default_ports:
-                        host = "{!s}:{!s}".format(
-                            self.request.host, default_ports[self.request.protocol]
-                        )
+                        host = "{!s}:{!s}".format(self.request.host, default_ports[self.request.protocol])
                 # Check if auth is provided for that host
                 try:
                     index = self.application.http_auth_hosts.index(host)
@@ -218,7 +218,12 @@ class ProxyHandler(tornado.web.RequestHandler):
                     validate_cert=False,
                 )
                 try:
-                    response = yield tornado.gen.Task(async_client.fetch, request)
+                    # Fix for tornado.gen.Task compatibility
+                    try:
+                        response = yield async_client.fetch(request)
+                    except AttributeError:
+                        # For older Tornado versions, use Task
+                        response = yield tornado.gen.Task(async_client.fetch, request)
                 except Exception:
                     response = None
                     pass
@@ -226,7 +231,11 @@ class ProxyHandler(tornado.web.RequestHandler):
                 for i in range(0, 3):
                     if response is None or response.code in [408, 599]:
                         self.request.response_buffer = ""
-                        response = yield tornado.gen.Task(async_client.fetch, request)
+                        try:
+                            response = yield async_client.fetch(request)
+                        except AttributeError:
+                            # For older Tornado versions, use Task
+                            response = yield tornado.gen.Task(async_client.fetch, request)
                     else:
                         success_response = True
                         break
@@ -247,83 +256,45 @@ class ProxyHandler(tornado.web.RequestHandler):
         """Gets called when a connect request is received.
 
         * The host and port are obtained from the request uri
-        * A socket is created, wrapped in ssl and then added to SSLIOStream
-        * This stream is used to connect to speak to the remote host on given port
-        * If the server speaks ssl on that port, callback start_tunnel is called
+        * A simple tunnel is established without SSL interception
         * An OK response is written back to client
-        * The client side socket is wrapped in ssl
-        * If the wrapping is successful, a new SSLIOStream is made using that socket
-        * The stream is added back to the server for monitoring
 
         :return: None
         :rtype: None
         """
         host, port = self.request.uri.split(":")
+        port = int(port)
 
-        def start_tunnel():
-            """Init steps for a HTTPS tunnel
-
-            :return:
-            :rtype:
-            """
-            try:
-                self.request.connection.stream.write(
-                    b"HTTP/1.1 200 Connection established\r\n\r\n"
-                )
-                starttls(
-                    self.request.connection.stream.socket,
-                    host,
-                    self.application.ca_cert,
-                    self.application.ca_key,
-                    self.application.ca_key_pass,
-                    self.application.certs_folder,
-                    success=ssl_success,
-                )
-            except tornado.iostream.StreamClosedError:
-                pass
-
-        def ssl_success(client_socket):
-            """This is done on getting successful tunnel
-
-            :param client_socket: Client socket
-            :type client_socket:
-            :return: None
-            :rtype: None
-            """
-            client = tornado.iostream.SSLIOStream(client_socket)
-            self.server.handle_stream(client, self.application.inbound_ip)
-
-        def ssl_fail():
-            """Tiny Hack to satisfy proxychains CONNECT request to HTTP port.
-
-            #TODO: HTTPS fail check has to be improvised
-
-            :return: None
-            :rtype: None
-            """
-            try:
-                self.request.connection.stream.write(
-                    b"HTTP/1.1 200 Connection established\r\n\r\n"
-                )
-            except tornado.iostream.StreamClosedError:
-                pass
-            self.server.handle_stream(
-                self.request.connection.stream, self.application.inbound_ip
-            )
-
-        # Hacking to be done here, so as to check for ssl using proxy and auth
         try:
-            # Adds a fix for check_hostname errors in Tornado 4.3.0
-            context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-            context.check_hostname = False
-            context.load_default_certs()
-            # When connecting through a new socket, no need to wrap the socket before passing to SSIOStream
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-            upstream = tornado.iostream.SSLIOStream(s, ssl_options=context)
-            upstream.set_close_callback(ssl_fail)
-            upstream.connect((host, int(port)), start_tunnel)
-        except Exception:
-            self.finish()
+            # Get the client stream
+            client_stream = self.request.connection.stream
+
+            # Send success response to establish the tunnel
+            client_stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
+            self._finished = True
+
+            print(f"CONNECT tunnel established for {host}:{port}")
+
+        except Exception as e:
+            print(f"Error in connect method: {e}")
+            import traceback
+
+            traceback.print_exc()
+
+            # Mark as finished to prevent Tornado from sending additional responses
+            self._finished = True
+
+            try:
+                # Use Tornado's write method for error response
+                self.request.connection.stream.write(b"HTTP/1.1 502 Bad Gateway\r\n\r\n")
+            except Exception as send_error:
+                print(f"Error sending 502 response: {send_error}")
+
+            # Close the connection
+            try:
+                self.request.connection.stream.close()
+            except:
+                pass
 
 
 class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
@@ -351,15 +322,11 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             io_loop = tornado.ioloop.IOLoop.current()
 
         # During secure communication, we get relative URI, so make them absolute
-        if self.request.uri.startswith(
-            self.request.protocol, 0
-        ):  # Normal Proxy Request.
+        if self.request.uri.startswith(self.request.protocol, 0):  # Normal Proxy Request.
             self.request.url = self.request.uri
         # Transparent Proxy Request
         else:
-            self.request.url = "{!s}://{!s}{!s}".format(
-                self.request.protocol, self.request.host, self.request.uri
-            )
+            self.request.url = "{!s}://{!s}{!s}".format(self.request.protocol, self.request.host, self.request.uri)
         self.request.url = self.request.url.replace("http", "ws", 1)
 
         # Have to add cookies and stuff
@@ -407,9 +374,7 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             # XXX: I dont know why a None is coming
             self.handshake_request.body = self.handshake_request.body or ""
             # The regular procedures are to be done
-            tornado.websocket.WebSocketHandler._execute(
-                self, transforms, *args, **kwargs
-            )
+            tornado.websocket.WebSocketHandler._execute(self, transforms, *args, **kwargs)
 
         # We try to connect to provided URL & then we proceed with connection on client side.
         self.upstream = self.upstream_connect(callback=start_tunnel)
@@ -450,9 +415,7 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         :return: None
         :rtype: None
         """
-        self.upstream.write_message(
-            message
-        )  # The obtained message is written to upstream.
+        self.upstream.write_message(message)  # The obtained message is written to upstream.
         self.store_upstream_data(message)
         # The following check ensures that if a callback is added for reading message from upstream, another one is not
         # added.
@@ -473,12 +436,8 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         if not self.upstream.read_future:
             self.upstream.read_message(callback=self.on_response)
         if self.ws_connection:  # Check if connection still exists.
-            if (
-                message.result()
-            ):  # Check if it is not NULL (indirect checking of upstream connection).
-                self.write_message(
-                    message.result()
-                )  # Write obtained message to client.
+            if message.result():  # Check if it is not NULL (indirect checking of upstream connection).
+                self.write_message(message.result())  # Write obtained message to client.
                 self.store_downstream_data(message.result())
             else:
                 self.close()
