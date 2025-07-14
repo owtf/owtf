@@ -23,19 +23,7 @@ resource "azurerm_network_security_group" "main" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
-    name                       = "HTTP"
-    priority                   = 1002
-    direction                  = "Inbound"
-    access                     = "Deny"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "80"
-    source_address_prefix      = "*"
+    source_address_prefixes    = var.allowed_ssh_cidr
     destination_address_prefix = "*"
   }
 
@@ -47,7 +35,7 @@ resource "azurerm_network_security_group" "main" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = var.owtf_ui_port
-    source_address_prefix      = "*"
+    source_address_prefixes    = var.allowed_owtf_cidr
     destination_address_prefix = "*"
   }
 
@@ -59,7 +47,7 @@ resource "azurerm_network_security_group" "main" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = var.owtf_admin_port
-    source_address_prefix      = "*"
+    source_address_prefixes    = var.allowed_ssh_cidr # Admin access should be restricted
     destination_address_prefix = "*"
   }
 
@@ -71,6 +59,19 @@ resource "azurerm_network_security_group" "main" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = var.owtf_proxy_port
+    source_address_prefixes    = var.allowed_owtf_cidr
+    destination_address_prefix = "*"
+  }
+
+  # Deny all other inbound traffic
+  security_rule {
+    name                       = "DenyAllInbound"
+    priority                   = 4096
+    direction                  = "Inbound"
+    access                     = "Deny"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
@@ -87,7 +88,7 @@ resource "azurerm_network_interface" "main" {
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = azurerm_subnet.public.id
+    subnet_id                     = azurerm_subnet.private.id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.main.id
   }

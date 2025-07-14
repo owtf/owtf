@@ -1,0 +1,144 @@
+---
+- name: Setup OWTF on Azure VM
+  hosts: all
+  become: yes
+  gather_facts: yes
+  vars:
+    admin_user: "{{ ansible_user }}"
+
+  tasks:
+    - name: Wait for system to be ready
+      wait_for_connection:
+        delay: 30
+        timeout: 300
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install required packages
+      apt:
+        name:
+          - software-properties-common
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - git
+          - unattended-upgrades
+          - fail2ban
+          - ufw
+        state: present
+
+    - name: Configure automatic security updates
+      lineinfile:
+        path: /etc/apt/apt.conf.d/50unattended-upgrades
+        line: 'Unattended-Upgrade::Automatic-Reboot "false";'
+        create: yes
+
+    - name: Enable and start services
+      systemd:
+        name: "{{ item }}"
+        enabled: yes
+        state: started
+      loop:
+        - unattended-upgrades
+        - fail2ban
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Install Docker
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+        update_cache: yes
+
+    - name: Add user to docker group
+      user:
+        name: "{{ admin_user }}"
+        groups: docker
+        append: yes
+
+    - name: Download Docker Compose
+      get_url:
+        url: "https://github.com/docker/compose/releases/download/v2.21.0/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}"
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Start and enable Docker
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Configure UFW firewall
+      ufw:
+        state: enabled
+        policy: deny
+        direction: incoming
+
+    - name: Allow SSH through firewall
+      ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+
+    - name: Allow OWTF ports through firewall
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop:
+        - 8008
+        - 8010
+        - 8019
+
+    - name: Clone OWTF repository
+      git:
+        repo: https://github.com/owtf/owtf.git
+        dest: "/home/{{ admin_user }}/owtf"
+        version: develop
+      become_user: "{{ admin_user }}"
+
+    - name: Set ownership of OWTF directory
+      file:
+        path: "/home/{{ admin_user }}/owtf"
+        owner: "{{ admin_user }}"
+        group: "{{ admin_user }}"
+        recurse: yes
+
+    - name: Start OWTF with Docker Compose
+      shell: |
+        cd /home/{{ admin_user }}/owtf
+        docker-compose -f docker/docker-compose.dev.yml up --build -d
+      become_user: "{{ admin_user }}"
+      environment:
+        DOCKER_CLIENT_TIMEOUT: 300
+        COMPOSE_HTTP_TIMEOUT: 300
+
+    - name: Create setup completion marker
+      file:
+        path: /var/log/owtf-setup-complete
+        state: touch
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Display setup completion message
+      debug:
+        msg: |
+          OWTF setup completed successfully!
+          Web UI: http://{{ ansible_default_ipv4.address }}:8019
+          Admin: http://{{ ansible_default_ipv4.address }}:8008
+          Proxy: http://{{ ansible_default_ipv4.address }}:8010
