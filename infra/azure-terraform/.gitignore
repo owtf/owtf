@@ -7,3 +7,6 @@
 
 # SSH private key
 ssh-keys/owtf-key
+
+# Sensitive files
+terraform.tfvars
