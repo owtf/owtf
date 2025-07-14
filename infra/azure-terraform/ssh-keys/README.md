@@ -4,7 +4,6 @@ This directory will store the SSH key pair generated for the OWTF VM.
 
 After running `terraform apply`, the SSH keys will be stored here:
 - `owtf-key` - Private key file
-- `owtf-key.pub` - Public key file
 
 ## Usage
 
