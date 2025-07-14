@@ -25,8 +25,8 @@ variable "owtf_proxy_port" {
 variable "vm_size" {
   description = "Size of the VM (free tier eligible)"
   type        = string
-  default     = "Standard_F8s_v2"  # Free tier eligible VM size
-#  default     = "Standard_B1s"
+  default     = "Standard_F8s_v2" # Free tier eligible VM size
+  #  default     = "Standard_B1s"
 }
 
 variable "disk_size_gb" {

@@ -20,7 +20,7 @@ ENV PYCURL_SSL_LIBRARY openssl
 
 # Install dependencies and clean up in the same layer to reduce image size
 RUN apt -y update && \
-    apt -y install --no-install-recommends git xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc python-all-dev python3-all-dev libcap2-bin zip unzip \
+    apt -y install --no-install-recommends git xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc python-all-dev python3-dev python3-all-dev libcap2-bin zip unzip \
     postgresql-server-dev-all postgresql-client postgresql-client-common \
     postgresql libcurl4-openssl-dev proxychains proxychains4 tor ca-certificates libpq-dev \
     libxslt1-dev libldap2-dev libsasl2-dev libffi-dev net-tools lsof locales-all \
@@ -80,7 +80,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # Ensure pip and setuptools are at their latest versions
 RUN pip install --upgrade pip
 RUN pip install setuptools==57.5.0 cffi wheel
-
+RUN pip install MarkupSafe
 
 #Installing python dependencies
 RUN pip install -r ${HOME}/requirements/base.txt
