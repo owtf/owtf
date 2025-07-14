@@ -17,8 +17,7 @@ This directory contains Terraform configuration files to deploy OWTF on Microsof
 
 2. **Configure variables**:
    ```bash
-   cp terraform.tfvars.example terraform.tfvars
-   # Edit terraform.tfvars as needed
+   # Edit variables.tf as needed
    ```
 
 3. **Deploy**:
