@@ -64,6 +64,7 @@
     "save-as": "^0.1.8",
     "ts-jest": "^29.0.5",
     "typescript": "^4.7.4",
+    "webpack-dev-middleware": "^1.12.2",
     "whatwg-fetch": "^2.0.3"
   },
   "devDependencies": {
@@ -128,7 +129,6 @@
     "ts-loader": "^3.5.0",
     "url-loader": "^1.0.1",
     "webpack": "^3.12.0",
-    "webpack-dev-middleware": "5.3.4",
     "webpack-hot-middleware": "2.18.0",
     "webpack-merge": "^4.1.2"
   },

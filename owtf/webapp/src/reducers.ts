@@ -20,6 +20,7 @@ import signupReducer from "./containers/SignupPage/reducer";
 import loginReducer from "./containers/LoginPage/reducer";
 import otpReducer from "./containers/OtpPage/reducer";
 import forgotPasswordEmailReducer from "./containers/ForgotPasswordPage/reducer";
+import proxyReducer from "./containers/ProxyPage/reducer";
 
 /*
  * routeReducer
@@ -68,6 +69,7 @@ export default function createReducer() {
     signup: signupReducer,
     login: loginReducer,
     otp: otpReducer,
-    forgot_password: forgotPasswordEmailReducer
+    forgot_password: forgotPasswordEmailReducer,
+    proxyPage: proxyReducer
   });
 }

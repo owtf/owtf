@@ -1,0 +1,456 @@
+@import "../abstracts/variables.scss";
+@import "../abstracts//mixins";
+
+// Proxy Page Styles
+.proxyPage {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  &__header {
+    @include flexbox;
+    @include justify-content(space-between);
+    @include align-items(center);
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 600;
+      color: $navbar-color-dark;
+      margin: 0;
+    }
+
+    &__actions {
+      @include flexbox;
+      @include align-items(center);
+      gap: 1rem;
+
+      &__clearBtn {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 0.8rem 1.6rem;
+        border-radius: 0.4rem;
+        font-size: 1.4rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: #c82333;
+        }
+
+        &:disabled {
+          background-color: #6c757d;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+
+  &__content {
+    @include flexbox;
+    @include flex-direction(column);
+    gap: 2rem;
+
+    &__stats {
+      margin-bottom: 1rem;
+    }
+
+    &__filters {
+      margin-bottom: 1rem;
+    }
+
+    &__table {
+      flex: 1;
+    }
+  }
+
+  &__detail {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+  }
+}
+
+// Proxy Stats Styles
+.proxyStats {
+  &__loading {
+    @include flexbox;
+    @include justify-content(center);
+    @include align-items(center);
+    gap: 1rem;
+    padding: 2rem;
+    font-size: 1.6rem;
+    color: $navbar-color-dark;
+  }
+
+  &__grid {
+    @include flexbox;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+
+    @include md {
+      @include flex-direction(column);
+    }
+  }
+
+  &__card {
+    flex: 1;
+    padding: 1.5rem;
+    border-radius: 0.8rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background-color: white;
+
+    h3 {
+      font-size: 1.4rem;
+      color: $navbar-color-dark;
+      margin: 0 0 1rem 0;
+      font-weight: 500;
+    }
+
+    &__value {
+      font-size: 2.4rem;
+      font-weight: 600;
+      color: $navbar-brand-color;
+    }
+  }
+
+  &__details {
+    @include flexbox;
+    gap: 2rem;
+
+    @include md {
+      @include flex-direction(column);
+    }
+
+    &__section {
+      flex: 1;
+      background-color: white;
+      padding: 1.5rem;
+      border-radius: 0.8rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+      h4 {
+        font-size: 1.6rem;
+        color: $navbar-color-dark;
+        margin: 0 0 1rem 0;
+        font-weight: 500;
+      }
+    }
+
+    &__list {
+      @include flexbox;
+      @include flex-direction(column);
+      gap: 0.5rem;
+    }
+
+    &__item {
+      @include flexbox;
+      @include justify-content(space-between);
+      @include align-items(center);
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    &__label {
+      font-size: 1.4rem;
+      color: $navbar-color-dark;
+      font-weight: 500;
+
+      &--success {
+        color: #28a745;
+      }
+
+      &--warning {
+        color: #ffc107;
+      }
+
+      &--danger {
+        color: #dc3545;
+      }
+
+      &--default {
+        color: #6c757d;
+      }
+    }
+
+    &__value {
+      font-size: 1.4rem;
+      color: $navbar-color-dark;
+      font-weight: 600;
+    }
+  }
+}
+
+// Proxy Filters Styles
+.proxyFilters {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.8rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  &__form {
+    @include flexbox;
+    @include align-items(end);
+    gap: 1.5rem;
+    flex-wrap: wrap;
+
+    @include md {
+      @include flex-direction(column);
+      @include align-items(stretch);
+    }
+  }
+
+  &__field {
+    @include flexbox;
+    @include flex-direction(column);
+    gap: 0.5rem;
+    min-width: 200px;
+
+    label {
+      font-size: 1.4rem;
+      color: $navbar-color-dark;
+      font-weight: 500;
+    }
+
+    select, input {
+      padding: 0.8rem;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-radius: 0.4rem;
+      font-size: 1.4rem;
+      outline: none;
+
+      &:focus {
+        border-color: $navbar-brand-color;
+      }
+    }
+  }
+
+  &__actions {
+    @include flexbox;
+    gap: 1rem;
+  }
+}
+
+// Proxy History Table Styles
+.proxyHistoryTable {
+  background-color: white;
+  border-radius: 0.8rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+
+  &__loading {
+    @include flexbox;
+    @include justify-content(center);
+    @include align-items(center);
+    gap: 1rem;
+    padding: 3rem;
+    font-size: 1.6rem;
+    color: $navbar-color-dark;
+  }
+
+  &__empty {
+    @include flexbox;
+    @include justify-content(center);
+    @include align-items(center);
+    padding: 3rem;
+    font-size: 1.6rem;
+    color: $navbar-color-dark;
+    text-align: center;
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1.4rem;
+
+    th {
+      background-color: #f8f9fa;
+      padding: 1.2rem;
+      text-align: left;
+      font-weight: 600;
+      color: $navbar-color-dark;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    td {
+      padding: 1rem 1.2rem;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      vertical-align: middle;
+    }
+  }
+
+  &__row {
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+  }
+
+  &__method {
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.4rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+
+    &--primary {
+      background-color: #007bff;
+      color: white;
+    }
+
+    &--success {
+      background-color: #28a745;
+      color: white;
+    }
+
+    &--warning {
+      background-color: #ffc107;
+      color: #212529;
+    }
+
+    &--danger {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    &--info {
+      background-color: #17a2b8;
+      color: white;
+    }
+
+    &--default {
+      background-color: #6c757d;
+      color: white;
+    }
+  }
+
+  &__url {
+    max-width: 300px;
+
+    &__text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: $navbar-color-dark;
+    }
+  }
+
+  &__status {
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.4rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+
+    &--success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    &--warning {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    &--danger {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    &--default {
+      background-color: #e2e3e5;
+      color: #383d41;
+    }
+  }
+
+  &__protocol {
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.4rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+
+    &--http {
+      background-color: #e3f2fd;
+      color: #1565c0;
+    }
+
+    &--https {
+      background-color: #e8f5e8;
+      color: #2e7d32;
+    }
+  }
+
+  &__direction {
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.4rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+
+    &--request {
+      background-color: #fff3e0;
+      color: #ef6c00;
+    }
+
+    &--response {
+      background-color: #e8f5e8;
+      color: #2e7d32;
+    }
+  }
+
+  &__timestamp {
+    color: $navbar-color-dark;
+    font-size: 1.3rem;
+  }
+
+  &__size {
+    color: $navbar-color-dark;
+    font-size: 1.3rem;
+    text-align: right;
+  }
+}
+
+// Proxy Entry Detail Styles
+.proxyEntryDetail {
+  &__headers,
+  &__body,
+  &__raw {
+    h4 {
+      font-size: 1.6rem;
+      color: $navbar-color-dark;
+      margin: 0 0 1rem 0;
+      font-weight: 500;
+    }
+  }
+
+  &__metadata {
+    @include flexbox;
+    @include flex-direction(column);
+    gap: 0.5rem;
+    font-size: 1.4rem;
+    color: $navbar-color-dark;
+
+    div {
+      @include flexbox;
+      @include align-items(center);
+      gap: 0.5rem;
+    }
+
+    strong {
+      font-weight: 600;
+      min-width: 100px;
+    }
+  }
+} 

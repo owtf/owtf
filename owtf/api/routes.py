@@ -35,6 +35,7 @@ from owtf.api.handlers.auth import (
     PasswordChangeHandler,
 )
 from owtf.api.handlers.api_token import ApiTokenGenerateHandler
+from owtf.api.handlers.proxy import ProxyHistoryHandler, ProxyHistoryDetailHandler, ProxyStatsHandler, ProxyLogHandler
 from owtf.db.session import get_scoped_session
 from owtf.models.plugin import Plugin
 from owtf.settings import STATIC_ROOT
@@ -103,6 +104,13 @@ API_v1_HANDLERS = [
     tornado.web.url(r"/api/v1/generate/otp/?$", OtpGenerateHandler, name="otp_generate_api_url"),
     tornado.web.url(r"/api/v1/verify/otp/?$", OtpVerifyHandler, name="otp_verify_api_url"),
     tornado.web.url(r"/api/v1/new-password/?$", PasswordChangeHandler, name="password_change_api_url"),
+    # Proxy API endpoints
+    tornado.web.url(r"/api/v1/proxy/history/?$", ProxyHistoryHandler, name="proxy_history_api_url"),
+    tornado.web.url(
+        r"/api/v1/proxy/history/([^/]+)/?$", ProxyHistoryDetailHandler, name="proxy_history_detail_api_url"
+    ),
+    tornado.web.url(r"/api/v1/proxy/stats/?$", ProxyStatsHandler, name="proxy_stats_api_url"),
+    tornado.web.url(r"/api/v1/proxy/log/?$", ProxyLogHandler, name="proxy_log_api_url"),
 ]
 
 UI_HANDLERS = [
