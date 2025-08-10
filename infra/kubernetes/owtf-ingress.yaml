@@ -10,7 +10,6 @@ spec:
   rules:
   - http:
       paths:
-      # Frontend routes (React app)
       - path: /
         pathType: Prefix
         backend:
@@ -18,16 +17,14 @@ spec:
             name: owtf-frontend-service
             port:
               number: 8019
-      # Backend API routes
-      - path: /api
+      - path: /
         pathType: Prefix
         backend:
           service:
             name: owtf-backend-service
             port:
               number: 8008
-      # Backend proxy routes
-      - path: /proxy
+      - path: /
         pathType: Prefix
         backend:
           service:

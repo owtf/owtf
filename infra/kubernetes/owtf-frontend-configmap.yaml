@@ -18,7 +18,35 @@ data:
         
         # Proxy API calls to backend
         location /api/ {
-            proxy_pass http://owtf-backend-service.owtf.svc.cluster.local:8008/;
+            proxy_pass http://owtf-backend-service.owtf.svc.cluster.local:8009/api/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header Accept-Encoding "";
+            proxy_buffering off;
+            proxy_connect_timeout 60s;
+            proxy_send_timeout 60s;
+            proxy_read_timeout 60s;
+        }
+        
+        # Proxy calls to file server
+        location /output_files/ {
+            proxy_pass http://owtf-backend-service.owtf.svc.cluster.local:8010/output_files/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header Accept-Encoding "";
+            proxy_buffering off;
+            proxy_connect_timeout 60s;
+            proxy_send_timeout 60s;
+            proxy_read_timeout 60s;
+        }
+        
+        # Proxy calls to log files
+        location /logs/ {
+            proxy_pass http://owtf-backend-service.owtf.svc.cluster.local:8010/logs/;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
