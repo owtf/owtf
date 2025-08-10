@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: owtf-frontend-config
+  namespace: owtf
+data:
+  nginx.conf: |
+    server {
+        listen       8019;
+        server_name  localhost;
+        
+        # Serve React app
+        location / {
+            root   /usr/share/nginx/html;
+            index  index.html index.htm;
+            try_files $uri $uri/ /index.html;                 
+        }
+        
+        # Proxy API calls to backend
+        location /api/ {
+            proxy_pass http://owtf-backend-service.owtf.svc.cluster.local:8008/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header Accept-Encoding "";
+            proxy_buffering off;
+            proxy_connect_timeout 60s;
+            proxy_send_timeout 60s;
+            proxy_read_timeout 60s;
+        }
+        
+        # Proxy calls to backend proxy service
+        location /proxy/ {
+            proxy_pass http://owtf-backend-service.owtf.svc.cluster.local:8010/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header Accept-Encoding "";
+            proxy_buffering off;
+            proxy_connect_timeout 60s;
+            proxy_send_timeout 60s;
+            proxy_read_timeout 60s;
+        }
+        
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   /usr/share/nginx/html;
+        }
+    }
