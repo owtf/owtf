@@ -15,6 +15,7 @@ import tornado.web
 
 from owtf.lib.owtf_process import OWTFProcess
 from owtf.proxy.proxy import ProxyHandler
+from owtf.proxy.interceptor_manager import InterceptorManager
 from owtf.settings import (
     BLACKLIST_COOKIES,
     CA_CERT,
@@ -41,7 +42,6 @@ from owtf.utils.file import FileOperations
 
 
 class ProxyProcess(OWTFProcess):
-
     def initialize(self, outbound_options=None, outbound_auth=""):
         """Initialize the proxy process
 
@@ -53,9 +53,7 @@ class ProxyProcess(OWTFProcess):
         :rtype: None
         """
         # The tornado application, which is used to pass variables to request handler
-        self.application = tornado.web.Application(
-            handlers=[(r".*", ProxyHandler)], debug=False, gzip=True
-        )
+        self.application = tornado.web.Application(handlers=[(r".*", ProxyHandler)], debug=False, gzip=True)
         # All required variables in request handler
         # Required variables are added as attributes to application, so that request handler can access these
         self.application.inbound_ip = INBOUND_PROXY_IP
@@ -77,9 +75,9 @@ class ProxyProcess(OWTFProcess):
         self.application.ca_key = os.path.expanduser(CA_KEY)
         # To stop OWTF from breaking for our beloved users :P
         try:
-            self.application.ca_key_pass = FileOperations.open(
-                os.path.expanduser(CA_PASS_FILE), "r", owtf_clean=False
-            ).read().strip()
+            self.application.ca_key_pass = (
+                FileOperations.open(os.path.expanduser(CA_PASS_FILE), "r", owtf_clean=False).read().strip()
+            )
         except IOError:
             self.application.ca_key_pass = "owtf"  # XXX: Legacy CA key pass for older versions.
         self.application.proxy_folder = os.path.dirname(self.application.ca_cert)
@@ -89,9 +87,7 @@ class ProxyProcess(OWTFProcess):
             assert os.path.exists(self.application.ca_cert)
             assert os.path.exists(self.application.ca_key)
         except AssertionError:
-            abort_framework(
-                "Files required for SSL MiTM are missing.Please run the install script"
-            )
+            abort_framework("Files required for SSL MiTM are missing.Please run the install script")
 
         try:  # If certs folder missing, create that.
             assert os.path.exists(self.application.certs_folder)
@@ -129,9 +125,7 @@ class ProxyProcess(OWTFProcess):
             self.application.outbound_port = None
             self.application.outbound_proxy_type = None
         if outbound_auth:
-            self.application.outbound_username, self.application.outbound_password = outbound_auth.split(
-                ":"
-            )
+            self.application.outbound_username, self.application.outbound_password = outbound_auth.split(":")
         else:
             self.application.outbound_username = None
             self.application.outbound_password = None
@@ -157,6 +151,16 @@ class ProxyProcess(OWTFProcess):
         else:
             self.application.http_auth = False
 
+        # Initialize Interceptor Manager
+        # This provides request/response modification capabilities
+        try:
+            self.application.interceptor_manager = InterceptorManager()
+            logger.info("Initialized interceptor manager for proxy application")
+        except Exception as e:
+            logger.error(f"Failed to initialize interceptor manager: {e}")
+            # Continue without interceptors if initialization fails
+            self.application.interceptor_manager = None
+
     def pseudo_run(self):
         """Run function for the multiprocessing proxy
 
@@ -166,9 +170,7 @@ class ProxyProcess(OWTFProcess):
         try:
             # Disable console logging
             self.logger.disable_console_logging()
-            self.server.bind(
-                self.application.inbound_port, address=self.application.inbound_ip
-            )
+            self.server.bind(self.application.inbound_port, address=self.application.inbound_ip)
             # Useful for using custom loggers because of relative paths in secure requests
             # http://www.joet3ch.com/blog/2011/09/08/alternative-tornado-logging/
             tornado.options.parse_command_line(
@@ -197,7 +199,7 @@ class ProxyProcess(OWTFProcess):
 
 
 def start_proxy():
-    """ The proxy along with supporting processes are started here
+    """The proxy along with supporting processes are started here
 
     :param options: Optional arguments
     :type options: `dict`

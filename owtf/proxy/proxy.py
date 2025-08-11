@@ -29,6 +29,7 @@ import tornado.websocket
 
 from owtf.proxy.cache_handler import CacheHandler
 from owtf.proxy.socket_wrapper import starttls
+from owtf.proxy.interceptor_manager import InterceptorManager
 from owtf.utils.strings import utf8, to_str
 
 # Set up logger for proxy module
@@ -195,6 +196,14 @@ class ProxyHandler(tornado.web.RequestHandler):
     restricted_request_headers = None
     restricted_response_headers = None
 
+    def __init__(self, *args, **kwargs):
+        """Initialize the proxy handler with interceptor support."""
+        super().__init__(*args, **kwargs)
+        # Initialize interceptor manager if not already done
+        if not hasattr(self.application, "interceptor_manager"):
+            self.application.interceptor_manager = InterceptorManager()
+            logger.info("Initialized interceptor manager for proxy handler")
+
     def __new__(cls, application, request, **kwargs):
         """
         .. note::
@@ -244,6 +253,14 @@ class ProxyHandler(tornado.web.RequestHandler):
         :return: None
         :rtype: None
         """
+        # Apply response interceptors
+        try:
+            if hasattr(self.application, "interceptor_manager"):
+                response = self.application.interceptor_manager.intercept_response(response)
+                logger.debug("Applied response interceptors")
+        except Exception as e:
+            logger.error(f"Error applying response interceptors: {e}")
+
         self.set_status(response.code)
         for header, value in response.headers.get_all():
             if header == "Set-Cookie":
@@ -321,6 +338,14 @@ class ProxyHandler(tornado.web.RequestHandler):
             getattr(self.request, "body", ""),
             is_https,
         )
+
+        # Apply request interceptors
+        try:
+            if hasattr(self.application, "interceptor_manager"):
+                self.request = self.application.interceptor_manager.intercept_request(self.request)
+                logger.debug("Applied request interceptors")
+        except Exception as e:
+            logger.error(f"Error applying request interceptors: {e}")
 
         # This block here checks for already cached response and if present returns one
         self.cache_handler = CacheHandler(
