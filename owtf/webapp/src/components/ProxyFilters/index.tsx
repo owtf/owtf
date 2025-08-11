@@ -57,18 +57,20 @@ const ProxyFilters: React.FC<ProxyFiltersProps> = ({ filters, onFilterChange }) 
             <option value="HEAD">HEAD</option>
             <option value="CONNECT">CONNECT</option>
           </Select>
-        </div>
+          &nbsp;&nbsp;&nbsp;
+        {/* </div>
 
-        <div className="proxyFilters__field">
+        <div className="proxyFilters__field"> */}
           <label>URL:</label>
           <TextInput
             value={localFilters.url}
             onChange={(e: any) => handleFilterChange("url", e.target.value)}
             placeholder="Filter by URL..."
           />
-        </div>
+          &nbsp;&nbsp;&nbsp;
+        {/* </div>
 
-        <div className="proxyFilters__field">
+        <div className="proxyFilters__field"> */}
           <label>Protocol:</label>
           <Select
             value={localFilters.protocol}
@@ -78,6 +80,7 @@ const ProxyFilters: React.FC<ProxyFiltersProps> = ({ filters, onFilterChange }) 
             <option value="HTTP">HTTP</option>
             <option value="HTTPS">HTTPS</option>
           </Select>
+          &nbsp;&nbsp;&nbsp;
         </div>
 
         <div className="proxyFilters__actions">

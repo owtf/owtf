@@ -5,7 +5,6 @@
  */
 
 import React from "react";
-import { Spinner } from "evergreen-ui";
 
 interface ProxyHistoryTableProps {
   history: any;
@@ -21,15 +20,30 @@ const ProxyHistoryTable: React.FC<ProxyHistoryTableProps> = ({
   if (loading) {
     return (
       <div className="proxyHistoryTable__loading">
-        <Spinner size={24} />
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
         <span>Loading proxy history...</span>
       </div>
     );
   }
 
-  const entries = history?.entries || [];
+  // Handle Immutable.js Map structure
+  let entries: any = [];
+  if (history) {
+    // If history is an Immutable Map, use .get() method
+    if (history.get && typeof history.get === 'function') {
+      entries = history.get('entries') || [];
+    } else {
+      // If it's a regular object, access directly
+      entries = history.entries || [];
+    }
+  }
 
-  if (entries.length === 0) {
+  // Convert Immutable.js List to regular array if needed
+  const entriesArray = entries && entries.toJS ? entries.toJS() : entries;
+
+  if (entriesArray.length === 0) {
     return (
       <div className="proxyHistoryTable__empty">
         <p>No proxy history found. Start browsing to see intercepted requests and responses.</p>
@@ -43,7 +57,7 @@ const ProxyHistoryTable: React.FC<ProxyHistoryTableProps> = ({
     if (code >= 300 && code < 400) return "warning";
     if (code >= 400 && code < 500) return "danger";
     if (code >= 500) return "danger";
-    return "default";
+    return "secondary";
   };
 
   const getMethodColor = (method: string) => {
@@ -55,72 +69,79 @@ const ProxyHistoryTable: React.FC<ProxyHistoryTableProps> = ({
       case "PATCH": return "warning";
       case "OPTIONS": return "info";
       case "HEAD": return "info";
-      default: return "default";
+      default: return "secondary";
     }
   };
 
   return (
     <div className="proxyHistoryTable">
-      <table className="proxyHistoryTable__table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Method</th>
-            <th>URL</th>
-            <th>Status</th>
-            <th>Protocol</th>
-            <th>Direction</th>
-            <th>Timestamp</th>
-            <th>Size</th>
-          </tr>
-        </thead>
-        <tbody>
-          {entries.map((entry: any, index: number) => (
-            <tr
-              key={`${entry.timestamp}-${index}`}
-              className="proxyHistoryTable__row"
-              onClick={() => onEntrySelect(entry)}
-            >
-              <td>{index + 1}</td>
-              <td>
-                <span className={`proxyHistoryTable__method proxyHistoryTable__method--${getMethodColor(entry.method)}`}>
-                  {entry.method}
-                </span>
-              </td>
-              <td className="proxyHistoryTable__url">
-                <div className="proxyHistoryTable__url__text" title={entry.url}>
-                  {entry.url}
-                </div>
-              </td>
-              <td>
-                {entry.status_code && (
-                  <span className={`proxyHistoryTable__status proxyHistoryTable__status--${getStatusColor(entry.status_code)}`}>
-                    {entry.status_code}
-                  </span>
-                )}
-              </td>
-              <td>
-                <span className={`proxyHistoryTable__protocol proxyHistoryTable__protocol--${entry.protocol.toLowerCase()}`}>
-                  {entry.protocol}
-                </span>
-              </td>
-              <td>
-                <span className={`proxyHistoryTable__direction proxyHistoryTable__direction--${entry.direction.toLowerCase()}`}>
-                  {entry.direction}
-                </span>
-              </td>
-              <td className="proxyHistoryTable__timestamp">
-                {new Date(entry.timestamp).toLocaleString()}
-              </td>
-              <td className="proxyHistoryTable__size">
-                {entry.body_size ? `${entry.body_size} bytes` : "-"}
-              </td>
+      <div className="table-responsive">
+        <table className="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Method</th>
+              <th>URL</th>
+              <th>Status</th>
+              <th>Protocol</th>
+              <th>Direction</th>
+              <th>Timestamp</th>
+              <th>Size</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {entriesArray.map((entry: any, index: number) => {
+              // Convert Immutable Map to regular object if needed
+              const entryObj = entry && entry.toJS ? entry.toJS() : entry;
+              
+              return (
+                <tr
+                  key={`${entryObj.timestamp}-${index}`}
+                  onClick={() => onEntrySelect(entryObj)}
+                  className="cursor-pointer"
+                >
+                  <td>{index + 1}</td>
+                  <td>
+                    <span className={`badge bg-${getMethodColor(entryObj.method)} proxyHistoryTable__method`}>
+                      {entryObj.method}
+                    </span>
+                  </td>
+                  <td className="proxyHistoryTable__url">
+                    <div className="proxyHistoryTable__url__text" title={entryObj.url}>
+                      {entryObj.url}
+                    </div>
+                  </td>
+                  <td>
+                    {entryObj.status_code && (
+                      <span className={`badge bg-${getStatusColor(entryObj.status_code)} proxyHistoryTable__status`}>
+                        {entryObj.status_code}
+                      </span>
+                    )}
+                  </td>
+                  <td>
+                    <span className={`badge bg-light text-dark proxyHistoryTable__protocol`}>
+                      {entryObj.protocol}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={`badge bg-light text-dark proxyHistoryTable__direction`}>
+                      {entryObj.direction}
+                    </span>
+                  </td>
+                  <td className="proxyHistoryTable__timestamp">
+                    {new Date(entryObj.timestamp).toLocaleString()}
+                  </td>
+                  <td className="proxyHistoryTable__size">
+                    {entryObj.body_size ? `${entryObj.body_size} bytes` : "-"}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
 
-export default ProxyHistoryTable; 
+export default ProxyHistoryTable;

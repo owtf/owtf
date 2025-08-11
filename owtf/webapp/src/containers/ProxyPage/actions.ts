@@ -109,20 +109,26 @@ export function clearProxyLogAPI() {
 export function* fetchProxyHistorySaga(action: any) {
   try {
     const { filters } = action;
+    console.log("🔍 fetchProxyHistorySaga - filters:", filters);
     const fetchAPI = getProxyHistoryAPI(filters);
     const history = yield call(fetchAPI);
+    console.log("🔍 fetchProxyHistorySaga - API response:", history);
     yield put(fetchProxyHistorySuccess(history));
   } catch (error) {
+    console.error("❌ fetchProxyHistorySaga - error:", error);
     yield put(fetchProxyHistoryError(error));
   }
 }
 
 export function* fetchProxyStatsSaga() {
   try {
+    console.log("🔍 fetchProxyStatsSaga - starting");
     const fetchAPI = getProxyStatsAPI();
     const stats = yield call(fetchAPI);
+    console.log("🔍 fetchProxyStatsSaga - API response:", stats);
     yield put(fetchProxyStatsSuccess(stats));
   } catch (error) {
+    console.error("❌ fetchProxyStatsSaga - error:", error);
     yield put(fetchProxyStatsError(error));
   }
 }

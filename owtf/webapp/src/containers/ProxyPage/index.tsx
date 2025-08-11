@@ -13,6 +13,7 @@ import { toaster } from "evergreen-ui";
 import ProxyHistoryTable from "../../components/ProxyHistoryTable";
 import ProxyStats from "../../components/ProxyStats";
 import ProxyFilters from "../../components/ProxyFilters";
+import ProxyEntryDetail from "../../components/ProxyEntryDetail";
 import { makeSelectProxyHistory, makeSelectProxyStats, makeSelectProxyLoading, makeSelectProxyError } from "./selectors";
 import { fetchProxyHistory, fetchProxyStats, clearProxyLog } from "./actions";
 
@@ -91,38 +92,44 @@ export class ProxyPage extends Component<ProxyPageProps, ProxyPageState> {
     const { filters, selectedEntry, showDetail } = this.state;
 
     return (
-      <div className="proxyPage">
-        <div className="proxyPage__header">
-          <h1>Proxy History</h1>
-          <div className="proxyPage__header__actions">
-            <button 
-              className="proxyPage__header__actions__clearBtn"
-              onClick={this.handleClearLog}
-              disabled={loading}
-            >
-              Clear Log
-            </button>
-          </div>
-        </div>
-
-        <div className="proxyPage__content">
-          <div className="proxyPage__content__stats">
-            <ProxyStats stats={stats} loading={loading} />
+      <div className="proxyPage" data-test="proxyPageComponent">
+        <div className="container-fluid">
+          <div className="proxyPage__header">
+            <div className="d-flex justify-content-between align-items-center">
+              <h1>Proxy History</h1>
+              <div className="proxyPage__header__actions">
+                <button 
+                  className="btn btn-danger"
+                  onClick={this.handleClearLog}
+                  disabled={loading}
+                >
+                  Clear Log
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="proxyPage__content__filters">
-            <ProxyFilters 
-              filters={filters}
-              onFilterChange={this.handleFilterChange}
-            />
-          </div>
+          <div className="proxyPage__content">
+            
 
-          <div className="proxyPage__content__table">
-            <ProxyHistoryTable
-              history={history}
-              loading={loading}
-              onEntrySelect={this.handleEntrySelect}
-            />
+            <div className="proxyPage__content__filters">
+              <ProxyFilters 
+                filters={filters}
+                onFilterChange={this.handleFilterChange}
+              />
+            </div>
+
+            <div className="proxyPage__content__table">
+              <ProxyHistoryTable
+                history={history}
+                loading={loading}
+                onEntrySelect={this.handleEntrySelect}
+              />
+            </div>
+
+            <div className="proxyPage__content__stats">
+              <ProxyStats stats={stats} loading={loading} />
+            </div>
           </div>
         </div>
 

@@ -1,69 +1,61 @@
-@import "../abstracts/variables.scss";
-@import "../abstracts//mixins";
-
-// Proxy Page Styles
+// Proxy Page Styles - Using Bootstrap classes
 .proxyPage {
-  padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
+  // Bootstrap container and spacing
+  padding: 2rem 0;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+
+  .container-fluid {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
 
   &__header {
-    @include flexbox;
-    @include justify-content(space-between);
-    @include align-items(center);
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    padding: 1.5rem 2rem;
     margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 
     h1 {
-      font-size: 2.4rem;
+      font-size: 2.25rem;
       font-weight: 600;
-      color: $navbar-color-dark;
+      color: #212529;
       margin: 0;
     }
 
     &__actions {
-      @include flexbox;
-      @include align-items(center);
-      gap: 1rem;
-
-      &__clearBtn {
+      .btn-danger {
         background-color: #dc3545;
-        color: white;
-        border: none;
-        padding: 0.8rem 1.6rem;
-        border-radius: 0.4rem;
-        font-size: 1.4rem;
-        cursor: pointer;
-        transition: background-color 0.2s;
-
+        border-color: #dc3545;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+        
         &:hover {
           background-color: #c82333;
+          border-color: #bd2130;
         }
-
+        
         &:disabled {
           background-color: #6c757d;
-          cursor: not-allowed;
+          border-color: #6c757d;
         }
       }
     }
   }
 
   &__content {
-    @include flexbox;
-    @include flex-direction(column);
-    gap: 2rem;
-
     &__stats {
-      margin-bottom: 1rem;
+      margin-bottom: 2rem;
     }
 
     &__filters {
-      margin-bottom: 1rem;
+      margin-bottom: 2rem;
     }
 
     &__table {
-      flex: 1;
+      // Table styles handled by Bootstrap classes
     }
   }
 
@@ -74,383 +66,344 @@
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
+    z-index: 1050;
   }
 }
 
-// Proxy Stats Styles
+
+
+// Proxy Stats Styles - Using Bootstrap classes
 .proxyStats {
   &__loading {
-    @include flexbox;
-    @include justify-content(center);
-    @include align-items(center);
-    gap: 1rem;
-    padding: 2rem;
-    font-size: 1.6rem;
-    color: $navbar-color-dark;
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+
+    .spinner-border {
+      width: 2rem;
+      height: 2rem;
+      margin-bottom: 1rem;
+    }
+  }
+
+  &__empty {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
   }
 
   &__grid {
-    @include flexbox;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
-
-    @include md {
-      @include flex-direction(column);
-    }
   }
 
   &__card {
-    flex: 1;
-    padding: 1.5rem;
-    border-radius: 0.8rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    background-color: white;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    text-align: center;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
 
     h3 {
-      font-size: 1.4rem;
-      color: $navbar-color-dark;
+      font-size: 0.875rem;
+      color: #6c757d;
       margin: 0 0 1rem 0;
-      font-weight: 500;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     &__value {
-      font-size: 2.4rem;
-      font-weight: 600;
-      color: $navbar-brand-color;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #212529;
+      line-height: 1;
     }
   }
 
   &__details {
-    @include flexbox;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: 2rem;
-
-    @include md {
-      @include flex-direction(column);
-    }
+    margin-top: 2rem;
 
     &__section {
-      flex: 1;
-      background-color: white;
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 0.5rem;
       padding: 1.5rem;
-      border-radius: 0.8rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 
       h4 {
-        font-size: 1.6rem;
-        color: $navbar-color-dark;
-        margin: 0 0 1rem 0;
-        font-weight: 500;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #212529;
+        margin: 0 0 1.5rem 0;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #0d6efd;
       }
     }
 
     &__list {
-      @include flexbox;
-      @include flex-direction(column);
-      gap: 0.5rem;
-    }
+      .list-group-item {
+        border: none;
+        padding: 1rem 0;
+        border-bottom: 1px solid #f8f9fa;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
 
-    &__item {
-      @include flexbox;
-      @include justify-content(space-between);
-      @include align-items(center);
-      padding: 0.5rem 0;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-
-      &:last-child {
-        border-bottom: none;
+        &:last-child {
+          border-bottom: none;
+        }
       }
     }
 
     &__label {
-      font-size: 1.4rem;
-      color: $navbar-color-dark;
+      font-size: 0.875rem;
       font-weight: 500;
+      color: #212529;
 
-      &--success {
-        color: #28a745;
-      }
-
-      &--warning {
-        color: #ffc107;
-      }
-
-      &--danger {
-        color: #dc3545;
-      }
-
-      &--default {
-        color: #6c757d;
+      &.badge {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.375rem;
       }
     }
 
     &__value {
-      font-size: 1.4rem;
-      color: $navbar-color-dark;
-      font-weight: 600;
+      font-size: 0.875rem;
+      color: #6c757d;
+      background-color: #f8f9fa;
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.375rem;
+      min-width: 3rem;
+      text-align: center;
     }
   }
 }
 
-// Proxy Filters Styles
-.proxyFilters {
+// Proxy History Table Styles - Using Bootstrap classes
+.proxyHistoryTable {
   background-color: white;
-  padding: 1.5rem;
-  border-radius: 0.8rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  overflow: hidden;
 
-  &__form {
-    @include flexbox;
-    @include align-items(end);
-    gap: 1.5rem;
-    flex-wrap: wrap;
+  &__loading {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 
-    @include md {
-      @include flex-direction(column);
-      @include align-items(stretch);
+    .spinner-border {
+      width: 2rem;
+      height: 2rem;
+      margin-bottom: 1rem;
     }
   }
 
-  &__field {
-    @include flexbox;
-    @include flex-direction(column);
-    gap: 0.5rem;
-    min-width: 200px;
+  &__empty {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  }
 
-    label {
-      font-size: 1.4rem;
-      color: $navbar-color-dark;
-      font-weight: 500;
-    }
+  &__table {
+    .table {
+      margin-bottom: 0;
+      
+      thead th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+        padding: 1.25rem 1rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
 
-    select, input {
-      padding: 0.8rem;
-      border: 1px solid rgba(0, 0, 0, 0.2);
-      border-radius: 0.4rem;
-      font-size: 1.4rem;
-      outline: none;
+      tbody {
+        tr {
+          &:nth-child(even) {
+            background-color: #f8f9fa;
+          }
 
-      &:focus {
-        border-color: $navbar-brand-color;
+          &:hover {
+            background-color: #e9ecef;
+            cursor: pointer;
+          }
+
+          td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid #dee2e6;
+            vertical-align: middle;
+            font-size: 0.875rem;
+          }
+        }
       }
     }
   }
 
-  &__actions {
-    @include flexbox;
-    gap: 1rem;
-  }
-}
-
-// Proxy History Table Styles
-.proxyHistoryTable {
-  background-color: white;
-  border-radius: 0.8rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-
-  &__loading {
-    @include flexbox;
-    @include justify-content(center);
-    @include align-items(center);
-    gap: 1rem;
-    padding: 3rem;
-    font-size: 1.6rem;
-    color: $navbar-color-dark;
-  }
-
-  &__empty {
-    @include flexbox;
-    @include justify-content(center);
-    @include align-items(center);
-    padding: 3rem;
-    font-size: 1.6rem;
-    color: $navbar-color-dark;
-    text-align: center;
-  }
-
-  &__table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 1.4rem;
-
-    th {
-      background-color: #f8f9fa;
-      padding: 1.2rem;
-      text-align: left;
-      font-weight: 600;
-      color: $navbar-color-dark;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    }
-
-    td {
-      padding: 1rem 1.2rem;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-      vertical-align: middle;
-    }
-  }
-
-  &__row {
-    cursor: pointer;
-    transition: background-color 0.2s;
-
-    &:hover {
-      background-color: rgba(0, 0, 0, 0.02);
-    }
-  }
-
   &__method {
-    padding: 0.4rem 0.8rem;
-    border-radius: 0.4rem;
-    font-size: 1.2rem;
-    font-weight: 600;
-    text-transform: uppercase;
-
-    &--primary {
-      background-color: #007bff;
-      color: white;
-    }
-
-    &--success {
-      background-color: #28a745;
-      color: white;
-    }
-
-    &--warning {
-      background-color: #ffc107;
-      color: #212529;
-    }
-
-    &--danger {
-      background-color: #dc3545;
-      color: white;
-    }
-
-    &--info {
-      background-color: #17a2b8;
-      color: white;
-    }
-
-    &--default {
-      background-color: #6c757d;
-      color: white;
+    &.badge {
+      font-size: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      text-transform: uppercase;
+      min-width: 4.5rem;
+      text-align: center;
+      border-radius: 0.375rem;
+      font-weight: 600;
     }
   }
 
   &__url {
-    max-width: 300px;
-
     &__text {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      color: $navbar-color-dark;
+      max-width: 100%;
+      display: block;
+      color: #495057;
+      font-weight: 500;
     }
   }
 
   &__status {
-    padding: 0.4rem 0.8rem;
-    border-radius: 0.4rem;
-    font-size: 1.2rem;
-    font-weight: 600;
-
-    &--success {
-      background-color: #d4edda;
-      color: #155724;
-    }
-
-    &--warning {
-      background-color: #fff3cd;
-      color: #856404;
-    }
-
-    &--danger {
-      background-color: #f8d7da;
-      color: #721c24;
-    }
-
-    &--default {
-      background-color: #e2e3e5;
-      color: #383d41;
+    &.badge {
+      font-size: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      min-width: 3.5rem;
+      text-align: center;
+      border-radius: 0.375rem;
+      font-weight: 600;
     }
   }
 
   &__protocol {
-    padding: 0.4rem 0.8rem;
-    border-radius: 0.4rem;
-    font-size: 1.2rem;
-    font-weight: 600;
-
-    &--http {
-      background-color: #e3f2fd;
-      color: #1565c0;
-    }
-
-    &--https {
-      background-color: #e8f5e8;
-      color: #2e7d32;
+    &.badge {
+      font-size: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      text-transform: uppercase;
+      min-width: 4.5rem;
+      text-align: center;
+      border-radius: 0.375rem;
+      font-weight: 600;
     }
   }
 
   &__direction {
-    padding: 0.4rem 0.8rem;
-    border-radius: 0.4rem;
-    font-size: 1.2rem;
-    font-weight: 600;
-    text-transform: uppercase;
-
-    &--request {
-      background-color: #fff3e0;
-      color: #ef6c00;
-    }
-
-    &--response {
-      background-color: #e8f5e8;
-      color: #2e7d32;
+    &.badge {
+      font-size: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      text-transform: uppercase;
+      min-width: 5.5rem;
+      text-align: center;
+      border-radius: 0.375rem;
+      font-weight: 600;
     }
   }
 
   &__timestamp {
-    color: $navbar-color-dark;
-    font-size: 1.3rem;
+    font-size: 0.875rem;
+    color: #6c757d;
+    white-space: nowrap;
+    font-weight: 500;
   }
 
   &__size {
-    color: $navbar-color-dark;
-    font-size: 1.3rem;
+    font-size: 0.875rem;
+    color: #6c757d;
     text-align: right;
+    white-space: nowrap;
+    font-weight: 500;
   }
 }
 
-// Proxy Entry Detail Styles
+// Proxy Entry Detail Styles - Using Bootstrap classes
 .proxyEntryDetail {
   &__headers,
   &__body,
   &__raw {
     h4 {
-      font-size: 1.6rem;
-      color: $navbar-color-dark;
+      font-size: 1.25rem;
+      color: #212529;
       margin: 0 0 1rem 0;
       font-weight: 500;
     }
   }
 
   &__metadata {
-    @include flexbox;
-    @include flex-direction(column);
-    gap: 0.5rem;
-    font-size: 1.4rem;
-    color: $navbar-color-dark;
+    .list-group-item {
+      border: none;
+      padding: 0.75rem 0;
+      font-size: 0.875rem;
+      color: #212529;
 
-    div {
-      @include flexbox;
-      @include align-items(center);
-      gap: 0.5rem;
+      strong {
+        font-weight: 600;
+        min-width: 120px;
+        display: inline-block;
+        color: #495057;
+      }
     }
+  }
+}
 
-    strong {
-      font-weight: 600;
-      min-width: 100px;
+// Additional utility classes for better alignment
+.cursor-pointer {
+  cursor: pointer;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .proxyPage {
+    padding: 1rem 0;
+    
+    &__header {
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      
+      h1 {
+        font-size: 1.75rem;
+      }
+    }
+  }
+  
+  .proxyStats {
+    &__grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    &__details {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
     }
   }
 } 
