@@ -18,15 +18,11 @@ spec:
         app: owtf-backend
         component: backend
     spec:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        fsGroup: 1000
       containers:
       - name: owtf-backend
-        image: rahulsurwade08/owtf-backend:latest
-        imagePullPolicy: Always
-        command: ["wait-for-it.sh", "postgres:5432", "--", "owtf"]
+        image: owtf:backend
+        imagePullPolicy: Never
+        command: ["owtf"]
         env:
         - name: POSTGRES_USER
           valueFrom:
@@ -49,15 +45,18 @@ spec:
               name: postgres-credentials
               key: host
         ports:
-        - name: api-port
+        - name: api
           containerPort: 8008
           protocol: TCP
-        - name: proxy-port
+        - name: connect
+          containerPort: 8009
+          protocol: TCP          
+        - name: proxy
           containerPort: 8010
           protocol: TCP
         volumeMounts:
         - name: owtf-volume
-          mountPath: /
+          mountPath: /owtf
         resources:
           requests:
             memory: "512Mi"
@@ -65,22 +64,22 @@ spec:
           limits:
             memory: "2Gi"
             cpu: "1000m"
-        livenessProbe:
-          httpGet:
-            path: /api/health
-            port: 8008
-          initialDelaySeconds: 60
-          periodSeconds: 30
-          timeoutSeconds: 10
-          failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /api/health
-            port: 8008
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
+        # livenessProbe:
+        #   httpGet:
+        #     path: /api/health
+        #     port: 8008
+        #   initialDelaySeconds: 60
+        #   periodSeconds: 30
+        #   timeoutSeconds: 10
+        #   failureThreshold: 3
+        # readinessProbe:
+        #   httpGet:
+        #     path: /api/health
+        #     port: 8008
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 10
+        #   timeoutSeconds: 5
+        #   failureThreshold: 3
       restartPolicy: Always
       volumes:
       - name: owtf-volume

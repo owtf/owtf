@@ -14,9 +14,10 @@ spec:
     - name: api
       protocol: TCP
       port: 8008
-      targetPort: 8008
     - name: proxy
       protocol: TCP
       port: 8010
-      targetPort: 8010
+    - name: connect
+      port: 8009
+      protocol: TCP          
   type: ClusterIP

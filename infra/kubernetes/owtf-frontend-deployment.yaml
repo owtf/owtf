@@ -7,7 +7,7 @@ metadata:
     app: owtf-frontend
     component: frontend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: owtf-frontend
@@ -18,14 +18,11 @@ spec:
         app: owtf-frontend
         component: frontend
     spec:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 101
-        fsGroup: 101
       containers:
       - name: owtf-frontend
-        image: rahulsurwade08/owtf-frontend:latest
-        imagePullPolicy: Always
+        image: owtf:frontend
+        imagePullPolicy: Never
+        command: ["nginx", "-g", "daemon off;"]
         ports:
         - name: http
           containerPort: 8019
@@ -41,22 +38,22 @@ spec:
           limits:
             memory: "256Mi"
             cpu: "200m"
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 8019
-          initialDelaySeconds: 30
-          periodSeconds: 30
-          timeoutSeconds: 5
-          failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 8019
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          timeoutSeconds: 3
-          failureThreshold: 3
+        # livenessProbe:
+        #   httpGet:
+        #     path: /
+        #     port: 8019
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 30
+        #   timeoutSeconds: 5
+        #   failureThreshold: 3
+        # readinessProbe:
+        #   httpGet:
+        #     path: /
+        #     port: 8019
+        #   initialDelaySeconds: 10
+        #   periodSeconds: 10
+        #   timeoutSeconds: 3
+        #   failureThreshold: 3
       volumes:
       - name: nginx-config
         configMap:

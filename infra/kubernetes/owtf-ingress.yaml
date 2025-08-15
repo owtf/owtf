@@ -5,7 +5,6 @@ metadata:
   namespace: owtf
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
 spec:
   rules:
   - http:
@@ -17,18 +16,4 @@ spec:
             name: owtf-frontend-service
             port:
               number: 8019
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: owtf-backend-service
-            port:
-              number: 8008
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: owtf-backend-service
-            port:
-              number: 8010
 
