@@ -22,6 +22,7 @@ import WorkersPage from "../../containers/WorkersPage/Loadable";
 import WorklistPage from "../../containers/WorklistPage/Loadable";
 import NotFoundPage from "../../components/NotFoundPage";
 import TransactionsPage from "../../containers/Transactions/Loadable";
+import ProxyPage from "../../containers/ProxyPage/Loadable";
 import Report from "../../containers/Report/Loadable";
 import EmailSendPage from "../../containers/EmailVerification/Loadable";
 import EmailVerificationPage from "../../containers/EmailVerification/emailVerification";
@@ -70,6 +71,7 @@ export class App extends React.Component<propsType> {
       { linkTo: "/targets", text: "Targets" },
       { linkTo: "/workers", text: "Workers" },
       { linkTo: "/worklist", text: "Worklist" },
+      { linkTo: "/proxy", text: "Proxy" },
       { linkTo: "/settings", text: "Settings" },
       { linkTo: "/transactions", text: "Transactions" },
       { linkTo: "/help", text: "Help" }
@@ -111,6 +113,11 @@ export class App extends React.Component<propsType> {
             <PrivateRoute
               path="/worklist"
               component={WorklistPage}
+              authenticated={this.props.isAuthenticated}
+            />
+            <PrivateRoute
+              path="/proxy"
+              component={ProxyPage}
               authenticated={this.props.isAuthenticated}
             />
             <PrivateRoute

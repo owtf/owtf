@@ -18,6 +18,7 @@ import forgotPasswordEmailSaga from "./containers/ForgotPasswordPage/saga";
 import otpSaga from "./containers/OtpPage/saga";
 import newPasswordSaga from "./containers/NewPasswordPage/saga";
 import loginSaga from "./containers/LoginPage/saga";
+import proxySaga from "./containers/ProxyPage/saga";
 
 export default function* rootSaga() {
   yield all([
@@ -35,6 +36,7 @@ export default function* rootSaga() {
     emailVerificationSaga(),
     forgotPasswordEmailSaga(),
     otpSaga(),
-    newPasswordSaga()
+    newPasswordSaga(),
+    proxySaga()
   ]);
 }

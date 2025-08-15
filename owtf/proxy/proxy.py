@@ -5,8 +5,13 @@ owtf.proxy.proxy
 Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a part of Google Summer of Code 2013.
 """
 import datetime
+import logging
 import socket
 import ssl
+import threading
+import time
+import select
+import os
 
 import pycurl
 import tornado.curl_httpclient
@@ -24,7 +29,150 @@ import tornado.websocket
 
 from owtf.proxy.cache_handler import CacheHandler
 from owtf.proxy.socket_wrapper import starttls
+from owtf.proxy.interceptor_manager import InterceptorManager
 from owtf.utils.strings import utf8, to_str
+
+# Set up logger for proxy module
+logger = logging.getLogger(__name__)
+
+# Set up request/response logging
+REQUEST_LOG_FILE = "/tmp/owtf/request_response.log"
+ENABLE_REQUEST_LOGGING = True  # Set to False to disable logging entirely
+MAX_LOG_ENTRIES_PER_MINUTE = 100  # Limit logging rate
+
+# To disable logging entirely, change the line above to:
+# ENABLE_REQUEST_LOGGING = False
+
+request_logger = logging.getLogger("owtf_requests")
+request_logger.setLevel(logging.INFO)
+
+# Track logging rate
+log_entries_this_minute = 0
+last_minute_reset = time.time()
+
+
+def disable_request_logging():
+    """Disable request logging to prevent disk space issues"""
+    global ENABLE_REQUEST_LOGGING
+    ENABLE_REQUEST_LOGGING = False
+    logger.warning("Request logging has been disabled")
+
+
+def enable_request_logging():
+    """Re-enable request logging"""
+    global ENABLE_REQUEST_LOGGING
+    ENABLE_REQUEST_LOGGING = True
+    logger.info("Request logging has been enabled")
+
+
+def set_logging_rate_limit(entries_per_minute):
+    """Set the maximum number of log entries per minute"""
+    global MAX_LOG_ENTRIES_PER_MINUTE
+    MAX_LOG_ENTRIES_PER_MINUTE = entries_per_minute
+    logger.info(f"Logging rate limit set to {entries_per_minute} entries per minute")
+
+
+def cleanup_large_log_file():
+    """Clean up log file if it's too large"""
+    try:
+        if os.path.exists(REQUEST_LOG_FILE):
+            file_size = os.path.getsize(REQUEST_LOG_FILE)
+            if file_size > 50 * 1024 * 1024:  # If larger than 50MB
+                logger.warning(f"Log file is {file_size / (1024*1024):.1f}MB, truncating to prevent disk space issues")
+                # Truncate the file to keep only the last 1MB
+                with open(REQUEST_LOG_FILE, "r+b") as f:
+                    f.seek(-1024 * 1024, 2)  # Go to 1MB from end
+                    f.truncate()
+                    f.write(b"\n--- LOG FILE TRUNCATED DUE TO SIZE ---\n")
+    except Exception as e:
+        logger.error(f"Error cleaning up log file: {e}")
+
+
+# Create log directory if it doesn't exist
+try:
+    os.makedirs(os.path.dirname(REQUEST_LOG_FILE), exist_ok=True)
+except Exception as e:
+    logger.error(f"Error creating log directory: {e}")
+
+# Clean up large log file on startup
+cleanup_large_log_file()
+
+# Create file handler for request logging with rotation
+if not request_logger.handlers:
+    from logging.handlers import RotatingFileHandler
+
+    file_handler = RotatingFileHandler(
+        REQUEST_LOG_FILE, maxBytes=10 * 1024 * 1024, backupCount=5  # 10MB max file size  # Keep 5 backup files
+    )
+    file_handler.setLevel(logging.INFO)
+    formatter = logging.Formatter("%(asctime)s - %(message)s")
+    file_handler.setFormatter(formatter)
+    request_logger.addHandler(file_handler)
+    request_logger.propagate = False
+
+
+def log_request(request, method, url, headers=None, body=None, is_https=False, is_response=False):
+    """Log intercepted request/response details to file"""
+    global log_entries_this_minute, last_minute_reset
+
+    # Check if logging is disabled
+    if not ENABLE_REQUEST_LOGGING:
+        return
+
+    # Rate limiting
+    current_time = time.time()
+    if current_time - last_minute_reset >= 60:
+        log_entries_this_minute = 0
+        last_minute_reset = current_time
+
+    if log_entries_this_minute >= MAX_LOG_ENTRIES_PER_MINUTE:
+        return  # Skip logging if rate limit exceeded
+
+    log_entries_this_minute += 1
+
+    try:
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        protocol = "HTTPS" if is_https else "HTTP"
+        direction = "RESPONSE" if is_response else "REQUEST"
+
+        log_entry = f"[{timestamp}] {protocol} {direction} {method} {url}\n"
+
+        if headers:
+            # Limit header logging to avoid huge logs
+            header_dict = dict(headers)
+            if len(str(header_dict)) > 2000:
+                log_entry += f"Headers: <{len(header_dict)} headers, truncated>\n"
+            else:
+                log_entry += f"Headers: {header_dict}\n"
+
+        if body:
+            # Limit body logging to prevent huge logs
+            if isinstance(body, bytes):
+                body_size = len(body)
+                if body_size > 500:  # Reduced from 1000 to 500
+                    log_entry += f"Body: <{body_size} bytes, first 500: {body[:500]}>\n"
+                else:
+                    log_entry += f"Body: {body}\n"
+            else:
+                body_str = str(body)
+                if len(body_str) > 500:  # Reduced from 1000 to 500
+                    log_entry += f"Body: <{len(body_str)} chars, first 500: {body_str[:500]}>\n"
+                else:
+                    log_entry += f"Body: {body_str}\n"
+
+        log_entry += "-" * 80 + "\n"
+
+        # Write to file
+        with open(REQUEST_LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(log_entry)
+
+    except Exception as e:
+        logger.error(f"Error logging request/response: {e}")
+
+
+def log_response(status_code, url, headers=None, body=None, is_https=False):
+    """Log HTTP response details"""
+    log_request(None, f"HTTP/{status_code}", url, headers, body, is_https, True)
 
 
 def prepare_curl_callback(curl):
@@ -47,6 +195,14 @@ class ProxyHandler(tornado.web.RequestHandler):
     server = None
     restricted_request_headers = None
     restricted_response_headers = None
+
+    def __init__(self, *args, **kwargs):
+        """Initialize the proxy handler with interceptor support."""
+        super().__init__(*args, **kwargs)
+        # Initialize interceptor manager if not already done
+        if not hasattr(self.application, "interceptor_manager"):
+            self.application.interceptor_manager = InterceptorManager()
+            logger.info("Initialized interceptor manager for proxy handler")
 
     def __new__(cls, application, request, **kwargs):
         """
@@ -97,6 +253,14 @@ class ProxyHandler(tornado.web.RequestHandler):
         :return: None
         :rtype: None
         """
+        # Apply response interceptors
+        try:
+            if hasattr(self.application, "interceptor_manager"):
+                response = self.application.interceptor_manager.intercept_response(response)
+                logger.debug("Applied response interceptors")
+        except Exception as e:
+            logger.error(f"Error applying response interceptors: {e}")
+
         self.set_status(response.code)
         for header, value in response.headers.get_all():
             if header == "Set-Cookie":
@@ -104,6 +268,17 @@ class ProxyHandler(tornado.web.RequestHandler):
             else:
                 if header not in self.restricted_response_headers:
                     self.set_header(header, value)
+
+        # Log the response with body
+        response_body = getattr(self.request, "response_buffer", "") or getattr(response, "body", "") or ""
+        log_response(
+            response.code,
+            getattr(self.request, "url", ""),
+            response.headers,
+            response_body,
+            getattr(self.request, "protocol", "http") == "https",
+        )
+
         self.finish()
 
     def handle_data_chunk(self, data):
@@ -114,9 +289,10 @@ class ProxyHandler(tornado.web.RequestHandler):
         :return: None
         :rtype: None
         """
-        if data:
+        if data and hasattr(self.request, "response_buffer"):
             self.write(data)
-            self.request.response_buffer += to_str(data)
+            if hasattr(self.request, "response_buffer"):
+                self.request.response_buffer += to_str(data)
 
     @tornado.gen.coroutine
     def get(self):
@@ -127,21 +303,49 @@ class ProxyHandler(tornado.web.RequestHandler):
         :rtype: None
         """
         # The flow starts here
-        self.request.local_timestamp = datetime.datetime.now()
-        self.request.response_buffer = ""
+        if not hasattr(self.request, "local_timestamp"):
+            self.request.local_timestamp = datetime.datetime.now()
+        if not hasattr(self.request, "response_buffer"):
+            self.request.response_buffer = ""
 
         # The requests that come through ssl streams are relative requests, so transparent proxying is required. The
         # following snippet decides the url that should be passed to the async client
-        if self.request.uri.startswith(
-            self.request.protocol, 0
+        if (
+            hasattr(self.request, "uri")
+            and self.request.uri
+            and hasattr(self.request, "protocol")
+            and self.request.uri.startswith(self.request.protocol, 0)
         ):  # Normal Proxy Request.
-            self.request.url = self.request.uri
+            if not hasattr(self.request, "url"):
+                self.request.url = self.request.uri
         else:  # Transparent Proxy Request.
-            self.request.url = "{!s}://{!s}".format(
-                self.request.protocol, self.request.host
-            )
-            if self.request.uri != "/":  # Add uri only if needed.
-                self.request.url += self.request.uri
+            if not hasattr(self.request, "url"):
+                self.request.url = "{!s}://{!s}".format(
+                    getattr(self.request, "protocol", "http"), getattr(self.request, "host", "")
+                )
+                if (
+                    hasattr(self.request, "uri") and self.request.uri and self.request.uri != "/"
+                ):  # Add uri only if needed.
+                    self.request.url += self.request.uri
+
+        # Log the intercepted request
+        is_https = getattr(self.request, "protocol", "http") == "https"
+        log_request(
+            self.request,
+            getattr(self.request, "method", "GET"),
+            getattr(self.request, "url", ""),
+            getattr(self.request, "headers", {}),
+            getattr(self.request, "body", ""),
+            is_https,
+        )
+
+        # Apply request interceptors
+        try:
+            if hasattr(self.application, "interceptor_manager"):
+                self.request = self.application.interceptor_manager.intercept_request(self.request)
+                logger.debug("Applied request interceptors")
+        except Exception as e:
+            logger.error(f"Error applying request interceptors: {e}")
 
         # This block here checks for already cached response and if present returns one
         self.cache_handler = CacheHandler(
@@ -150,7 +354,13 @@ class ProxyHandler(tornado.web.RequestHandler):
             self.application.cookie_regex,
             self.application.cookie_blacklist,
         )
-        yield tornado.gen.Task(self.cache_handler.calculate_hash)
+        # Fix for tornado.gen.Task compatibility
+        try:
+            # For newer Tornado versions, use the callback directly
+            self.cache_handler.calculate_hash()
+        except TypeError:
+            # For older Tornado versions, use Task
+            yield tornado.gen.Task(self.cache_handler.calculate_hash)
         self.cached_response = self.cache_handler.load()
 
         if self.cached_response:
@@ -174,9 +384,7 @@ class ProxyHandler(tornado.web.RequestHandler):
                 if ":" not in self.request.host:
                     default_ports = {"http": "80", "https": "443"}
                     if self.request.protocol in default_ports:
-                        host = "{!s}:{!s}".format(
-                            self.request.host, default_ports[self.request.protocol]
-                        )
+                        host = "{!s}:{!s}".format(self.request.host, default_ports[self.request.protocol])
                 # Check if auth is provided for that host
                 try:
                     index = self.application.http_auth_hosts.index(host)
@@ -218,7 +426,12 @@ class ProxyHandler(tornado.web.RequestHandler):
                     validate_cert=False,
                 )
                 try:
-                    response = yield tornado.gen.Task(async_client.fetch, request)
+                    # Fix for tornado.gen.Task compatibility
+                    try:
+                        response = yield async_client.fetch(request)
+                    except AttributeError:
+                        # For older Tornado versions, use Task
+                        response = yield tornado.gen.Task(async_client.fetch, request)
                 except Exception:
                     response = None
                     pass
@@ -226,7 +439,11 @@ class ProxyHandler(tornado.web.RequestHandler):
                 for i in range(0, 3):
                     if response is None or response.code in [408, 599]:
                         self.request.response_buffer = ""
-                        response = yield tornado.gen.Task(async_client.fetch, request)
+                        try:
+                            response = yield async_client.fetch(request)
+                        except AttributeError:
+                            # For older Tornado versions, use Task
+                            response = yield tornado.gen.Task(async_client.fetch, request)
                     else:
                         success_response = True
                         break
@@ -247,83 +464,348 @@ class ProxyHandler(tornado.web.RequestHandler):
         """Gets called when a connect request is received.
 
         * The host and port are obtained from the request uri
-        * A socket is created, wrapped in ssl and then added to SSLIOStream
-        * This stream is used to connect to speak to the remote host on given port
-        * If the server speaks ssl on that port, callback start_tunnel is called
+        * SSL interception is performed by terminating client SSL and establishing upstream SSL
         * An OK response is written back to client
-        * The client side socket is wrapped in ssl
-        * If the wrapping is successful, a new SSLIOStream is made using that socket
-        * The stream is added back to the server for monitoring
+        * Decrypted data is forwarded bidirectionally between client and server
 
         :return: None
         :rtype: None
         """
         host, port = self.request.uri.split(":")
+        port = int(port)
 
-        def start_tunnel():
-            """Init steps for a HTTPS tunnel
+        # Log the CONNECT request (HTTPS interception)
+        log_request(self.request, "CONNECT", f"{host}:{port}", self.request.headers, None, True)  # This is HTTPS
 
-            :return:
-            :rtype:
-            """
-            try:
-                self.request.connection.stream.write(
-                    b"HTTP/1.1 200 Connection established\r\n\r\n"
-                )
-                starttls(
-                    self.request.connection.stream.socket,
-                    host,
-                    self.application.ca_cert,
-                    self.application.ca_key,
-                    self.application.ca_key_pass,
-                    self.application.certs_folder,
-                    success=ssl_success,
-                )
-            except tornado.iostream.StreamClosedError:
-                pass
+        try:
+            # Get the client stream
+            client_stream = self.request.connection.stream
+            logger.info("[MITM] Received CONNECT for %s:%d", host, port)
 
-        def ssl_success(client_socket):
-            """This is done on getting successful tunnel
+            # Send success response to establish the tunnel
+            client_stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
+            self._finished = True
+            logger.info("[MITM] Sent 200 Connection established to client for %s:%d", host, port)
 
-            :param client_socket: Client socket
-            :type client_socket:
-            :return: None
-            :rtype: None
-            """
-            client = tornado.iostream.SSLIOStream(client_socket)
-            self.server.handle_stream(client, self.application.inbound_ip)
+            # Set up SSL termination for client connection
+            def ssl_client_success(ssl_client_socket):
+                try:
+                    logger.info("[MITM] SSL handshake with client successful for %s:%d", host, port)
 
-        def ssl_fail():
-            """Tiny Hack to satisfy proxychains CONNECT request to HTTP port.
+                    # Now establish SSL connection to upstream server
+                    def ssl_upstream_success(ssl_upstream_socket):
+                        """Callback when SSL handshake with upstream is successful"""
+                        logger.info("[MITM] SSL handshake with upstream %s:%d successful", host, port)
 
-            #TODO: HTTPS fail check has to be improvised
+                        # Set up bidirectional forwarding between SSL sockets
+                        client_closed = False
+                        upstream_closed = False
 
-            :return: None
-            :rtype: None
-            """
-            try:
-                self.request.connection.stream.write(
-                    b"HTTP/1.1 200 Connection established\r\n\r\n"
-                )
-            except tornado.iostream.StreamClosedError:
-                pass
-            self.server.handle_stream(
-                self.request.connection.stream, self.application.inbound_ip
+                        def bidirectional_forward():
+                            """Handle bidirectional forwarding in a single thread"""
+                            nonlocal client_closed, upstream_closed
+
+                            # Set sockets to non-blocking mode
+                            try:
+                                ssl_client_socket.setblocking(False)
+                                ssl_upstream_socket.setblocking(False)
+                            except:
+                                pass
+
+                            client_buffer = b""
+                            upstream_buffer = b""
+
+                            # HTTP request parsing buffers - no longer needed with simplified approach
+                            # client_http_buffer = b""
+                            # upstream_http_buffer = b""
+
+                            def parse_http_requests(data_buffer, direction):
+                                """Parse HTTP requests/responses from buffer and log them"""
+                                # Simple approach: just log the first line if it looks like HTTP
+                                try:
+                                    lines = data_buffer.split(b"\r\n")
+                                    if lines and lines[0]:
+                                        first_line = lines[0].decode("utf-8", errors="ignore").strip()
+                                        if first_line and " " in first_line:
+                                            parts = first_line.split(" ")
+
+                                            # Check if it's an HTTP response (starts with HTTP/)
+                                            if first_line.startswith("HTTP/"):
+                                                if len(parts) >= 2:
+                                                    status_code = parts[1]
+                                                    # Extract headers (simplified)
+                                                    headers = {}
+                                                    for line in lines[1:]:
+                                                        if b": " in line:
+                                                            header_line = line.decode("utf-8", errors="ignore")
+                                                            if ": " in header_line:
+                                                                key, value = header_line.split(": ", 1)
+                                                                headers[key] = value
+
+                                                    # Log the HTTP response
+                                                    log_response(
+                                                        status_code,
+                                                        f"https://{host}",
+                                                        headers,
+                                                        None,  # Don't try to parse body
+                                                        True,  # This is HTTPS
+                                                    )
+
+                                            # Check if it's an HTTP request (starts with method)
+                                            elif len(parts) >= 2:
+                                                method = parts[0]
+                                                path = parts[1]
+
+                                                # Check if it's a valid HTTP method
+                                                if method in [
+                                                    "GET",
+                                                    "POST",
+                                                    "PUT",
+                                                    "DELETE",
+                                                    "HEAD",
+                                                    "OPTIONS",
+                                                    "PATCH",
+                                                ]:
+                                                    # Construct full URL
+                                                    if path.startswith("/"):
+                                                        url = f"https://{host}{path}"
+                                                    else:
+                                                        url = f"https://{host}/{path}"
+
+                                                    # Extract headers (simplified)
+                                                    headers = {}
+                                                    for line in lines[1:]:
+                                                        if b": " in line:
+                                                            header_line = line.decode("utf-8", errors="ignore")
+                                                            if ": " in header_line:
+                                                                key, value = header_line.split(": ", 1)
+                                                                headers[key] = value
+
+                                                    # Log the HTTP request
+                                                    log_request(
+                                                        None,
+                                                        method,
+                                                        url,
+                                                        headers,
+                                                        None,  # Don't try to parse body
+                                                        True,  # This is HTTPS
+                                                    )
+                                except Exception as e:
+                                    logger.debug(f"[MITM] Error parsing HTTP data ({direction}): {e}")
+
+                            while not client_closed and not upstream_closed:
+                                try:
+                                    # Use select to check which socket has data
+                                    readable, writable, _ = select.select(
+                                        [ssl_client_socket, ssl_upstream_socket]
+                                        if not client_closed and not upstream_closed
+                                        else [],
+                                        [ssl_client_socket, ssl_upstream_socket]
+                                        if (client_buffer or upstream_buffer)
+                                        else [],
+                                        [],
+                                        0.1,
+                                    )
+
+                                    # Handle readable sockets
+                                    for sock in readable:
+                                        try:
+                                            if sock == ssl_client_socket and not client_closed:
+                                                try:
+                                                    data = sock.recv(4096)
+                                                    if data:
+                                                        logger.debug(
+                                                            "[MITM] client->upstream received %d bytes", len(data)
+                                                        )
+                                                        upstream_buffer += data
+
+                                                        # Parse HTTP requests from client data
+                                                        parse_http_requests(data, "client")
+                                                    else:
+                                                        logger.debug("[MITM] client connection closed gracefully")
+                                                        client_closed = True
+                                                except ssl.SSLWantReadError:
+                                                    continue
+                                                except ssl.SSLWantWriteError:
+                                                    continue
+                                                except Exception as e:
+                                                    logger.error("[MITM] Client read error: %s", e)
+                                                    client_closed = True
+
+                                            elif sock == ssl_upstream_socket and not upstream_closed:
+                                                try:
+                                                    data = sock.recv(4096)
+                                                    if data:
+                                                        logger.debug(
+                                                            "[MITM] upstream->client received %d bytes", len(data)
+                                                        )
+                                                        client_buffer += data
+
+                                                        # Parse HTTP requests from upstream data (responses)
+                                                        parse_http_requests(data, "upstream")
+                                                    else:
+                                                        logger.debug("[MITM] upstream connection closed gracefully")
+                                                        upstream_closed = True
+                                                except ssl.SSLWantReadError:
+                                                    continue
+                                                except ssl.SSLWantWriteError:
+                                                    continue
+                                                except Exception as e:
+                                                    logger.error("[MITM] Upstream read error: %s", e)
+                                                    upstream_closed = True
+
+                                        except Exception as e:
+                                            logger.error("[MITM] Socket read exception: %s", e)
+                                            if sock == ssl_client_socket:
+                                                client_closed = True
+                                            else:
+                                                upstream_closed = True
+
+                                    # Handle writable sockets
+                                    for sock in writable:
+                                        try:
+                                            if sock == ssl_upstream_socket and upstream_buffer:
+                                                try:
+                                                    sent = sock.send(upstream_buffer)
+                                                    if sent > 0:
+                                                        logger.debug("[MITM] client->upstream forwarded %d bytes", sent)
+                                                        upstream_buffer = upstream_buffer[sent:]
+                                                except ssl.SSLWantReadError:
+                                                    continue
+                                                except ssl.SSLWantWriteError:
+                                                    continue
+                                                except Exception as e:
+                                                    logger.error("[MITM] Upstream write error: %s", e)
+                                                    upstream_closed = True
+
+                                            elif sock == ssl_client_socket and client_buffer:
+                                                try:
+                                                    sent = sock.send(client_buffer)
+                                                    if sent > 0:
+                                                        logger.debug("[MITM] upstream->client forwarded %d bytes", sent)
+                                                        client_buffer = client_buffer[sent:]
+                                                except ssl.SSLWantReadError:
+                                                    continue
+                                                except ssl.SSLWantWriteError:
+                                                    continue
+                                                except Exception as e:
+                                                    logger.error("[MITM] Client write error: %s", e)
+                                                    client_closed = True
+
+                                        except Exception as e:
+                                            logger.error("[MITM] Socket write exception: %s", e)
+                                            if sock == ssl_client_socket:
+                                                client_closed = True
+                                            else:
+                                                upstream_closed = True
+
+                                except Exception as e:
+                                    logger.error("[MITM] General forwarding exception: %s", e)
+                                    break
+
+                            # Clean up both sockets
+                            try:
+                                if not client_closed:
+                                    ssl_client_socket.shutdown(socket.SHUT_RDWR)
+                                    ssl_client_socket.close()
+                            except:
+                                pass
+
+                            try:
+                                if not upstream_closed:
+                                    ssl_upstream_socket.shutdown(socket.SHUT_RDWR)
+                                    ssl_upstream_socket.close()
+                            except:
+                                pass
+
+                        # Start bidirectional forwarding in a single thread
+                        logger.info("[MITM] Starting bidirectional forwarding for %s:%d", host, port)
+                        forwarding_thread = threading.Thread(target=bidirectional_forward, daemon=True)
+                        forwarding_thread.start()
+
+                    def ssl_upstream_failure(ssl_upstream_socket):
+                        """Callback when SSL handshake with upstream fails"""
+                        logger.error("[MITM] SSL handshake with upstream %s:%d failed", host, port)
+                        try:
+                            ssl_client_socket.close()
+                        except Exception as e:
+                            logger.error("[MITM] Exception closing client socket after upstream failure: %s", e)
+
+                    def connect_upstream():
+                        """Connect to upstream server and establish SSL"""
+                        try:
+                            logger.info("[MITM] Connecting to upstream %s:%d", host, port)
+                            upstream_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+                            # Use blocking connection for simplicity
+                            upstream_socket.connect((host, port))
+                            logger.info("[MITM] Connected to upstream %s:%d, starting SSL handshake", host, port)
+
+                            # Set up SSL connection to upstream server
+                            starttls(
+                                upstream_socket,
+                                host,
+                                self.application.ca_cert,
+                                self.application.ca_key,
+                                self.application.ca_key_pass,
+                                self.application.certs_folder,
+                                success=ssl_upstream_success,
+                                failure=ssl_upstream_failure,
+                                io_loop=tornado.ioloop.IOLoop.current(),
+                                do_handshake_on_connect=False,
+                                ssl_version=ssl.PROTOCOL_TLS,
+                                server_side=False,
+                                validate_cert=False,
+                            )
+                        except Exception as e:
+                            logger.error("[MITM] Error creating upstream connection: %s", e)
+                            try:
+                                ssl_client_socket.close()
+                            except Exception as e2:
+                                logger.error(
+                                    "[MITM] Exception closing client socket after upstream connect error: %s", e2
+                                )
+
+                    # Start the upstream connection process
+                    connect_upstream()
+
+                except Exception as e:
+                    logger.error("[MITM] Exception in ssl_client_success callback: %s", e)
+
+            def ssl_client_failure(ssl_client_socket):
+                logger.error("[MITM] SSL handshake with client failed for %s:%d", host, port)
+                try:
+                    client_stream.close()
+                except Exception as e:
+                    logger.error("[MITM] Exception closing client stream after handshake failure: %s", e)
+
+            logger.info("[MITM] Starting SSL handshake with client for %s:%d", host, port)
+            starttls(
+                client_stream.socket,
+                host,
+                self.application.ca_cert,
+                self.application.ca_key,
+                self.application.ca_key_pass,
+                self.application.certs_folder,
+                success=ssl_client_success,
+                failure=ssl_client_failure,
+                io_loop=tornado.ioloop.IOLoop.current(),
+                do_handshake_on_connect=False,
+                ssl_version=ssl.PROTOCOL_TLS,
+                server_side=True,
             )
 
-        # Hacking to be done here, so as to check for ssl using proxy and auth
-        try:
-            # Adds a fix for check_hostname errors in Tornado 4.3.0
-            context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-            context.check_hostname = False
-            context.load_default_certs()
-            # When connecting through a new socket, no need to wrap the socket before passing to SSIOStream
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-            upstream = tornado.iostream.SSLIOStream(s, ssl_options=context)
-            upstream.set_close_callback(ssl_fail)
-            upstream.connect((host, int(port)), start_tunnel)
-        except Exception:
-            self.finish()
+        except Exception as e:
+            logger.error("[MITM] Error in connect method: %s", e)
+            self._finished = True
+            try:
+                self.request.connection.stream.write(b"HTTP/1.1 502 Bad Gateway\r\n\r\n")
+            except Exception as send_error:
+                logger.error("[MITM] Error sending 502 response: %s", send_error)
+            try:
+                self.request.connection.stream.close()
+            except Exception as close_error:
+                logger.error("[MITM] Error closing connection after error: %s", close_error)
 
 
 class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
@@ -351,16 +833,16 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             io_loop = tornado.ioloop.IOLoop.current()
 
         # During secure communication, we get relative URI, so make them absolute
-        if self.request.uri.startswith(
-            self.request.protocol, 0
-        ):  # Normal Proxy Request.
+        if self.request.uri.startswith(self.request.protocol, 0):  # Normal Proxy Request.
             self.request.url = self.request.uri
         # Transparent Proxy Request
         else:
-            self.request.url = "{!s}://{!s}{!s}".format(
-                self.request.protocol, self.request.host, self.request.uri
-            )
+            self.request.url = "{!s}://{!s}{!s}".format(self.request.protocol, self.request.host, self.request.uri)
         self.request.url = self.request.url.replace("http", "ws", 1)
+
+        # Log WebSocket connection
+        is_https = self.request.protocol == "https"
+        log_request(self.request, "WEBSOCKET", self.request.url, self.request.headers, None, is_https)
 
         # Have to add cookies and stuff
         request_headers = tornado.httputil.HTTPHeaders()
@@ -407,9 +889,7 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
             # XXX: I dont know why a None is coming
             self.handshake_request.body = self.handshake_request.body or ""
             # The regular procedures are to be done
-            tornado.websocket.WebSocketHandler._execute(
-                self, transforms, *args, **kwargs
-            )
+            tornado.websocket.WebSocketHandler._execute(self, transforms, *args, **kwargs)
 
         # We try to connect to provided URL & then we proceed with connection on client side.
         self.upstream = self.upstream_connect(callback=start_tunnel)
@@ -450,9 +930,7 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         :return: None
         :rtype: None
         """
-        self.upstream.write_message(
-            message
-        )  # The obtained message is written to upstream.
+        self.upstream.write_message(message)  # The obtained message is written to upstream.
         self.store_upstream_data(message)
         # The following check ensures that if a callback is added for reading message from upstream, another one is not
         # added.
@@ -473,12 +951,8 @@ class CustomWebSocketHandler(tornado.websocket.WebSocketHandler):
         if not self.upstream.read_future:
             self.upstream.read_message(callback=self.on_response)
         if self.ws_connection:  # Check if connection still exists.
-            if (
-                message.result()
-            ):  # Check if it is not NULL (indirect checking of upstream connection).
-                self.write_message(
-                    message.result()
-                )  # Write obtained message to client.
+            if message.result():  # Check if it is not NULL (indirect checking of upstream connection).
+                self.write_message(message.result())  # Write obtained message to client.
                 self.store_downstream_data(message.result())
             else:
                 self.close()
