@@ -1,0 +1,409 @@
+// Proxy Page Styles - Using Bootstrap classes
+.proxyPage {
+  // Bootstrap container and spacing
+  padding: 2rem 0;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+
+  .container-fluid {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  &__header {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+
+    h1 {
+      font-size: 2.25rem;
+      font-weight: 600;
+      color: #212529;
+      margin: 0;
+    }
+
+    &__actions {
+      .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+        
+        &:hover {
+          background-color: #c82333;
+          border-color: #bd2130;
+        }
+        
+        &:disabled {
+          background-color: #6c757d;
+          border-color: #6c757d;
+        }
+      }
+    }
+  }
+
+  &__content {
+    &__stats {
+      margin-bottom: 2rem;
+    }
+
+    &__filters {
+      margin-bottom: 2rem;
+    }
+
+    &__table {
+      // Table styles handled by Bootstrap classes
+    }
+  }
+
+  &__detail {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1050;
+  }
+}
+
+
+
+// Proxy Stats Styles - Using Bootstrap classes
+.proxyStats {
+  &__loading {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+
+    .spinner-border {
+      width: 2rem;
+      height: 2rem;
+      margin-bottom: 1rem;
+    }
+  }
+
+  &__empty {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  &__card {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    text-align: center;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    h3 {
+      font-size: 0.875rem;
+      color: #6c757d;
+      margin: 0 0 1rem 0;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    &__value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #212529;
+      line-height: 1;
+    }
+  }
+
+  &__details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+
+    &__section {
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+
+      h4 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #212529;
+        margin: 0 0 1.5rem 0;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #0d6efd;
+      }
+    }
+
+    &__list {
+      .list-group-item {
+        border: none;
+        padding: 1rem 0;
+        border-bottom: 1px solid #f8f9fa;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        &:last-child {
+          border-bottom: none;
+        }
+      }
+    }
+
+    &__label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #212529;
+
+      &.badge {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.375rem;
+      }
+    }
+
+    &__value {
+      font-size: 0.875rem;
+      color: #6c757d;
+      background-color: #f8f9fa;
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.375rem;
+      min-width: 3rem;
+      text-align: center;
+    }
+  }
+}
+
+// Proxy History Table Styles - Using Bootstrap classes
+.proxyHistoryTable {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  overflow: hidden;
+
+  &__loading {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+
+    .spinner-border {
+      width: 2rem;
+      height: 2rem;
+      margin-bottom: 1rem;
+    }
+  }
+
+  &__empty {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  }
+
+  &__table {
+    .table {
+      margin-bottom: 0;
+      
+      thead th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+        padding: 1.25rem 1rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      tbody {
+        tr {
+          &:nth-child(even) {
+            background-color: #f8f9fa;
+          }
+
+          &:hover {
+            background-color: #e9ecef;
+            cursor: pointer;
+          }
+
+          td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid #dee2e6;
+            vertical-align: middle;
+            font-size: 0.875rem;
+          }
+        }
+      }
+    }
+  }
+
+  &__method {
+    &.badge {
+      font-size: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      text-transform: uppercase;
+      min-width: 4.5rem;
+      text-align: center;
+      border-radius: 0.375rem;
+      font-weight: 600;
+    }
+  }
+
+  &__url {
+    &__text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100%;
+      display: block;
+      color: #495057;
+      font-weight: 500;
+    }
+  }
+
+  &__status {
+    &.badge {
+      font-size: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      min-width: 3.5rem;
+      text-align: center;
+      border-radius: 0.375rem;
+      font-weight: 600;
+    }
+  }
+
+  &__protocol {
+    &.badge {
+      font-size: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      text-transform: uppercase;
+      min-width: 4.5rem;
+      text-align: center;
+      border-radius: 0.375rem;
+      font-weight: 600;
+    }
+  }
+
+  &__direction {
+    &.badge {
+      font-size: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      text-transform: uppercase;
+      min-width: 5.5rem;
+      text-align: center;
+      border-radius: 0.375rem;
+      font-weight: 600;
+    }
+  }
+
+  &__timestamp {
+    font-size: 0.875rem;
+    color: #6c757d;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+
+  &__size {
+    font-size: 0.875rem;
+    color: #6c757d;
+    text-align: right;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+}
+
+// Proxy Entry Detail Styles - Using Bootstrap classes
+.proxyEntryDetail {
+  &__headers,
+  &__body,
+  &__raw {
+    h4 {
+      font-size: 1.25rem;
+      color: #212529;
+      margin: 0 0 1rem 0;
+      font-weight: 500;
+    }
+  }
+
+  &__metadata {
+    .list-group-item {
+      border: none;
+      padding: 0.75rem 0;
+      font-size: 0.875rem;
+      color: #212529;
+
+      strong {
+        font-weight: 600;
+        min-width: 120px;
+        display: inline-block;
+        color: #495057;
+      }
+    }
+  }
+}
+
+// Additional utility classes for better alignment
+.cursor-pointer {
+  cursor: pointer;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .proxyPage {
+    padding: 1rem 0;
+    
+    &__header {
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      
+      h1 {
+        font-size: 1.75rem;
+      }
+    }
+  }
+  
+  .proxyStats {
+    &__grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    &__details {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+  }
+} 

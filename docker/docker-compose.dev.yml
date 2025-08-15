@@ -22,7 +22,7 @@ services:
       - owtf-frontend
       - db
     volumes:
-      - ..:/owtf
+      - ..:/home/owtf/owtf
     networks:
       - backend
   owtf-frontend:
@@ -34,7 +34,7 @@ services:
     ports:
       - 8019:8019
     volumes:
-      - ..:/owtf
+      - ..:/home/owtf/owtf
     networks:
       - backend
   db:
