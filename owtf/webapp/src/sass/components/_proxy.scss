@@ -362,6 +362,22 @@
     white-space: nowrap;
     font-weight: 500;
   }
+
+  // Proxy History Table Actions Column
+  &__actions {
+    text-align: center;
+    width: 120px;
+    
+    .btn {
+      font-size: 0.8rem;
+      padding: 0.25rem 0.5rem;
+      
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
 }
 
 // Proxy Entry Detail Styles - Using Bootstrap classes
@@ -539,8 +555,7 @@
 // Tab Content Styles
 .history-tab,
 .interceptors-tab,
-.repeater-tab,
-.settings-tab {
+.repeater-tab {
   h2 {
     margin: 0 0 0.5rem 0;
     font-size: 1.5rem;

@@ -57,6 +57,7 @@ from owtf.api.handlers.proxy import (
     InterceptorStatusHandler,
     InterceptionRulesHandler,
     RepeaterRequestHandler,
+    CertificateDownloadHandler,
 )
 from owtf.db.session import get_scoped_session
 from owtf.models.plugin import Plugin
@@ -70,28 +71,18 @@ plugin_type_re = "(%s)?" % "|".join(Plugin.get_all_plugin_types(session))
 plugin_code_re = "([0-9A-Z\-]+)?"
 
 API_v1_HANDLERS = [
-    tornado.web.url(
-        r"/api/v1/errors/?([0-9]+)?/?$", ErrorDataHandler, name="errors_api_url"
-    ),
+    tornado.web.url(r"/api/v1/errors/?([0-9]+)?/?$", ErrorDataHandler, name="errors_api_url"),
     tornado.web.url(
         r"/api/v1/sessions/?([0-9]+)?/?(activate|add|remove)?/?$",
         OWTFSessionHandler,
         name="owtf_sessions_api_url",
     ),
     tornado.web.url(
-        r"/api/v1/plugins/?"
-        + plugin_group_re
-        + "/?"
-        + plugin_type_re
-        + "/?"
-        + plugin_code_re
-        + "/?$",
+        r"/api/v1/plugins/?" + plugin_group_re + "/?" + plugin_type_re + "/?" + plugin_code_re + "/?$",
         PluginDataHandler,
         name="plugins_api_url",
     ),
-    tornado.web.url(
-        r"/api/v1/plugins/progress/?$", ProgressBarHandler, name="poutput_count"
-    ),
+    tornado.web.url(r"/api/v1/plugins/progress/?$", ProgressBarHandler, name="poutput_count"),
     tornado.web.url(
         r"/api/v1/targets/severitychart/?$",
         TargetSeverityChartHandler,
@@ -102,12 +93,8 @@ API_v1_HANDLERS = [
         TargetConfigSearchHandler,
         name="targets_search_api_url",
     ),
-    tornado.web.url(
-        r"/api/v1/targets/?([0-9]+)?/?$", TargetConfigHandler, name="targets_api_url"
-    ),
-    tornado.web.url(
-        r"/api/v1/targets/([0-9]+)/urls/?$", URLDataHandler, name="urls_api_url"
-    ),
+    tornado.web.url(r"/api/v1/targets/?([0-9]+)?/?$", TargetConfigHandler, name="targets_api_url"),
+    tornado.web.url(r"/api/v1/targets/([0-9]+)/urls/?$", URLDataHandler, name="urls_api_url"),
     tornado.web.url(
         r"/api/v1/targets/([0-9]+)/urls/search/?$",
         URLSearchHandler,
@@ -129,13 +116,7 @@ API_v1_HANDLERS = [
         name="transactions_hrt_api_url",
     ),
     tornado.web.url(
-        r"/api/v1/targets/([0-9]+)/poutput/?"
-        + plugin_group_re
-        + "/?"
-        + plugin_type_re
-        + "/?"
-        + plugin_code_re
-        + "/?$",
+        r"/api/v1/targets/([0-9]+)/poutput/?" + plugin_group_re + "/?" + plugin_type_re + "/?" + plugin_code_re + "/?$",
         PluginOutputHandler,
         name="poutput_api_url",
     ),
@@ -165,13 +146,9 @@ API_v1_HANDLERS = [
         WorklistSearchHandler,
         name="worklist_search_api_url",
     ),
-    tornado.web.url(
-        r"/api/v1/configuration/?$", ConfigurationHandler, name="configuration_api_url"
-    ),
+    tornado.web.url(r"/api/v1/configuration/?$", ConfigurationHandler, name="configuration_api_url"),
     tornado.web.url(r"/api/v1/dashboard/severitypanel/?$", DashboardPanelHandler),
-    tornado.web.url(
-        r"/api/v1/register/?$", RegisterHandler, name="regisration_api_url"
-    ),
+    tornado.web.url(r"/api/v1/register/?$", RegisterHandler, name="regisration_api_url"),
     tornado.web.url(r"/api/v1/login/?$", LogInHandler, name="login_api_url"),
     tornado.web.url(r"/api/v1/logout/?$", LogOutHandler, name="logout_api_url"),
     tornado.web.url(
@@ -189,29 +166,21 @@ API_v1_HANDLERS = [
         AccountActivationValidateHandler,
         name="confirmpasswordverify_api_url",
     ),
-    tornado.web.url(
-        r"/api/v1/generate/otp/?$", OtpGenerateHandler, name="otp_generate_api_url"
-    ),
-    tornado.web.url(
-        r"/api/v1/verify/otp/?$", OtpVerifyHandler, name="otp_verify_api_url"
-    ),
+    tornado.web.url(r"/api/v1/generate/otp/?$", OtpGenerateHandler, name="otp_generate_api_url"),
+    tornado.web.url(r"/api/v1/verify/otp/?$", OtpVerifyHandler, name="otp_verify_api_url"),
     tornado.web.url(
         r"/api/v1/new-password/?$",
         PasswordChangeHandler,
         name="password_change_api_url",
     ),
     # Proxy API endpoints
-    tornado.web.url(
-        r"/api/v1/proxy/history/?$", ProxyHistoryHandler, name="proxy_history_api_url"
-    ),
+    tornado.web.url(r"/api/v1/proxy/history/?$", ProxyHistoryHandler, name="proxy_history_api_url"),
     tornado.web.url(
         r"/api/v1/proxy/history/([^/]+)/?$",
         ProxyHistoryDetailHandler,
         name="proxy_history_detail_api_url",
     ),
-    tornado.web.url(
-        r"/api/v1/proxy/stats/?$", ProxyStatsHandler, name="proxy_stats_api_url"
-    ),
+    tornado.web.url(r"/api/v1/proxy/stats/?$", ProxyStatsHandler, name="proxy_stats_api_url"),
     # Interceptor Management API endpoints
     tornado.web.url(
         r"/api/v1/interceptors/?$",
@@ -248,9 +217,8 @@ API_v1_HANDLERS = [
         InterceptionRulesHandler,
         name="interception_rule_detail_api_url",
     ),
-    tornado.web.url(
-        r"/api/v1/repeater/send", RepeaterRequestHandler, name="repeater_send_api_url"
-    ),
+    tornado.web.url(r"/api/v1/repeater/send", RepeaterRequestHandler, name="repeater_send_api_url"),
+    tornado.web.url(r"/api/v1/proxy/ca-cert/?$", CertificateDownloadHandler, name="ca_cert_api_url"),
 ]
 
 UI_HANDLERS = [
@@ -262,8 +230,6 @@ UI_HANDLERS = [
         {"path": get_dir_worker_logs()},
         name="logs_files_url",
     ),
-    tornado.web.url(
-        r"/output_files/(.*)", FileRedirectHandler, name="file_redirect_url"
-    ),
+    tornado.web.url(r"/output_files/(.*)", FileRedirectHandler, name="file_redirect_url"),
     tornado.web.url(r"^/(?!api|debug|static|output_files)(.*)$", IndexHandler),
 ]

@@ -30,11 +30,13 @@ interface RepeaterResponse {
   body: string;
   timestamp: Date;
   responseTime: number;
+  rawResponse?: string; // Added for raw response display
 }
 
 interface RepeaterTabProps {
   className?: string;
   proxyHistory?: ProxyHistoryEntry[];
+  onSendToRepeater?: (entry: ProxyHistoryEntry) => void;
 }
 
 const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] }) => {
@@ -42,14 +44,83 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
   const [responses, setResponses] = useState<Record<string, RepeaterResponse>>({});
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [viewMode, setViewMode] = useState<'formatted' | 'raw'>('formatted');
   const [newRequestName, setNewRequestName] = useState('');
 
-  // Get selected request and response
-  const selectedRequest = requests.find(req => req.id === selectedRequestId);
-  const selectedResponse = selectedRequestId ? responses[selectedRequestId] : null;
+  // Storage keys for persistence
+  const STORAGE_KEYS = {
+    REQUESTS: 'owtf_repeater_requests',
+    RESPONSES: 'owtf_repeater_responses',
+    SELECTED_REQUEST: 'owtf_repeater_selected_request'
+  };
+
+  // Load data from localStorage on component mount
+  useEffect(() => {
+    try {
+      // Load saved requests
+      const savedRequests = localStorage.getItem(STORAGE_KEYS.REQUESTS);
+      if (savedRequests) {
+        const parsedRequests = JSON.parse(savedRequests);
+        // Convert timestamp strings back to Date objects
+        const requestsWithDates = parsedRequests.map((req: any) => ({
+          ...req,
+          timestamp: new Date(req.timestamp)
+        }));
+        setRequests(requestsWithDates);
+      }
+
+      // Load saved responses
+      const savedResponses = localStorage.getItem(STORAGE_KEYS.RESPONSES);
+      if (savedResponses) {
+        const parsedResponses = JSON.parse(savedResponses);
+        // Convert timestamp strings back to Date objects
+        const responsesWithDates = Object.fromEntries(
+          Object.entries(parsedResponses).map(([key, response]: [string, any]) => [
+            key,
+            { ...response, timestamp: new Date(response.timestamp) }
+          ])
+        );
+        setResponses(responsesWithDates);
+      }
+
+      // Load selected request
+      const savedSelectedRequest = localStorage.getItem(STORAGE_KEYS.SELECTED_REQUEST);
+      if (savedSelectedRequest && savedSelectedRequest !== 'null') {
+        setSelectedRequestId(savedSelectedRequest);
+      }
+    } catch (error) {
+      console.error('Error loading repeater data from localStorage:', error);
+    }
+  }, []);
+
+  // Save data to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.REQUESTS, JSON.stringify(requests));
+    } catch (error) {
+      console.error('Error saving requests to localStorage:', error);
+    }
+  }, [requests]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.RESPONSES, JSON.stringify(responses));
+    } catch (error) {
+      console.error('Error saving responses to localStorage:', error);
+    }
+  }, [responses]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.SELECTED_REQUEST, selectedRequestId || 'null');
+    } catch (error) {
+      console.error('Error saving selected request to localStorage:', error);
+    }
+  }, [selectedRequestId]);
 
   // Check for pending entries from other tabs
   useEffect(() => {
+    // Check sessionStorage for backward compatibility
     const pendingEntry = sessionStorage.getItem('owtf_repeater_pending_entry');
     if (pendingEntry) {
       try {
@@ -65,27 +136,50 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
 
   // Create new request from proxy history entry
   const createFromHistoryEntry = (entry: ProxyHistoryEntry, customName?: string) => {
-    const requestName = customName || `${entry.method} ${new URL(entry.url).pathname}`;
+    // Generate a unique name if not provided
+    let requestName = customName;
+    if (!requestName) {
+      try {
+        const baseName = `${entry.method} ${new URL(entry.url || '').pathname}`;
+        let counter = 1;
+        requestName = baseName;
+        
+        // Check if name already exists and add counter if needed
+        while (requests.some(req => req.name === requestName)) {
+          requestName = `${baseName} (${counter})`;
+          counter++;
+        }
+      } catch (error) {
+        // Fallback if URL is invalid
+        const baseName = `${entry.method} ${entry.url || 'invalid-url'}`;
+        let counter = 1;
+        requestName = baseName;
+        
+        while (requests.some(req => req.name === requestName)) {
+          requestName = `${baseName} (${counter})`;
+          counter++;
+        }
+      }
+    }
     
     const newRequest: RepeaterRequest = {
-      id: `req_${Date.now()}`,
+      id: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // More unique ID
       name: requestName,
       method: entry.method,
-      url: entry.url,
-      headers: entry.headers || {},
+      url: entry.url || 'https://example.com',
+      headers: { ...(entry.headers || {}) }, // Clone headers to prevent reference issues
       body: entry.body || '',
       timestamp: new Date(),
       originalEntry: entry,
     };
 
-    setRequests(prev => [...prev, newRequest]);
-    setSelectedRequestId(newRequest.id);
+    setRequests(prevRequests => [...prevRequests, newRequest]);
     setNewRequestName('');
     toaster.success(`Request "${requestName}" added to Repeater!`);
   };
 
   // Create new request from proxy history
-  const createFromHistory = () => {
+  const createNewRequest = () => {
     if (!newRequestName.trim()) {
       toaster.danger('Please enter a request name');
       return;
@@ -116,8 +210,7 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
         timestamp: new Date(),
       };
 
-      setRequests(prev => [...prev, newRequest]);
-      setSelectedRequestId(newRequest.id);
+      setRequests(prevRequests => [...prevRequests, newRequest]);
       setNewRequestName('');
       toaster.success('New request created!');
     }
@@ -159,12 +252,13 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
         body: responseData.body,
         timestamp: new Date(responseData.timestamp),
         responseTime: responseData.responseTime,
+        rawResponse: responseData.rawResponse, // Store raw response
       };
 
       // Update responses
-      setResponses(prev => ({
-        ...prev,
-        [request.id]: responseObj,
+      setResponses(prevResponses => ({
+        ...prevResponses,
+        [request.id]: responseObj
       }));
 
       toaster.success(`Request sent! Status: ${responseData.status}`);
@@ -178,19 +272,14 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
 
   // Update request
   const updateRequest = (requestId: string, updates: Partial<RepeaterRequest>) => {
-    setRequests(prev => prev.map(req => 
+    setRequests(prevRequests => prevRequests.map(req =>
       req.id === requestId ? { ...req, ...updates } : req
     ));
   };
 
   // Delete request
   const deleteRequest = (requestId: string) => {
-    setRequests(prev => prev.filter(req => req.id !== requestId));
-    setResponses(prev => {
-      const newResponses = { ...prev };
-      delete newResponses[requestId];
-      return newResponses;
-    });
+    setRequests(prevRequests => prevRequests.filter(req => req.id !== requestId));
     
     if (selectedRequestId === requestId) {
       setSelectedRequestId(null);
@@ -200,14 +289,85 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
 
   // Duplicate request
   const duplicateRequest = (request: RepeaterRequest) => {
+    // Generate a unique name
+    let newName = `${request.name} (Copy)`;
+    let counter = 1;
+    
+    // Check if name already exists and increment counter
+    while (requests.some(req => req.name === newName)) {
+      newName = `${request.name} (Copy ${counter})`;
+      counter++;
+    }
+    
     const duplicated: RepeaterRequest = {
-      ...request,
-      id: `req_${Date.now()}`,
-      name: `${request.name} (Copy)`,
+      id: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      name: newName,
+      method: request.method,
+      url: request.url,
+      headers: { ...(request.headers || {}) },
+      body: request.body || '',
       timestamp: new Date(),
+      originalEntry: request.originalEntry,
     };
-    setRequests(prev => [...prev, duplicated]);
+
+    setRequests(prevRequests => [...prevRequests, duplicated]);
+    setSelectedRequestId(duplicated.id);
     toaster.success('Request duplicated!');
+  };
+
+  // Clear all repeater data
+  const clearAllData = () => {
+    if (window.confirm('Are you sure you want to clear all repeater requests and responses? This action cannot be undone.')) {
+      setRequests([]);
+      setResponses({});
+      setSelectedRequestId(null);
+      setNewRequestName('');
+      
+      // Clear localStorage
+      localStorage.removeItem(STORAGE_KEYS.REQUESTS);
+      localStorage.removeItem(STORAGE_KEYS.RESPONSES);
+      localStorage.removeItem(STORAGE_KEYS.SELECTED_REQUEST);
+      
+      toaster.success('All repeater data cleared!');
+    }
+  };
+
+  // Get selected request and response
+  const selectedRequest = requests.find(req => req.id === selectedRequestId);
+  const selectedResponse = selectedRequestId ? responses[selectedRequestId] : null;
+
+  // Basic request validation
+  const isValidRequest = (request: RepeaterRequest) => {
+    let isValid = true;
+    let errorMessage = '';
+
+    if (!request.method) {
+      isValid = false;
+      errorMessage += 'Method is required.\n';
+    }
+    if (!request.url) {
+      isValid = false;
+      errorMessage += 'URL is required.\n';
+    }
+    if (request.method === 'POST' || request.method === 'PUT' || request.method === 'PATCH') {
+      if (!request.body) {
+        isValid = false;
+        errorMessage += 'Request body is required for POST, PUT, PATCH methods.\n';
+      }
+    }
+    if (request.headers) {
+      for (const key in request.headers) {
+        if (!key.trim() || !request.headers[key].trim()) {
+          isValid = false;
+          errorMessage += `Header "${key}" has empty name or value.\n`;
+        }
+      }
+    }
+
+    if (!isValid) {
+      toaster.warning(errorMessage.trim());
+    }
+    return isValid;
   };
 
   return (
@@ -218,33 +378,16 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
           <h2>HTTP Repeater</h2>
           <p>Edit and resend HTTP requests for testing and debugging</p>
         </div>
-        <div className="d-flex gap-2">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Request name"
-            value={newRequestName}
-            onChange={(e) => setNewRequestName(e.target.value)}
-            style={{ width: '200px' }}
-          />
-          <button
-            className="btn btn-primary"
-            onClick={createFromHistory}
-            disabled={!newRequestName.trim()}
-          >
-            <i className="fas fa-plus me-2"></i>
-            New Request
-          </button>
-        </div>
+
       </div>
 
       {/* Proxy History Quick Add Section */}
       {proxyHistory.length > 0 && (
         <div className="card mb-3">
-          <div className="card-header">
+          <div className="card-header py-2">
             <h6 className="mb-0">Quick Add from Proxy History</h6>
           </div>
-          <div className="card-body">
+          <div className="card-body py-2">
             <div className="row">
               {proxyHistory
                 .filter(entry => entry.direction === 'REQUEST')
@@ -255,7 +398,13 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                       <div className="flex-grow-1 me-2">
                         <div className="small text-muted">{entry.method}</div>
                         <div className="text-truncate" style={{ maxWidth: '200px' }}>
-                          {new URL(entry.url).pathname}
+                          {(() => {
+                            try {
+                              return entry.url ? new URL(entry.url).pathname : 'invalid-url';
+                            } catch (error) {
+                              return 'invalid-url';
+                            }
+                          })()}
                         </div>
                       </div>
                       <button
@@ -263,7 +412,8 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                         onClick={() => createFromHistoryEntry(entry)}
                         title={`Add ${entry.method} ${entry.url} to Repeater`}
                       >
-                        <i className="fas fa-plus"></i>
+                        <i className="fas fa-plus me-1"></i>
+                        Add
                       </button>
                     </div>
                   </div>
@@ -273,7 +423,43 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
         </div>
       )}
 
-      <div className="row">
+      {/* Request Management */}
+      <div className="card mb-3">
+        <div className="card-header py-2">
+          <h6 className="mb-0">Request Management</h6>
+        </div>
+        <div className="card-body py-3">
+          <div className="d-flex gap-3 align-items-center">
+            <div className="flex-grow-1">
+              <input
+                type="text"
+                className="form-control form-control-sm"
+                placeholder="Enter request name..."
+                value={newRequestName}
+                onChange={(e) => setNewRequestName(e.target.value)}
+              />
+            </div>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={createNewRequest}
+              disabled={!newRequestName.trim()}
+            >
+              <i className="fas fa-plus me-1"></i>
+              New Request
+            </button>
+            <button
+              className="btn btn-danger btn-sm"
+              onClick={clearAllData}
+              disabled={requests.length === 0}
+            >
+              <i className="fas fa-trash me-1"></i>
+              Clear All
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="row g-3">
         {/* Request List */}
         <div className="col-md-3">
           <div className="card">
@@ -293,11 +479,44 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                     style={{ cursor: 'pointer' }}
                   >
                     <div className="d-flex flex-column">
-                      <strong className="text-truncate" style={{ maxWidth: '150px' }}>
-                        {request.name}
-                      </strong>
+                      <div className="d-flex align-items-center">
+                        <strong 
+                          className="text-truncate me-2" 
+                          style={{ maxWidth: '120px', cursor: 'pointer' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const newName = prompt('Enter new request name:', request.name);
+                            if (newName && newName.trim()) {
+                              updateRequest(request.id, { name: newName.trim() });
+                            }
+                          }}
+                          title="Click to edit name"
+                        >
+                          {request.name}
+                        </strong>
+                        <button
+                          className="btn btn-link btn-sm p-0 text-muted"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const newName = prompt('Enter new request name:', request.name);
+                            if (newName && newName.trim()) {
+                              updateRequest(request.id, { name: newName.trim() });
+                            }
+                          }}
+                          title="Edit request name"
+                        >
+                          <i className="fas fa-edit fa-xs"></i>
+                        </button>
+                      </div>
                       <small className="text-muted">
-                        {request.method} {new URL(request.url).pathname}
+                        {request.method} {(() => {
+                          try {
+                            const url = request.url;
+                            return url ? new URL(url).pathname : 'invalid-url';
+                          } catch (error) {
+                            return 'invalid-url';
+                          }
+                        })()}
                       </small>
                       {request.originalEntry && (
                         <small className="text-info">
@@ -308,24 +527,26 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                     </div>
                     <div className="btn-group btn-group-sm">
                       <button
-                        className="btn btn-outline-secondary btn-sm"
+                        className={`btn btn-sm ${selectedRequestId === request.id ? 'btn-light' : 'btn-outline-secondary'}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           duplicateRequest(request);
                         }}
                         title="Duplicate"
                       >
-                        <i className="fas fa-copy"></i>
+                        <i className="fas fa-copy me-1"></i>
+                        Copy
                       </button>
                       <button
-                        className="btn btn-outline-danger btn-sm"
+                        className={`btn btn-sm ${selectedRequestId === request.id ? 'btn-light' : 'btn-outline-danger'}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           deleteRequest(request.id);
                         }}
                         title="Delete"
                       >
-                        <i className="fas fa-trash"></i>
+                        <i className="fas fa-trash me-1"></i>
+                        Delete
                       </button>
                     </div>
                   </div>
@@ -346,13 +567,14 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
         <div className="col-md-9">
           {selectedRequest ? (
             <div className="card">
-              <div className="card-header d-flex justify-content-between align-items-center">
+              <div className="card-header d-flex justify-content-between align-items-center py-3">
                 <h5 className="mb-0">Request Editor</h5>
                 <div className="btn-group">
                   <button
                     className="btn btn-success"
                     onClick={() => sendRequest(selectedRequest)}
-                    disabled={isLoading}
+                    disabled={isLoading || !isValidRequest(selectedRequest)}
+                    title={!isValidRequest(selectedRequest) ? 'Please fix validation errors before sending' : 'Send request'}
                   >
                     {isLoading ? (
                       <>
@@ -366,116 +588,177 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                       </>
                     )}
                   </button>
-                  <button
-                    className="btn btn-outline-secondary"
-                    onClick={() => sendRequest(selectedRequest)}
-                    disabled={isLoading}
-                  >
-                    <i className="fas fa-save me-2"></i>
-                    Save
-                  </button>
                 </div>
               </div>
               <div className="card-body">
-                <div className="row mb-3">
-                  <div className="col-md-2">
-                    <select
-                      className="form-select"
-                      value={selectedRequest.method}
-                      onChange={(e) => updateRequest(selectedRequest.id, { method: e.target.value })}
-                    >
-                      <option value="GET">GET</option>
-                      <option value="POST">POST</option>
-                      <option value="PUT">PUT</option>
-                      <option value="DELETE">DELETE</option>
-                      <option value="HEAD">HEAD</option>
-                      <option value="OPTIONS">OPTIONS</option>
-                      <option value="PATCH">PATCH</option>
-                    </select>
-                  </div>
-                  <div className="col-md-10">
-                    <input
-                      type="url"
-                      className="form-control"
-                      placeholder="https://example.com"
-                      value={selectedRequest.url}
-                      onChange={(e) => updateRequest(selectedRequest.id, { url: e.target.value })}
-                    />
-                  </div>
+                {/* View Mode Tabs */}
+                <div className="btn-group mb-4" role="group">
+                  <button
+                    className={`btn ${viewMode === 'formatted' ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => setViewMode('formatted')}
+                  >
+                    <i className="fas fa-edit me-2"></i>
+                    Formatted
+                  </button>
+                  <button
+                    className={`btn ${viewMode === 'raw' ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => setViewMode('raw')}
+                  >
+                    <i className="fas fa-code me-2"></i>
+                    Raw
+                  </button>
                 </div>
 
-                {/* Headers Editor */}
-                <div className="mb-3">
-                  <label className="form-label">Headers</label>
-                  <div className="border rounded p-3 bg-light">
-                    {Object.entries(selectedRequest.headers).map(([key, value], index) => (
-                      <div key={index} className="row mb-2">
-                        <div className="col-md-5">
-                          <input
-                            type="text"
-                            className="form-control form-control-sm"
-                            placeholder="Header name"
-                            value={key}
-                            onChange={(e) => {
-                              const newHeaders = { ...selectedRequest.headers };
-                              delete newHeaders[key];
-                              newHeaders[e.target.value] = value;
-                              updateRequest(selectedRequest.id, { headers: newHeaders });
-                            }}
-                          />
-                        </div>
-                        <div className="col-md-5">
-                          <input
-                            type="text"
-                            className="form-control form-control-sm"
-                            placeholder="Header value"
-                            value={value}
-                            onChange={(e) => {
-                              const newHeaders = { ...selectedRequest.headers };
-                              newHeaders[key] = e.target.value;
-                              updateRequest(selectedRequest.id, { headers: newHeaders });
-                            }}
-                          />
-                        </div>
-                        <div className="col-md-2">
-                          <button
-                            className="btn btn-outline-danger btn-sm w-100"
-                            onClick={() => {
-                              const newHeaders = { ...selectedRequest.headers };
-                              delete newHeaders[key];
-                              updateRequest(selectedRequest.id, { headers: newHeaders });
-                            }}
-                          >
-                            <i className="fas fa-trash"></i>
-                          </button>
-                        </div>
+                {viewMode === 'formatted' ? (
+                  <>
+                    <div className="row mb-3">
+                      <div className="col-md-2">
+                        <label className="form-label fw-bold">Method</label>
+                        <select
+                          className="form-select form-select-sm border-2"
+                          value={selectedRequest.method}
+                          onChange={(e) => updateRequest(selectedRequest.id, { method: e.target.value })}
+                        >
+                          <option value="GET">GET</option>
+                          <option value="POST">POST</option>
+                          <option value="PUT">PUT</option>
+                          <option value="DELETE">DELETE</option>
+                          <option value="HEAD">HEAD</option>
+                          <option value="OPTIONS">OPTIONS</option>
+                          <option value="PATCH">PATCH</option>
+                        </select>
                       </div>
-                    ))}
-                    <button
-                      className="btn btn-outline-primary btn-sm"
-                      onClick={() => {
-                        const newHeaders = { ...selectedRequest.headers };
-                        newHeaders[`Header${Object.keys(newHeaders).length + 1}`] = '';
-                        updateRequest(selectedRequest.id, { headers: newHeaders });
-                      }}
-                    >
-                      <i className="fas fa-plus me-2"></i>
-                      Add Header
-                    </button>
-                  </div>
-                </div>
+                      <div className="col-md-10">
+                        <label className="form-label fw-bold">URL</label>
+                        <input
+                          type="url"
+                          className="form-control form-control-sm border-2"
+                          placeholder="https://example.com"
+                          value={selectedRequest.url}
+                          onChange={(e) => updateRequest(selectedRequest.id, { url: e.target.value })}
+                        />
+                      </div>
+                    </div>
 
-                {/* Body Editor */}
-                <div className="mb-3">
-                  <label className="form-label">Request Body</label>
-                  <textarea
-                    className="form-control"
-                    rows={8}
-                    placeholder="Enter request body (for POST, PUT, PATCH requests)"
-                    value={selectedRequest.body}
-                    onChange={(e) => updateRequest(selectedRequest.id, { body: e.target.value })}
-                  />
-                </div>
+                    {/* Headers Editor */}
+                    <div className="mb-3">
+                      <label className="form-label">Headers</label>
+                      
+                      {/* Common Headers Presets */}
+                      <div className="mb-2">
+                        <small className="text-muted me-2">Quick add:</small>
+                        {[
+                          { name: 'User-Agent', value: 'OWTF Repeater/1.0' },
+                          { name: 'Accept', value: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' },
+                          { name: 'Accept-Language', value: 'en-US,en;q=0.5' },
+                          { name: 'Accept-Encoding', value: 'gzip, deflate' },
+                          { name: 'Connection', value: 'keep-alive' }
+                        ].map(header => (
+                          <button
+                            key={header.name}
+                            className="btn btn-outline-info btn-sm me-1 mb-1"
+                            onClick={() => {
+                              const newHeaders = { ...(selectedRequest.headers || {}) };
+                              newHeaders[header.name] = header.value;
+                              updateRequest(selectedRequest.id, { headers: newHeaders });
+                            }}
+                            disabled={selectedRequest.headers && selectedRequest.headers[header.name]}
+                            title={selectedRequest.headers && selectedRequest.headers[header.name] ? 'Header already exists' : `Add ${header.name} header`}
+                          >
+                            {header.name}
+                          </button>
+                        ))}
+                      </div>
+                      
+                      <div className="border rounded p-3 bg-light">
+                        {Object.entries(selectedRequest.headers || {}).map(([key, value], index) => (
+                          <div key={index} className="row mb-2">
+                            <div className="col-md-5">
+                              <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                placeholder="Header name"
+                                value={key}
+                                onChange={(e) => {
+                                  const newHeaders = { ...(selectedRequest.headers || {}) };
+                                  delete newHeaders[key];
+                                  newHeaders[e.target.value] = value;
+                                  updateRequest(selectedRequest.id, { headers: newHeaders });
+                                }}
+                              />
+                            </div>
+                            <div className="col-md-5">
+                              <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                placeholder="Header value"
+                                value={value}
+                                onChange={(e) => {
+                                  const newHeaders = { ...(selectedRequest.headers || {}) };
+                                  newHeaders[key] = e.target.value;
+                                  updateRequest(selectedRequest.id, { headers: newHeaders });
+                                }}
+                              />
+                            </div>
+                            <div className="col-md-2">
+                              <button
+                                className="btn btn-outline-danger btn-sm w-100 py-2"
+                                onClick={() => {
+                                  const newHeaders = { ...(selectedRequest.headers || {}) };
+                                  delete newHeaders[key];
+                                  updateRequest(selectedRequest.id, { headers: newHeaders });
+                                }}
+                                title="Delete Header"
+                              >
+                                <i className="fas fa-trash me-1"></i>
+                                Del
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                        <button
+                          className="btn btn-outline-primary btn-sm"
+                          onClick={() => {
+                            const newHeaders = { ...(selectedRequest.headers || {}) };
+                            newHeaders[`Header${Object.keys(newHeaders).length + 1}`] = '';
+                            updateRequest(selectedRequest.id, { headers: newHeaders });
+                          }}
+                        >
+                          <i className="fas fa-plus me-2"></i>
+                          Add Header
+                        </button>
+                        {Object.keys(selectedRequest.headers || {}).some(key => !key.trim() || !selectedRequest.headers[key].trim()) && (
+                          <div className="alert alert-warning alert-sm mt-2 mb-0">
+                            <i className="fas fa-exclamation-triangle me-1"></i>
+                            Some headers have empty names or values
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Body Editor */}
+                    <div className="mb-3">
+                      <label className="form-label">Request Body</label>
+                      <textarea
+                        className="form-control"
+                        rows={8}
+                        placeholder="Enter request body (for POST, PUT, PATCH requests)"
+                        value={selectedRequest.body}
+                        onChange={(e) => updateRequest(selectedRequest.id, { body: e.target.value })}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  /* Raw Request View */
+                  <div>
+                    <label className="form-label">Raw HTTP Request</label>
+                    <pre className="border rounded p-3 bg-light" style={{ maxHeight: '500px', overflow: 'auto' }}>
+                      {`${selectedRequest.method} ${selectedRequest.url} HTTP/1.1
+${Object.entries(selectedRequest.headers || {}).map(([key, value]) => `${key}: ${value}`).join('\n')}
+${selectedRequest.body ? `\n${selectedRequest.body}` : ''}`}
+                    </pre>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -491,7 +774,7 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
           {/* Response Viewer */}
           {selectedResponse && (
             <div className="card mt-3">
-              <div className="card-header d-flex justify-content-between align-items-center">
+              <div className="card-header d-flex justify-content-between align-items-center py-3">
                 <h5 className="mb-0">Response</h5>
                 <div className="d-flex align-items-center gap-3">
                   <span className="badge bg-secondary">
@@ -501,26 +784,61 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                     Response time: {selectedResponse.responseTime}ms
                   </span>
                   <span className="text-muted">
+                    Size: {selectedResponse.body ? new Blob([selectedResponse.body]).size : 0} bytes
+                  </span>
+                  <span className="text-muted">
                     {selectedResponse.timestamp.toLocaleTimeString()}
                   </span>
                 </div>
               </div>
               <div className="card-body">
-                {/* Response Headers */}
-                <div className="mb-3">
-                  <label className="form-label">Response Headers</label>
-                  <pre className="border rounded p-3 bg-light" style={{ maxHeight: '200px', overflow: 'auto' }}>
-                    {Object.entries(selectedResponse.headers).map(([key, value]) => `${key}: ${value}`).join('\n')}
-                  </pre>
+                {/* Response View Mode Tabs */}
+                <div className="btn-group mb-3" role="group">
+                  <button
+                    className={`btn ${viewMode === 'formatted' ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => setViewMode('formatted')}
+                  >
+                    <i className="fas fa-edit me-2"></i>
+                    Formatted
+                  </button>
+                  <button
+                    className={`btn ${viewMode === 'raw' ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => setViewMode('raw')}
+                  >
+                    <i className="fas fa-code me-2"></i>
+                    Raw
+                  </button>
                 </div>
 
-                {/* Response Body */}
-                <div>
-                  <label className="form-label">Response Body</label>
-                  <pre className="border rounded p-3 bg-light" style={{ maxHeight: '400px', overflow: 'auto' }}>
-                    {selectedResponse.body}
-                  </pre>
-                </div>
+                {viewMode === 'formatted' ? (
+                  <>
+                    {/* Response Headers */}
+                    <div className="mb-3">
+                      <label className="form-label">Response Headers</label>
+                      <pre className="border rounded p-3 bg-light" style={{ maxHeight: '200px', overflow: 'auto' }}>
+                        {Object.entries(selectedResponse.headers || {}).map(([key, value]) => `${key}: ${value}`).join('\n')}
+                      </pre>
+                    </div>
+
+                    {/* Response Body */}
+                    <div>
+                      <label className="form-label">Response Body</label>
+                      <pre className="border rounded p-3 bg-light" style={{ maxHeight: '400px', overflow: 'auto' }}>
+                        {selectedResponse.body}
+                      </pre>
+                    </div>
+                  </>
+                ) : (
+                  /* Raw Response View */
+                  <div>
+                    <label className="form-label">Raw HTTP Response</label>
+                    <pre className="border rounded p-3 bg-light" style={{ maxHeight: '500px', overflow: 'auto' }}>
+                      {selectedResponse.rawResponse || `HTTP/1.1 ${selectedResponse.status} ${selectedResponse.statusText}
+${Object.entries(selectedResponse.headers || {}).map(([key, value]) => `${key}: ${value}`).join('\n')}
+${selectedResponse.body ? `\n${selectedResponse.body}` : ''}`}
+                    </pre>
+                  </div>
+                )}
               </div>
             </div>
           )}

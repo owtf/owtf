@@ -14,7 +14,6 @@ import ProxyTabs from "../../components/ProxyTabs/ProxyTabs";
 import HistoryTab from "../../components/ProxyTabs/HistoryTab";
 import InterceptorsTab from "../../components/ProxyTabs/InterceptorsTab";
 import RepeaterTab from "../../components/ProxyTabs/RepeaterTab";
-import SettingsTab from "../../components/ProxyTabs/SettingsTab";
 import { makeSelectProxyHistory, makeSelectProxyStats, makeSelectProxyLoading, makeSelectProxyError } from "./selectors";
 import { fetchProxyHistory, fetchProxyStats, clearProxyLog } from "./actions";
 
@@ -95,11 +94,11 @@ export class ProxyPage extends Component<ProxyPageProps, ProxyPageState> {
   };
 
   handleSendToRepeater = (entry: any) => {
-    // Switch to repeater tab
-    this.setState({ activeTab: 'repeater' });
-    
     // Store the entry to be added to repeater when the tab loads
     sessionStorage.setItem('owtf_repeater_pending_entry', JSON.stringify(entry));
+    
+    // Switch to repeater tab
+    this.setState({ activeTab: 'repeater' });
     
     setTimeout(() => {
       // Show a toast notification
@@ -107,8 +106,44 @@ export class ProxyPage extends Component<ProxyPageProps, ProxyPageState> {
     }, 100);
   };
 
+  downloadCACertificate = async () => {
+    try {
+      const response = await fetch("http://localhost:8009/api/v1/proxy/ca-cert/");
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      // Get the filename from the Content-Disposition header
+      const contentDisposition = response.headers.get("Content-Disposition");
+      let filename = "owtf-ca.crt";
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+      
+      // Create blob and download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toaster.success("CA Certificate downloaded successfully! Install it in your browser for HTTPS interception.");
+    } catch (error) {
+      console.error("Error downloading certificate:", error);
+      toaster.danger("Failed to download CA Certificate. Please check the console for details.");
+    }
+  };
+
   render() {
-    const { history, stats, loading } = this.props;
+    const { history, stats, loading, onFetchHistory, onFetchStats, onClearLog } = this.props;
     const { activeTab, filters, selectedEntry, showDetail } = this.state;
 
     // Define available tabs
@@ -116,7 +151,6 @@ export class ProxyPage extends Component<ProxyPageProps, ProxyPageState> {
       { id: 'history', label: 'History', icon: '📋' },
       { id: 'interceptors', label: 'Interceptors', icon: '⚙️' },
       { id: 'repeater', label: 'Repeater', icon: '🔄' },
-      { id: 'settings', label: 'Settings', icon: '🔧' },
     ];
 
     // Render tab content
@@ -141,9 +175,12 @@ export class ProxyPage extends Component<ProxyPageProps, ProxyPageState> {
         case 'interceptors':
           return <InterceptorsTab />;
         case 'repeater':
-          return <RepeaterTab proxyHistory={history} />;
-        case 'settings':
-          return <SettingsTab />;
+          return (
+            <RepeaterTab 
+              proxyHistory={history}
+              onSendToRepeater={this.handleSendToRepeater}
+            />
+          );
         default:
           return <HistoryTab
             history={history}
@@ -167,6 +204,16 @@ export class ProxyPage extends Component<ProxyPageProps, ProxyPageState> {
           <div className="proxyPage__header">
             <div className="d-flex justify-content-between align-items-center">
               <h1>Proxy Management</h1>
+              <div className="d-flex gap-2">
+                <button
+                  className="btn btn-outline-primary btn-sm"
+                  onClick={this.downloadCACertificate}
+                  title="Download CA Certificate for HTTPS interception"
+                >
+                  <i className="fas fa-download me-1"></i>
+                  Download CA Certificate
+                </button>
+              </div>
             </div>
           </div>
 
@@ -195,13 +242,13 @@ const mapStateToProps = createStructuredSelector({
   history: makeSelectProxyHistory(),
   stats: makeSelectProxyStats(),
   loading: makeSelectProxyLoading(),
-  error: makeSelectProxyError()
+  error: makeSelectProxyError(),
 });
 
 const mapDispatchToProps = (dispatch: Function) => ({
   onFetchHistory: (filters?: any) => dispatch(fetchProxyHistory(filters)),
   onFetchStats: () => dispatch(fetchProxyStats()),
-  onClearLog: () => dispatch(clearProxyLog())
+  onClearLog: () => dispatch(clearProxyLog()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ProxyPage); 

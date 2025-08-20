@@ -142,12 +142,33 @@ const ProxyEntryDetail: React.FC<ProxyEntryDetailProps> = ({ entry, onClose }) =
 
         <Pane borderTop="default" padding={16}>
           <div className="proxyEntryDetail__metadata">
-            <div><strong>Timestamp:</strong> {entry.timestamp}</div>
-            <div><strong>Protocol:</strong> {entry.protocol}</div>
-            <div><strong>Direction:</strong> {entry.direction}</div>
-            {entry.body_size && (
-              <div><strong>Body Size:</strong> {entry.body_size} bytes</div>
-            )}
+            <div className="row">
+              <div className="col-md-8">
+                <div><strong>Timestamp:</strong> {entry.timestamp}</div>
+                <div><strong>Protocol:</strong> {entry.protocol}</div>
+                <div><strong>Direction:</strong> {entry.direction}</div>
+                {entry.body_size && (
+                  <div><strong>Body Size:</strong> {entry.body_size} bytes</div>
+                )}
+              </div>
+              <div className="col-md-4 text-end">
+                <button
+                  className="btn btn-primary"
+                  onClick={() => {
+                    // Store the entry in sessionStorage for the Repeater tab
+                    sessionStorage.setItem('owtf_repeater_pending_entry', JSON.stringify(entry));
+                    // Close the detail dialog
+                    onClose();
+                    // Show a message to switch to Repeater tab
+                    alert('Request sent to Repeater! Switch to the Repeater tab to view and edit it.');
+                  }}
+                  title="Send this request to the Repeater tab"
+                >
+                  <i className="fas fa-share me-2"></i>
+                  Send to Repeater
+                </button>
+              </div>
+            </div>
           </div>
         </Pane>
       </Pane>

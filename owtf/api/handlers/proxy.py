@@ -1,24 +1,19 @@
 """
 owtf.api.handlers.proxy
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
-API handlers for proxy requests and responses.
+API handlers for proxy functionality.
 """
 
-import os
-import re
 import json
 import logging
+import os
+import re
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.proxy.proxy import REQUEST_LOG_FILE
-import json
-import time
-from datetime import datetime
-from urllib.parse import urlparse
-from tornado.web import HTTPError
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +73,7 @@ def parse_log_block(block: str) -> Optional[Dict[str, Any]]:
             "headers": {},
             "body": None,
             "body_size": 0,
+            "status_code": "200" if direction == "REQUEST" else None,  # Default status for requests
         }
         # Parse headers and body from remaining lines
         in_headers = False
@@ -134,7 +130,17 @@ class ProxyHistoryHandler(APIRequestHandler):
             entries = read_proxy_log()
             # Filter to only show requests (not responses)
             requests = [e for e in entries if e.get("direction") == "REQUEST"]
-            self.write(requests)
+            
+            # Return data in the format the frontend expects
+            response_data = {
+                "entries": requests,
+                "total_count": len(requests),
+                "limit": 100,
+                "offset": 0,
+                "has_more": False
+            }
+            
+            self.write(response_data)
         except Exception as e:
             logger.error(f"Error fetching proxy history: {e}")
             self.set_status(500)
@@ -165,19 +171,13 @@ class ProxyHistoryDetailHandler(APIRequestHandler):
                 self.write({"error": "Entry not found"})
                 return
             print(f"[ProxyHistoryDetailHandler.get] target_entry: {target_entry}")
-            logger.error(
-                f"[ProxyHistoryDetailHandler.get] target_entry: {target_entry}"
-            )
+            logger.error(f"[ProxyHistoryDetailHandler.get] target_entry: {target_entry}")
             self.write(target_entry)
         except Exception as e:
             print(f"[ProxyHistoryDetailHandler.get] Exception: {e}")
             logger.error(f"[ProxyHistoryDetailHandler.get] Exception: {e}")
             self.set_status(500)
-            self.write(
-                {
-                    "error": f"ProxyHistoryDetailHandler.get 500: Failed to fetch entry detail: {str(e)}"
-                }
-            )
+            self.write({"error": f"ProxyHistoryDetailHandler.get 500: Failed to fetch entry detail: {str(e)}"})
 
 
 class ProxyStatsHandler(APIRequestHandler):
@@ -191,27 +191,13 @@ class ProxyStatsHandler(APIRequestHandler):
             print(f"[ProxyStatsHandler.get] entries: {entries}")
             logger.error(f"[ProxyStatsHandler.get] entries: {entries}")
             stats = {
-                "total_requests": len(
-                    [e for e in entries if e.get("direction") == "REQUEST"]
-                ),
-                "total_responses": len(
-                    [e for e in entries if e.get("direction") == "RESPONSE"]
-                ),
+                "total_requests": len([e for e in entries if e.get("direction") == "REQUEST"]),
+                "total_responses": len([e for e in entries if e.get("direction") == "RESPONSE"]),
                 "http_requests": len(
-                    [
-                        e
-                        for e in entries
-                        if e.get("protocol") == "HTTP"
-                        and e.get("direction") == "REQUEST"
-                    ]
+                    [e for e in entries if e.get("protocol") == "HTTP" and e.get("direction") == "REQUEST"]
                 ),
                 "https_requests": len(
-                    [
-                        e
-                        for e in entries
-                        if e.get("protocol") == "HTTPS"
-                        and e.get("direction") == "REQUEST"
-                    ]
+                    [e for e in entries if e.get("protocol") == "HTTPS" and e.get("direction") == "REQUEST"]
                 ),
                 "methods": {},
                 "top_hosts": {},
@@ -228,22 +214,14 @@ class ProxyStatsHandler(APIRequestHandler):
 
                             host = urlparse(url).netloc
                             if host:
-                                stats["top_hosts"][host] = stats["top_hosts"].get(
-                                    host, 0
-                                ) + 1
+                                stats["top_hosts"][host] = stats["top_hosts"].get(host, 0) + 1
                         except:
                             pass
             for entry in entries:
                 if entry.get("direction") == "RESPONSE":
                     status_code = entry.get("status_code", "UNKNOWN")
-                    stats["status_codes"][status_code] = stats["status_codes"].get(
-                        status_code, 0
-                    ) + 1
-            stats["top_hosts"] = dict(
-                sorted(stats["top_hosts"].items(), key=lambda x: x[1], reverse=True)[
-                    :10
-                ]
-            )
+                    stats["status_codes"][status_code] = stats["status_codes"].get(status_code, 0) + 1
+            stats["top_hosts"] = dict(sorted(stats["top_hosts"].items(), key=lambda x: x[1], reverse=True)[:10])
             print(f"[ProxyStatsHandler.get] stats: {stats}")
             logger.error(f"[ProxyStatsHandler.get] stats: {stats}")
             self.write(stats)
@@ -251,11 +229,7 @@ class ProxyStatsHandler(APIRequestHandler):
             print(f"[ProxyStatsHandler.get] Exception: {e}")
             logger.error(f"[ProxyStatsHandler.get] Exception: {e}")
             self.set_status(500)
-            self.write(
-                {
-                    "error": f"ProxyStatsHandler.get 500: Failed to fetch proxy statistics: {str(e)}"
-                }
-            )
+            self.write({"error": f"ProxyStatsHandler.get 500: Failed to fetch proxy statistics: {str(e)}"})
 
 
 class ProxyLogHandler(APIRequestHandler):
@@ -279,11 +253,7 @@ class ProxyLogHandler(APIRequestHandler):
             print(f"[ProxyLogHandler.delete] Exception: {e}")
             logger.error(f"[ProxyLogHandler.delete] Exception: {e}")
             self.set_status(500)
-            self.write(
-                {
-                    "error": f"ProxyLogHandler.delete 500: Failed to clear proxy log: {str(e)}"
-                }
-            )
+            self.write({"error": f"ProxyLogHandler.delete 500: Failed to clear proxy log: {str(e)}"})
 
 
 # --- New Interceptor Management Handlers ---
@@ -294,10 +264,7 @@ class InterceptorManagementHandler(APIRequestHandler):
         """Get all active interceptors."""
         try:
             # Get interceptor manager from the application
-            if (
-                hasattr(self.application, "interceptor_manager")
-                and self.application.interceptor_manager
-            ):
+            if hasattr(self.application, "interceptor_manager") and self.application.interceptor_manager:
                 interceptors = self.application.interceptor_manager.get_interceptors()
                 self.write(json.dumps(interceptors))
             else:
@@ -315,10 +282,7 @@ class InterceptorManagementHandler(APIRequestHandler):
             config = data.get("config", {})
             name = data.get("name", f"Custom {interceptor_type}")
 
-            if (
-                not hasattr(self.application, "interceptor_manager")
-                or not self.application.interceptor_manager
-            ):
+            if not hasattr(self.application, "interceptor_manager") or not self.application.interceptor_manager:
                 self.set_status(500)
                 self.write({"error": "Interceptor manager not available"})
                 return
@@ -363,10 +327,7 @@ class InterceptorManagementHandler(APIRequestHandler):
     def delete(self, interceptor_id):
         """Remove interceptor."""
         try:
-            if (
-                not hasattr(self.application, "interceptor_manager")
-                or not self.application.interceptor_manager
-            ):
+            if not hasattr(self.application, "interceptor_manager") or not self.application.interceptor_manager:
                 self.set_status(500)
                 self.write({"error": "Interceptor manager not available"})
                 return
@@ -388,17 +349,12 @@ class InterceptorConfigHandler(APIRequestHandler):
     def get(self, interceptor_id):
         """Get interceptor configuration."""
         try:
-            if (
-                not hasattr(self.application, "interceptor_manager")
-                or not self.application.interceptor_manager
-            ):
+            if not hasattr(self.application, "interceptor_manager") or not self.application.interceptor_manager:
                 self.set_status(500)
                 self.write({"error": "Interceptor manager not available"})
                 return
 
-            interceptor = self.application.interceptor_manager.get_interceptor(
-                interceptor_id
-            )
+            interceptor = self.application.interceptor_manager.get_interceptor(interceptor_id)
             if not interceptor:
                 self.set_status(404)
                 self.write({"error": "Interceptor not found"})
@@ -424,17 +380,12 @@ class InterceptorConfigHandler(APIRequestHandler):
         try:
             data = json.loads(self.request.body)
 
-            if (
-                not hasattr(self.application, "interceptor_manager")
-                or not self.application.interceptor_manager
-            ):
+            if not hasattr(self.application, "interceptor_manager") or not self.application.interceptor_manager:
                 self.set_status(500)
                 self.write({"error": "Interceptor manager not available"})
                 return
 
-            interceptor = self.application.interceptor_manager.get_interceptor(
-                interceptor_id
-            )
+            interceptor = self.application.interceptor_manager.get_interceptor(interceptor_id)
             if not interceptor:
                 self.set_status(404)
                 self.write({"error": "Interceptor not found"})
@@ -472,17 +423,12 @@ class InterceptorToggleHandler(APIRequestHandler):
     def post(self, interceptor_id):
         """Toggle interceptor enabled/disabled status."""
         try:
-            if (
-                not hasattr(self.application, "interceptor_manager")
-                or not self.application.interceptor_manager
-            ):
+            if not hasattr(self.application, "interceptor_manager") or not self.application.interceptor_manager:
                 self.set_status(500)
                 self.write({"error": "Interceptor manager not available"})
                 return
 
-            interceptor = self.application.interceptor_manager.get_interceptor(
-                interceptor_id
-            )
+            interceptor = self.application.interceptor_manager.get_interceptor(interceptor_id)
             if not interceptor:
                 self.set_status(404)
                 self.write({"error": "Interceptor not found"})
@@ -513,10 +459,7 @@ class InterceptorStatusHandler(APIRequestHandler):
     def get(self):
         """Get overall interceptor system status."""
         try:
-            if (
-                not hasattr(self.application, "interceptor_manager")
-                or not self.application.interceptor_manager
-            ):
+            if not hasattr(self.application, "interceptor_manager") or not self.application.interceptor_manager:
                 self.write(
                     {
                         "status": "unavailable",
@@ -540,10 +483,7 @@ class InterceptionRulesHandler(APIRequestHandler):
     def get(self):
         """Get all interception rules."""
         try:
-            if (
-                not hasattr(self.application, "interceptor_manager")
-                or not self.application.interceptor_manager
-            ):
+            if not hasattr(self.application, "interceptor_manager") or not self.application.interceptor_manager:
                 self.write(json.dumps([]))
                 return
 
@@ -560,10 +500,7 @@ class InterceptionRulesHandler(APIRequestHandler):
         try:
             data = json.loads(self.request.body)
 
-            if (
-                not hasattr(self.application, "interceptor_manager")
-                or not self.application.interceptor_manager
-            ):
+            if not hasattr(self.application, "interceptor_manager") or not self.application.interceptor_manager:
                 self.set_status(500)
                 self.write({"error": "Interceptor manager not available"})
                 return
@@ -587,10 +524,7 @@ class InterceptionRulesHandler(APIRequestHandler):
     def delete(self, rule_id):
         """Delete interception rule."""
         try:
-            if (
-                not hasattr(self.application, "interceptor_manager")
-                or not self.application.interceptor_manager
-            ):
+            if not hasattr(self.application, "interceptor_manager") or not self.application.interceptor_manager:
                 self.set_status(500)
                 self.write({"error": "Interceptor manager not available"})
                 return
@@ -607,10 +541,10 @@ class InterceptionRulesHandler(APIRequestHandler):
 
 
 class RepeaterRequestHandler(APIRequestHandler):
-    """Handler for sending HTTP requests from the Repeater tab"""
+    """Handler for sending HTTP requests from the Repeater tab."""
 
     async def post(self):
-        """Send an HTTP request and return the response"""
+        """Send an HTTP request and return the response."""
         try:
             data = json.loads(self.request.body)
 
@@ -625,35 +559,25 @@ class RepeaterRequestHandler(APIRequestHandler):
                 self.write({"error": "URL is required"})
                 return
 
-            # Validate URL
-            try:
-                from urllib.parse import urlparse
-
-                parsed_url = urlparse(url)
-                if not parsed_url.scheme or not parsed_url.netloc:
-                    raise ValueError("Invalid URL")
-            except Exception as e:
-                self.set_status(400)
-                self.write({"error": f"Invalid URL: {str(e)}"})
-                return
-
             # Send request using aiohttp (async HTTP client)
             import aiohttp
-            import asyncio
             import time
 
             start_time = time.time()
 
+            # Prepare request options
+            request_kwargs = {
+                "headers": headers,
+                "timeout": aiohttp.ClientTimeout(total=30),
+                "allow_redirects": True,
+                "max_redirects": 5
+            }
+
+            # Add body for methods that support it
+            if method in ["POST", "PUT", "PATCH"] and body:
+                request_kwargs["data"] = body
+
             async with aiohttp.ClientSession() as session:
-                # Prepare request kwargs
-                request_kwargs = {
-                    "headers": headers, "timeout": aiohttp.ClientTimeout(total=30)
-                }  # 30 second timeout
-
-                # Add body for methods that support it
-                if method in ["POST", "PUT", "PATCH"] and body:
-                    request_kwargs["data"] = body
-
                 # Send request
                 async with session.request(method, url, **request_kwargs) as response:
                     # Read response body
@@ -663,12 +587,33 @@ class RepeaterRequestHandler(APIRequestHandler):
                         response_body = "[Unable to read response body]"
 
                     # Calculate response time
-                    response_time = (
-                        time.time() - start_time
-                    ) * 1000  # Convert to milliseconds
+                    response_time = (time.time() - start_time) * 1000  # Convert to milliseconds
 
                     # Convert response headers to dict
                     response_headers = dict(response.headers)
+
+                    # Generate the actual raw HTTP request that was sent
+                    raw_request = f"{method} {url} HTTP/1.1\r\n"
+                    
+                    # Add all headers
+                    for key, value in headers.items():
+                        raw_request += f"{key}: {value}\r\n"
+                    
+                    # Add body if present
+                    if body:
+                        raw_request += f"\r\n{body}"
+                    else:
+                        raw_request += "\r\n"
+
+                    # Generate the actual raw HTTP response that was received
+                    raw_response = f"HTTP/1.1 {response.status} {response.reason}\r\n"
+                    
+                    # Add all response headers
+                    for key, value in response_headers.items():
+                        raw_response += f"{key}: {value}\r\n"
+                    
+                    # Add response body
+                    raw_response += f"\r\n{response_body}"
 
                     # Create response object
                     response_data = {
@@ -678,6 +623,8 @@ class RepeaterRequestHandler(APIRequestHandler):
                         "body": response_body,
                         "timestamp": datetime.now().isoformat(),
                         "responseTime": round(response_time, 2),
+                        "rawRequest": raw_request,
+                        "rawResponse": raw_response
                     }
 
                     self.write(response_data)
@@ -688,3 +635,46 @@ class RepeaterRequestHandler(APIRequestHandler):
         except Exception as e:
             self.set_status(500)
             self.write({"error": f"Failed to send request: {str(e)}"})
+
+
+class CertificateDownloadHandler(APIRequestHandler):
+    """Handler for downloading the CA certificate for HTTPS interception."""
+
+    def get(self):
+        """Download the CA certificate."""
+        try:
+            # Import settings to get CA certificate path
+            from owtf.settings import CA_CERT
+            import os.path
+            
+            ca_cert_path = os.path.expanduser(CA_CERT)
+
+            # Check if certificate file exists
+            if not os.path.exists(ca_cert_path):
+                self.set_status(404)
+                self.write({"error": f"CA certificate file not found at {ca_cert_path}"})
+                return
+
+            # Read the certificate file
+            try:
+                with open(ca_cert_path, 'rb') as f:
+                    cert_data = f.read()
+            except Exception as e:
+                self.set_status(500)
+                self.write({"error": f"Failed to read certificate file: {str(e)}"})
+                return
+
+            # Set response headers for file download
+            self.set_header("Content-Type", "application/x-x509-ca-cert")
+            self.set_header("Content-Disposition", "attachment; filename=owtf-ca.crt")
+            self.set_header("Content-Length", str(len(cert_data)))
+
+            # Write the certificate data
+            self.write(cert_data)
+
+            logger.info("CA certificate downloaded successfully")
+
+        except Exception as e:
+            logger.error(f"Error downloading CA certificate: {e}")
+            self.set_status(500)
+            self.write({"error": f"Failed to download certificate: {str(e)}"})

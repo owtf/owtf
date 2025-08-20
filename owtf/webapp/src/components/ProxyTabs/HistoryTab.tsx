@@ -37,8 +37,30 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
     if (onSendToRepeater) {
       onSendToRepeater(entry);
     } else {
-      // Fallback: show a message that this feature requires integration
-      alert('Send to Repeater feature requires integration with the Repeater tab');
+      // Store the entry in localStorage for the Repeater tab
+      try {
+        const repeaterData = JSON.parse(localStorage.getItem('owtf_repeater_requests') || '[]');
+        const newRequest = {
+          id: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          name: `${entry.method} ${new URL(entry.url).pathname}`,
+          method: entry.method,
+          url: entry.url,
+          headers: { ...(entry.headers || {}) },
+          body: entry.body || '',
+          timestamp: new Date(),
+          originalEntry: entry,
+        };
+        
+        // Add to existing requests
+        repeaterData.push(newRequest);
+        localStorage.setItem('owtf_repeater_requests', JSON.stringify(repeaterData));
+        
+        // Show success message
+        alert('Request sent to Repeater! Switch to the Repeater tab to view and edit it.');
+      } catch (error) {
+        console.error('Error saving to repeater:', error);
+        alert('Failed to send request to Repeater. Please try again.');
+      }
     }
   };
 
