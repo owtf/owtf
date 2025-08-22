@@ -1,32 +1,43 @@
 # Stage 1: Base
 FROM kalilinux/kali-rolling:latest AS base
 
-LABEL maintainer="Viyat Bhalodia <viyat.bhalodia@owasp.org>"
+LABEL Viyat Bhalodia viyat.bhalodia@owasp.org
 
 # Bypass confirmations
-ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND noninteractive
 
 # Fix for exporting a SHELL variable in the environment
-ENV TERM=xterm
-ENV SHELL=/bin/bash
+ENV TERM xterm
+ENV SHELL /bin/bash
 
 # Flush the buffer for stderr, stdout logging
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED 1
 # Python won’t try to write .pyc or .pyo files on the import of source modules
-ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONDONTWRITEBYTECODE 1
 
 # Needed for installation of pycurl using pip in kali
-ENV PYCURL_SSL_LIBRARY=openssl
+ENV PYCURL_SSL_LIBRARY openssl
 
 # Install dependencies and clean up in the same layer to reduce image size
 RUN apt -y update && \
-    apt -y install --no-install-recommends git xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc python-all-dev libcap2-bin zip unzip \
+    apt -y install --no-install-recommends git xvfb xserver-xephyr libxml2-dev libxslt-dev libssl-dev zlib1g-dev gcc python-all-dev python3-dev python3-all-dev libcap2-bin zip unzip \
     postgresql-server-dev-all postgresql-client postgresql-client-common \
-    postgresql libcurl4-openssl-dev proxychains tor ca-certificates libpq-dev  \
+    postgresql libcurl4-openssl-dev proxychains proxychains4 tor ca-certificates libpq-dev \
     libxslt1-dev libldap2-dev libsasl2-dev libffi-dev net-tools lsof locales-all \
-    make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
-    lbd theharvester tlssled nikto dnsrecon nmap whatweb skipfish dirbuster metasploit-framework wpscan wapiti hydra metagoofil amass && \
-    apt -y install httpx-toolkit nuclei subfinder && \
+    make build-essential libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev xz-utils tk-dev libxmlsec1-dev liblzma-dev && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install security tools separately to handle potential conflicts
+RUN apt -y update && \
+    apt -y install --no-install-recommends nmap whatweb nikto dnsrecon hydra && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install additional tools that might not be available in all repos
+RUN apt -y update && \
+    (apt -y install --no-install-recommends lbd theharvester tlssled skipfish dirbuster metasploit-framework wpscan wapiti metagoofil o-saft amass || true) && \
+    (apt -y install --no-install-recommends httpx-toolkit nuclei subfinder || true) && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -50,14 +61,13 @@ RUN pyenv install ${PYTHON_VERSION}
 RUN pyenv global ${PYTHON_VERSION}
 
 # Set locale
-ENV LANG=en_US.UTF-8
-ENV LANGUAGE=en_US:en
-ENV LC_ALL=en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
 
 # Create a dedicated OWTF directory to copy source to and run from.
-ADD . ${HOME}
-ADD docker/wait-for-it.sh /usr/bin/wait-for-it.sh
-RUN chmod +x /usr/bin/wait-for-it.sh
+RUN git clone https://github.com/owtf/owtf.git ${HOME}/owtf
+RUN cp ${HOME}/owtf/docker/wait-for-it.sh /usr/bin/wait-for-it.sh && chmod +x /usr/bin/wait-for-it.sh
 
 USER owtf
 
@@ -68,10 +78,10 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Ensure pip and setuptools are at their latest versions
 RUN pip install --upgrade pip
-RUN pip install setuptools cffi wheel MarkupSafe
+RUN pip install setuptools==57.5.0 cffi wheel MarkupSafe
 
-#Installing python dependencies
-RUN pip install -r ${HOME}/requirements/base.txt
+# Install python dependencies
+RUN pip install -r ${HOME}/owtf/requirements/base.txt
 
 # Stage 3: Tool Installation
 FROM owtf_setup AS final_install
@@ -81,11 +91,11 @@ RUN chown -R owtf:owtf ${HOME}
 USER owtf
 
 # Install OWTF using the recommended method (setup.py)
-RUN cd ${HOME} &&\
-python setup.py install
+RUN cd ${HOME}/owtf && \
+    python setup.py install
 
 # Set the current working directory to OWTF root directory
-WORKDIR ${HOME}
+WORKDIR ${HOME}/owtf
 
 # Expose the required ports for OWTF to run
-EXPOSE 8008 8009 8010
+EXPOSE 8008 8010
