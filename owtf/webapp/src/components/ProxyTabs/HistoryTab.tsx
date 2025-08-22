@@ -31,7 +31,7 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
   onClearLog,
   onSendToRepeater,
 }) => {
-  const [statsCollapsed, setStatsCollapsed] = useState(false);
+  const [statsCollapsed, setStatsCollapsed] = useState(true);
 
   const handleSendToRepeater = (entry: any) => {
     if (onSendToRepeater) {
@@ -68,18 +68,20 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
     <div className="history-tab">
       {/* Header with Clear Log button */}
       <div 
-        className="d-flex justify-content-between align-items-center p-3 mb-3 bg-light rounded"
+        className="d-flex justify-content-between align-items-center p-4 mb-4 bg-light rounded shadow-sm"
         style={{ marginBottom: '24px' }}
       >
         <div>
-          <h2>Proxy History</h2>
-          <p>View and analyze intercepted HTTP requests and responses</p>
+          <h2 className="fw-bold text-dark mb-2" style={{ fontSize: '32px' }}>Proxy History</h2>
+          <p className="text-muted mb-0" style={{ fontSize: '18px' }}>View and analyze intercepted HTTP requests and responses</p>
         </div>
         <button 
-          className="btn btn-danger"
+          className="btn btn-danger btn-lg px-4 py-2 fw-semibold"
           onClick={onClearLog}
           disabled={loading}
+          style={{ fontSize: '16px' }}
         >
+          <i className="fas fa-trash me-2"></i>
           Clear Log
         </button>
       </div>
@@ -93,30 +95,32 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
       </div>
 
       {/* History Table */}
-      <div className="mb-3">
+      <div className="mb-5">
         <ProxyHistoryTable
           history={history}
           loading={loading}
           onEntrySelect={onEntrySelect}
+          filters={filters}
         />
       </div>
 
       {/* Collapsible Statistics */}
-      <div>
-        <div className="card">
-          <div className="card-header">
+      <div className="my-5">
+        <div className="card shadow-sm">
+          <div className="card-header bg-light text-dark border-0">
             <button
-              className="btn btn-link text-decoration-none"
+              className="btn btn-link text-decoration-none text-dark fw-bold"
               type="button"
               data-bs-toggle="collapse"
               data-bs-target="#statsCollapse"
               aria-expanded={!statsCollapsed}
               aria-controls="statsCollapse"
               onClick={() => setStatsCollapsed(!statsCollapsed)}
+              style={{ fontSize: '18px' }}
             >
               <i className={`fas fa-chevron-${statsCollapsed ? 'right' : 'down'} me-2`}></i>
               Proxy Statistics
-              <span className="badge bg-primary ms-2">Click to {statsCollapsed ? 'expand' : 'collapse'}</span>
+              <span className="badge bg-primary ms-2" style={{ fontSize: '14px' }}>Click to {statsCollapsed ? 'expand' : 'collapse'}</span>
             </button>
           </div>
           <div className={`collapse ${!statsCollapsed ? 'show' : ''}`} id="statsCollapse">
@@ -130,24 +134,27 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
       {/* Entry Detail Modal */}
       {showDetail && selectedEntry && (
         <div className="proxyPage__detail">
-          <div className="card">
-            <div className="card-header d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">Request Details</h5>
+          <div className="card shadow-lg">
+            <div className="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+              <h5 className="mb-0 fw-bold" style={{ fontSize: '24px' }}>Request Details</h5>
               <div className="btn-group">
                 {onSendToRepeater && (
                   <button
-                    className="btn btn-primary"
+                    className="btn btn-primary btn-sm px-3 py-2 fw-semibold"
                     onClick={() => handleSendToRepeater(selectedEntry)}
                     title="Send to Repeater"
+                    style={{ fontSize: '14px' }}
                   >
                     <i className="fas fa-share me-2"></i>
                     Send to Repeater
                   </button>
                 )}
                 <button
-                  className="btn btn-secondary"
+                  className="btn btn-secondary btn-sm px-3 py-2 fw-semibold"
                   onClick={onCloseDetail}
+                  style={{ fontSize: '14px' }}
                 >
+                  <i className="fas fa-times me-2"></i>
                   Close
                 </button>
               </div>

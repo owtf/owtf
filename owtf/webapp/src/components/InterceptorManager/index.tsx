@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Badge, Spinner, Text, Pane, Heading, Alert } from 'evergreen-ui';
 import InterceptorCard from './InterceptorCard';
 import InterceptorConfigModal from './InterceptorConfigModal';
 import CreateInterceptorModal from './CreateInterceptorModal';
@@ -129,89 +128,77 @@ const InterceptorManager: React.FC<InterceptorManagerProps> = ({ className }) =>
 
   if (loading) {
     return (
-      <Pane display="flex" justifyContent="center" alignItems="center" padding={40}>
-        <Spinner size={32} />
-        <Text marginLeft={16}>Loading interceptors...</Text>
-      </Pane>
+      <div className="d-flex justify-content-center align-items-center p-5">
+        <div className="spinner-border text-primary me-3" role="status" style={{ width: '2rem', height: '2rem' }}>
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <span style={{ fontSize: '18px' }}>Loading interceptors...</span>
+      </div>
     );
   }
 
   return (
     <div className={`interceptor-manager ${className || ''}`}>
       {/* Header */}
-      <Pane 
-        display="flex" 
-        justifyContent="space-between" 
-        alignItems="center" 
-        marginBottom={24}
-        padding={16}
-        background="tint1"
-        borderRadius={8}
+      <div 
+        className="d-flex justify-content-between align-items-center p-4 mb-4 bg-light rounded"
+        style={{ marginBottom: '24px' }}
       >
         <div>
-          <Heading size={600}>Interceptor Manager</Heading>
-          <Text color="muted">
+          <h3 className="mb-1" style={{ fontSize: '20px', fontWeight: 'bold' }}>Interceptor Manager</h3>
+          <p className="text-muted mb-0" style={{ fontSize: '16px' }}>
             {interceptors.length} interceptor{interceptors.length !== 1 ? 's' : ''} configured
-          </Text>
+          </p>
         </div>
-        <Button 
-          appearance="primary" 
+        <button 
+          className="btn btn-primary"
           onClick={handleCreateInterceptor}
-          iconBefore="plus"
         >
+          <i className="fas fa-plus me-2"></i>
           Add Interceptor
-        </Button>
-      </Pane>
+        </button>
+      </div>
 
       {/* Error Display */}
       {error && (
-        <Alert
-          intent="danger"
-          title="Error"
-          marginBottom={16}
-          onClose={() => setError(null)}
-        >
-          {error}
-        </Alert>
+        <div className="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+          <strong>Error:</strong> {error}
+          <button type="button" className="btn-close" onClick={() => setError(null)}></button>
+        </div>
       )}
 
       {/* Interceptors Grid */}
       {interceptors.length === 0 ? (
-        <Card
-          padding={40}
-          textAlign="center"
-          background="tint1"
-          borderRadius={8}
-        >
-          <Text size={500} color="muted">
+        <div className="card p-5 text-center bg-light">
+          <h4 className="text-muted mb-3" style={{ fontSize: '18px' }}>
             No interceptors configured yet.
-          </Text>
-          <Text size={400} color="muted" marginTop={8}>
+          </h4>
+          <p className="text-muted mb-4" style={{ fontSize: '16px' }}>
             Create your first interceptor to start modifying proxy requests and responses.
-          </Text>
-          <Button 
-            appearance="primary" 
+          </p>
+          <button 
+            className="btn btn-primary"
             onClick={handleCreateInterceptor}
-            marginTop={16}
-            iconBefore="plus"
           >
+            <i className="fas fa-plus me-2"></i>
             Create Interceptor
-          </Button>
-        </Card>
+          </button>
+        </div>
       ) : (
-        <Pane display="grid" gridTemplateColumns="repeat(auto-fill, minmax(400px, 1fr))" gap={16}>
+        <div className="row g-3">
           {interceptors.map((interceptor) => (
-            <InterceptorCard
-              key={interceptor.id}
-              interceptor={interceptor}
-              onToggle={(enabled) => handleToggleInterceptor(interceptor.id, enabled)}
-              onEdit={() => handleEditInterceptor(interceptor)}
-              onDelete={() => handleDeleteInterceptor(interceptor.id)}
-              getStatusColor={getStatusColor}
-              getTypeColor={getTypeColor}
-            />
+            <div key={interceptor.id} className="col-md-6 col-lg-4">
+              <InterceptorCard
+                interceptor={interceptor}
+                onToggle={(enabled) => handleToggleInterceptor(interceptor.id, enabled)}
+                onEdit={() => handleEditInterceptor(interceptor)}
+                onDelete={() => handleDeleteInterceptor(interceptor.id)}
+                getStatusColor={getStatusColor}
+                getTypeColor={getTypeColor}
+              />
+            </div>
           ))}
-        </Pane>
+        </div>
       )}
 
       {/* Configuration Modal */}

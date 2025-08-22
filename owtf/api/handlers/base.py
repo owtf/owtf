@@ -53,11 +53,18 @@ class BaseRequestHandler(RequestHandler):
         self.add_header("X-Content-Type-Options", "nosniff")
         self.add_header("Referrer-Policy", "strict-origin-when-cross-origin")
 
-        # CORS headers
-        self.set_header("Access-Control-Allow-Origin", self.CORS_ORIGIN)
+        # CORS headers - Allow all origins for development
+        origin = self.request.headers.get("Origin")
+        if origin and origin in ALLOWED_ORIGINS:
+            self.set_header("Access-Control-Allow-Origin", origin)
+        else:
+            # Fallback to allow localhost development
+            self.set_header("Access-Control-Allow-Origin", "*")
+        
         self.set_header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
-        self.set_header("Access-Control-Request-Credentials", "true")
-        self.set_header("Access-Control-Allow-Headers", "Authorization,Content-Type")
+        self.set_header("Access-Control-Allow-Credentials", "true")
+        self.set_header("Access-Control-Allow-Headers", "Authorization,Content-Type,X-Requested-With")
+        
         # Caching headers
         self.add_header("Cache-Control", "no-cache,no-store,max-age=0,must-revalidate")
         self.add_header("Pragma", "no-cache")

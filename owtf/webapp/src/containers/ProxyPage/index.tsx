@@ -148,9 +148,9 @@ export class ProxyPage extends Component<ProxyPageProps, ProxyPageState> {
 
     // Define available tabs
     const tabs = [
-      { id: 'history', label: 'History', icon: '📋' },
-      { id: 'interceptors', label: 'Interceptors', icon: '⚙️' },
-      { id: 'repeater', label: 'Repeater', icon: '🔄' },
+      { id: 'history', label: 'History' },
+      { id: 'interceptors', label: 'Interceptors' },
+      { id: 'repeater', label: 'Repeater' },
     ];
 
     // Render tab content
@@ -202,18 +202,17 @@ export class ProxyPage extends Component<ProxyPageProps, ProxyPageState> {
       <div className="proxyPage" data-test="proxyPageComponent">
         <div className="container-fluid">
           <div className="proxyPage__header">
-            <div className="d-flex justify-content-between align-items-center">
-              <h1>Proxy Management</h1>
-              <div className="d-flex gap-2">
-                <button
-                  className="btn btn-outline-primary btn-sm"
-                  onClick={this.downloadCACertificate}
-                  title="Download CA Certificate for HTTPS interception"
-                >
-                  <i className="fas fa-download me-1"></i>
-                  Download CA Certificate
-                </button>
-              </div>
+            <div className="d-flex justify-content-between align-items-center" style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <h1 className="mb-0" style={{ marginRight: 'auto' }}>Proxy Management</h1>
+              <button
+                className="btn btn-outline-primary btn-sm"
+                onClick={this.downloadCACertificate}
+                title="Download CA Certificate for HTTPS interception"
+                style={{ marginLeft: 'auto' }}
+              >
+                <i className="fas fa-download me-1"></i>
+                Download CA Certificate
+              </button>
             </div>
           </div>
 

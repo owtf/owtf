@@ -375,17 +375,16 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center p-3 mb-3 bg-light rounded">
         <div>
-          <h2>HTTP Repeater</h2>
-          <p>Edit and resend HTTP requests for testing and debugging</p>
+          <h2 style={{ fontSize: '32px', fontWeight: 'bold' }}>HTTP Repeater</h2>
+          <p style={{ fontSize: '18px', marginBottom: '0' }}>Edit and resend HTTP requests for testing and debugging</p>
         </div>
-
       </div>
 
       {/* Proxy History Quick Add Section */}
       {proxyHistory.length > 0 && (
         <div className="card mb-3">
           <div className="card-header py-2">
-            <h6 className="mb-0">Quick Add from Proxy History</h6>
+            <h6 className="mb-0" style={{ fontSize: '18px', fontWeight: 'bold' }}>Quick Add from Proxy History</h6>
           </div>
           <div className="card-body py-2">
             <div className="row">
@@ -396,8 +395,8 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                   <div key={entry.id} className="col-md-4 mb-2">
                     <div className="d-flex align-items-center p-2 border rounded bg-light">
                       <div className="flex-grow-1 me-2">
-                        <div className="small text-muted">{entry.method}</div>
-                        <div className="text-truncate" style={{ maxWidth: '200px' }}>
+                        <div className="small text-muted" style={{ fontSize: '16px' }}>{entry.method}</div>
+                        <div className="text-truncate" style={{ maxWidth: '200px', fontSize: '16px' }}>
                           {(() => {
                             try {
                               return entry.url ? new URL(entry.url).pathname : 'invalid-url';
@@ -411,6 +410,7 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                         className="btn btn-sm btn-outline-primary"
                         onClick={() => createFromHistoryEntry(entry)}
                         title={`Add ${entry.method} ${entry.url} to Repeater`}
+                        style={{ fontSize: '16px' }}
                       >
                         <i className="fas fa-plus me-1"></i>
                         Add
@@ -426,31 +426,34 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
       {/* Request Management */}
       <div className="card mb-3">
         <div className="card-header py-2">
-          <h6 className="mb-0">Request Management</h6>
+          <h6 className="mb-0" style={{ fontSize: '18px', fontWeight: 'bold' }}>Request Management</h6>
         </div>
         <div className="card-body py-3">
           <div className="d-flex gap-3 align-items-center">
             <div className="flex-grow-1">
               <input
                 type="text"
-                className="form-control form-control-sm"
+                className="form-control"
                 placeholder="Enter request name..."
                 value={newRequestName}
                 onChange={(e) => setNewRequestName(e.target.value)}
+                style={{ fontSize: '16px', padding: '10px' }}
               />
             </div>
             <button
-              className="btn btn-primary btn-sm"
+              className="btn btn-primary"
               onClick={createNewRequest}
               disabled={!newRequestName.trim()}
+              style={{ fontSize: '16px', padding: '10px 20px', fontWeight: 'bold' }}
             >
               <i className="fas fa-plus me-1"></i>
               New Request
             </button>
             <button
-              className="btn btn-danger btn-sm"
+              className="btn btn-danger"
               onClick={clearAllData}
               disabled={requests.length === 0}
+              style={{ fontSize: '16px', padding: '10px 20px', fontWeight: 'bold' }}
             >
               <i className="fas fa-trash me-1"></i>
               Clear All
@@ -464,8 +467,8 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
         <div className="col-md-3">
           <div className="card">
             <div className="card-header d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">Repeater Requests</h5>
-              <span className="badge bg-secondary">{requests.length}</span>
+              <h5 className="mb-0" style={{ fontSize: '20px', fontWeight: 'bold' }}>Repeater Requests</h5>
+              <span className="badge bg-secondary" style={{ fontSize: '16px' }}>{requests.length}</span>
             </div>
             <div className="card-body p-0">
               <div className="list-group list-group-flush">
@@ -482,7 +485,7 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                       <div className="d-flex align-items-center">
                         <strong 
                           className="text-truncate me-2" 
-                          style={{ maxWidth: '120px', cursor: 'pointer' }}
+                          style={{ maxWidth: '120px', cursor: 'pointer', fontSize: '16px' }}
                           onClick={(e) => {
                             e.stopPropagation();
                             const newName = prompt('Enter new request name:', request.name);
@@ -508,7 +511,7 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                           <i className="fas fa-edit fa-xs"></i>
                         </button>
                       </div>
-                      <small className="text-muted">
+                      <small className="text-muted" style={{ fontSize: '16px' }}>
                         {request.method} {(() => {
                           try {
                             const url = request.url;
@@ -519,7 +522,7 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                         })()}
                       </small>
                       {request.originalEntry && (
-                        <small className="text-info">
+                        <small className="text-info" style={{ fontSize: '16px' }}>
                           <i className="fas fa-history me-1"></i>
                           From History
                         </small>
@@ -527,23 +530,25 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                     </div>
                     <div className="btn-group btn-group-sm">
                       <button
-                        className={`btn btn-sm ${selectedRequestId === request.id ? 'btn-light' : 'btn-outline-secondary'}`}
+                        className={`btn ${selectedRequestId === request.id ? 'btn-light' : 'btn-outline-secondary'}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           duplicateRequest(request);
                         }}
                         title="Duplicate"
+                        style={{ fontSize: '16px' }}
                       >
                         <i className="fas fa-copy me-1"></i>
                         Copy
                       </button>
                       <button
-                        className={`btn btn-sm ${selectedRequestId === request.id ? 'btn-light' : 'btn-outline-danger'}`}
+                        className={`btn ${selectedRequestId === request.id ? 'btn-light' : 'btn-outline-danger'}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           deleteRequest(request.id);
                         }}
                         title="Delete"
+                        style={{ fontSize: '16px' }}
                       >
                         <i className="fas fa-trash me-1"></i>
                         Delete
@@ -554,8 +559,8 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                 {requests.length === 0 && (
                   <div className="list-group-item text-center text-muted py-4">
                     <i className="fas fa-inbox fa-2x mb-2"></i>
-                    <p>No repeater requests yet</p>
-                    <p className="small">Add requests from proxy history or create new ones</p>
+                    <p style={{ fontSize: '18px' }}>No repeater requests yet</p>
+                    <p className="small" style={{ fontSize: '16px' }}>Add requests from proxy history or create new ones</p>
                   </div>
                 )}
               </div>
@@ -568,13 +573,14 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
           {selectedRequest ? (
             <div className="card">
               <div className="card-header d-flex justify-content-between align-items-center py-3">
-                <h5 className="mb-0">Request Editor</h5>
+                <h5 className="mb-0" style={{ fontSize: '20px', fontWeight: 'bold' }}>Request Editor</h5>
                 <div className="btn-group">
                   <button
                     className="btn btn-success"
                     onClick={() => sendRequest(selectedRequest)}
                     disabled={isLoading || !isValidRequest(selectedRequest)}
                     title={!isValidRequest(selectedRequest) ? 'Please fix validation errors before sending' : 'Send request'}
+                    style={{ fontSize: '16px', padding: '10px 20px', fontWeight: 'bold' }}
                   >
                     {isLoading ? (
                       <>
@@ -596,6 +602,7 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                   <button
                     className={`btn ${viewMode === 'formatted' ? 'btn-primary' : 'btn-outline-primary'}`}
                     onClick={() => setViewMode('formatted')}
+                    style={{ fontSize: '16px', padding: '10px 20px' }}
                   >
                     <i className="fas fa-edit me-2"></i>
                     Formatted
@@ -603,6 +610,7 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                   <button
                     className={`btn ${viewMode === 'raw' ? 'btn-primary' : 'btn-outline-primary'}`}
                     onClick={() => setViewMode('raw')}
+                    style={{ fontSize: '16px', padding: '10px 20px' }}
                   >
                     <i className="fas fa-code me-2"></i>
                     Raw
@@ -613,11 +621,12 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                   <>
                     <div className="row mb-3">
                       <div className="col-md-2">
-                        <label className="form-label fw-bold">Method</label>
+                        <label className="form-label fw-bold" style={{ fontSize: '16px' }}>Method</label>
                         <select
-                          className="form-select form-select-sm border-2"
+                          className="form-select border-2"
                           value={selectedRequest.method}
                           onChange={(e) => updateRequest(selectedRequest.id, { method: e.target.value })}
+                          style={{ fontSize: '16px', padding: '10px' }}
                         >
                           <option value="GET">GET</option>
                           <option value="POST">POST</option>
@@ -629,24 +638,25 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                         </select>
                       </div>
                       <div className="col-md-10">
-                        <label className="form-label fw-bold">URL</label>
+                        <label className="form-label fw-bold" style={{ fontSize: '16px' }}>URL</label>
                         <input
                           type="url"
-                          className="form-control form-control-sm border-2"
+                          className="form-control border-2"
                           placeholder="https://example.com"
                           value={selectedRequest.url}
                           onChange={(e) => updateRequest(selectedRequest.id, { url: e.target.value })}
+                          style={{ fontSize: '16px', padding: '10px' }}
                         />
                       </div>
                     </div>
 
                     {/* Headers Editor */}
                     <div className="mb-3">
-                      <label className="form-label">Headers</label>
+                      <label className="form-label" style={{ fontSize: '16px', fontWeight: 'bold' }}>Headers</label>
                       
                       {/* Common Headers Presets */}
                       <div className="mb-2">
-                        <small className="text-muted me-2">Quick add:</small>
+                        <small className="text-muted me-2" style={{ fontSize: '16px' }}>Quick add:</small>
                         {[
                           { name: 'User-Agent', value: 'OWTF Repeater/1.0' },
                           { name: 'Accept', value: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' },
@@ -664,6 +674,7 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                             }}
                             disabled={selectedRequest.headers && selectedRequest.headers[header.name]}
                             title={selectedRequest.headers && selectedRequest.headers[header.name] ? 'Header already exists' : `Add ${header.name} header`}
+                            style={{ fontSize: '16px' }}
                           >
                             {header.name}
                           </button>
@@ -676,7 +687,7 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                             <div className="col-md-5">
                               <input
                                 type="text"
-                                className="form-control form-control-sm"
+                                className="form-control"
                                 placeholder="Header name"
                                 value={key}
                                 onChange={(e) => {
@@ -685,12 +696,13 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                                   newHeaders[e.target.value] = value;
                                   updateRequest(selectedRequest.id, { headers: newHeaders });
                                 }}
+                                style={{ fontSize: '16px', padding: '8px' }}
                               />
                             </div>
                             <div className="col-md-5">
                               <input
                                 type="text"
-                                className="form-control form-control-sm"
+                                className="form-control"
                                 placeholder="Header value"
                                 value={value}
                                 onChange={(e) => {
@@ -698,6 +710,7 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                                   newHeaders[key] = e.target.value;
                                   updateRequest(selectedRequest.id, { headers: newHeaders });
                                 }}
+                                style={{ fontSize: '16px', padding: '8px' }}
                               />
                             </div>
                             <div className="col-md-2">
@@ -709,6 +722,7 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                                   updateRequest(selectedRequest.id, { headers: newHeaders });
                                 }}
                                 title="Delete Header"
+                                style={{ fontSize: '16px' }}
                               >
                                 <i className="fas fa-trash me-1"></i>
                                 Del
@@ -723,6 +737,7 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                             newHeaders[`Header${Object.keys(newHeaders).length + 1}`] = '';
                             updateRequest(selectedRequest.id, { headers: newHeaders });
                           }}
+                          style={{ fontSize: '16px', padding: '8px 16px' }}
                         >
                           <i className="fas fa-plus me-2"></i>
                           Add Header
@@ -730,7 +745,7 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
                         {Object.keys(selectedRequest.headers || {}).some(key => !key.trim() || !selectedRequest.headers[key].trim()) && (
                           <div className="alert alert-warning alert-sm mt-2 mb-0">
                             <i className="fas fa-exclamation-triangle me-1"></i>
-                            Some headers have empty names or values
+                            <span style={{ fontSize: '16px' }}>Some headers have empty names or values</span>
                           </div>
                         )}
                       </div>
@@ -738,21 +753,22 @@ const RepeaterTab: React.FC<RepeaterTabProps> = ({ className, proxyHistory = [] 
 
                     {/* Body Editor */}
                     <div className="mb-3">
-                      <label className="form-label">Request Body</label>
+                      <label className="form-label" style={{ fontSize: '16px', fontWeight: 'bold' }}>Request Body</label>
                       <textarea
                         className="form-control"
                         rows={8}
                         placeholder="Enter request body (for POST, PUT, PATCH requests)"
                         value={selectedRequest.body}
                         onChange={(e) => updateRequest(selectedRequest.id, { body: e.target.value })}
+                        style={{ fontSize: '16px', padding: '10px' }}
                       />
                     </div>
                   </>
                 ) : (
                   /* Raw Request View */
                   <div>
-                    <label className="form-label">Raw HTTP Request</label>
-                    <pre className="border rounded p-3 bg-light" style={{ maxHeight: '500px', overflow: 'auto' }}>
+                    <label className="form-label" style={{ fontSize: '16px', fontWeight: 'bold' }}>Raw HTTP Request</label>
+                    <pre className="border rounded p-3 bg-light" style={{ maxHeight: '500px', overflow: 'auto', fontSize: '16px' }}>
                       {`${selectedRequest.method} ${selectedRequest.url} HTTP/1.1
 ${Object.entries(selectedRequest.headers || {}).map(([key, value]) => `${key}: ${value}`).join('\n')}
 ${selectedRequest.body ? `\n${selectedRequest.body}` : ''}`}
@@ -765,8 +781,8 @@ ${selectedRequest.body ? `\n${selectedRequest.body}` : ''}`}
             <div className="card">
               <div className="card-body text-center py-5">
                 <i className="fas fa-arrow-left fa-3x text-muted mb-3"></i>
-                <h5>Select a Request</h5>
-                <p className="text-muted">Choose a request from the list to edit and send</p>
+                <h5 style={{ fontSize: '22px' }}>Select a Request</h5>
+                <p className="text-muted" style={{ fontSize: '18px' }}>Choose a request from the list to edit and send</p>
               </div>
             </div>
           )}
@@ -775,18 +791,18 @@ ${selectedRequest.body ? `\n${selectedRequest.body}` : ''}`}
           {selectedResponse && (
             <div className="card mt-3">
               <div className="card-header d-flex justify-content-between align-items-center py-3">
-                <h5 className="mb-0">Response</h5>
+                <h5 className="mb-0" style={{ fontSize: '20px', fontWeight: 'bold' }}>Response</h5>
                 <div className="d-flex align-items-center gap-3">
-                  <span className="badge bg-secondary">
+                  <span className="badge bg-secondary" style={{ fontSize: '16px' }}>
                     {selectedResponse.status} {selectedResponse.statusText}
                   </span>
-                  <span className="text-muted">
+                  <span className="text-muted" style={{ fontSize: '16px' }}>
                     Response time: {selectedResponse.responseTime}ms
                   </span>
-                  <span className="text-muted">
+                  <span className="text-muted" style={{ fontSize: '16px' }}>
                     Size: {selectedResponse.body ? new Blob([selectedResponse.body]).size : 0} bytes
                   </span>
-                  <span className="text-muted">
+                  <span className="text-muted" style={{ fontSize: '16px' }}>
                     {selectedResponse.timestamp.toLocaleTimeString()}
                   </span>
                 </div>
@@ -797,6 +813,7 @@ ${selectedRequest.body ? `\n${selectedRequest.body}` : ''}`}
                   <button
                     className={`btn ${viewMode === 'formatted' ? 'btn-primary' : 'btn-outline-primary'}`}
                     onClick={() => setViewMode('formatted')}
+                    style={{ fontSize: '16px', padding: '10px 20px' }}
                   >
                     <i className="fas fa-edit me-2"></i>
                     Formatted
@@ -804,6 +821,7 @@ ${selectedRequest.body ? `\n${selectedRequest.body}` : ''}`}
                   <button
                     className={`btn ${viewMode === 'raw' ? 'btn-primary' : 'btn-outline-primary'}`}
                     onClick={() => setViewMode('raw')}
+                    style={{ fontSize: '16px', padding: '10px 20px' }}
                   >
                     <i className="fas fa-code me-2"></i>
                     Raw
@@ -814,16 +832,16 @@ ${selectedRequest.body ? `\n${selectedRequest.body}` : ''}`}
                   <>
                     {/* Response Headers */}
                     <div className="mb-3">
-                      <label className="form-label">Response Headers</label>
-                      <pre className="border rounded p-3 bg-light" style={{ maxHeight: '200px', overflow: 'auto' }}>
+                      <label className="form-label" style={{ fontSize: '16px', fontWeight: 'bold' }}>Response Headers</label>
+                      <pre className="border rounded p-3 bg-light" style={{ maxHeight: '200px', overflow: 'auto', fontSize: '16px' }}>
                         {Object.entries(selectedResponse.headers || {}).map(([key, value]) => `${key}: ${value}`).join('\n')}
                       </pre>
                     </div>
 
                     {/* Response Body */}
                     <div>
-                      <label className="form-label">Response Body</label>
-                      <pre className="border rounded p-3 bg-light" style={{ maxHeight: '400px', overflow: 'auto' }}>
+                      <label className="form-label" style={{ fontSize: '16px', fontWeight: 'bold' }}>Response Body</label>
+                      <pre className="border rounded p-3 bg-light" style={{ maxHeight: '400px', overflow: 'auto', fontSize: '16px' }}>
                         {selectedResponse.body}
                       </pre>
                     </div>
@@ -831,8 +849,8 @@ ${selectedRequest.body ? `\n${selectedRequest.body}` : ''}`}
                 ) : (
                   /* Raw Response View */
                   <div>
-                    <label className="form-label">Raw HTTP Response</label>
-                    <pre className="border rounded p-3 bg-light" style={{ maxHeight: '500px', overflow: 'auto' }}>
+                    <label className="form-label" style={{ fontSize: '16px', fontWeight: 'bold' }}>Raw HTTP Response</label>
+                    <pre className="border rounded p-3 bg-light" style={{ maxHeight: '500px', overflow: 'auto', fontSize: '16px' }}>
                       {selectedResponse.rawResponse || `HTTP/1.1 ${selectedResponse.status} ${selectedResponse.statusText}
 ${Object.entries(selectedResponse.headers || {}).map(([key, value]) => `${key}: ${value}`).join('\n')}
 ${selectedResponse.body ? `\n${selectedResponse.body}` : ''}`}

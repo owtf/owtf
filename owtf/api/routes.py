@@ -58,6 +58,7 @@ from owtf.api.handlers.proxy import (
     InterceptionRulesHandler,
     RepeaterRequestHandler,
     CertificateDownloadHandler,
+    LiveInterceptorHandler,
 )
 from owtf.db.session import get_scoped_session
 from owtf.models.plugin import Plugin
@@ -219,6 +220,7 @@ API_v1_HANDLERS = [
     ),
     tornado.web.url(r"/api/v1/repeater/send", RepeaterRequestHandler, name="repeater_send_api_url"),
     tornado.web.url(r"/api/v1/proxy/ca-cert/?$", CertificateDownloadHandler, name="ca_cert_api_url"),
+    tornado.web.url(r"/api/v1/proxy/live-interceptor/?$", LiveInterceptorHandler, name="live_interceptor_api_url"),
 ]
 
 UI_HANDLERS = [

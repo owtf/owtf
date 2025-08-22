@@ -30,6 +30,7 @@ import tornado.websocket
 from owtf.proxy.cache_handler import CacheHandler
 from owtf.proxy.socket_wrapper import starttls
 from owtf.proxy.interceptor_manager import InterceptorManager
+from owtf.proxy.live_interceptor import LiveInterceptor
 from owtf.utils.strings import utf8, to_str
 
 # Set up logger for proxy module
@@ -203,6 +204,11 @@ class ProxyHandler(tornado.web.RequestHandler):
         if not hasattr(self.application, "interceptor_manager"):
             self.application.interceptor_manager = InterceptorManager()
             logger.info("Initialized interceptor manager for proxy handler")
+            
+        # Initialize live interceptor if not already done
+        if not hasattr(self.application, "live_interceptor"):
+            self.application.live_interceptor = LiveInterceptor()
+            logger.info("Initialized live interceptor for proxy handler")
 
     def __new__(cls, application, request, **kwargs):
         """
@@ -346,6 +352,54 @@ class ProxyHandler(tornado.web.RequestHandler):
                 logger.debug("Applied request interceptors")
         except Exception as e:
             logger.error(f"Error applying request interceptors: {e}")
+            
+        # Check for live interception
+        try:
+            if hasattr(self.application, "live_interceptor"):
+                # Check if this request should be intercepted
+                method = getattr(self.request, "method", "GET")
+                url = getattr(self.request, "url", "")
+                protocol = getattr(self.request, "protocol", "http")
+                headers = dict(self.request.headers)
+                body = getattr(self.request, "body", "") or ""
+                
+                request_id, should_wait = self.application.live_interceptor.intercept_request(
+                    method, url, headers, body, protocol
+                )
+                
+                if should_wait:
+                    # Store the request ID for later decision
+                    self.request.intercept_id = request_id
+                    logger.info(f"Request intercepted for live modification: {request_id}")
+                    
+                    # Wait for user decision (with timeout)
+                    start_time = time.time()
+                    while time.time() - start_time < 30:  # 30 second timeout
+                        decision = self.application.live_interceptor.get_decision(request_id)
+                        if decision:
+                            if decision.value == "drop":
+                                logger.info(f"Request {request_id} dropped by user")
+                                return  # Drop the request
+                            elif decision.value == "modify":
+                                # Apply modifications
+                                req = self.application.live_interceptor.pending_requests.get(request_id)
+                                if req and req.modified_headers:
+                                    for key, value in req.modified_headers.items():
+                                        self.request.headers[key] = value
+                                if req and req.modified_body is not None:
+                                    self.request.body = req.modified_body
+                                logger.info(f"Request {request_id} modified by user")
+                            # Clean up
+                            self.application.live_interceptor.cleanup_request(request_id)
+                            break
+                        time.sleep(0.1)  # Small delay to avoid busy waiting
+                    else:
+                        # Timeout - auto-forward
+                        logger.info(f"Request {request_id} timed out, auto-forwarding")
+                        self.application.live_interceptor.cleanup_request(request_id)
+                        
+        except Exception as e:
+            logger.error(f"Error in live interception: {e}")
 
         # This block here checks for already cached response and if present returns one
         self.cache_handler = CacheHandler(

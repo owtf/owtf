@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import InterceptorManager from '../InterceptorManager';
+import LiveInterceptor from '../LiveInterceptor';
 
 interface InterceptorsTabProps {
   className?: string;
@@ -14,14 +15,19 @@ const InterceptorsTab: React.FC<InterceptorsTabProps> = ({ className }) => {
         style={{ marginBottom: '24px' }}
       >
         <div>
-          <h2>Interceptor Management</h2>
-          <p>Configure and manage proxy request/response modifications</p>
+          <h2 style={{ fontSize: '32px', fontWeight: 'bold' }}>Interceptor Management</h2>
+          <p style={{ fontSize: '18px', marginBottom: '0' }}>Configure and manage proxy request/response modifications</p>
         </div>
       </div>
 
       {/* Interceptor Manager */}
-      <div>
+      <div className="mb-4">
         <InterceptorManager />
+      </div>
+
+      {/* Live Interceptor */}
+      <div>
+        <LiveInterceptor />
       </div>
     </div>
   );

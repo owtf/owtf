@@ -1,0 +1,124 @@
+.live-interceptor {
+  .card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    .card-header {
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+      border-radius: 8px 8px 0 0;
+      padding: 1rem;
+    }
+    
+    .card-body {
+      padding: 1.5rem;
+    }
+  }
+  
+  .form-control {
+    font-size: 16px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    
+    &:focus {
+      border-color: #80bdff;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    &:disabled {
+      background-color: #e9ecef;
+      opacity: 0.65;
+    }
+  }
+  
+  .btn {
+    font-size: 16px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    
+    &.btn-lg {
+      padding: 1rem 2rem;
+      font-size: 18px;
+    }
+    
+    &:disabled {
+      opacity: 0.65;
+    }
+  }
+  
+  .btn-group {
+    .btn {
+      margin-right: 0.5rem;
+      
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+  
+  .alert {
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    
+    h5 {
+      margin-bottom: 0.5rem;
+    }
+    
+    p {
+      margin-bottom: 0;
+    }
+  }
+  
+  .form-text {
+    font-size: 14px;
+    color: #6c757d;
+    margin-top: 0.25rem;
+  }
+  
+  pre {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 0.75rem;
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  
+  .border-warning {
+    border-color: #ffc107 !important;
+  }
+  
+  .bg-warning {
+    background-color: #fff3cd !important;
+  }
+  
+  .text-dark {
+    color: #212529 !important;
+  }
+  
+  // Responsive adjustments
+  @media (max-width: 768px) {
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      
+      .btn {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+    
+    .col-md-6 {
+      margin-bottom: 1rem;
+    }
+  }
+}
+

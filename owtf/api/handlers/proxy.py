@@ -130,16 +130,16 @@ class ProxyHistoryHandler(APIRequestHandler):
             entries = read_proxy_log()
             # Filter to only show requests (not responses)
             requests = [e for e in entries if e.get("direction") == "REQUEST"]
-            
+
             # Return data in the format the frontend expects
             response_data = {
                 "entries": requests,
                 "total_count": len(requests),
                 "limit": 100,
                 "offset": 0,
-                "has_more": False
+                "has_more": False,
             }
-            
+
             self.write(response_data)
         except Exception as e:
             logger.error(f"Error fetching proxy history: {e}")
@@ -570,7 +570,7 @@ class RepeaterRequestHandler(APIRequestHandler):
                 "headers": headers,
                 "timeout": aiohttp.ClientTimeout(total=30),
                 "allow_redirects": True,
-                "max_redirects": 5
+                "max_redirects": 5,
             }
 
             # Add body for methods that support it
@@ -594,11 +594,11 @@ class RepeaterRequestHandler(APIRequestHandler):
 
                     # Generate the actual raw HTTP request that was sent
                     raw_request = f"{method} {url} HTTP/1.1\r\n"
-                    
+
                     # Add all headers
                     for key, value in headers.items():
                         raw_request += f"{key}: {value}\r\n"
-                    
+
                     # Add body if present
                     if body:
                         raw_request += f"\r\n{body}"
@@ -607,11 +607,11 @@ class RepeaterRequestHandler(APIRequestHandler):
 
                     # Generate the actual raw HTTP response that was received
                     raw_response = f"HTTP/1.1 {response.status} {response.reason}\r\n"
-                    
+
                     # Add all response headers
                     for key, value in response_headers.items():
                         raw_response += f"{key}: {value}\r\n"
-                    
+
                     # Add response body
                     raw_response += f"\r\n{response_body}"
 
@@ -624,7 +624,7 @@ class RepeaterRequestHandler(APIRequestHandler):
                         "timestamp": datetime.now().isoformat(),
                         "responseTime": round(response_time, 2),
                         "rawRequest": raw_request,
-                        "rawResponse": raw_response
+                        "rawResponse": raw_response,
                     }
 
                     self.write(response_data)
@@ -646,7 +646,7 @@ class CertificateDownloadHandler(APIRequestHandler):
             # Import settings to get CA certificate path
             from owtf.settings import CA_CERT
             import os.path
-            
+
             ca_cert_path = os.path.expanduser(CA_CERT)
 
             # Check if certificate file exists
@@ -657,7 +657,7 @@ class CertificateDownloadHandler(APIRequestHandler):
 
             # Read the certificate file
             try:
-                with open(ca_cert_path, 'rb') as f:
+                with open(ca_cert_path, "rb") as f:
                     cert_data = f.read()
             except Exception as e:
                 self.set_status(500)
@@ -678,3 +678,94 @@ class CertificateDownloadHandler(APIRequestHandler):
             logger.error(f"Error downloading CA certificate: {e}")
             self.set_status(500)
             self.write({"error": f"Failed to download certificate: {str(e)}"})
+
+
+class LiveInterceptorHandler(APIRequestHandler):
+    """Handler for live interceptor functionality."""
+    
+    def get(self):
+        """Get the current status and pending request from live interceptor."""
+        try:
+            # Import the live interceptor from the proxy application
+            from owtf.proxy.live_interceptor import LiveInterceptor
+            
+            # Get the live interceptor instance (this is a simplified approach)
+            # In a real implementation, you'd get this from the running proxy
+            live_interceptor = LiveInterceptor()
+            
+            # Get status and pending request
+            status = live_interceptor.get_status()
+            pending_request = live_interceptor.get_pending_request()
+            
+            response_data = {
+                "status": status,
+                "pending_request": pending_request
+            }
+            
+            self.write(response_data)
+            
+        except Exception as e:
+            logger.error(f"Error getting live interceptor status: {e}")
+            self.set_status(500)
+            self.write({"error": f"Failed to get interceptor status: {str(e)}"})
+    
+    def post(self):
+        """Configure the live interceptor or make a decision on a pending request."""
+        try:
+            data = json.loads(self.request.body)
+            action = data.get("action")
+            
+            if action == "enable":
+                # Enable live interception
+                url_pattern = data.get("url_pattern")
+                methods = data.get("methods")
+                
+                from owtf.proxy.live_interceptor import LiveInterceptor
+                live_interceptor = LiveInterceptor()
+                live_interceptor.enable(url_pattern, methods)
+                
+                self.write({"success": True, "message": "Live interceptor enabled"})
+                
+            elif action == "disable":
+                # Disable live interception
+                from owtf.proxy.live_interceptor import LiveInterceptor
+                live_interceptor = LiveInterceptor()
+                live_interceptor.disable()
+                
+                self.write({"success": True, "message": "Live interceptor disabled"})
+                
+            elif action == "decision":
+                # Make a decision on a pending request
+                request_id = data.get("request_id")
+                decision = data.get("decision")
+                modified_headers = data.get("modified_headers")
+                modified_body = data.get("modified_body")
+                
+                if not request_id or not decision:
+                    self.set_status(400)
+                    self.write({"error": "Missing request_id or decision"})
+                    return
+                
+                from owtf.proxy.live_interceptor import LiveInterceptor
+                live_interceptor = LiveInterceptor()
+                success = live_interceptor.make_decision(
+                    request_id, decision, modified_headers, modified_body
+                )
+                
+                if success:
+                    self.write({"success": True, "message": f"Decision {decision} applied"})
+                else:
+                    self.set_status(400)
+                    self.write({"error": "Failed to apply decision"})
+                    
+            else:
+                self.set_status(400)
+                self.write({"error": "Invalid action"})
+                
+        except json.JSONDecodeError:
+            self.set_status(400)
+            self.write({"error": "Invalid JSON"})
+        except Exception as e:
+            logger.error(f"Error in live interceptor action: {e}")
+            self.set_status(500)
+            self.write({"error": f"Failed to process action: {str(e)}"})
