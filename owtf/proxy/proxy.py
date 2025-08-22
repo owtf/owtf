@@ -204,7 +204,7 @@ class ProxyHandler(tornado.web.RequestHandler):
         if not hasattr(self.application, "interceptor_manager"):
             self.application.interceptor_manager = InterceptorManager()
             logger.info("Initialized interceptor manager for proxy handler")
-            
+
         # Initialize live interceptor if not already done
         if not hasattr(self.application, "live_interceptor"):
             self.application.live_interceptor = LiveInterceptor()
@@ -352,7 +352,7 @@ class ProxyHandler(tornado.web.RequestHandler):
                 logger.debug("Applied request interceptors")
         except Exception as e:
             logger.error(f"Error applying request interceptors: {e}")
-            
+
         # Check for live interception
         try:
             if hasattr(self.application, "live_interceptor"):
@@ -362,16 +362,16 @@ class ProxyHandler(tornado.web.RequestHandler):
                 protocol = getattr(self.request, "protocol", "http")
                 headers = dict(self.request.headers)
                 body = getattr(self.request, "body", "") or ""
-                
+
                 request_id, should_wait = self.application.live_interceptor.intercept_request(
                     method, url, headers, body, protocol
                 )
-                
+
                 if should_wait:
                     # Store the request ID for later decision
                     self.request.intercept_id = request_id
                     logger.info(f"Request intercepted for live modification: {request_id}")
-                    
+
                     # Wait for user decision (with timeout)
                     start_time = time.time()
                     while time.time() - start_time < 30:  # 30 second timeout
@@ -397,7 +397,7 @@ class ProxyHandler(tornado.web.RequestHandler):
                         # Timeout - auto-forward
                         logger.info(f"Request {request_id} timed out, auto-forwarding")
                         self.application.live_interceptor.cleanup_request(request_id)
-                        
+
         except Exception as e:
             logger.error(f"Error in live interception: {e}")
 
