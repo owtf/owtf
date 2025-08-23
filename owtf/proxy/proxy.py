@@ -744,7 +744,7 @@ class ProxyHandler(tornado.web.RequestHandler):
                                                     continue
                                                 except Exception as e:
                                                     logger.error("[MITM] Client write error: %s", e)
-                                                    client_closed = True
+                                                    upstream_closed = True
 
                                         except Exception as e:
                                             logger.error("[MITM] Socket write exception: %s", e)
