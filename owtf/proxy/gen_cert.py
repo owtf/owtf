@@ -8,6 +8,7 @@ Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a
 import hashlib
 import os
 import re
+from datetime import datetime, timedelta
 
 from OpenSSL import crypto
 
@@ -78,8 +79,49 @@ def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
                 cert.get_subject().O = "OWTF"
                 cert.get_subject().OU = "Inbound-Proxy"
                 cert.get_subject().CN = domain
-                cert.gmtime_adj_notBefore(0)
-                cert.gmtime_adj_notAfter(365 * 24 * 60 * 60)
+                
+                # Fix: Set proper dates - start from current time, valid for 1 year
+                now = datetime.now()
+                not_before = now - timedelta(days=1)  # Start 1 day ago to ensure validity
+                not_after = now + timedelta(days=365)  # Valid for 1 year
+                
+                cert.set_notBefore(not_before.strftime("%Y%m%d%H%M%SZ").encode())
+                cert.set_notAfter(not_after.strftime("%Y%m%d%H%M%SZ").encode())
+                
+                # Fix: Add Subject Alternative Names (SANs) for proper browser compatibility
+                # This is crucial for modern browsers to accept the certificate
+                san_list = []
+                
+                # Add the main domain
+                san_list.append(b"DNS:" + domain.encode())
+                
+                # Add www subdomain if it's not already present
+                if not domain.startswith("www."):
+                    san_list.append(b"DNS:www." + domain.encode())
+                
+                # Add wildcard for subdomains
+                if "." in domain:
+                    # Extract the main domain (e.g., "example.com" from "www.example.com")
+                    parts = domain.split(".")
+                    if len(parts) >= 2:
+                        main_domain = ".".join(parts[-2:])  # Get last two parts
+                        san_list.append(b"DNS:*." + main_domain.encode())
+                
+                # Add localhost and IP variations for local testing
+                san_list.append(b"DNS:localhost")
+                san_list.append(b"IP:127.0.0.1")
+                san_list.append(b"IP:0.0.0.0")
+                
+                # Create the SAN extension
+                san_extension = crypto.X509Extension(
+                    b"subjectAltName",
+                    False,  # critical = False
+                    b", ".join(san_list)
+                )
+                
+                # Add the SAN extension to the certificate
+                cert.add_extensions([san_extension])
+                
                 cert.set_serial_number(serial)
                 cert.set_issuer(ca_cert.get_subject())
                 cert.set_pubkey(key)

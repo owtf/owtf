@@ -24,16 +24,16 @@ class HTTPSInterceptor:
     Enhanced HTTPS interceptor that provides full SSL/TLS interception
     with request/response parsing and live interceptor integration.
     """
-    
+
     def __init__(self, live_interceptor=None):
         self.live_interceptor = live_interceptor
         self.active_connections = {}
         self.connection_lock = threading.Lock()
-        
+
     def intercept_https_connection(self, client_stream, host, port, ca_cert, ca_key, ca_key_pass, certs_folder):
         """
         Intercept HTTPS connection and establish MITM proxy.
-        
+
         Args:
             client_stream: Client connection stream
             host: Target host
@@ -42,23 +42,23 @@ class HTTPSInterceptor:
             ca_key: CA private key path
             ca_key_pass: CA key password
             certs_folder: Folder to store generated certificates
-            
+
         Returns:
             bool: True if interception successful, False otherwise
         """
         try:
             logger.info(f"[HTTPS] Starting interception for {host}:{port}")
-            
+
             # Send success response to establish the tunnel
             client_stream.write(b"HTTP/1.1 200 Connection established\r\n\r\n")
             client_stream.flush()
-            
+
             # Get the underlying socket
             client_socket = client_stream.socket
-            
+
             # Use the working starttls approach from the original code
             from owtf.proxy.socket_wrapper import starttls
-            
+
             # Set up SSL termination for client connection
             def ssl_client_success(ssl_client_socket):
                 try:
@@ -111,6 +111,7 @@ class HTTPSInterceptor:
 
                                                     # Log the HTTP response
                                                     from owtf.proxy.proxy import log_response
+
                                                     log_response(
                                                         status_code,
                                                         f"https://{host}",
@@ -151,6 +152,7 @@ class HTTPSInterceptor:
 
                                                     # Log the HTTP request
                                                     from owtf.proxy.proxy import log_request
+
                                                     log_request(
                                                         None,
                                                         method,
@@ -237,7 +239,9 @@ class HTTPSInterceptor:
                                                 try:
                                                     sent = sock.send(upstream_buffer)
                                                     if sent > 0:
-                                                        logger.debug("[HTTPS] client->upstream forwarded %d bytes", sent)
+                                                        logger.debug(
+                                                            "[HTTPS] client->upstream forwarded %d bytes", sent
+                                                        )
                                                         upstream_buffer = upstream_buffer[sent:]
                                                 except ssl.SSLWantReadError:
                                                     continue
@@ -251,7 +255,9 @@ class HTTPSInterceptor:
                                                 try:
                                                     sent = sock.send(client_buffer)
                                                     if sent > 0:
-                                                        logger.debug("[HTTPS] upstream->client forwarded %d bytes", sent)
+                                                        logger.debug(
+                                                            "[HTTPS] upstream->client forwarded %d bytes", sent
+                                                        )
                                                         client_buffer = client_buffer[sent:]
                                                 except ssl.SSLWantReadError:
                                                     continue
@@ -363,53 +369,49 @@ class HTTPSInterceptor:
                 ssl_version=ssl.PROTOCOL_TLS,
                 server_side=True,
             )
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"[HTTPS] Error in HTTPS interception for {host}:{port}: {e}")
             return False
-    
+
     def get_active_connections(self):
         """Get information about active HTTPS connections."""
         with self.connection_lock:
             return {
-                conn_id: {
-                    'host': info['host'],
-                    'port': info['port'],
-                    'duration': time.time() - info['start_time']
-                }
+                conn_id: {"host": info["host"], "port": info["port"], "duration": time.time() - info["start_time"]}
                 for conn_id, info in self.active_connections.items()
             }
-    
+
     def close_all_connections(self):
         """Close all active HTTPS connections."""
         with self.connection_lock:
             for conn_id in list(self.active_connections.keys()):
                 self._cleanup_connection(conn_id)
-    
+
     def _cleanup_connection(self, connection_id):
         """Clean up connection resources."""
         try:
             with self.connection_lock:
                 if connection_id in self.active_connections:
                     conn_info = self.active_connections[connection_id]
-                    
+
                     # Close sockets
                     try:
-                        conn_info['client_socket'].close()
+                        conn_info["client_socket"].close()
                     except:
                         pass
-                    
+
                     try:
-                        conn_info['upstream_socket'].close()
+                        conn_info["upstream_socket"].close()
                     except:
                         pass
-                    
+
                     # Remove from active connections
                     del self.active_connections[connection_id]
-                    
+
                     logger.info(f"[HTTPS] Cleaned up connection {connection_id}")
-                    
+
         except Exception as e:
             logger.error(f"[HTTPS] Error cleaning up connection {connection_id}: {e}")
