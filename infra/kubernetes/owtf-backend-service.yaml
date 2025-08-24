@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: owtf-backend-service
+  namespace: owtf
+  labels:
+    app: owtf-backend
+    component: backend
+spec:
+  selector:
+    app: owtf-backend
+    component: backend
+  ports:
+    - name: api
+      protocol: TCP
+      port: 8008
+    - name: proxy
+      protocol: TCP
+      port: 8010
+    - name: connect
+      port: 8009
+      protocol: TCP          
+  type: ClusterIP
