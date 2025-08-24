@@ -1,70 +1,40 @@
-## OWTF Kubernetes Deployment ##
+## OWTF Kubernetes Deployment
 
-These are the instructions for deploying the OWTF (Offensive Web Testing Framework) project using Kubernetes. The deployment process includes options for building Docker images either using Docker Engine or Kaniko.
+This directory contains Kubernetes manifests and a helper script to build images and deploy the OWTF (Offensive Web Testing Framework) stack. The deployment script now supports two flows:
+
+1. Push Mode: Build images, push them to a Docker registry (e.g. Docker Hub), patch manifests to use those images, deploy.
+2. Local Mode: Build images locally (tagged `owtf:backend` and `owtf:frontend`), optionally load them into a kind cluster, deploy using existing manifests (imagePullPolicy: Never).
 
 ### Prerequisites ###
 
-Kubernetes Cluster: Ensure you have a running Kubernetes cluster using [Kind](https://kind.sigs.k8s.io/), [Minikube](https://minikube.sigs.k8s.io/docs/start/) or CSP Managed like EKS, AKE etc.
-
+Kubernetes Cluster: Ensure you have a running Kubernetes cluster using [Kind](https://kind.sigs.k8s.io/), [Minikube](https://minikube.sigs.k8s.io/docs/start/)
 Kubectl: Make sure [kubectl](https://kubernetes.io/docs/tasks/tools/) is installed and configured to interact with your Kubernetes cluster.
 
-Docker: Required if you choose to use [Docker Engine](https://docs.docker.com/engine/install/) or [Kaniko](https://github.com/GoogleContainerTools/kaniko) for building Docker images.
+Docker: Required for building images (both push and local modes). Kind optional (only used to preload images when not pushing to a registry).
 
 Storage: As we will be building and storing images and data associated with them, please make sure you have 30 GB of space (excluding OS occupied space)
 
-1. **Using Kind Cluster**
+1. **Using Kind Cluster (simple example)**
 
-    + Create a Kind cluster using these commands - 
+        Create a basic kind cluster:
 
-            cat <<EOF | kind create cluster --config=-
-            kind: Cluster
-            apiVersion: kind.x-k8s.io/v1alpha4
-            nodes:
-            - role: control-plane
-            kubeadmConfigPatches:
-            - |
-                kind: InitConfiguration
-                nodeRegistration:
-                kubeletExtraArgs:
-                    node-labels: "ingress-ready=true"
-            extraPortMappings:
-            - containerPort: 80
-                hostPort: 80
-                protocol: TCP
-            - containerPort: 443
-                hostPort: 443
-                protocol: TCP
-            EOF
+                kind create cluster
 
-    + Install Nginx Ingress Controller
-            
-            kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
-
-        The manifest include kind-specific patches that schedule it to the custom-labeled node, set taint tolerations, and forward hostPorts to the ingress controller.
-
-        Hold off until it's ready to start processing requests. Once done, the Ingress is now fully configured. 
-        
-            kubectl wait --namespace ingress-nginx \
-            --for=condition=ready pod \
-            --selector=app.kubernetes.io/component=controller \
-            --timeout=90s
+        (Optional) If you need host port mappings or extra config, adjust with a config file per kind docs.
 
 2. **Using Minikube Cluster**
-    
-    + Visit Minikube Official site to install [Minikube](https://minikube.sigs.k8s.io/docs/start/)
-    + Select you OS and proceed with installtion steps.
-    + Once installed, Start your minikube cluster
-            
-            minikube start --driver=docker
-    + Verfiy components of your minikube cluster
 
-            kubectl get all -A
-    + Install Nginx Ingress Addon
+        Install Minikube (see official docs) then start:
 
-            minikube addons enable ingress
-    + Configure your local environment to use docker daemon inside minikube cluster
+                minikube start --driver=docker
 
-            eval $(minikube docker-env)
+        Verify cluster components:
+
+                kubectl get nodes
+
+        (Optional) If you plan to build images directly inside minikube's Docker daemon:
+
+                eval $(minikube docker-env)
 
 
 ### Deployment Steps ###
@@ -75,83 +45,83 @@ Storage: As we will be building and storing images and data associated with them
 
         git clone https://github.com/owtf/owtf.git
 
-        cd owtf/infra/kubernetes
-
 2. **Execute the Deployment Script**
 
-    Run the deployment script and follow the prompts to deploy OWTF. The script will guide you through using either Docker Engine or Kaniko for building Docker images.
+    From the project root or this directory run:
 
-        bash deploy-script.sh
+        bash infra/kubernetes/deploy-script.sh
 
-    **Using Docker Engine**
+    You will be asked:
+    * Push images to a registry? (y/n)
+    * (If yes) Docker username, password, optional email, tag (default: latest)
+    * Confirm to proceed with build & deploy
 
-    When prompted, enter **yes** or **y** to use Docker Engine for building    Docker images, Provide the Docker image name, username, password, and email when requested.
-    
-    Credentials has to be created by creating an account on [Docker hub](https://hub.docker.com/).
-    
-    The script will:
+    Push Mode does:
+    * Docker login (password via stdin)
+    * Build backend & frontend images: `<username>/owtf-backend:<tag>`, `<username>/owtf-frontend:<tag>`
+    * Push images
+    * Patch deployment manifests (temporarily) to use pushed images
+    * Apply secrets, PVCs, DB deployment & service, frontend ConfigMap, backend & frontend deployments/services
+    * Restore original manifest files locally
 
-    * Log in to Docker Hub.
-    * Build the Docker image.
-    * Push the Docker image to Docker Hub.
-    * Apply Kubernetes manifests.
+    Local Mode does:
+    * Build local images `owtf:backend` and `owtf:frontend`
+    * If `kind` installed and default cluster exists, load images into kind nodes
+    * Apply manifests without altering image references (uses `imagePullPolicy: Never`)
 
-    **Using Kaniko**
-
-    When prompted, enter **no** or **n** to use Kaniko for building Docker images.
-    Provide the Docker image name, username, password, and email when requested.
-    The script will:
-    * Create a Kubernetes namespace named owtf.
-    * Create a Docker registry secret.
-    * Update the Kubernetes manifest for the deployment.
-    * Apply Kubernetes manifests.
+    Notes:
+    * The script currently applies `owtf-frontend-configmap.yaml` if present.
+    * No ingress manifest is included by default; expose services via port-forward or add an ingress separately.
+    * Backend depends on Postgres; there is no readiness wait loop yet—consider adding one for production.
 
 3. **Verify Deployment**
 
-    After the script completes, verify that the OWTF application is running correctly in your Kubernetes cluster:
+        Check resources:
 
-        kubectl get all -n owtf
+                kubectl get all -n owtf
 
-    Post deployment, your owtf namespace should look like this
+        Port-forward services to gain access to Application (run each in its own terminal or background them):
 
-        NAME                       READY   STATUS     RESTARTS   AGE
-        pod/db-7d977c56f4-w7zm6    1/1     Running    0          10s
-        pod/owtf-95fd8c8f8-gt9dv   0/1     Init:0/1   0          10s
+        Frontend (UI):
 
-        NAME                   TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                                        AGE
-        service/owtf-service   LoadBalancer   10.96.228.247   <pending>     8008:31540/TCP,8010:31799/TCP,8009:32392/TCP   9s
-        service/postgres       ClusterIP      10.96.89.225    <none>        5432/TCP                                       10s
+                kubectl port-forward svc/owtf-frontend-service -n owtf 8019:8019
 
-        NAME                   READY   UP-TO-DATE   AVAILABLE   AGE
-        deployment.apps/db     1/1     1            1           10s
-        deployment.apps/owtf   0/1     1            0           10s
+        Backend (API, proxy) – all ports in one command:
 
-        NAME                             DESIRED   CURRENT   READY   AGE
-        replicaset.apps/db-7d977c56f4    1         1         1       10s
-        replicaset.apps/owtf-95fd8c8f8   1         1         0       10s
+                kubectl port-forward svc/owtf-backend-service -n owtf 8008:8008 8009:8009 8010:8010
 
-    To access you application, run this command to get ingress.
+Essential access summary:
+* UI: http://localhost:8019/
+* API: http://localhost:8009/
+* Proxy: http://localhost:8010/
 
-        kubectl get ingress -n owtf
+4. **Logs & Debugging**
 
-    It should look like this, Address will change depending upon the Cluster.
+                kubectl logs deployment/owtf-backend -n owtf
+                kubectl logs deployment/owtf-frontend -n owtf
+                kubectl logs deployment/db -n owtf
 
-        NAMESPACE   NAME           CLASS    HOSTS   ADDRESS     PORTS   AGE
-        owtf        owtf-ingress   <none>   *       localhost   80      10s
+        For a specific pod:
 
-    To access your owtf pod logs, run this command
+                kubectl logs <pod-name> -n owtf
 
-    > Note: If your have not configured SMTP for your OWTF application, use logs of owtf pod and get the verification link during login. Make sure to replace approriate IP address in that link with Ingress Address.
+        Describe resources for troubleshooting:
 
-        kubectl logs <pod name of owtf deployement> -n owtf
+                kubectl describe pod <pod-name> -n owtf
+                kubectl describe deployment owtf-backend -n owtf
 
-    If you are using **Kaniko**, run this command to get logs 
+5. **Cleaning Up**
 
-    + For owtf pod
+                kubectl delete namespace owtf
 
-            kubectl logs <pod name of owtf deployement> -n owtf -c owtf
-    + For kaniko pod
+6. **SMTP Verification Note**
 
-            kubectl logs <pod name of owtf deployement> -n owtf -c kaniko 
+        If SMTP isn’t configured, check backend pod logs to retrieve any verification link needed during login.
 
-For any questions or support, Please raise a github issue.
+7. **Future Enhancements (Not Yet Implemented)**
+        * Auto-wait for Postgres readiness.
+        * Readiness/liveness probes (currently commented in deployment YAMLs).
+        * Optional NetworkPolicies & Ingress TLS.
+        * ImagePullPolicy adjustment when using pushed images.
+
+For questions or support, please open a GitHub issue.

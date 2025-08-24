@@ -15,74 +15,84 @@ check_docker() {
     echo "✅ Docker is running"
 }
 
-# Function to build and push Docker images
+###############################################################################
+# Image build functions
+###############################################################################
+
+# Determine correct Dockerfile paths (prefer docker/ directory if present)
+BACKEND_DOCKERFILE="docker/Dockerfile.backend"
+FRONTEND_DOCKERFILE="docker/Dockerfile.frontend"
+if [[ ! -f "$BACKEND_DOCKERFILE" && -f "infra/kubernetes/Dockerfile.backend" ]]; then
+    BACKEND_DOCKERFILE="infra/kubernetes/Dockerfile.backend"
+fi
+if [[ ! -f "$FRONTEND_DOCKERFILE" && -f "infra/kubernetes/Dockerfile.frontend" ]]; then
+    FRONTEND_DOCKERFILE="infra/kubernetes/Dockerfile.frontend"
+fi
+
 build_and_push_images() {
-    echo ""
-    echo "🔨 Building Docker Images..."
-    echo "================================"
-    
-    # Build backend image
-    echo "Building backend image..."
-    docker build -f infra/kubernetes/Dockerfile.backend -t "$USERNAME/owtf-backend:latest" .
-    if [ $? -ne 0 ]; then
-        echo "❌ Backend image build failed"
-        exit 1
-    fi
-    echo "✅ Backend image built successfully"
-    
-    # Build frontend image  
-    echo "Building frontend image..."
-    docker build -f infra/kubernetes/Dockerfile.frontend -t "$USERNAME/owtf-frontend:latest" .
-    if [ $? -ne 0 ]; then
-        echo "❌ Frontend image build failed"
-        exit 1
-    fi
-    echo "✅ Frontend image built successfully"
-    
-    echo ""
-    echo "📤 Pushing Images to Registry..."
-    echo "================================="
-    
-    # Push backend image
-    echo "Pushing backend image..."
-    docker push "$USERNAME/owtf-backend:latest"
-    if [ $? -ne 0 ]; then
-        echo "❌ Backend image push failed"
-        exit 1
-    fi
-    echo "✅ Backend image pushed successfully"
-    
-    # Push frontend image
-    echo "Pushing frontend image..."
-    docker push "$USERNAME/owtf-frontend:latest"
-    if [ $? -ne 0 ]; then
-        echo "❌ Frontend image push failed"
-        exit 1
-    fi
-    echo "✅ Frontend image pushed successfully"
-    
-    echo ""
-    echo "📋 Verifying pushed images..."
-    echo "============================="
-    echo "Backend image: ${USERNAME}/owtf-backend:latest"
-    echo "Frontend image: ${USERNAME}/owtf-frontend:latest"
-    
-    # Verify images exist in registry
-    if docker manifest inspect "${USERNAME}/owtf-backend:latest" >/dev/null 2>&1; then
-        echo "✅ Backend image verified in registry"
-    else
-        echo "⚠️  Backend image verification failed"
-    fi
-    
-    if docker manifest inspect "${USERNAME}/owtf-frontend:latest" >/dev/null 2>&1; then
-        echo "✅ Frontend image verified in registry"
-    else
-        echo "⚠️  Frontend image verification failed"
-    fi
+        local username="$1" tag="$2"
+        echo ""
+        echo "🔨 Building Docker Images for push (tag: $tag)..."
+        echo "================================"
+
+        # Build backend image
+        echo "Building backend image (registry)..."
+        docker build -f "$BACKEND_DOCKERFILE" -t "$username/owtf-backend:$tag" . || { echo "❌ Backend image build failed"; exit 1; }
+        echo "✅ Backend image built"
+
+        # Build frontend image
+        echo "Building frontend image (registry)..."
+        docker build -f "$FRONTEND_DOCKERFILE" -t "$username/owtf-frontend:$tag" . || { echo "❌ Frontend image build failed"; exit 1; }
+        echo "✅ Frontend image built"
+
+        echo ""
+        echo "📤 Pushing Images to Registry..."
+        echo "================================="
+        docker push "$username/owtf-backend:$tag" || { echo "❌ Backend image push failed"; exit 1; }
+        docker push "$username/owtf-frontend:$tag" || { echo "❌ Frontend image push failed"; exit 1; }
+        echo "✅ Images pushed"
+
+        echo ""
+        echo "📋 Verifying pushed images..."
+        echo "============================="
+        for img in backend frontend; do
+            if docker manifest inspect "$username/owtf-$img:$tag" >/dev/null 2>&1; then
+                echo "✅ $img image verified in registry"
+            else
+                echo "⚠️  $img image verification failed"
+            fi
+        done
+}
+
+build_local_images() {
+        echo ""
+        echo "� Building local Docker Images (no push)..."
+        echo "================================"
+        echo "Tagging as owtf:backend and owtf:frontend to match deployment manifests"
+
+        docker build -f "$BACKEND_DOCKERFILE" -t owtf:backend . || { echo "❌ Backend image build failed"; exit 1; }
+        echo "✅ Backend image built (owtf:backend)"
+        docker build -f "$FRONTEND_DOCKERFILE" -t owtf:frontend . || { echo "❌ Frontend image build failed"; exit 1; }
+        echo "✅ Frontend image built (owtf:frontend)"
+
+        # Attempt to load into kind cluster if available
+        if command -v kind >/dev/null 2>&1; then
+            local KIND_CLUSTER_NAME=${KIND_CLUSTER_NAME:-kind}
+            if kind get clusters 2>/dev/null | grep -q "^$KIND_CLUSTER_NAME$"; then
+                echo "📦 Loading images into kind cluster '$KIND_CLUSTER_NAME'"
+                kind load docker-image owtf:backend --name "$KIND_CLUSTER_NAME" || echo "⚠️  Failed to load owtf:backend into kind"
+                kind load docker-image owtf:frontend --name "$KIND_CLUSTER_NAME" || echo "⚠️  Failed to load owtf:frontend into kind"
+            else
+                echo "ℹ️  kind cluster '$KIND_CLUSTER_NAME' not found (skipping kind load)"
+            fi
+        else
+            echo "ℹ️  'kind' not installed; skipping loading images into kind nodes"
+        fi
 }
 
 # Function to apply Kubernetes deployments
 apply_deployment() {
+    local pushed="$1" username="$2" tag="$3"
     echo ""
     echo "🚀 Deploying to Kubernetes..."
     echo "=============================="
@@ -97,44 +107,48 @@ apply_deployment() {
     kubectl apply -f db-deployment.yaml
     kubectl apply -f db-service.yaml
     
-    echo "Applying OWTF PVC..."
+    echo "Applying OWTF PVC and frontend ConfigMap..."
     kubectl apply -f owtf-pvc.yaml
+    kubectl apply -f owtf-frontend-configmap.yaml
     
-    # Update image names in deployment files
-    echo "Updating image references..."
+        if [[ "$pushed" == "true" ]]; then
+            echo "Updating image references to use registry images..."
+            cp owtf-backend-deployment.yaml owtf-backend-deployment.yaml.bak
+            cp owtf-frontend-deployment.yaml owtf-frontend-deployment.yaml.bak
+
+            # Cross-platform sed (Linux vs macOS)
+            if sed --version >/dev/null 2>&1; then
+                SED_INPLACE=(sed -i)
+            else
+                SED_INPLACE=(sed -i '')
+            fi
+
+            # Replace only the image lines for containers
+            "${SED_INPLACE[@]}" -E "s|image:.*owtf.*backend.*|image: ${username}/owtf-backend:${tag}|" owtf-backend-deployment.yaml
+            "${SED_INPLACE[@]}" -E "s|image:.*owtf.*frontend.*|image: ${username}/owtf-frontend:${tag}|" owtf-frontend-deployment.yaml
+            echo "✅ Updated deployment manifests to registry images"
+
+            echo ""
+            echo "📋 Verifying deployment image references..."
+            echo "Backend deployment image: $(grep 'image:' owtf-backend-deployment.yaml | head -1 | awk '{print $2}')"
+            echo "Frontend deployment image: $(grep 'image:' owtf-frontend-deployment.yaml | head -1 | awk '{print $2}')"
+        else
+            echo "Using local images (owtf:backend, owtf:frontend) as defined in manifests"
+        fi
     
-    # Create temporary copies and update image references
-    cp owtf-backend-deployment.yaml owtf-backend-deployment.yaml.bak
-    cp owtf-frontend-deployment.yaml owtf-frontend-deployment.yaml.bak
-    
-    # Replace backend image reference
-    sed -i "s|image: .*/owtf-backend:.*|image: ${USERNAME}/owtf-backend:latest|g" owtf-backend-deployment.yaml
-    
-    # Replace frontend image reference  
-    sed -i "s|image: .*/owtf-frontend:.*|image: ${USERNAME}/owtf-frontend:latest|g" owtf-frontend-deployment.yaml
-    
-    echo "✅ Updated image references to use ${USERNAME}/owtf-backend:latest and ${USERNAME}/owtf-frontend:latest"
-    
-    # Verify the changes were applied
-    echo ""
-    echo "📋 Verifying deployment image references..."
-    echo "Backend deployment image: $(grep 'image:' owtf-backend-deployment.yaml | head -1 | awk '{print $2}')"
-    echo "Frontend deployment image: $(grep 'image:' owtf-frontend-deployment.yaml | head -1 | awk '{print $2}')"
-    
-    echo "Applying backend deployment..."
-    kubectl apply -f owtf-backend-deployment.yaml
-    kubectl apply -f owtf-backend-service.yaml
-    
-    echo "Applying frontend deployment..."
-    kubectl apply -f owtf-frontend-deployment.yaml
-    kubectl apply -f owtf-frontend-service.yaml
-    
-    echo "Applying ingress..."
-    kubectl apply -f owtf-ingress.yaml
-    
-    # Restore original files
-    mv owtf-backend-deployment.yaml.bak owtf-backend-deployment.yaml
-    mv owtf-frontend-deployment.yaml.bak owtf-frontend-deployment.yaml
+        echo "Applying backend deployment & service..."
+        kubectl apply -f owtf-backend-deployment.yaml || exit 1
+        kubectl apply -f owtf-backend-service.yaml || exit 1
+
+        echo "Applying frontend deployment & service..."
+        kubectl apply -f owtf-frontend-deployment.yaml || exit 1
+        kubectl apply -f owtf-frontend-service.yaml || exit 1
+
+        # Restore original files if we modified them
+        if [[ "$pushed" == "true" ]]; then
+            mv owtf-backend-deployment.yaml.bak owtf-backend-deployment.yaml
+            mv owtf-frontend-deployment.yaml.bak owtf-frontend-deployment.yaml
+        fi
     
     echo ""
     echo "✅ Deployment completed successfully!"
@@ -153,46 +167,42 @@ apply_deployment() {
 }
 
 # Main execution
-echo "This script will:"
-echo "1. Build Docker images for backend and frontend"
-echo "2. Push images to Docker registry"
-echo "3. Deploy to Kubernetes cluster"
+echo "This script can:"
+echo "1. Build & push images to a Docker registry, then deploy"
+echo "2. OR build images locally & (optionally) load into a kind cluster, then deploy"
 echo ""
 
 # Check prerequisites
 check_docker
 
-# Get Docker credentials
-read -p "Enter Docker username: " USERNAME
-read -sp "Enter Docker password: " PASSWORD
-echo
-read -p "Enter Docker email: " EMAIL
+read -p "Do you want to push images to a Docker registry? (y/n): " PUSH_CHOICE
+PUSH_CHOICE=$(echo "$PUSH_CHOICE" | tr '[:upper:]' '[:lower:]')
 
-# Validate inputs
-if [[ -z "$USERNAME" || -z "$PASSWORD" || -z "$EMAIL" ]]; then
-    echo "❌ All fields are required. Exiting."
-    exit 1
+PUSH_IMAGES=false
+if [[ "$PUSH_CHOICE" == "y" || "$PUSH_CHOICE" == "yes" ]]; then
+    PUSH_IMAGES=true
+    read -p "Enter Docker username: " USERNAME
+    read -sp "Enter Docker password: " PASSWORD; echo
+    read -p "Enter Docker email (optional, press Enter to skip): " EMAIL
+    read -p "Enter image tag (default: latest): " IMAGE_TAG
+    IMAGE_TAG=${IMAGE_TAG:-latest}
+    if [[ -z "$USERNAME" || -z "$PASSWORD" ]]; then
+        echo "❌ Username and password required to push images. Exiting."
+        exit 1
+    fi
+    echo ""
+    echo "🔐 Logging into Docker registry (Docker Hub assumed)..."
+    echo "$PASSWORD" | docker login -u "$USERNAME" --password-stdin || { echo "❌ Docker login failed"; exit 1; }
+    echo "✅ Docker login successful"
+else
+    echo "Proceeding with local image build only (no push)."
 fi
 
-# Docker login
 echo ""
-echo "🔐 Logging into Docker Hub..."
-echo "$PASSWORD" | docker login -u "$USERNAME" --password-stdin
-if [ $? -ne 0 ]; then
-    echo "❌ Docker login failed. Please check your credentials."
-    exit 1
-fi
-echo "✅ Docker login successful"
-
-# Ask user if they want to proceed
-echo ""
-read -p "Do you want to proceed with building and deploying? (yes/y or no/n): " PROCEED
+read -p "Proceed with build & deploy now? (y/n): " PROCEED
 PROCEED=$(echo "$PROCEED" | tr '[:upper:]' '[:lower:]')
-
-if [[ "$PROCEED" != "yes" && "$PROCEED" != "y" ]]; then
-    echo "Deployment cancelled."
-    exit 0
-fi
+if [[ "$PROCEED" != "y" && "$PROCEED" != "yes" ]]; then
+    echo "Cancelled by user."; exit 0; fi
 
 # Navigate to kubernetes directory if not already there
 if [[ ! -f "owtf-backend-deployment.yaml" ]]; then
@@ -205,9 +215,14 @@ if [[ ! -f "owtf-backend-deployment.yaml" ]]; then
     fi
 fi
 
-# Execute main functions
-build_and_push_images
-apply_deployment
+# Execute main functions based on choice
+if [[ "$PUSH_IMAGES" == "true" ]]; then
+    build_and_push_images "$USERNAME" "${IMAGE_TAG:-latest}"
+    apply_deployment true "$USERNAME" "${IMAGE_TAG:-latest}"
+else
+    build_local_images
+    apply_deployment false "" ""
+fi
 
 echo ""
 echo "🎉 OWTF deployment complete!"
