@@ -16,4 +16,25 @@ spec:
             name: owtf-frontend-service
             port:
               number: 8019
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: owtf-backend-service
+            port:
+              number: 8008
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: owtf-backend-service
+            port:
+              number: 8009
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: owtf-backend-service
+            port:
+              number: 8010              
 

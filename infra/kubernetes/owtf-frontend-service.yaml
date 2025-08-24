@@ -14,4 +14,4 @@ spec:
     - name: http
       protocol: TCP
       port: 8019
-  type: LoadBalancer
+  type: ClusterIP
