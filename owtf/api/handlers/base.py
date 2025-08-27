@@ -20,6 +20,7 @@ from owtf.settings import (
     SERVER_ADDR,
     SESSION_COOKIE_NAME,
     ALLOWED_ORIGINS,
+    DEBUG,
 )
 from owtf.utils.strings import utf8
 
@@ -57,7 +58,7 @@ class BaseRequestHandler(RequestHandler):
         origin = self.request.headers.get("Origin")
         if origin and origin in ALLOWED_ORIGINS:
             self.set_header("Access-Control-Allow-Origin", origin)
-        else:
+        elif DEBUG:
             # Fallback to allow localhost development
             self.set_header("Access-Control-Allow-Origin", "*")
 
