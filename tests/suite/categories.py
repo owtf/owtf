@@ -13,6 +13,11 @@ from tests.functional.cli.test_only import OWTFCliOnlyPluginsTest
 from tests.functional.plugins.web.test_web import OWTFCliWebPluginTest
 from tests.functional.plugins.web.active.test_web_active import OWTFCliWebActivePluginTest
 
+# Proxy functionality tests
+from tests.functional.proxy.test_ssl_interception import OWTFCliSSLInterceptionTest
+from tests.functional.proxy.test_https_interception import OWTFCliHTTPSInterceptionTest
+from tests.functional.proxy.test_gen_cert import OWTFCliGenCertTest
+
 SUITES = [
     OWTFCliEmptyRunTest,
     OWTFCliListPluginsTest,
@@ -22,4 +27,9 @@ SUITES = [
     OWTFCliOnlyPluginsTest,
     OWTFCliWebPluginTest,
     OWTFCliWebActivePluginTest,
+    
+    # Proxy functionality tests
+    OWTFCliSSLInterceptionTest,
+    OWTFCliHTTPSInterceptionTest,
+    OWTFCliGenCertTest,
 ]

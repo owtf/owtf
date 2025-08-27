@@ -14,6 +14,7 @@ from typing import List, Dict, Any, Optional
 
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.proxy.proxy import REQUEST_LOG_FILE
+from owtf.proxy.live_interceptor import LiveInterceptor
 
 logger = logging.getLogger(__name__)
 
@@ -686,9 +687,6 @@ class LiveInterceptorHandler(APIRequestHandler):
     def get(self):
         """Get the current status and pending request from live interceptor."""
         try:
-            # Import the live interceptor from the proxy application
-            from owtf.proxy.live_interceptor import LiveInterceptor
-
             # Get the live interceptor instance (this is a simplified approach)
             # In a real implementation, you'd get this from the running proxy
             live_interceptor = LiveInterceptor()
@@ -717,8 +715,6 @@ class LiveInterceptorHandler(APIRequestHandler):
                 url_pattern = data.get("url_pattern")
                 methods = data.get("methods")
 
-                from owtf.proxy.live_interceptor import LiveInterceptor
-
                 live_interceptor = LiveInterceptor()
                 live_interceptor.enable(url_pattern, methods)
 
@@ -726,7 +722,6 @@ class LiveInterceptorHandler(APIRequestHandler):
 
             elif action == "disable":
                 # Disable live interception
-                from owtf.proxy.live_interceptor import LiveInterceptor
 
                 live_interceptor = LiveInterceptor()
                 live_interceptor.disable()
@@ -744,8 +739,6 @@ class LiveInterceptorHandler(APIRequestHandler):
                     self.set_status(400)
                     self.write({"error": "Missing request_id or decision"})
                     return
-
-                from owtf.proxy.live_interceptor import LiveInterceptor
 
                 live_interceptor = LiveInterceptor()
                 success = live_interceptor.make_decision(request_id, decision, modified_headers, modified_body)

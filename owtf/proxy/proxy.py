@@ -39,10 +39,14 @@ logger = logging.getLogger(__name__)
 # Set up request/response logging
 REQUEST_LOG_FILE = "/tmp/owtf/request_response.log"
 ENABLE_REQUEST_LOGGING = True  # Set to False to disable logging entirely
-MAX_LOG_ENTRIES_PER_MINUTE = 100  # Limit logging rate
-
 # To disable logging entirely, change the line above to:
 # ENABLE_REQUEST_LOGGING = False
+
+MAX_LOG_ENTRIES_PER_MINUTE = 100  # Limit logging rate
+
+# Live interception timeout configuration
+LIVE_INTERCEPTION_TIMEOUT = 30  # Timeout in seconds for live interception decisions
+LIVE_INTERCEPTION_DELAY = 0.1  # Delay in seconds between polling for live interception decisions
 
 request_logger = logging.getLogger("owtf_requests")
 request_logger.setLevel(logging.INFO)
@@ -374,7 +378,7 @@ class ProxyHandler(tornado.web.RequestHandler):
 
                     # Wait for user decision (with timeout)
                     start_time = time.time()
-                    while time.time() - start_time < 30:  # 30 second timeout
+                    while time.time() - start_time < LIVE_INTERCEPTION_TIMEOUT:  # Timeout for live interception decisions
                         decision = self.application.live_interceptor.get_decision(request_id)
                         if decision:
                             if decision.value == "drop":
@@ -392,7 +396,7 @@ class ProxyHandler(tornado.web.RequestHandler):
                             # Clean up
                             self.application.live_interceptor.cleanup_request(request_id)
                             break
-                        time.sleep(0.1)  # Small delay to avoid busy waiting
+                        time.sleep(LIVE_INTERCEPTION_DELAY)  # Small delay to avoid busy waiting
                     else:
                         # Timeout - auto-forward
                         logger.info(f"Request {request_id} timed out, auto-forwarding")
