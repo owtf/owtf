@@ -3,6 +3,7 @@ owtf.proxy.main
 ~~~~~~~~~~~~~~~
 """
 import logging
+logger = logging.getLogger(__name__)
 import os
 import re
 import socket
