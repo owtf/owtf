@@ -3,7 +3,6 @@ owtf.proxy.main
 ~~~~~~~~~~~~~~~
 """
 import logging
-logger = logging.getLogger(__name__)
 import os
 import re
 import socket
@@ -41,6 +40,7 @@ from owtf.settings import (
 from owtf.utils.error import abort_framework
 from owtf.utils.file import FileOperations
 
+logger = logging.getLogger(__name__)
 
 class ProxyProcess(OWTFProcess):
     def initialize(self, outbound_options=None, outbound_auth=""):
