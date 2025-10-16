@@ -1,7 +1,6 @@
-*.pyc
-*.pyc
-*.pyo
-*.tmp
+**/*.pyc
+**/*.pyo
+**/*.tmp
 .eggs/
 .git/
 .tox/
