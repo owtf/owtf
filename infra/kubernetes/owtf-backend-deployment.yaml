@@ -64,22 +64,20 @@ spec:
           limits:
             memory: "2Gi"
             cpu: "1000m"
-        # livenessProbe:
-        #   httpGet:
-        #     path: /api/health
-        #     port: 8008
-        #   initialDelaySeconds: 60
-        #   periodSeconds: 30
-        #   timeoutSeconds: 10
-        #   failureThreshold: 3
-        # readinessProbe:
-        #   httpGet:
-        #     path: /api/health
-        #     port: 8008
-        #   initialDelaySeconds: 30
-        #   periodSeconds: 10
-        #   timeoutSeconds: 5
-        #   failureThreshold: 3
+        livenessProbe:
+          tcpSocket:
+            port: 8008
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: 8008
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
       restartPolicy: Always
       volumes:
       - name: owtf-volume
