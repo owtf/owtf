@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: owtf-frontend-service
+  namespace: owtf
+  labels:
+    app: owtf-frontend
+    component: frontend
+spec:
+  selector:
+    app: owtf-frontend
+    component: frontend
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8019
+  type: ClusterIP
