@@ -66,7 +66,7 @@ build_and_push_images() {
 
 build_local_images() {
         echo ""
-        echo "� Building local Docker Images (no push)..."
+        echo "🛠️ Building local Docker Images (no push)..."
         echo "================================"
         echo "Tagging as owtf:backend and owtf:frontend to match deployment manifests"
 
