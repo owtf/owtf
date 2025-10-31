@@ -20,7 +20,7 @@ interface stateType {
   email: string;
   password: string;
   confirmPassword: string;
-  errors: object;
+  errors: Record<string, string>;
   hidePassword: boolean;
   hideConfirmPassword: boolean;
 }
@@ -34,7 +34,7 @@ export class SignupPage extends React.Component<propsType, stateType> {
       email: "", //email of the user to be added
       password: "", //password of the user to be added
       confirmPassword: "", //confirmPassword of the user to be added
-      errors: {}, //stores errors during form validation
+      errors: {} as Record<string, string>, //stores errors during form validation
       hidePassword: true, //handles visibility of password input field
       hideConfirmPassword: true //handles visibility of confirmPassword input field
     };
@@ -45,64 +45,64 @@ export class SignupPage extends React.Component<propsType, stateType> {
    * @param {object} e event which triggered this function
    */
   handleValidation = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     let formIsValid = true;
-    let errors = {};
+    const errors: Record<string, string> = { ...this.state.errors };
 
-    //Username
-    if (e.target.name === "text-input-name" && !this.state.username) {
-      formIsValid = false;
-      errors["username"] = "Username can't be empty";
+    // Username
+    if (name === "text-input-name") {
+      if (!value) {
+        formIsValid = false;
+        errors["username"] = "Username can't be empty";
+      } else {
+        delete errors["username"];
+      }
     }
 
-    //Email
-    else if (e.target.name === "text-input-email" && !this.state.email) {
-      formIsValid = false;
-      errors["email"] = "Email can't be empty";
-    } else if (
-      e.target.name === "text-input-email" &&
-      typeof this.state.email !== "undefined"
-    ) {
-      if (
-        !this.state.email.match(
-          /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
-        )
+    // Email
+    if (name === "text-input-email") {
+      if (!value) {
+        formIsValid = false;
+        errors["email"] = "Email can't be empty";
+      } else if (
+        !value.match(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/)
       ) {
         formIsValid = false;
         errors["email"] = "Please enter a valid email";
+      } else {
+        delete errors["email"];
       }
     }
 
     // Password
-    if (e.target.name === "text-input-password" && !this.state.password) {
-      formIsValid = false;
-      errors["password"] = "Password can't be empty";
-    } else if (
-      e.target.name === "text-input-password" &&
-      typeof this.state.password !== "undefined"
-    ) {
-      if (
-        !this.state.password.match(
-          /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/
+    if (name === "text-input-password") {
+      if (!value) {
+        formIsValid = false;
+        errors["password"] = "Password can't be empty";
+      } else if (
+        !value.match(
+          /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,32}$/
         )
       ) {
         formIsValid = false;
-        errors["password"] = "Must have capital, small, number & special chars";
+        errors["password"] =
+          "Must have capital, small, number & special chars (8-32 characters)";
+      } else {
+        delete errors["password"];
       }
     }
 
     // Confirm Password
-    if (
-      e.target.name === "text-input-confirm-password" &&
-      !this.state.confirmPassword
-    ) {
-      formIsValid = false;
-      errors["confirmPassword"] = "Confirm Password can't be empty";
-    } else if (
-      e.target.name === "text-input-confirm-password" &&
-      this.state.password !== this.state.confirmPassword
-    ) {
-      formIsValid = false;
-      errors["confirmPassword"] = "Password doesn't match";
+    if (name === "text-input-confirm-password") {
+      if (!value) {
+        formIsValid = false;
+        errors["confirmPassword"] = "Confirm Password can't be empty";
+      } else if (value !== this.state.password) {
+        formIsValid = false;
+        errors["confirmPassword"] = "Password doesn't match";
+      } else {
+        delete errors["confirmPassword"];
+      }
     }
 
     this.setState({ errors: errors });

@@ -14,68 +14,63 @@ import { AiFillEye } from "react-icons/ai";
 import logo from "../../../public/img/logo.png";
 
 interface propsType {
-  onNewPassword: Function,
-  otp:string,
-  emailOrUsername: string
+  onNewPassword: Function;
+  otp: string;
+  emailOrUsername: string;
 }
 interface stateType {
-  newPassword: string,
-  newConfirmPassword: string,
-  errors: object, 
-  hidePassword: boolean, 
-  hideConfirmPassword: boolean 
+  newPassword: string;
+  newConfirmPassword: string;
+  errors: Record<string, string>;
+  hidePassword: boolean;
+  hideConfirmPassword: boolean;
 }
 
-
-export class NewPasswordPage extends React.Component<propsType, stateType>  {
+export class NewPasswordPage extends React.Component<propsType, stateType> {
   constructor(props, context) {
     super(props, context);
 
     this.state = {
       newPassword: "",
       newConfirmPassword: "",
-      errors: {}, //stores errors during form validation
+      errors: {} as Record<string, string>, //stores errors during form validation
       hidePassword: true, //handles visibility of password input field
       hideConfirmPassword: true //handles visibility of confirmPassword input field
     };
   }
 
-  handlePasswordValidation = e => {
-    // Password
+  handlePasswordValidation = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     let formIsValid = true;
-    let errors = {};
+    const errors: Record<string, string> = { ...this.state.errors };
 
-    if (e.target.name === "text-input-password" && !this.state.newPassword) {
-      formIsValid = false;
-      errors["newPassword"] = "Password can't be empty";
-    } else if (
-      e.target.name === "text-input-password" &&
-      typeof this.state.newPassword !== "undefined"
-    ) {
-      if (
-        !this.state.newPassword.match(
-          /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/
+    if (name === "text-input-password") {
+      if (!value) {
+        formIsValid = false;
+        errors["newPassword"] = "Password can't be empty";
+      } else if (
+        !value.match(
+          /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,32}$/
         )
       ) {
         formIsValid = false;
         errors["newPassword"] =
-          "Must have capital, small, number & special chars (8 letters or more)";
+          "Must have capital, small, number & special chars (8-32 characters)";
+      } else {
+        delete errors["newPassword"];
       }
     }
 
-    // Confirm Password
-    if (
-      e.target.name === "text-input-confirm-password" &&
-      !this.state.newConfirmPassword
-    ) {
-      formIsValid = false;
-      errors["newConfirmPassword"] = "Confirm Password can't be empty";
-    } else if (
-      e.target.name === "text-input-confirm-password" &&
-      this.state.newPassword !== this.state.newConfirmPassword
-    ) {
-      formIsValid = false;
-      errors["newConfirmPassword"] = "Password doesn't match";
+    if (name === "text-input-confirm-password") {
+      if (!value) {
+        formIsValid = false;
+        errors["newConfirmPassword"] = "Confirm Password can't be empty";
+      } else if (value !== this.state.newPassword) {
+        formIsValid = false;
+        errors["newConfirmPassword"] = "Password doesn't match";
+      } else {
+        delete errors["newConfirmPassword"];
+      }
     }
 
     this.setState({ errors: errors });
@@ -176,7 +171,6 @@ export class NewPasswordPage extends React.Component<propsType, stateType>  {
     );
   }
 }
-
 
 const mapStateToProps = createStructuredSelector({
   otp: makeSelectCreateOtp,
