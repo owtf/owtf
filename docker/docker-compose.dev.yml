@@ -1,9 +1,11 @@
 version: "3.9"
 networks:
   backend: {}
+
 services:
   owtf-backend:
     container_name: owtf-backend
+    platform: linux
     restart: always
     build:
       context: ..
@@ -25,8 +27,10 @@ services:
       - ..:/home/owtf/owtf
     networks:
       - backend
+
   owtf-frontend:
     container_name: owtf-frontend
+    platform: linux/amd64
     restart: always
     build:
       context: ..
@@ -37,8 +41,10 @@ services:
       - ..:/home/owtf/owtf
     networks:
       - backend
+
   db:
     image: postgres:alpine
+    platform: linux
     ports:
       - 5432:5432
     environment:
