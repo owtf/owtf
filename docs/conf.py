@@ -14,7 +14,6 @@
 
 import sys
 import os
-import sphinx_py3doc_enhanced_theme
 import sphinx.util
 
 # Compatibility shim: sphinxcontrib.autohttp.tornado still imports the deprecated
@@ -121,18 +120,19 @@ pygments_style = "friendly"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 
-html_theme = "sphinx_py3doc_enhanced_theme"
-html_theme_path = [sphinx_py3doc_enhanced_theme.get_html_theme_path()]
+html_theme = "furo"
 
 html_theme_options = {
-    "githuburl": "https://github.com/ionelmc/sphinx-py3doc-enhanced-theme/",
-    "bodyfont": '"Lucida Grande",Arial,sans-serif',
-    "headfont": '"Lucida Grande",Arial,sans-serif',
-    "codefont": "monospace,sans-serif",
-    "linkcolor": "#0072AA",
-    "visitedlinkcolor": "#6363bb",
-    "extrastyling": False,
-    "appendcss": "div.body code.descclassname { display: none }",
+    "sidebar_hide_name": True,
+    "navigation_with_keys": True,
+    "light_css_variables": {
+        "color-brand-primary": "#f97316",
+        "color-brand-content": "#111827",
+    },
+    "dark_css_variables": {
+        "color-brand-primary": "#fb923c",
+        "color-brand-content": "#f3f4f6",
+    },
 }
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -162,7 +162,9 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = []
+html_static_path = ["_static"]
+
+html_css_files = ["owtf.css"]
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied

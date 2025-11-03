@@ -1,5 +1,5 @@
 sphinx
-sphinx_py3doc_enhanced_theme
+furo
 sphinxcontrib.httpdomain
 
 # Align the documentation build dependencies with the runtime pins from
