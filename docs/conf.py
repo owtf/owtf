@@ -15,6 +15,17 @@
 import sys
 import os
 import sphinx_py3doc_enhanced_theme
+import sphinx.util
+
+# Compatibility shim: sphinxcontrib.autohttp.tornado still imports the deprecated
+# ``sphinx.util.force_decode`` helper that was removed in modern Sphinx
+# releases. Provide a minimal implementation so the extension continues to work
+# when building the documentation on Read the Docs.
+if not hasattr(sphinx.util, "force_decode"):
+    def _force_decode(value, encoding="utf-8"):
+        return value.decode(encoding, "ignore") if isinstance(value, bytes) else value
+
+    sphinx.util.force_decode = _force_decode  # type: ignore[attr-defined]
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 

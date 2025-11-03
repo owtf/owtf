@@ -70,8 +70,15 @@ class PostInstallCommand(install):
     """Post-installation for installation mode."""
 
     def run(self):
-        # Need because of a setuptools bug: https://github.com/pypa/setuptools/issues/456
-        self.do_egg_install()
+        # ``do_egg_install`` was removed in modern versions of setuptools but older
+        # releases still expect this compatibility shim.  Use it when available and
+        # otherwise fall back to the default ``install.run`` implementation so the
+        # package can be installed with contemporary tooling such as pip 25.
+        installer = getattr(self, "do_egg_install", None)
+        if callable(installer):
+            installer()
+        else:
+            super().run()
         print("Running post install")
         call(["/bin/bash", post_script])
 
