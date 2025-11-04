@@ -3,9 +3,14 @@
 **/*.tmp
 .eggs/
 .git/
+.github/
 .tox/
 .ropeproject/
 .cache/
 build/
+deploy/
+docs/
 htmlcov/
+infra/
+tests/
 tmp/
