@@ -79,6 +79,39 @@ describe("ForgotPasswordPage component", () => {
       expect(wrapper.instance().state.emailOrUsername).toEqual(emailOrUsername);
     });
 
+    it("Should accept supported email formats during validation", () => {
+      const validEmails = [
+        "myemail+owtf@domain.com",
+        "mike.o'connor@domain.com"
+      ];
+
+      validEmails.forEach(email => {
+        wrapper.setState({ emailOrUsername: email, emailError: "" });
+        wrapper.instance().handleEmailValidation({
+          target: { name: "text-input-email-or-username" }
+        });
+        expect(wrapper.state("emailError")).toEqual("");
+      });
+    });
+
+    it("Should reject malformed email formats during validation", () => {
+      const invalidEmails = [
+        "myemail@domain...com",
+        "my....email@domain.com",
+        "myemail@.domain.com"
+      ];
+
+      invalidEmails.forEach(email => {
+        wrapper.setState({ emailOrUsername: email, emailError: "" });
+        wrapper.instance().handleEmailValidation({
+          target: { name: "text-input-email-or-username" }
+        });
+        expect(wrapper.state("emailError")).toEqual(
+          "Please enter a valid email"
+        );
+      });
+    });
+
     it("Should call onReset on reset password button click", () => {
       expect(props.onReset.mock.calls.length).toBe(0);
       const resetPasswordButton = wrapper.find("button");

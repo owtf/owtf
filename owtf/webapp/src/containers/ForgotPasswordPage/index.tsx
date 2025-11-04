@@ -7,18 +7,17 @@ import { Link } from "react-router-dom";
 import { forgotPasswordEmailStart } from "./actions";
 import { connect } from "react-redux";
 import logo from "../../../public/img/logo.png";
-
+import { EMAIL_REGEX } from "../../utils/validation";
 
 interface propsType {
-  onReset: Function
+  onReset: Function;
 }
 interface stateType {
-  emailOrUsername: string,
-  emailError: string
+  emailOrUsername: string;
+  emailError: string;
 }
 
-
-export class ForgotPasswordPage extends React.Component<propsType , stateType>  {
+export class ForgotPasswordPage extends React.Component<propsType, stateType> {
   constructor(props, context) {
     super(props, context);
 
@@ -37,11 +36,7 @@ export class ForgotPasswordPage extends React.Component<propsType , stateType>  
     if (!this.state.emailOrUsername) {
       this.setState({ emailError: "Email can't be empty" });
     } else if (typeof this.state.emailOrUsername !== "undefined") {
-      if (
-        !this.state.emailOrUsername.match(
-          /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
-        )
-      ) {
+      if (!EMAIL_REGEX.test(this.state.emailOrUsername)) {
         this.setState({ emailError: "Please enter a valid email" });
       } else {
         this.setState({ emailError: "" });
@@ -103,7 +98,6 @@ export class ForgotPasswordPage extends React.Component<propsType , stateType>  
     );
   }
 }
-
 
 const mapDispatchToProps = dispatch => {
   return {
