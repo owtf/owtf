@@ -166,15 +166,14 @@ export default class WorkerPanel extends React.Component<propsType, stateType> {
             <strong>PID: </strong>
             {worker.worker}
           </p>
-          {worker.start_time !== undefined ? (
+          {worker.start_time ? (
             <p className="workerPanelContainer__infoContainer__startTime">
-              <strong>Start Time: </strong>
-              {worker.start_time + "(~"}{" "}
-              <Moment date={worker.start_time} durationFromNow /> {")"}
+            <strong>Start Time: </strong>
+            {worker.start_time + " (~"} <Moment date={worker.start_time} durationFromNow /> {")"}
             </p>
           ) : (
             <p className="workerPanelContainer__infoContainer__startTime">
-              <strong>Start Time: </strong>N/A
+            <strong>Start Time: </strong>N/A
             </p>
           )}
           {worker.work.length > 0 ? (
