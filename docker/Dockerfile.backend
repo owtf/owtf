@@ -81,11 +81,11 @@ RUN pip install -r ${HOME}/requirements/base.txt
 COPY --chown=owtf:owtf bin ${HOME}/bin
 COPY --chown=owtf:owtf owtf ${HOME}/owtf
 COPY --chown=owtf:owtf requirements ${HOME}/requirements
-COPY --chown=owtf:owtf setup.py setup.cfg MANIFEST.in README.md ${HOME}/
+COPY --chown=owtf:owtf pyproject.toml setup.cfg MANIFEST.in README.md ${HOME}/
 
-# Install OWTF using the recommended method (setup.py)
+# Install OWTF using the recommended method (pip install .)
 RUN cd ${HOME} && \
-    python setup.py install
+    python -m pip install .
 
 # Reduce cache footprint from pip to keep final image size smaller
 RUN pip cache purge && rm -rf ${HOME}/.cache
@@ -108,7 +108,7 @@ COPY --from=owtf_setup /home/owtf/owtf-venv ${HOME}/owtf-venv
 COPY --from=owtf_setup /home/owtf/bin ${HOME}/bin
 COPY --from=owtf_setup /home/owtf/owtf ${HOME}/owtf
 COPY --from=owtf_setup /home/owtf/requirements ${HOME}/requirements
-COPY --from=owtf_setup /home/owtf/setup.py ${HOME}/setup.py
+COPY --from=owtf_setup /home/owtf/pyproject.toml ${HOME}/pyproject.toml
 COPY --from=owtf_setup /home/owtf/setup.cfg ${HOME}/setup.cfg
 COPY --from=owtf_setup /home/owtf/MANIFEST.in ${HOME}/MANIFEST.in
 COPY --from=owtf_setup /home/owtf/README.md ${HOME}/README.md

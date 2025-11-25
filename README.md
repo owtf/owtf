@@ -83,12 +83,16 @@ Create the database:
 ```bash
 git clone https://github.com/owtf/owtf
 cd owtf
-python3 setup.py develop
+python3 -m pip install -e .
 make startdb
 make setup-web
 owtf
 # Open http://localhost:8019 in your browser for the OWTF web interface, or run `owtf --help` for all available commands.
 ```
+
+### Dependency files
+
+The ``requirements/*.txt`` files are intentionally retained to provide pinned dependency sets for core usage, documentation, testing, and development. They are read by ``pyproject.toml`` for build-time dependency resolution and remain the single source of truth for reproducible installs, so they should not be deleted even though the project now uses a PEP 517 build with ``python -m pip install``.
 
 # Features
 
