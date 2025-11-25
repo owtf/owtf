@@ -1,0 +1,19 @@
+/* Custom overrides for the OWTF documentation */
+
+:root {
+  --code-font-size: 0.95rem;
+}
+
+/* Provide a little extra room between navigation items */
+.sidebar-tree .reference {
+  padding-top: 0.1rem;
+  padding-bottom: 0.1rem;
+}
+
+/* Highlight inline code to improve readability on light and dark themes */
+span.sig-name,
+code.literal {
+  background-color: var(--color-background-secondary);
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.25rem;
+}

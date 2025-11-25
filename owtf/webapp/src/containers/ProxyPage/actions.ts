@@ -2,7 +2,6 @@
  * ProxyPage actions
  */
 
-import { call, put, takeLatest } from "redux-saga/effects";
 import Request from "../../utils/request";
 import { API_BASE_URL } from "../../utils/constants";
 import { toaster } from "evergreen-ui";
@@ -19,6 +18,15 @@ export const FETCH_PROXY_STATS_ERROR = "app/ProxyPage/FETCH_PROXY_STATS_ERROR";
 export const CLEAR_PROXY_LOG = "app/ProxyPage/CLEAR_PROXY_LOG";
 export const CLEAR_PROXY_LOG_SUCCESS = "app/ProxyPage/CLEAR_PROXY_LOG_SUCCESS";
 export const CLEAR_PROXY_LOG_ERROR = "app/ProxyPage/CLEAR_PROXY_LOG_ERROR";
+
+// Repeater actions
+export const ADD_REPEATER_REQUEST = "app/ProxyPage/ADD_REPEATER_REQUEST";
+export const UPDATE_REPEATER_REQUEST = "app/ProxyPage/UPDATE_REPEATER_REQUEST";
+export const DELETE_REPEATER_REQUEST = "app/ProxyPage/DELETE_REPEATER_REQUEST";
+export const DUPLICATE_REPEATER_REQUEST = "app/ProxyPage/DUPLICATE_REPEATER_REQUEST";
+export const SET_SELECTED_REPEATER_REQUEST = "app/ProxyPage/SET_SELECTED_REPEATER_REQUEST";
+export const ADD_REPEATER_RESPONSE = "app/ProxyPage/ADD_REPEATER_RESPONSE";
+export const CLEAR_ALL_REPEATER_DATA = "app/ProxyPage/CLEAR_ALL_REPEATER_DATA";
 
 // Action creators
 export const fetchProxyHistory = (filters?: any) => ({
@@ -63,6 +71,43 @@ export const clearProxyLogError = (error: any) => ({
   error
 });
 
+// Repeater action creators
+export const addRepeaterRequest = (request: any) => ({
+  type: ADD_REPEATER_REQUEST,
+  request
+});
+
+export const updateRepeaterRequest = (requestId: string, updates: any) => ({
+  type: UPDATE_REPEATER_REQUEST,
+  requestId,
+  updates
+});
+
+export const deleteRepeaterRequest = (requestId: string) => ({
+  type: DELETE_REPEATER_REQUEST,
+  requestId
+});
+
+export const duplicateRepeaterRequest = (request: any) => ({
+  type: DUPLICATE_REPEATER_REQUEST,
+  request
+});
+
+export const setSelectedRepeaterRequest = (requestId: string | null) => ({
+  type: SET_SELECTED_REPEATER_REQUEST,
+  requestId
+});
+
+export const addRepeaterResponse = (requestId: string, response: any) => ({
+  type: ADD_REPEATER_RESPONSE,
+  requestId,
+  response
+});
+
+export const clearAllRepeaterData = () => ({
+  type: CLEAR_ALL_REPEATER_DATA
+});
+
 // API functions
 function getHeaders() {
   return {
@@ -103,50 +148,4 @@ export function clearProxyLogAPI() {
   const options = getHeaders();
   const request = new Request(requestURL, options);
   return request.delete.bind(request);
-}
-
-// Sagas
-export function* fetchProxyHistorySaga(action: any) {
-  try {
-    const { filters } = action;
-    console.log("🔍 fetchProxyHistorySaga - filters:", filters);
-    const fetchAPI = getProxyHistoryAPI(filters);
-    const history = yield call(fetchAPI);
-    console.log("🔍 fetchProxyHistorySaga - API response:", history);
-    yield put(fetchProxyHistorySuccess(history));
-  } catch (error) {
-    console.error("❌ fetchProxyHistorySaga - error:", error);
-    yield put(fetchProxyHistoryError(error));
-  }
-}
-
-export function* fetchProxyStatsSaga() {
-  try {
-    console.log("🔍 fetchProxyStatsSaga - starting");
-    const fetchAPI = getProxyStatsAPI();
-    const stats = yield call(fetchAPI);
-    console.log("🔍 fetchProxyStatsSaga - API response:", stats);
-    yield put(fetchProxyStatsSuccess(stats));
-  } catch (error) {
-    console.error("❌ fetchProxyStatsSaga - error:", error);
-    yield put(fetchProxyStatsError(error));
-  }
-}
-
-export function* clearProxyLogSaga() {
-  try {
-    const clearAPI = clearProxyLogAPI();
-    yield call(clearAPI);
-    yield put(clearProxyLogSuccess());
-  } catch (error) {
-    yield put(clearProxyLogError(error));
-    toaster.danger("Failed to clear proxy log");
-  }
-}
-
-// Root saga
-export function* proxyPageSaga() {
-  yield takeLatest(FETCH_PROXY_HISTORY, fetchProxyHistorySaga);
-  yield takeLatest(FETCH_PROXY_STATS, fetchProxyStatsSaga);
-  yield takeLatest(CLEAR_PROXY_LOG, clearProxyLogSaga);
 } 

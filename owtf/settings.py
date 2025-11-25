@@ -55,8 +55,8 @@ SESSION_COOKIE_NAME = "owtf-session"
 
 # CORS settings. Fine grained, do not override if possible.
 SIMPLE_HEADERS = ["accept", "accept-language", "content-language", "authorization"]
-ALLOWED_ORIGINS = ["http://localhost:8010", "http://localhost:8019"]
-ALLOWED_METHODS = ["GET", "POST", "DELETE"]
+ALLOWED_ORIGINS = ["http://localhost:8009", "http://localhost:8010", "http://localhost:8019"]
+ALLOWED_METHODS = ["GET", "POST", "DELETE", "PUT", "OPTIONS"]
 SEND_CREDENTIALS = False
 
 # ERROR reporting

@@ -1,19 +1,20 @@
 """
 owtf.api.handlers.proxy
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
-API handlers for proxy requests and responses.
+API handlers for proxy functionality.
 """
 
-import os
-import re
 import json
 import logging
+import os
+import re
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.proxy.proxy import REQUEST_LOG_FILE
+from owtf.proxy.live_interceptor import LiveInterceptor
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +74,7 @@ def parse_log_block(block: str) -> Optional[Dict[str, Any]]:
             "headers": {},
             "body": None,
             "body_size": 0,
+            "status_code": "200" if direction == "REQUEST" else None,  # Default status for requests
         }
         # Parse headers and body from remaining lines
         in_headers = False
@@ -98,90 +100,62 @@ def parse_log_block(block: str) -> Optional[Dict[str, Any]]:
                     # Parse headers dict
                     try:
                         headers_str = line.replace("'", '"')
-                        entry["headers"] = json.loads(headers_str)
-                    except:
+                        headers = json.loads(headers_str)
+                        entry["headers"] = headers
+                    except json.JSONDecodeError:
+                        # Fallback: parse as key-value pairs
                         pass
-            elif in_body:
-                if line.startswith("<") and line.endswith(">"):
-                    # Truncated body
-                    size_match = re.search(r"<(\d+) bytes", line)
-                    if size_match:
-                        entry["body_size"] = int(size_match.group(1))
-                    entry["body"] = line
-                    break
                 else:
-                    body_lines.append(line)
-                    entry["body"] = "\n".join(body_lines)
-                    entry["body_size"] = len(entry["body"])
-        # Add status code for responses
-        if direction == "RESPONSE" and method.startswith("HTTP/"):
-            try:
-                status_code = method.split("/")[1]
-                entry["status_code"] = status_code
-            except:
-                pass
+                    # Parse as key: value format
+                    if ":" in line:
+                        key, value = line.split(":", 1)
+                        entry["headers"][key.strip()] = value.strip()
+            elif in_body:
+                body_lines.append(line)
+        if body_lines:
+            entry["body"] = "\n".join(body_lines)
+            entry["body_size"] = len(entry["body"])
         return entry
     except Exception as e:
         logger.error(f"Error parsing log block: {e}")
         return None
 
 
+# --- Existing handlers ---
 class ProxyHistoryHandler(APIRequestHandler):
-    """Handler for proxy request/response history."""
+    """Handler for proxy history."""
 
     def get(self):
-        print("[ProxyHistoryHandler.get] called")
-        logger.error("[ProxyHistoryHandler.get] called")
+        """Get proxy history entries."""
         try:
-            # Get query parameters
-            limit = int(self.get_argument("limit", default="100"))
-            offset = int(self.get_argument("offset", default="0"))
-            method_filter = self.get_argument("method", default=None)
-            url_filter = self.get_argument("url", default=None)
-            protocol_filter = self.get_argument("protocol", default=None)
-            # Read and parse the log file
-            print(f"[ProxyHistoryHandler.get] reading proxy log from {REQUEST_LOG_FILE}")
-            logger.error(f"[ProxyHistoryHandler.get] reading proxy log from {REQUEST_LOG_FILE}")
             entries = read_proxy_log()
-            print(f"[ProxyHistoryHandler.get] entries: {entries}")
-            logger.error(f"[ProxyHistoryHandler.get] entries: {entries}")
-            # Apply filters
-            if method_filter:
-                entries = [entry for entry in entries if method_filter.upper() in entry.get("method", "")]
-            if url_filter:
-                entries = [entry for entry in entries if url_filter.lower() in entry.get("url", "").lower()]
-            if protocol_filter:
-                entries = [entry for entry in entries if protocol_filter.upper() in entry.get("protocol", "")]
-            # Apply pagination
-            total_count = len(entries)
-            entries = entries[offset : offset + limit]
-            # Prepare response
-            response = {
-                "entries": entries,
-                "total_count": total_count,
-                "limit": limit,
-                "offset": offset,
-                "has_more": (offset + limit) < total_count,
+            # Filter to only show requests (not responses)
+            requests = [e for e in entries if e.get("direction") == "REQUEST"]
+
+            # Return data in the format the frontend expects
+            response_data = {
+                "entries": requests,
+                "total_count": len(requests),
+                "limit": 100,
+                "offset": 0,
+                "has_more": False,
             }
-            print(f"[ProxyHistoryHandler.get] response: {response}")
-            logger.error(f"[ProxyHistoryHandler.get] response: {response}")
-            self.write(response)
+
+            self.write(response_data)
         except Exception as e:
-            print(f"[ProxyHistoryHandler.get] Exception: {e}")
-            logger.error(f"[ProxyHistoryHandler.get] Exception: {e}")
+            logger.error(f"Error fetching proxy history: {e}")
             self.set_status(500)
-            self.write({"error": f"ProxyHistoryHandler.get 500: Failed to fetch proxy history: {str(e)}"})
+            self.write({"error": f"Failed to fetch proxy history: {str(e)}"})
 
 
 class ProxyHistoryDetailHandler(APIRequestHandler):
-    """Handler for detailed proxy entry information."""
+    """Handler for proxy history entry details."""
 
     def get(self, entry_id):
-        print("[ProxyHistoryDetailHandler.get] called")
-        logger.error("[ProxyHistoryDetailHandler.get] called")
+        """Get detailed information about a specific proxy entry."""
         try:
+            # entry_id is actually the timestamp
             timestamp = entry_id
-            print(f"[ProxyHistoryDetailHandler.get] timestamp: {timestamp}")
             logger.error(f"[ProxyHistoryDetailHandler.get] timestamp: {timestamp}")
             entries = read_proxy_log()
             print(f"[ProxyHistoryDetailHandler.get] entries: {entries}")
@@ -281,3 +255,508 @@ class ProxyLogHandler(APIRequestHandler):
             logger.error(f"[ProxyLogHandler.delete] Exception: {e}")
             self.set_status(500)
             self.write({"error": f"ProxyLogHandler.delete 500: Failed to clear proxy log: {str(e)}"})
+
+
+# --- New Interceptor Management Handlers ---
+class InterceptorManagementHandler(APIRequestHandler):
+    """Handler for interceptor management."""
+
+    def get(self):
+        """Get all active interceptors."""
+        try:
+            # Get interceptor manager from the application
+            if hasattr(self.application, "interceptor_manager") and self.application.interceptor_manager:
+                interceptors = self.application.interceptor_manager.get_interceptors()
+                self.write(json.dumps(interceptors))
+            else:
+                self.write(json.dumps([]))
+        except Exception as e:
+            logger.error(f"Error fetching interceptors: {e}")
+            self.set_status(500)
+            self.write({"error": f"Failed to fetch interceptors: {str(e)}"})
+
+    def post(self):
+        """Create new interceptor."""
+        try:
+            data = json.loads(self.request.body)
+            interceptor_type = data.get("type")
+            config = data.get("config", {})
+            name = data.get("name", f"Custom {interceptor_type}")
+
+            if not hasattr(self.application, "interceptor_manager") or not self.application.interceptor_manager:
+                self.set_status(500)
+                self.write({"error": "Interceptor manager not available"})
+                return
+
+            # Create interceptor based on type
+            from owtf.proxy.interceptors import (
+                HeaderModifier,
+                BodyModifier,
+                URLRewriter,
+                DelayInjector,
+            )
+
+            interceptor_map = {
+                "header": HeaderModifier,
+                "body": BodyModifier,
+                "url": URLRewriter,
+                "delay": DelayInjector,
+            }
+
+            if interceptor_type not in interceptor_map:
+                self.set_status(400)
+                self.write({"error": f"Unknown interceptor type: {interceptor_type}"})
+                return
+
+            interceptor_class = interceptor_map[interceptor_type]
+            interceptor = interceptor_class(**config)
+            interceptor.name = name
+
+            # Add to manager
+            self.application.interceptor_manager.add_interceptor(interceptor)
+
+            # Save configuration
+            self.application.interceptor_manager.save_config()
+
+            self.write({"status": "success", "id": interceptor.name})
+
+        except Exception as e:
+            logger.error(f"Error creating interceptor: {e}")
+            self.set_status(500)
+            self.write({"error": f"Failed to create interceptor: {str(e)}"})
+
+    def delete(self, interceptor_id):
+        """Remove interceptor."""
+        try:
+            if not hasattr(self.application, "interceptor_manager") or not self.application.interceptor_manager:
+                self.set_status(500)
+                self.write({"error": "Interceptor manager not available"})
+                return
+
+            self.application.interceptor_manager.remove_interceptor(interceptor_id)
+            self.application.interceptor_manager.save_config()
+
+            self.write({"status": "success"})
+
+        except Exception as e:
+            logger.error(f"Error removing interceptor: {e}")
+            self.set_status(500)
+            self.write({"error": f"Failed to remove interceptor: {str(e)}"})
+
+
+class InterceptorConfigHandler(APIRequestHandler):
+    """Handler for interceptor configuration."""
+
+    def get(self, interceptor_id):
+        """Get interceptor configuration."""
+        try:
+            if not hasattr(self.application, "interceptor_manager") or not self.application.interceptor_manager:
+                self.set_status(500)
+                self.write({"error": "Interceptor manager not available"})
+                return
+
+            interceptor = self.application.interceptor_manager.get_interceptor(interceptor_id)
+            if not interceptor:
+                self.set_status(404)
+                self.write({"error": "Interceptor not found"})
+                return
+
+            config = {
+                "id": interceptor.name,
+                "name": interceptor.name,
+                "enabled": interceptor.is_enabled(),
+                "priority": interceptor.priority,
+                "config": interceptor.get_config(),
+            }
+
+            self.write(config)
+
+        except Exception as e:
+            logger.error(f"Error fetching interceptor config: {e}")
+            self.set_status(500)
+            self.write({"error": f"Failed to fetch interceptor config: {str(e)}"})
+
+    def put(self, interceptor_id):
+        """Update interceptor configuration."""
+        try:
+            data = json.loads(self.request.body)
+
+            if not hasattr(self.application, "interceptor_manager") or not self.application.interceptor_manager:
+                self.set_status(500)
+                self.write({"error": "Interceptor manager not available"})
+                return
+
+            interceptor = self.application.interceptor_manager.get_interceptor(interceptor_id)
+            if not interceptor:
+                self.set_status(404)
+                self.write({"error": "Interceptor not found"})
+                return
+
+            # Update configuration
+            if "config" in data:
+                interceptor.set_config(data["config"])
+
+            # Update enabled status
+            if "enabled" in data:
+                if data["enabled"]:
+                    interceptor.enable()
+                else:
+                    interceptor.disable()
+
+            # Update priority
+            if "priority" in data:
+                interceptor.priority = data["priority"]
+
+            # Save configuration
+            self.application.interceptor_manager.save_config()
+
+            self.write({"status": "success"})
+
+        except Exception as e:
+            logger.error(f"Error updating interceptor config: {e}")
+            self.set_status(500)
+            self.write({"error": f"Failed to update interceptor config: {str(e)}"})
+
+
+class InterceptorToggleHandler(APIRequestHandler):
+    """Handler for toggling interceptor status."""
+
+    def post(self, interceptor_id):
+        """Toggle interceptor enabled/disabled status."""
+        try:
+            if not hasattr(self.application, "interceptor_manager") or not self.application.interceptor_manager:
+                self.set_status(500)
+                self.write({"error": "Interceptor manager not available"})
+                return
+
+            interceptor = self.application.interceptor_manager.get_interceptor(interceptor_id)
+            if not interceptor:
+                self.set_status(404)
+                self.write({"error": "Interceptor not found"})
+                return
+
+            # Toggle status
+            if interceptor.is_enabled():
+                interceptor.disable()
+                status = "disabled"
+            else:
+                interceptor.enable()
+                status = "enabled"
+
+            # Save configuration
+            self.application.interceptor_manager.save_config()
+
+            self.write({"status": "success", "interceptor_status": status})
+
+        except Exception as e:
+            logger.error(f"Error toggling interceptor: {e}")
+            self.set_status(500)
+            self.write({"error": f"Failed to toggle interceptor: {str(e)}"})
+
+
+class InterceptorStatusHandler(APIRequestHandler):
+    """Handler for interceptor system status."""
+
+    def get(self):
+        """Get overall interceptor system status."""
+        try:
+            if not hasattr(self.application, "interceptor_manager") or not self.application.interceptor_manager:
+                self.write(
+                    {
+                        "status": "unavailable",
+                        "message": "Interceptor manager not initialized",
+                    }
+                )
+                return
+
+            status = self.application.interceptor_manager.get_status()
+            self.write(status)
+
+        except Exception as e:
+            logger.error(f"Error fetching interceptor status: {e}")
+            self.set_status(500)
+            self.write({"error": f"Failed to fetch interceptor status: {str(e)}"})
+
+
+class InterceptionRulesHandler(APIRequestHandler):
+    """Handler for interception rules."""
+
+    def get(self):
+        """Get all interception rules."""
+        try:
+            if not hasattr(self.application, "interceptor_manager") or not self.application.interceptor_manager:
+                self.write(json.dumps([]))
+                return
+
+            rules = self.application.interceptor_manager.get_rules()
+            self.write(json.dumps(rules))
+
+        except Exception as e:
+            logger.error(f"Error fetching interception rules: {e}")
+            self.set_status(500)
+            self.write({"error": f"Failed to fetch interception rules: {str(e)}"})
+
+    def post(self):
+        """Create new interception rule."""
+        try:
+            data = json.loads(self.request.body)
+
+            if not hasattr(self.application, "interceptor_manager") or not self.application.interceptor_manager:
+                self.set_status(500)
+                self.write({"error": "Interceptor manager not available"})
+                return
+
+            # Generate unique ID for the rule
+            import uuid
+
+            rule_id = str(uuid.uuid4())
+            data["id"] = rule_id
+
+            self.application.interceptor_manager.add_rule(data)
+            self.application.interceptor_manager.save_config()
+
+            self.write({"status": "success", "id": rule_id})
+
+        except Exception as e:
+            logger.error(f"Error creating interception rule: {e}")
+            self.set_status(500)
+            self.write({"error": f"Failed to create interception rule: {str(e)}"})
+
+    def delete(self, rule_id):
+        """Delete interception rule."""
+        try:
+            if not hasattr(self.application, "interceptor_manager") or not self.application.interceptor_manager:
+                self.set_status(500)
+                self.write({"error": "Interceptor manager not available"})
+                return
+
+            self.application.interceptor_manager.remove_rule(rule_id)
+            self.application.interceptor_manager.save_config()
+
+            self.write({"status": "success"})
+
+        except Exception as e:
+            logger.error(f"Error deleting interception rule: {e}")
+            self.set_status(500)
+            self.write({"error": f"Failed to delete interception rule: {str(e)}"})
+
+
+class RepeaterRequestHandler(APIRequestHandler):
+    """Handler for sending HTTP requests from the Repeater tab."""
+
+    async def post(self):
+        """Send an HTTP request and return the response."""
+        try:
+            data = json.loads(self.request.body)
+
+            # Extract request details
+            method = data.get("method", "GET")
+            url = data.get("url", "")
+            headers = data.get("headers", {})
+            body = data.get("body", "")
+
+            if not url:
+                self.set_status(400)
+                self.write({"error": "URL is required"})
+                return
+
+            # Send request using aiohttp (async HTTP client)
+            import aiohttp
+            import time
+
+            start_time = time.time()
+
+            # Prepare request options
+            request_kwargs = {
+                "headers": headers,
+                "timeout": aiohttp.ClientTimeout(total=30),
+                "allow_redirects": True,
+                "max_redirects": 5,
+            }
+
+            # Add body for methods that support it
+            if method in ["POST", "PUT", "PATCH"] and body:
+                request_kwargs["data"] = body
+
+            async with aiohttp.ClientSession() as session:
+                # Send request
+                async with session.request(method, url, **request_kwargs) as response:
+                    # Read response body
+                    try:
+                        response_body = await response.text()
+                    except:
+                        response_body = "[Unable to read response body]"
+
+                    # Calculate response time
+                    response_time = (time.time() - start_time) * 1000  # Convert to milliseconds
+
+                    # Convert response headers to dict
+                    response_headers = dict(response.headers)
+
+                    # Generate the actual raw HTTP request that was sent
+                    raw_request = f"{method} {url} HTTP/1.1\r\n"
+
+                    # Add all headers
+                    for key, value in headers.items():
+                        raw_request += f"{key}: {value}\r\n"
+
+                    # Add body if present
+                    if body:
+                        raw_request += f"\r\n{body}"
+                    else:
+                        raw_request += "\r\n"
+
+                    # Generate the actual raw HTTP response that was received
+                    raw_response = f"HTTP/1.1 {response.status} {response.reason}\r\n"
+
+                    # Add all response headers
+                    for key, value in response_headers.items():
+                        raw_response += f"{key}: {value}\r\n"
+
+                    # Add response body
+                    raw_response += f"\r\n{response_body}"
+
+                    # Create response object
+                    response_data = {
+                        "status": response.status,
+                        "statusText": response.reason,
+                        "headers": response_headers,
+                        "body": response_body,
+                        "timestamp": datetime.now().isoformat(),
+                        "responseTime": round(response_time, 2),
+                        "rawRequest": raw_request,
+                        "rawResponse": raw_response,
+                    }
+
+                    self.write(response_data)
+
+        except json.JSONDecodeError:
+            self.set_status(400)
+            self.write({"error": "Invalid JSON"})
+        except Exception as e:
+            self.set_status(500)
+            self.write({"error": f"Failed to send request: {str(e)}"})
+
+
+class CertificateDownloadHandler(APIRequestHandler):
+    """Handler for downloading the CA certificate for HTTPS interception."""
+
+    def get(self):
+        """Download the CA certificate."""
+        try:
+            # Import settings to get CA certificate path
+            from owtf.settings import CA_CERT
+            import os.path
+
+            ca_cert_path = os.path.expanduser(CA_CERT)
+
+            # Check if certificate file exists
+            if not os.path.exists(ca_cert_path):
+                self.set_status(404)
+                self.write({"error": f"CA certificate file not found at {ca_cert_path}"})
+                return
+
+            # Read the certificate file
+            try:
+                with open(ca_cert_path, "rb") as f:
+                    cert_data = f.read()
+            except Exception as e:
+                self.set_status(500)
+                self.write({"error": f"Failed to read certificate file: {str(e)}"})
+                return
+
+            # Set response headers for file download
+            self.set_header("Content-Type", "application/x-x509-ca-cert")
+            self.set_header("Content-Disposition", "attachment; filename=owtf-ca.crt")
+            self.set_header("Content-Length", str(len(cert_data)))
+
+            # Write the certificate data
+            self.write(cert_data)
+
+            logger.info("CA certificate downloaded successfully")
+
+        except Exception as e:
+            logger.error(f"Error downloading CA certificate: {e}")
+            self.set_status(500)
+            self.write({"error": f"Failed to download certificate: {str(e)}"})
+
+
+class LiveInterceptorHandler(APIRequestHandler):
+    """Handler for live interceptor functionality."""
+
+    def get(self):
+        """Get the current status and pending request from live interceptor."""
+        try:
+            # Get the live interceptor instance (this is a simplified approach)
+            # In a real implementation, you'd get this from the running proxy
+            live_interceptor = LiveInterceptor()
+
+            # Get status and pending request
+            status = live_interceptor.get_status()
+            pending_request = live_interceptor.get_pending_request()
+
+            response_data = {"status": status, "pending_request": pending_request}
+
+            self.write(response_data)
+
+        except Exception as e:
+            logger.error(f"Error getting live interceptor status: {e}")
+            self.set_status(500)
+            self.write({"error": f"Failed to get interceptor status: {str(e)}"})
+
+    def post(self):
+        """Configure the live interceptor or make a decision on a pending request."""
+        try:
+            data = json.loads(self.request.body)
+            action = data.get("action")
+
+            if action == "enable":
+                # Enable live interception
+                url_pattern = data.get("url_pattern")
+                methods = data.get("methods")
+
+                live_interceptor = LiveInterceptor()
+                live_interceptor.enable(url_pattern, methods)
+
+                self.write({"success": True, "message": "Live interceptor enabled"})
+
+            elif action == "disable":
+                # Disable live interception
+
+                live_interceptor = LiveInterceptor()
+                live_interceptor.disable()
+
+                self.write({"success": True, "message": "Live interceptor disabled"})
+
+            elif action == "decision":
+                # Make a decision on a pending request
+                request_id = data.get("request_id")
+                decision = data.get("decision")
+                modified_headers = data.get("modified_headers")
+                modified_body = data.get("modified_body")
+
+                if not request_id or not decision:
+                    self.set_status(400)
+                    self.write({"error": "Missing request_id or decision"})
+                    return
+
+                live_interceptor = LiveInterceptor()
+                success = live_interceptor.make_decision(request_id, decision, modified_headers, modified_body)
+
+                if success:
+                    self.write({"success": True, "message": f"Decision {decision} applied"})
+                else:
+                    self.set_status(400)
+                    self.write({"error": "Failed to apply decision"})
+
+            else:
+                self.set_status(400)
+                self.write({"error": "Invalid action"})
+
+        except json.JSONDecodeError:
+            self.set_status(400)
+            self.write({"error": "Invalid JSON"})
+        except Exception as e:
+            logger.error(f"Error in live interceptor action: {e}")
+            self.set_status(500)
+            self.write({"error": f"Failed to process action: {str(e)}"})

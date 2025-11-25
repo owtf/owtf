@@ -13,7 +13,7 @@ import glob
 
 import tornado
 import unittest
-import mock
+from unittest import mock
 from hamcrest import *
 
 from tests.utils import (

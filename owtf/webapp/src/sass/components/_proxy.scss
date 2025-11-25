@@ -46,6 +46,25 @@
   }
 
   &__content {
+    &__tabs {
+      margin-bottom: 2rem;
+    }
+
+    &__tab-content {
+      background-color: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      padding: 1.5rem;
+    }
+
+    &__interception {
+      margin-bottom: 2rem;
+      background-color: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      padding: 1.5rem;
+    }
+
     &__stats {
       margin-bottom: 2rem;
     }
@@ -343,6 +362,22 @@
     white-space: nowrap;
     font-weight: 500;
   }
+
+  // Proxy History Table Actions Column
+  &__actions {
+    text-align: center;
+    width: 120px;
+    
+    .btn {
+      font-size: 0.8rem;
+      padding: 0.25rem 0.5rem;
+      
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
 }
 
 // Proxy Entry Detail Styles - Using Bootstrap classes
@@ -404,6 +439,189 @@
     &__details {
       grid-template-columns: 1fr;
       gap: 1.5rem;
+    }
+  }
+} 
+
+// Interceptor Manager Styles
+.interceptor-manager {
+  .interceptor-manager__header {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .interceptor-manager__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 1rem;
+  }
+
+  .interceptor-manager__card {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: all 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  .interceptor-manager__empty {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    border: 2px dashed #dee2e6;
+  }
+
+  .interceptor-manager__badge {
+    margin-right: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .interceptor-manager__status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .interceptor-manager__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+} 
+
+// Tab Styles
+.proxy-tabs {
+  &__navigation {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    justify-content: center;
+  }
+
+  &__tab {
+    min-width: 150px;
+    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-transform: none;
+    letter-spacing: normal;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+    }
+
+    &--active {
+      font-weight: 600;
+      box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.2);
+    }
+
+    &--disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+
+      &:hover {
+        transform: none;
+        box-shadow: none;
+      }
+    }
+
+    &-icon {
+      font-size: 1.3rem;
+    }
+  }
+}
+
+// Tab Content Styles
+.history-tab,
+.interceptors-tab,
+.repeater-tab {
+  h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #212529;
+  }
+
+  p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+}
+
+// Repeater Tab Specific Styles
+.repeater-tab {
+  .list-group-item {
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: #f8f9fa;
+    }
+    
+    &.active {
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+      color: white;
+      
+      .text-muted {
+        color: rgba(255, 255, 255, 0.8) !important;
+      }
+    }
+  }
+
+  .btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .form-control-sm {
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  pre {
+    font-size: 0.875rem;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .badge {
+    font-size: 0.75rem;
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .proxy-tabs {
+    &__navigation {
+      flex-direction: column;
+    }
+
+    &__tab {
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
     }
   }
 } 

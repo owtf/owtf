@@ -8,6 +8,7 @@ Inbound Proxy Module developed by Bharadwaj Machiraju (blog.tunnelshade.in) as a
 import hashlib
 import os
 import re
+from datetime import datetime, timedelta
 
 from OpenSSL import crypto
 
@@ -16,7 +17,7 @@ from owtf.utils.strings import utf8
 
 
 def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
-    """ This function takes a domain name as a parameter and then creates a certificate and key with the
+    """This function takes a domain name as a parameter and then creates a certificate and key with the
     domain name(replacing dots by underscores), finally signing the certificate using specified CA and
     returns the path of key and cert files. If you are yet to generate a CA then check the top comments
 
@@ -33,12 +34,8 @@ def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
     :return: Key and cert path
     :rtype: `str`
     """
-    key_path = os.path.join(
-        certs_folder, re.sub("[^-0-9a-zA-Z_]", "_", domain) + ".key"
-    )
-    cert_path = os.path.join(
-        certs_folder, re.sub("[^-0-9a-zA-Z_]", "_", domain) + ".crt"
-    )
+    key_path = os.path.join(certs_folder, re.sub("[^-0-9a-zA-Z_]", "_", domain) + ".key")
+    cert_path = os.path.join(certs_folder, re.sub("[^-0-9a-zA-Z_]", "_", domain) + ".crt")
 
     # The first conditions checks if file exists, and does nothing if true
     # If file doesn't exist lock is obtained for writing (Other processes in race must wait)
@@ -58,9 +55,7 @@ def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
                 serial = int(md5_hash.hexdigest(), 36)
 
                 # The CA stuff is loaded from the same folder as this script
-                ca_cert = crypto.load_certificate(
-                    crypto.FILETYPE_PEM, open(ca_crt, "rb").read()
-                )
+                ca_cert = crypto.load_certificate(crypto.FILETYPE_PEM, open(ca_crt, "rb").read())
                 # The last parameter is the password for your CA key file
                 ca_key = crypto.load_privatekey(
                     crypto.FILETYPE_PEM,
@@ -78,8 +73,45 @@ def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
                 cert.get_subject().O = "OWTF"
                 cert.get_subject().OU = "Inbound-Proxy"
                 cert.get_subject().CN = domain
-                cert.gmtime_adj_notBefore(0)
-                cert.gmtime_adj_notAfter(365 * 24 * 60 * 60)
+
+                # Fix: Set proper dates - start from current time, valid for 1 year
+                now = datetime.now()
+                not_before = now - timedelta(days=1)  # Start 1 day ago to ensure validity
+                not_after = now + timedelta(days=365)  # Valid for 1 year
+
+                cert.set_notBefore(not_before.strftime("%Y%m%d%H%M%SZ").encode())
+                cert.set_notAfter(not_after.strftime("%Y%m%d%H%M%SZ").encode())
+
+                # Fix: Add Subject Alternative Names (SANs) for proper browser compatibility
+                # This is crucial for modern browsers to accept the certificate
+                san_list = []
+
+                # Add the main domain
+                san_list.append(b"DNS:" + domain.encode())
+
+                # Add www subdomain if it's not already present
+                if not domain.startswith("www."):
+                    san_list.append(b"DNS:www." + domain.encode())
+
+                # Add wildcard for subdomains
+                if "." in domain:
+                    # Extract the main domain (e.g., "example.com" from "www.example.com")
+                    parts = domain.split(".")
+                    if len(parts) >= 2:
+                        main_domain = ".".join(parts[-2:])  # Get last two parts
+                        san_list.append(b"DNS:*." + main_domain.encode())
+
+                # Add localhost and IP variations for local testing
+                san_list.append(b"DNS:localhost")
+                san_list.append(b"IP:127.0.0.1")
+                san_list.append(b"IP:0.0.0.0")
+
+                # Create the SAN extension
+                san_extension = crypto.X509Extension(b"subjectAltName", False, b", ".join(san_list))  # critical = False
+
+                # Add the SAN extension to the certificate
+                cert.add_extensions([san_extension])
+
                 cert.set_serial_number(serial)
                 cert.set_issuer(ca_cert.get_subject())
                 cert.set_pubkey(key)
@@ -90,7 +122,5 @@ def gen_signed_cert(domain, ca_crt, ca_key, ca_pass, certs_folder):
                     domain_key.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key))
 
                 with open(cert_path, "wb") as domain_cert:
-                    domain_cert.write(
-                        crypto.dump_certificate(crypto.FILETYPE_PEM, cert)
-                    )
+                    domain_cert.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
     return key_path, cert_path

@@ -11,6 +11,7 @@ import { connect } from "react-redux";
 import logo from "../../../public/img/logo.png";
 import { AiFillEyeInvisible } from "react-icons/ai";
 import { AiFillEye } from "react-icons/ai";
+import { EMAIL_REGEX } from "../../utils/validation";
 
 interface propsType {
   onSignup: Function;
@@ -62,11 +63,7 @@ export class SignupPage extends React.Component<propsType, stateType> {
       e.target.name === "text-input-email" &&
       typeof this.state.email !== "undefined"
     ) {
-      if (
-        !this.state.email.match(
-          /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
-        )
-      ) {
+      if (!EMAIL_REGEX.test(this.state.email)) {
         formIsValid = false;
         errors["email"] = "Please enter a valid email";
       }

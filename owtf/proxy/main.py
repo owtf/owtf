@@ -42,6 +42,9 @@ from owtf.utils.file import FileOperations
 
 logger = logging.getLogger(__name__)
 
+# Set up logger
+logger = logging.getLogger(__name__)
+
 class ProxyProcess(OWTFProcess):
     def initialize(self, outbound_options=None, outbound_auth=""):
         """Initialize the proxy process

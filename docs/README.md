@@ -1,10 +1,9 @@
-How to write user docs
-======================
+# How to write user docs
 
-Make sure you have `sphinx` and `sphinx_rtd_theme` installed
+Install the documentation dependencies (including the site theme) with pip:
 
     ```
-    pip install sphinx sphinx_rtd_theme
+    pip install -r docs/docs-requirements.txt
     ```
 
 After editing the documentation, generate html using
@@ -15,4 +14,4 @@ After editing the documentation, generate html using
 
 Once you are satisfied with the changes, please push to the repo :)
 
-PS: It is strictly advised to fix all errors and warning before pushing
+PS: It is strictly advised to fix all errors and warnings before pushing.

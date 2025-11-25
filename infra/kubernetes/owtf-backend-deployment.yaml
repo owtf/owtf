@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: owtf-backend
+  namespace: owtf
+  labels:
+    app: owtf-backend
+    component: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: owtf-backend
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: owtf-backend
+        component: backend
+    spec:
+      containers:
+      - name: owtf-backend
+        image: owtf:backend
+        imagePullPolicy: Never
+        command: ["owtf"]
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: password
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: db
+        - name: POSTGRES_HOST
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: host
+        ports:
+        - name: api
+          containerPort: 8008
+          protocol: TCP
+        - name: connect
+          containerPort: 8009
+          protocol: TCP          
+        - name: proxy
+          containerPort: 8010
+          protocol: TCP
+        volumeMounts:
+        - name: owtf-volume
+          mountPath: /owtf
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        # livenessProbe:
+        #   httpGet:
+        #     path: /api/health
+        #     port: 8008
+        #   initialDelaySeconds: 60
+        #   periodSeconds: 30
+        #   timeoutSeconds: 10
+        #   failureThreshold: 3
+        # readinessProbe:
+        #   httpGet:
+        #     path: /api/health
+        #     port: 8008
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 10
+        #   timeoutSeconds: 5
+        #   failureThreshold: 3
+      restartPolicy: Always
+      volumes:
+      - name: owtf-volume
+        persistentVolumeClaim:
+          claimName: owtf-pvc

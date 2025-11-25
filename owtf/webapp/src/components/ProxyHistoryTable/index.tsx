@@ -10,20 +10,26 @@ interface ProxyHistoryTableProps {
   history: any;
   loading: boolean;
   onEntrySelect: (entry: any) => void;
+  filters?: {
+    method: string;
+    url: string;
+    protocol: string;
+  };
 }
 
 const ProxyHistoryTable: React.FC<ProxyHistoryTableProps> = ({
   history,
   loading,
-  onEntrySelect
+  onEntrySelect,
+  filters = { method: "", url: "", protocol: "" }
 }) => {
   if (loading) {
     return (
-      <div className="proxyHistoryTable__loading">
-        <div className="spinner-border text-primary" role="status">
+      <div className="proxyHistoryTable__loading text-center py-5">
+        <div className="spinner-border text-primary mb-3" role="status" style={{ width: '3rem', height: '3rem' }}>
           <span className="visually-hidden">Loading...</span>
         </div>
-        <span>Loading proxy history...</span>
+        <p className="text-muted fw-semibold mb-0" style={{ fontSize: '24px' }}>Loading proxy history...</p>
       </div>
     );
   }
@@ -43,10 +49,43 @@ const ProxyHistoryTable: React.FC<ProxyHistoryTableProps> = ({
   // Convert Immutable.js List to regular array if needed
   const entriesArray = entries && entries.toJS ? entries.toJS() : entries;
 
-  if (entriesArray.length === 0) {
+  // Apply filters
+  const filteredEntries = entriesArray.filter((entry: any) => {
+    const entryObj = entry && entry.toJS ? entry.toJS() : entry;
+    
+    // Filter by method
+    if (filters.method && entryObj.method !== filters.method) {
+      return false;
+    }
+    
+    // Filter by URL
+    if (filters.url && !entryObj.url.toLowerCase().includes(filters.url.toLowerCase())) {
+      return false;
+    }
+    
+    // Filter by protocol
+    if (filters.protocol && entryObj.protocol !== filters.protocol) {
+      return false;
+    }
+    
+    return true;
+  });
+
+  if (filteredEntries.length === 0) {
     return (
-      <div className="proxyHistoryTable__empty">
-        <p>No proxy history found. Start browsing to see intercepted requests and responses.</p>
+      <div className="proxyHistoryTable__empty text-center py-5">
+        <div className="bg-light rounded p-4">
+          <i className="fas fa-search fa-3x text-muted mb-3"></i>
+          <h3 className="text-muted fw-semibold mb-2" style={{ fontSize: '22px' }}>
+            {entriesArray.length === 0 ? 'No proxy history found' : 'No entries match the current filters'}
+          </h3>
+          <p className="text-muted mb-0" style={{ fontSize: '18px' }}>
+            {entriesArray.length === 0 
+              ? 'Start browsing to see intercepted requests and responses.'
+              : 'Try adjusting your filter criteria.'
+            }
+          </p>
+        </div>
       </div>
     );
   }
@@ -75,22 +114,22 @@ const ProxyHistoryTable: React.FC<ProxyHistoryTableProps> = ({
 
   return (
     <div className="proxyHistoryTable">
-      <div className="table-responsive">
-        <table className="table table-hover mb-0">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Method</th>
-              <th>URL</th>
-              <th>Status</th>
-              <th>Protocol</th>
-              <th>Direction</th>
-              <th>Timestamp</th>
-              <th>Size</th>
+      <div className="table-responsive" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+        <table className="table table-hover mb-0 table-sm">
+          <thead style={{ position: 'sticky', top: 0, zIndex: 1 }}>
+            <tr style={{ backgroundColor: '#343a40', color: 'white' }}>
+              <th className="px-3 py-3 fw-bold" style={{ fontSize: '18px', backgroundColor: '#343a40', color: 'white', borderBottom: '2px solid #495057' }}>#</th>
+              <th className="px-3 py-3 fw-bold" style={{ fontSize: '18px', backgroundColor: '#343a40', color: 'white', borderBottom: '2px solid #495057' }}>Method</th>
+              <th className="px-3 py-3 fw-bold" style={{ fontSize: '18px', backgroundColor: '#343a40', color: 'white', borderBottom: '2px solid #495057' }}>URL</th>
+              <th className="px-3 py-3 fw-bold" style={{ fontSize: '18px', backgroundColor: '#343a40', color: 'white', borderBottom: '2px solid #495057' }}>Status</th>
+              <th className="px-3 py-3 fw-bold" style={{ fontSize: '18px', backgroundColor: '#343a40', color: 'white', borderBottom: '2px solid #495057' }}>Protocol</th>
+              <th className="px-3 py-3 fw-bold" style={{ fontSize: '18px', backgroundColor: '#343a40', color: 'white', borderBottom: '2px solid #495057' }}>Direction</th>
+              <th className="px-3 py-3 fw-bold" style={{ fontSize: '18px', backgroundColor: '#343a40', color: 'white', borderBottom: '2px solid #495057' }}>Timestamp</th>
+              <th className="px-3 py-3 fw-bold" style={{ fontSize: '18px', backgroundColor: '#343a40', color: 'white', borderBottom: '2px solid #495057' }}>Size</th>
             </tr>
           </thead>
           <tbody>
-            {entriesArray.map((entry: any, index: number) => {
+            {filteredEntries.map((entry: any, index: number) => {
               // Convert Immutable Map to regular object if needed
               const entryObj = entry && entry.toJS ? entry.toJS() : entry;
               
@@ -100,38 +139,38 @@ const ProxyHistoryTable: React.FC<ProxyHistoryTableProps> = ({
                   onClick={() => onEntrySelect(entryObj)}
                   className="cursor-pointer"
                 >
-                  <td>{index + 1}</td>
-                  <td>
-                    <span className={`badge bg-${getMethodColor(entryObj.method)} proxyHistoryTable__method`}>
+                  <td className="px-3 py-3 fw-bold" style={{ fontSize: '16px' }}>{index + 1}</td>
+                  <td className="px-3 py-3">
+                    <span className={`badge bg-${getMethodColor(entryObj.method)} proxyHistoryTable__method px-4 py-3`} style={{ fontSize: '16px' }}>
                       {entryObj.method}
                     </span>
                   </td>
-                  <td className="proxyHistoryTable__url">
-                    <div className="proxyHistoryTable__url__text" title={entryObj.url}>
+                  <td className="proxyHistoryTable__url px-3 py-3">
+                    <div className="proxyHistoryTable__url__text" title={entryObj.url} style={{ fontSize: '16px' }}>
                       {entryObj.url}
                     </div>
                   </td>
-                  <td>
+                  <td className="px-3 py-3">
                     {entryObj.status_code && (
-                      <span className={`badge bg-${getStatusColor(entryObj.status_code)} proxyHistoryTable__status`}>
+                      <span className={`badge bg-${getStatusColor(entryObj.status_code)} proxyHistoryTable__status px-4 py-3`} style={{ fontSize: '16px' }}>
                         {entryObj.status_code}
                       </span>
                     )}
                   </td>
-                  <td>
-                    <span className={`badge bg-light text-dark proxyHistoryTable__protocol`}>
+                  <td className="px-3 py-3">
+                    <span className={`badge bg-light text-dark proxyHistoryTable__protocol px-4 py-3`} style={{ fontSize: '16px' }}>
                       {entryObj.protocol}
                     </span>
                   </td>
-                  <td>
-                    <span className={`badge bg-light text-dark proxyHistoryTable__direction`}>
+                  <td className="px-3 py-3">
+                    <span className={`badge bg-light text-dark proxyHistoryTable__direction px-4 py-3`} style={{ fontSize: '16px' }}>
                       {entryObj.direction}
                     </span>
                   </td>
-                  <td className="proxyHistoryTable__timestamp">
+                  <td className="proxyHistoryTable__timestamp px-3 py-3" style={{ fontSize: '16px' }}>
                     {new Date(entryObj.timestamp).toLocaleString()}
                   </td>
-                  <td className="proxyHistoryTable__size">
+                  <td className="proxyHistoryTable__size px-3 py-3" style={{ fontSize: '16px' }}>
                     {entryObj.body_size ? `${entryObj.body_size} bytes` : "-"}
                   </td>
                 </tr>

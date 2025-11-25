@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: owtf-frontend-config
+  namespace: owtf
+data:
+  nginx.conf: |
+    server {
+        listen       8019;
+        server_name  localhost;
+        
+        # Serve React app
+        location / {
+            root   /usr/share/nginx/html;
+            index  index.html index.htm;
+            try_files $uri $uri/ /index.html;                 
+        }
+                
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   /usr/share/nginx/html;
+        }
+    }

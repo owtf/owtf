@@ -97,9 +97,7 @@ describe("SignupPage component", () => {
       textInputFieldPassword.simulate("change", eventChangePassword);
       expect(wrapper.instance().state.password).toEqual("Test@12345");
 
-      const textInputFieldConfirmPassword = wrapper
-        .find("input")
-        .at(3);
+      const textInputFieldConfirmPassword = wrapper.find("input").at(3);
       const eventChangeConfirmPassword = {
         preventDefault() {},
         target: { value: "Test@12345", name: "text-input-confirm-password" }
@@ -109,6 +107,39 @@ describe("SignupPage component", () => {
         eventChangeConfirmPassword
       );
       expect(wrapper.instance().state.confirmPassword).toEqual("Test@12345");
+    });
+
+    it("Should accept supported email formats during validation", () => {
+      const validEmails = [
+        "myemail+owtf@domain.com",
+        "mike.o'connor@domain.com"
+      ];
+
+      validEmails.forEach(email => {
+        wrapper.setState({ email, errors: {} });
+        wrapper.instance().handleValidation({
+          target: { name: "text-input-email" }
+        });
+        expect(wrapper.state("errors")["email"]).toBeUndefined();
+      });
+    });
+
+    it("Should reject malformed email formats during validation", () => {
+      const invalidEmails = [
+        "myemail@domain...com",
+        "my....email@domain.com",
+        "myemail@.domain.com"
+      ];
+
+      invalidEmails.forEach(email => {
+        wrapper.setState({ email, errors: {} });
+        wrapper.instance().handleValidation({
+          target: { name: "text-input-email" }
+        });
+        expect(wrapper.state("errors")["email"]).toEqual(
+          "Please enter a valid email"
+        );
+      });
     });
 
     it("Should call onSignup on signup button click", () => {

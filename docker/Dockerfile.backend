@@ -1,5 +1,5 @@
 # Stage 1: Base
-FROM kalilinux/kali-rolling:latest AS base
+FROM kalilinux/kali-rolling AS base
 
 LABEL maintainer="Viyat Bhalodia <viyat.bhalodia@owasp.org>"
 
@@ -28,7 +28,7 @@ RUN apt -y update && \
     lbd theharvester tlssled nikto dnsrecon nmap whatweb skipfish dirbuster metasploit-framework wpscan wapiti hydra metagoofil amass && \
     apt -y install httpx-toolkit nuclei subfinder && \
     apt clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Nmap needs capabilities to run on docker
 RUN setcap cap_net_admin,cap_net_raw=eip $(which nmap)
@@ -54,9 +54,11 @@ ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
 ENV LC_ALL=en_US.UTF-8
 
-# Create a dedicated OWTF directory to copy source to and run from.
-ADD . ${HOME}
-ADD docker/wait-for-it.sh /usr/bin/wait-for-it.sh
+# Prepare application directory with strict copy scope.
+RUN mkdir -p ${HOME}/requirements
+COPY --chown=owtf:owtf requirements/base.txt ${HOME}/requirements/base.txt
+
+COPY docker/wait-for-it.sh /usr/bin/wait-for-it.sh
 RUN chmod +x /usr/bin/wait-for-it.sh
 
 USER owtf
@@ -73,16 +75,47 @@ RUN pip install setuptools cffi wheel MarkupSafe
 #Installing python dependencies
 RUN pip install -r ${HOME}/requirements/base.txt
 
-# Stage 3: Tool Installation
-FROM owtf_setup AS final_install
-
-USER root
-RUN chown -R owtf:owtf ${HOME}
-USER owtf
+# Copy the application source in a dedicated step to leverage the updated
+# .dockerignore file and avoid bringing unnecessary build context into the
+# image.
+COPY --chown=owtf:owtf bin ${HOME}/bin
+COPY --chown=owtf:owtf owtf ${HOME}/owtf
+COPY --chown=owtf:owtf requirements ${HOME}/requirements
+COPY --chown=owtf:owtf setup.py setup.cfg MANIFEST.in README.md ${HOME}/
 
 # Install OWTF using the recommended method (setup.py)
-RUN cd ${HOME} &&\
-python setup.py install
+RUN cd ${HOME} && \
+    python setup.py install
+
+# Reduce cache footprint from pip to keep final image size smaller
+RUN pip cache purge && rm -rf ${HOME}/.cache
+
+# Stage 3: Runtime image
+FROM base AS final_install
+
+RUN useradd -ms /bin/bash owtf
+
+ENV HOME="/home/owtf"
+WORKDIR ${HOME}
+
+ENV PYENV_ROOT="${HOME}/.pyenv"
+ENV VIRTUAL_ENV="${HOME}/owtf-venv"
+ENV PATH="${VIRTUAL_ENV}/bin:${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}"
+
+COPY --from=owtf_setup /usr/bin/wait-for-it.sh /usr/bin/wait-for-it.sh
+COPY --from=owtf_setup /home/owtf/.pyenv ${HOME}/.pyenv
+COPY --from=owtf_setup /home/owtf/owtf-venv ${HOME}/owtf-venv
+COPY --from=owtf_setup /home/owtf/bin ${HOME}/bin
+COPY --from=owtf_setup /home/owtf/owtf ${HOME}/owtf
+COPY --from=owtf_setup /home/owtf/requirements ${HOME}/requirements
+COPY --from=owtf_setup /home/owtf/setup.py ${HOME}/setup.py
+COPY --from=owtf_setup /home/owtf/setup.cfg ${HOME}/setup.cfg
+COPY --from=owtf_setup /home/owtf/MANIFEST.in ${HOME}/MANIFEST.in
+COPY --from=owtf_setup /home/owtf/README.md ${HOME}/README.md
+
+RUN chown -R owtf:owtf ${HOME}
+
+USER owtf
 
 # Set the current working directory to OWTF root directory
 WORKDIR ${HOME}

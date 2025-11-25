@@ -1,129 +1,229 @@
 #!/bin/bash
 
-# Prompt for Docker Engine or Kaniko choice
-read -p "Do you want to use Docker for the build? (yes/y or no/n): " USE_DOCKER
+# OWTF Kubernetes Deployment Script
+echo "========================================="
+echo "OWTF Kubernetes Deployment Script"
+echo "========================================="
+echo ""
 
-#FILE_PATH=infra/kubernetes
-
-# Convert input to lowercase to handle different cases
-USE_DOCKER=$(echo "$USE_DOCKER" | tr '[:upper:]' '[:lower:]')
-
-apply_deployment() {
-
-    # Apply manifests
-    echo "Applying manifests..."
-    kubectl apply -f .
-
-    # Delete Docker Config JSON
-    rm /home/$USER/.docker/config.json > /dev/null 2>&1
-
+# Function to check if Docker is running
+check_docker() {
+    if ! docker info >/dev/null 2>&1; then
+        echo "❌ Docker is not running. Please start Docker and try again."
+        exit 1
+    fi
+    echo "✅ Docker is running"
 }
 
-# Prompt for Docker values (only if using Kaniko)
-if [[ "$USE_DOCKER" == "no" || "$USE_DOCKER" == "n" ]]; then
-    echo "You have chosen Kaniko."
+###############################################################################
+# Image build functions
+###############################################################################
 
-    # Prompt for Docker values for Kaniko
-    read -p "Enter Docker Image Name (e.g., image:tag): " IMAGE_NAME    
-    read -p "Enter Docker username: " USERNAME
-    read -sp "Enter Docker password: " PASSWORD
-    echo
-    read -p "Enter Docker email: " EMAIL
+# Determine correct Dockerfile paths (prefer docker/ directory if present)
+BACKEND_DOCKERFILE="docker/Dockerfile.backend"
+FRONTEND_DOCKERFILE="docker/Dockerfile.frontend"
+if [[ ! -f "$BACKEND_DOCKERFILE" && -f "infra/kubernetes/Dockerfile.backend" ]]; then
+    BACKEND_DOCKERFILE="infra/kubernetes/Dockerfile.backend"
+fi
+if [[ ! -f "$FRONTEND_DOCKERFILE" && -f "infra/kubernetes/Dockerfile.frontend" ]]; then
+    FRONTEND_DOCKERFILE="infra/kubernetes/Dockerfile.frontend"
+fi
 
-    # Create Namespace (only for Kaniko)
+build_and_push_images() {
+        local username="$1" tag="$2"
+        echo ""
+        echo "🔨 Building Docker Images for push (tag: $tag)..."
+        echo "================================"
+
+        # Build backend image
+        echo "Building backend image (registry)..."
+        docker build -f "$BACKEND_DOCKERFILE" -t "$username/owtf-backend:$tag" . || { echo "❌ Backend image build failed"; exit 1; }
+        echo "✅ Backend image built"
+
+        # Build frontend image
+        echo "Building frontend image (registry)..."
+        docker build -f "$FRONTEND_DOCKERFILE" -t "$username/owtf-frontend:$tag" . || { echo "❌ Frontend image build failed"; exit 1; }
+        echo "✅ Frontend image built"
+
+        echo ""
+        echo "📤 Pushing Images to Registry..."
+        echo "================================="
+        docker push "$username/owtf-backend:$tag" || { echo "❌ Backend image push failed"; exit 1; }
+        docker push "$username/owtf-frontend:$tag" || { echo "❌ Frontend image push failed"; exit 1; }
+        echo "✅ Images pushed"
+
+        echo ""
+        echo "📋 Verifying pushed images..."
+        echo "============================="
+        for img in backend frontend; do
+            if docker manifest inspect "$username/owtf-$img:$tag" >/dev/null 2>&1; then
+                echo "✅ $img image verified in registry"
+            else
+                echo "⚠️  $img image verification failed"
+            fi
+        done
+}
+
+build_local_images() {
+        echo ""
+        echo "� Building local Docker Images (no push)..."
+        echo "================================"
+        echo "Tagging as owtf:backend and owtf:frontend to match deployment manifests"
+
+        docker build -f "$BACKEND_DOCKERFILE" -t owtf:backend . || { echo "❌ Backend image build failed"; exit 1; }
+        echo "✅ Backend image built (owtf:backend)"
+        docker build -f "$FRONTEND_DOCKERFILE" -t owtf:frontend . || { echo "❌ Frontend image build failed"; exit 1; }
+        echo "✅ Frontend image built (owtf:frontend)"
+
+        # Attempt to load into kind cluster if available
+        if command -v kind >/dev/null 2>&1; then
+            local KIND_CLUSTER_NAME=${KIND_CLUSTER_NAME:-kind}
+            if kind get clusters 2>/dev/null | grep -q "^$KIND_CLUSTER_NAME$"; then
+                echo "📦 Loading images into kind cluster '$KIND_CLUSTER_NAME'"
+                kind load docker-image owtf:backend --name "$KIND_CLUSTER_NAME" || echo "⚠️  Failed to load owtf:backend into kind"
+                kind load docker-image owtf:frontend --name "$KIND_CLUSTER_NAME" || echo "⚠️  Failed to load owtf:frontend into kind"
+            else
+                echo "ℹ️  kind cluster '$KIND_CLUSTER_NAME' not found (skipping kind load)"
+            fi
+        else
+            echo "ℹ️  'kind' not installed; skipping loading images into kind nodes"
+        fi
+}
+
+# Function to apply Kubernetes deployments
+apply_deployment() {
+    local pushed="$1" username="$2" tag="$3"
+    echo ""
+    echo "🚀 Deploying to Kubernetes..."
+    echo "=============================="
+    
+    # Create namespace if it doesn't exist
     echo "Creating namespace 'owtf'..."
-    kubectl create namespace owtf
+    kubectl create namespace owtf --dry-run=client -o yaml | kubectl apply -f -
+    
+    echo "Applying database manifests..."
+    kubectl apply -f db-secret.yaml
+    kubectl apply -f db-pvc.yaml
+    kubectl apply -f db-deployment.yaml
+    kubectl apply -f db-service.yaml
+    
+    echo "Applying OWTF PVC and frontend ConfigMap..."
+    kubectl apply -f owtf-pvc.yaml
+    kubectl apply -f owtf-frontend-configmap.yaml
+    
+        if [[ "$pushed" == "true" ]]; then
+            echo "Updating image references to use registry images..."
+            cp owtf-backend-deployment.yaml owtf-backend-deployment.yaml.bak
+            cp owtf-frontend-deployment.yaml owtf-frontend-deployment.yaml.bak
 
-    # Create Docker registry secret
-    echo "Creating Docker registry secret..."
-    kubectl create secret docker-registry regcred -n owtf \
-      --docker-username="$USERNAME" \
-      --docker-password="$PASSWORD" \
-      --docker-email="$EMAIL" \
-      --docker-server="https://index.docker.io/v1/"
+            # Cross-platform sed (Linux vs macOS)
+            if sed --version >/dev/null 2>&1; then
+                SED_INPLACE=(sed -i)
+            else
+                SED_INPLACE=(sed -i '')
+            fi
 
-    # Check if namespace creation was successful
-    if [ $? -ne 0 ]; then
-      echo "Failed to create namespace 'owtf'. Please check your Kubernetes setup and try again."
-      exit 1
-    fi
+            # Replace only the image lines for containers
+            "${SED_INPLACE[@]}" -E "s|image:.*owtf.*backend.*|image: ${username}/owtf-backend:${tag}|" owtf-backend-deployment.yaml
+            "${SED_INPLACE[@]}" -E "s|image:.*owtf.*frontend.*|image: ${username}/owtf-frontend:${tag}|" owtf-frontend-deployment.yaml
+            echo "✅ Updated deployment manifests to registry images"
 
-    # Check if secret creation was successful
-    if [ $? -ne 0 ]; then
-      echo "Failed to create Docker registry secret. Please check your inputs and try again."
-      exit 1
-    fi
+            echo ""
+            echo "📋 Verifying deployment image references..."
+            echo "Backend deployment image: $(grep 'image:' owtf-backend-deployment.yaml | head -1 | awk '{print $2}')"
+            echo "Frontend deployment image: $(grep 'image:' owtf-frontend-deployment.yaml | head -1 | awk '{print $2}')"
+        else
+            echo "Using local images (owtf:backend, owtf:frontend) as defined in manifests"
+        fi
+    
+        echo "Applying backend deployment & service..."
+        kubectl apply -f owtf-backend-deployment.yaml || exit 1
+        kubectl apply -f owtf-backend-service.yaml || exit 1
 
-    # Replace Image Names
-    sed -i "s/--destination=username\/image:tag/--destination=${USERNAME}\/${IMAGE_NAME}/" "owtf-deployment.yaml"
-    sed -i "s/image: username\/image:tag/image: ${USERNAME}\/${IMAGE_NAME}/" "owtf-deployment.yaml"
+        echo "Applying frontend deployment & service..."
+        kubectl apply -f owtf-frontend-deployment.yaml || exit 1
+        kubectl apply -f owtf-frontend-service.yaml || exit 1
 
-    apply_deployment
+        # Restore original files if we modified them
+        if [[ "$pushed" == "true" ]]; then
+            mv owtf-backend-deployment.yaml.bak owtf-backend-deployment.yaml
+            mv owtf-frontend-deployment.yaml.bak owtf-frontend-deployment.yaml
+        fi
+    
+    echo ""
+    echo "✅ Deployment completed successfully!"
+    echo ""
+    echo "📊 Service Information:"
+    echo "======================="
+    echo "- Frontend: Available via LoadBalancer on port 8019"
+    echo "- Backend API: Available via ClusterIP on port 8008"
+    echo "- Backend Proxy: Available via ClusterIP on port 8010"
+    echo "- Database: Available via ClusterIP on port 5432"
+    echo ""
+    echo "🔍 Check deployment status with:"
+    echo "kubectl get pods -n owtf"
+    echo "kubectl get services -n owtf"
+    echo "kubectl get ingress -n owtf"
+}
 
-    # Reverse the replacement
-    sed -i "s/--destination=${USERNAME}\/${IMAGE_NAME}/--destination=username\/image:tag/" "owtf-deployment.yaml"
-    sed -i "s/image: ${USERNAME}\/${IMAGE_NAME}/image: username\/image:tag/" "owtf-deployment.yaml"
+# Main execution
+echo "This script can:"
+echo "1. Build & push images to a Docker registry, then deploy"
+echo "2. OR build images locally & (optionally) load into a kind cluster, then deploy"
+echo ""
 
-fi
+# Check prerequisites
+check_docker
 
-if [[ "$USE_DOCKER" == "yes" || "$USE_DOCKER" == "y" ]]; then
-    echo "You have chosen Docker Engine."
+read -p "Do you want to push images to a Docker registry? (y/n): " PUSH_CHOICE
+PUSH_CHOICE=$(echo "$PUSH_CHOICE" | tr '[:upper:]' '[:lower:]')
 
-    # Prompt for Docker Image Name
-    read -p "Enter Docker Image Name (e.g., image:tag): " IMAGE_NAME
+PUSH_IMAGES=false
+if [[ "$PUSH_CHOICE" == "y" || "$PUSH_CHOICE" == "yes" ]]; then
+    PUSH_IMAGES=true
     read -p "Enter Docker username: " USERNAME
-    read -sp "Enter Docker password: " PASSWORD
-    echo
-    read -p "Enter Docker email: " EMAIL
-
-    # Log in to Docker Hub
-    echo "Logging in to Docker Hub..."
-    echo "$PASSWORD" | docker login -u "$USERNAME" --password-stdin
-
-    # Check if login was successful
-    if [ $? -ne 0 ]; then
-      echo "Docker login failed. Please check your credentials."
-      exit 1
+    read -sp "Enter Docker password: " PASSWORD; echo
+    read -p "Enter Docker email (optional, press Enter to skip): " EMAIL
+    read -p "Enter image tag (default: latest): " IMAGE_TAG
+    IMAGE_TAG=${IMAGE_TAG:-latest}
+    if [[ -z "$USERNAME" || -z "$PASSWORD" ]]; then
+        echo "❌ Username and password required to push images. Exiting."
+        exit 1
     fi
-
-    # Build the Docker image
-    echo "Building Docker image..."
-    docker build -t "$USERNAME/$IMAGE_NAME" -f Dockerfile .
-
-    # Check if build was successful
-    if [ $? -ne 0 ]; then
-      echo "Docker build failed. Please check the Dockerfile and try again."
-      exit 1
-    fi
-
-    # Push the Docker image to Docker Hub
-    echo "Pushing Docker image..."
-    docker push "$USERNAME/$IMAGE_NAME"
-
-    # Check if push was successful
-    if [ $? -ne 0 ]; then
-      echo "Docker push failed. Please check the image name and try again."
-      exit 1
-    fi
-
-    echo "Docker image $USERNAME/$IMAGE_NAME pushed successfully."
-
-    # Comment InitContainer Block of Kaniko
-    echo "Commenting Kaniko Block..."
-    sed -i \
-        -e '/^spec:/,/^      containers:/ { s/^#.*//; s/^      initContainers:/#      initContainers:/; s/^      - name: kaniko/#      - name: kaniko/; s/^        image: gcr.io\/kaniko-project\/executor:latest/#        image: gcr.io\/kaniko-project\/executor:latest/; s/^        env:/#        env:/; s/^          - name: DOCKER_CONFIG/#          - name: DOCKER_CONFIG/; s/^            value: \/root\/.docker\//#            value: \/root\/.docker\//; s/^        args:/#        args:/; s/^          - "--dockerfile=\/infra\/kubernetes\/Dockerfile"/#          - "--dockerfile=\/infra\/kubernetes\/Dockerfile"/; s/^          - "--context=git:\/\/github.com\/owtf\/owtf#develop"/#          - "--context=git:\/\/github.com\/owtf\/owtf#develop"/; s/^          - "--destination=username\/image:tag"/#          - "--destination=username\/image:tag"/; s/^          - "--compressed-caching=false"/#          - "--compressed-caching=false"/; s/^          - "--ignore-path=\/product_uuid"/#          - "--ignore-path=\/product_uuid"/; s/^        volumeMounts:/#        volumeMounts:/; s/^          - name: kaniko-secret/#          - name: kaniko-secret/; s/^            mountPath: \/root/#            mountPath: \/root/; }' \
-        -e '/^      volumes:/,/^      containers:/ { s/^#.*//; s/^      - name: kaniko-secret/#      - name: kaniko-secret/; s/^        secret:/#        secret:/; s/^          secretName: regcred /#          secretName: regcred /; s/^          items:/#          items:/; s/^            - key: .dockerconfigjson/#            - key: .dockerconfigjson/; s/^              path: .docker\/config.json/#              path: .docker\/config.json/; }' \
-        owtf-deployment.yaml
-    
-    # Replace Image Names
-    sed -i "s/image: username\/image:tag/image: ${USERNAME}\/${IMAGE_NAME}/" "owtf-deployment.yaml"
-
-    apply_deployment
-    
-    # Reverse the replacement
-    sed -i "s/image: ${USERNAME}\/${IMAGE_NAME}/image: username\/image:tag/" "owtf-deployment.yaml"
-    
-    #Restore the owtf deployment manifest
-    sed -i 's/^#\(.*\)$/\1/' owtf-deployment.yaml
-
+    echo ""
+    echo "🔐 Logging into Docker registry (Docker Hub assumed)..."
+    echo "$PASSWORD" | docker login -u "$USERNAME" --password-stdin || { echo "❌ Docker login failed"; exit 1; }
+    echo "✅ Docker login successful"
+else
+    echo "Proceeding with local image build only (no push)."
 fi
+
+echo ""
+read -p "Proceed with build & deploy now? (y/n): " PROCEED
+PROCEED=$(echo "$PROCEED" | tr '[:upper:]' '[:lower:]')
+if [[ "$PROCEED" != "y" && "$PROCEED" != "yes" ]]; then
+    echo "Cancelled by user."; exit 0; fi
+
+# Navigate to kubernetes directory if not already there
+if [[ ! -f "owtf-backend-deployment.yaml" ]]; then
+    if [[ -d "infra/kubernetes" ]]; then
+        echo "Changing to kubernetes directory..."
+        cd infra/kubernetes
+    else
+        echo "❌ Cannot find kubernetes manifests. Please run from project root or kubernetes directory."
+        exit 1
+    fi
+fi
+
+# Execute main functions based on choice
+if [[ "$PUSH_IMAGES" == "true" ]]; then
+    build_and_push_images "$USERNAME" "${IMAGE_TAG:-latest}"
+    apply_deployment true "$USERNAME" "${IMAGE_TAG:-latest}"
+else
+    build_local_images
+    apply_deployment false "" ""
+fi
+
+echo ""
+echo "🎉 OWTF deployment complete!"
+echo "Check the ingress for external access or use port-forward for testing."

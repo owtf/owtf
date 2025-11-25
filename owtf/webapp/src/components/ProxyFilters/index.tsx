@@ -5,7 +5,6 @@
  */
 
 import React, { useState } from "react";
-import { TextInput, Select, Button } from "evergreen-ui";
 
 interface ProxyFiltersProps {
   filters: {
@@ -41,55 +40,69 @@ const ProxyFilters: React.FC<ProxyFiltersProps> = ({ filters, onFilterChange }) 
   return (
     <div className="proxyFilters">
       <div className="proxyFilters__form">
-        <div className="proxyFilters__field">
-          <label>Method:</label>
-          <Select
-            value={localFilters.method}
-            onChange={(e: any) => handleFilterChange("method", e.target.value)}
-          >
-            <option value="">All Methods</option>
-            <option value="GET">GET</option>
-            <option value="POST">POST</option>
-            <option value="PUT">PUT</option>
-            <option value="DELETE">DELETE</option>
-            <option value="PATCH">PATCH</option>
-            <option value="OPTIONS">OPTIONS</option>
-            <option value="HEAD">HEAD</option>
-            <option value="CONNECT">CONNECT</option>
-          </Select>
-          &nbsp;&nbsp;&nbsp;
-        {/* </div>
+        <div className="row g-2 mb-3">
+          <div className="col-md-2">
+            <label style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '4px', display: 'block' }}>Method:</label>
+            <select
+              className="form-select"
+              value={localFilters.method}
+              onChange={(e) => handleFilterChange("method", e.target.value)}
+              style={{ fontSize: '16px', padding: '8px' }}
+            >
+              <option value="">All Methods</option>
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+              <option value="PUT">PUT</option>
+              <option value="DELETE">DELETE</option>
+              <option value="PATCH">PATCH</option>
+              <option value="OPTIONS">OPTIONS</option>
+              <option value="HEAD">HEAD</option>
+              <option value="CONNECT">CONNECT</option>
+            </select>
+          </div>
 
-        <div className="proxyFilters__field"> */}
-          <label>URL:</label>
-          <TextInput
-            value={localFilters.url}
-            onChange={(e: any) => handleFilterChange("url", e.target.value)}
-            placeholder="Filter by URL..."
-          />
-          &nbsp;&nbsp;&nbsp;
-        {/* </div>
+          <div className="col-md-4">
+            <label style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '4px', display: 'block' }}>URL:</label>
+            <input
+              type="text"
+              className="form-control"
+              value={localFilters.url}
+              onChange={(e) => handleFilterChange("url", e.target.value)}
+              placeholder="Filter by URL..."
+              style={{ fontSize: '16px', padding: '8px' }}
+            />
+          </div>
 
-        <div className="proxyFilters__field"> */}
-          <label>Protocol:</label>
-          <Select
-            value={localFilters.protocol}
-            onChange={(e: any) => handleFilterChange("protocol", e.target.value)}
-          >
-            <option value="">All Protocols</option>
-            <option value="HTTP">HTTP</option>
-            <option value="HTTPS">HTTPS</option>
-          </Select>
-          &nbsp;&nbsp;&nbsp;
-        </div>
+          <div className="col-md-2">
+            <label style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '4px', display: 'block' }}>Protocol:</label>
+            <select
+              className="form-select"
+              value={localFilters.protocol}
+              onChange={(e) => handleFilterChange("protocol", e.target.value)}
+              style={{ fontSize: '16px', padding: '8px' }}
+            >
+              <option value="">All Protocols</option>
+              <option value="HTTP">HTTP</option>
+              <option value="HTTPS">HTTPS</option>
+            </select>
+          </div>
 
-        <div className="proxyFilters__actions">
-          <Button onClick={handleApplyFilters} appearance="primary">
-            Apply Filters
-          </Button>
-          <Button onClick={handleClearFilters} appearance="default">
-            Clear
-          </Button>
+          <div className="col-md-4 d-flex align-items-end">
+            <button 
+              className="btn btn-primary me-3" 
+              onClick={handleApplyFilters}
+              style={{ fontSize: '16px', padding: '8px 16px', fontWeight: 'bold' }}
+            >
+              Apply Filters
+            </button>
+            <button 
+              className="btn btn-outline-secondary" 
+              onClick={handleClearFilters}
+              style={{ fontSize: '16px', padding: '8px 16px', fontWeight: 'bold' }}
+            >
+              Clear
+            </button>
+          </div>
         </div>
       </div>
     </div>
