@@ -12,3 +12,23 @@ services:
       - POSTGRES_USER=owtf_db_user
       - POSTGRES_PASSWORD=jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=
       - POSTGRES_DB=owtf_db
+
+  backend:
+    platform: linux/arm64
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    depends_on:
+      - db
+    ports:
+      - 8008:8008
+
+  frontend:
+    platform: linux/arm64
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    depends_on:
+      - backend
+    ports:
+      - 8019:8019
