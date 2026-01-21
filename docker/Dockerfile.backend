@@ -1,5 +1,6 @@
 # Stage 1: Base
-FROM kalilinux/kali-rolling AS base
+ARG TARGETPLATFORM
+FROM --platform=$TARGETPLATFORM kalilinux/kali-rolling
 
 LABEL maintainer="Viyat Bhalodia <viyat.bhalodia@owasp.org>"
 
