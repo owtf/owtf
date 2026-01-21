@@ -1,6 +1,7 @@
 version: "3.3"
 services:
   db:
+    platform: linux/arm64
     container_name: owtf_db
     image: postgres:alpine
     ports:
