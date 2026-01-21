@@ -49,6 +49,21 @@ cd owtf
 make compose-safe
 ```
 
+## macOS (Apple Silicon / ARM64) Docker Setup
+
+OWTF supports Apple Silicon (M1/M2/M3) via multi-architecture Docker images.
+
+### Requirements
+- Docker Desktop v4.0 or newer
+
+### Steps
+
+```bash
+export DOCKER_DEFAULT_PLATFORM=linux/arm64
+docker compose build
+docker compose up
+```
+
 ## Installing directly
 
 ### Create and start the PostgreSQL database server
