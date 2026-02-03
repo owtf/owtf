@@ -24,10 +24,10 @@ import subprocess
 import json
 import logging
 
-# OWTF imports - these are the ONLY external dependencies
-from owtf.plugin.helper import plugin_helper
-
 DESCRIPTION = "Modern template-based vulnerability scanning via Nuclei"
+
+# Plugin output template (imported from OWTF at runtime)
+PLUGIN_OUTPUT = {"type": None, "output": None}
 
 
 def run(PluginInfo):
@@ -54,13 +54,13 @@ def run(PluginInfo):
     
     if not target:
         logging.error("Nuclei plugin: No target specified")
-        return plugin_helper.CommandDump(
-            "Nuclei Scanner",
-            "Error: No target specified",
-            {},
-            PluginInfo,
-            []
-        )
+        plugin_output = dict(PLUGIN_OUTPUT)
+        plugin_output["type"] = "NucleiScan"
+        plugin_output["output"] = {
+            "status": "error",
+            "message": "No target specified"
+        }
+        return [plugin_output]
     
     logging.info(f"Starting Nuclei scan for target: {target}")
     
@@ -75,19 +75,19 @@ def run(PluginInfo):
             "Documentation: https://docs.projectdiscovery.io/tools/nuclei/install"
         )
         logging.error("Nuclei not found in PATH")
-        return plugin_helper.CommandDump(
-            "Nuclei Scanner",
-            error_msg,
-            {},
-            PluginInfo,
-            []
-        )
+        plugin_output = dict(PLUGIN_OUTPUT)
+        plugin_output["type"] = "NucleiScan"
+        plugin_output["output"] = {
+            "status": "error",
+            "message": error_msg
+        }
+        return [plugin_output]
     
     # Step 2: Execute Nuclei scan
-    findings = _execute_nuclei_scan(target)
+    scan_results = _execute_nuclei_scan(target)
     
     # Step 3: Format results for OWTF
-    return _format_results(findings, target, PluginInfo)
+    return _format_results(scan_results, target, PluginInfo)
 
 
 def _check_nuclei_installed():
@@ -223,29 +223,30 @@ def _format_results(scan_results, target, plugin_info):
         plugin_info (dict): OWTF plugin info
     
     Returns:
-        list: OWTF-formatted output
+        list: OWTF-formatted plugin output
     """
     if not scan_results.get('success'):
         error_msg = scan_results.get('error', 'Unknown error')
-        return plugin_helper.CommandDump(
-            "Nuclei Scanner",
-            f"Scan failed: {error_msg}",
-            scan_results,
-            plugin_info,
-            []
-        )
+        plugin_output = dict(PLUGIN_OUTPUT)
+        plugin_output["type"] = "NucleiScan"
+        plugin_output["output"] = {
+            "status": "error",
+            "message": f"Nuclei scan failed: {error_msg}",
+            "target": target
+        }
+        return [plugin_output]
     
     findings = scan_results.get('findings', [])
     
+    # Build formatted text output
     if not findings:
-        output = f"✓ No vulnerabilities detected for {target}\n\n"
-        output += "Nuclei scan completed successfully with no findings.\n"
-        output += "Note: This scanned for critical, high, and medium severity issues only."
+        output_text = f"✓ No vulnerabilities detected for {target}\n\n"
+        output_text += "Nuclei scan completed successfully with no findings.\n"
+        output_text += "Note: This scanned for critical, high, and medium severity issues only."
     else:
-        # Build formatted output
-        output = f"Nuclei Vulnerability Scan Results for {target}\n"
-        output += "=" * 80 + "\n\n"
-        output += f"Total Findings: {len(findings)}\n\n"
+        output_text = f"Nuclei Vulnerability Scan Results for {target}\n"
+        output_text += "=" * 80 + "\n\n"
+        output_text += f"Total Findings: {len(findings)}\n\n"
         
         # Group by severity
         by_severity = {}
@@ -258,33 +259,39 @@ def _format_results(scan_results, target, plugin_info):
             if severity not in by_severity:
                 continue
             
-            output += f"\n{'='*80}\n"
-            output += f"{severity.upper()} SEVERITY ({len(by_severity[severity])} findings)\n"
-            output += f"{'='*80}\n\n"
+            output_text += f"\n{'='*80}\n"
+            output_text += f"{severity.upper()} SEVERITY ({len(by_severity[severity])} findings)\n"
+            output_text += f"{'='*80}\n\n"
             
             for idx, finding in enumerate(by_severity[severity], 1):
-                output += f"{idx}. {finding['name']}\n"
-                output += f"   Template: {finding['template_id']}\n"
-                output += f"   Matched: {finding['matched_at']}\n"
+                output_text += f"{idx}. {finding['name']}\n"
+                output_text += f"   Template: {finding['template_id']}\n"
+                output_text += f"   Matched: {finding['matched_at']}\n"
                 
                 if finding['description']:
-                    output += f"   Description: {finding['description']}\n"
+                    output_text += f"   Description: {finding['description']}\n"
                 
                 if finding['tags']:
-                    output += f"   Tags: {', '.join(finding['tags'])}\n"
+                    output_text += f"   Tags: {', '.join(finding['tags'])}\n"
                 
                 if finding['reference']:
-                    output += f"   References:\n"
+                    output_text += f"   References:\n"
                     for ref in finding['reference'][:3]:  # Show max 3 refs
-                        output += f"     - {ref}\n"
+                        output_text += f"     - {ref}\n"
                 
-                output += "\n"
+                output_text += "\n"
     
-    # Return formatted output using OWTF's CommandDump
-    return plugin_helper.CommandDump(
-        "Nuclei Vulnerability Scanner",
-        output,
-        scan_results,
-        plugin_info,
-        []
-    )
+    # Create OWTF plugin output format
+    plugin_output = dict(PLUGIN_OUTPUT)
+    plugin_output["type"] = "NucleiScan"
+    plugin_output["output"] = {
+        "title": "Nuclei Vulnerability Scanner",
+        "scan_output": output_text,
+        "findings_count": len(findings),
+        "severity_breakdown": {
+            sev: len(by_severity.get(sev, [])) 
+            for sev in ['critical', 'high', 'medium', 'low', 'info']
+        }
+    }
+    
+    return [plugin_output]
