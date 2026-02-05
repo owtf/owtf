@@ -7,7 +7,7 @@ chosen settings.
 """
 import copy
 from collections import defaultdict
-import imp
+import importlib
 import logging
 import os
 
@@ -15,6 +15,7 @@ from ptp import PTP
 from ptp.libptp.constants import UNKNOWN
 from ptp.libptp.exceptions import PTPError
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import exc
 
 from owtf.config import config_handler
 from owtf.db.session import get_scoped_session
@@ -244,8 +245,8 @@ class PluginRunner(object):
         :return: None
         :rtype: None
         """
-        f, filename, desc = imp.find_module(module_file.split(".")[0], [module_path])
-        return imp.load_module(module_name, f, filename, desc)
+        f, filename, desc = impportlib.find_module(module_file.split(".")[0], [module_path])
+        return impportlib.load_module(module_name, f, filename, desc)
 
     def chosen_plugin(self, session, plugin, show_reason=False):
         """Verify that the plugin has been chosen by the user.
@@ -524,30 +525,38 @@ class PluginRunner(object):
             for target in target_list:  # For each Target
                 self.scanner.scan_network(target)
                 # Scanning and processing the first part of the ports
-                for i in range(1):
+                for i in range(len(waves)):
                     ports = config_handler.get_tcp_ports(lastwave, waves[i])
                     logging.info("Probing for ports %s", str(ports))
-                    http = self.scanner.probe_network(target, "tcp", ports)
+                    http_ports = self.scanner.probe_network(target, "tcp", ports) #Fixed:  rename Var
                     # Tell Config that all Gets/Sets are now target-specific.
                     target_manager.set_target(target)
-                    for plugin in plugin_group:
-                        self.process_plugin(session=session, plugin_dir=plugin_dir, plugin=plugin, status=status)
-                    lastwave = waves[i]
-                    for http_ports in http:
-                        if http_ports == "443":
-                            self.process_plugins_for_target_list(
-                                session,
-                                "web",
-                                {"SomeAborted": False, "SomeSuccessful": False, "AllSkipped": True},
-                                {"https://{}".format(target.split("//")[1])},
-                            )
-                        else:
-                            self.process_plugins_for_target_list(
-                                session,
-                                "web",
-                                {"SomeAborted": False, "SomeSuccessful": False, "AllSkipped": True},
-                                {target},
-                            )
+
+                    #Iterating through plugins instead of the string plugin_group
+                    plugins = get_plugins_by_group(self.session, plugin_group) 
+                    for plugin in plugins:
+                        if self.chosen_plugin(self.session, plugin):
+                            self.process_plugin(
+                                session=session, 
+                                plugin_dir=plugin_dir, 
+                                plugin=plugin, 
+                                status=status
+                                )
+                    lastwave = int(waves[i]) #Ensure int
+
+                    #Fixed: collect all web targets first, then process once , no recursion logic
+                    web_targets = set()
+                    for port in http_ports:
+                        host = target.split('//')[-1].split(':')[0] if '//' in target else target
+                        protocol = "https" if port == "443" else "http"
+                        web_url = f"{protocol}://{host}:{port}"
+                        web_targets.add(web_url)
+
+                        if web_targets:
+                            logging.info("Discovered web services: %s", web_targets)
+                        #fixed:  Add to scope for main runner (non-recursive)
+                        for web_url in web_targets:
+                            target_manager.add_target(web_url)
         else:
             pass
 
