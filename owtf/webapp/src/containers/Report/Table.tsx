@@ -4,7 +4,7 @@
  */
 
 import React from "react";
-import {  toaster} from "evergreen-ui";
+import { toaster } from "evergreen-ui";
 import { Link } from "react-router-dom";
 import CKEditor from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
@@ -30,11 +30,11 @@ interface propsType {
   onChangeUserNotes: Function
 }
 interface stateType {
-  editorData: string, 
-  editorShow: boolean, 
+  editorData: string,
+  editorShow: boolean,
 }
 
-export class DataTable extends React.Component<propsType ,stateType> {
+export class DataTable extends React.Component<propsType, stateType> {
   constructor(props, context) {
     super(props, context);
 
@@ -170,7 +170,7 @@ export class DataTable extends React.Component<propsType ,stateType> {
               if (output_path !== undefined) {
                 return (
                   <div className="targetsCollapseDataTableContainer__bodyContainer__rowContainer__outputfiles">
-                    <a href={API_HOST+"/output_files/" + output_path}>
+                    <a href={API_HOST + "/output_files/" + output_path}>
                       <button
                         disabled={output_path === null}
                       >
@@ -236,27 +236,27 @@ export class DataTable extends React.Component<propsType ,stateType> {
 
           <div className="targetsCollapseDataTableContainer__notesAndDetailsContainer__moreDetailsContainer">
             <h2>MORE DETAILS</h2>
-            
-              {
-                (resourceList.length > 0) ?
-                  <div className="targetsCollapseDataTableContainer__notesAndDetailsContainer__moreDetailsContainer__linksContanier">
-                    {ResourceListName}
-                    <ul>
-                      {resourceList.map(
-                        (resource, index) => 
+
+            {
+              (resourceList.length > 0) ?
+                <div className="targetsCollapseDataTableContainer__notesAndDetailsContainer__moreDetailsContainer__linksContanier">
+                  {ResourceListName}
+                  <ul>
+                    {resourceList.map(
+                      (resource, index) =>
                         <li key={index}>
-                          <a href={resource[1]} target="__blank">
+                          <a href={resource[1]} target="_blank" rel="noopener noreferrer">
                             {resource[0]}
                           </a>
                         </li>
-                      )}
-                    </ul>
-                  </div>
-                  :
-                  'Output not available'
-              }
-            </div>
-        
+                    )}
+                  </ul>
+                </div>
+                :
+                'Output not available'
+            }
+          </div>
+
         </div>
       </div>
     );
@@ -276,4 +276,4 @@ const mapDispatchToProps = dispatch => {
 };
 
 //@ts-ignore
-export default connect(mapStateToProps,  mapDispatchToProps)(DataTable);
+export default connect(mapStateToProps, mapDispatchToProps)(DataTable);
