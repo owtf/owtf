@@ -117,7 +117,7 @@ Check out the [Code of Conduct](CODE_OF_CONDUCT.md).
 # Links
 
 - [Project homepage](http://owtf.github.io/)
-- Legacy IRC (deprecated): [Freenode #owtf](http://webchat.freenode.net/?randomnick=1&channels=%23owtf&prompt=1&uio=MTE9MjM20f)
+- ~~Legacy IRC (deprecated): Freenode #owtf~~ _(No longer available - Freenode shut down)_
 - [Wiki](https://www.owasp.org/index.php/OWASP_OWTF)
 - **Primary**: [OWASP Slack](https://join.slack.com/t/owasp/shared_invite/enQtNDI5MzgxMDQ2MTAwLTEyNzIzYWQ2NDZiMGIwNmJhYzYxZDJiNTM0ZmZiZmJlY2EwZmMwYjAyNmJjNzQxNzMyMWY4OTk3ZTQ0MzFhMDY) – join `#project-owtf`
 - Legacy mailing list (deprecated): [owasp_owtf_developers@lists.owasp.org](mailto:owasp_owtf_developers@lists.owasp.org)
