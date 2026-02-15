@@ -88,7 +88,8 @@ jobs:
           python -m unittest tests.functional.cli.test_empty_run
           python -m unittest tests.functional.cli.test_list_plugins
           python -m unittest tests.functional.cli.test_nowebui
-          python -m unittest tests.functional.plugins.web
+          python -m unittest tests.functional.plugins.web.test_web
+          python -m unittest tests.functional.plugins.web.active.test_web_active
 
   frontend-tests:
     name: Frontend Tests (Node 20)
