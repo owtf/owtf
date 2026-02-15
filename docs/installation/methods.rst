@@ -19,6 +19,6 @@ Just make sure that you have ``docker`` and ``docker-compose`` installed and run
 
 .. code-block:: bash
 
-	make compose
+	make compose-safe
 
 * If you wish to override the environment variables for docker setup, use the file named ``owtf.env``

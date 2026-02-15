@@ -92,7 +92,7 @@ docs:
 
 docker-build:
 	@echo "--> Building the docker image for develop"
-	docker build -t owtf/owtf -f docker/Dockerfile .
+	docker build -t owtf/owtf -f docker/Dockerfile.backend .
 
 docker-run:
 	@echo "--> Running the Docker development image"
