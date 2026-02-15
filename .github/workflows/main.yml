@@ -25,7 +25,7 @@ jobs:
         image: postgres:16
         env:
           POSTGRES_USER: owtf_db_user
-          POSTGRES_PASSWORD: owtf_db_password
+          POSTGRES_PASSWORD: jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=
           POSTGRES_DB: owtf_db
         ports:
           - 5432:5432
@@ -79,10 +79,10 @@ jobs:
 
       - name: Run backend tests
         env:
-          POSTGRES_HOST: localhost
+          POSTGRES_HOST: 127.0.0.1
           POSTGRES_PORT: 5432
           POSTGRES_USER: owtf_db_user
-          POSTGRES_PASSWORD: owtf_db_password
+          POSTGRES_PASSWORD: jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=
           POSTGRES_DB: owtf_db
         run: |
           python -m unittest tests.functional.cli.test_empty_run
