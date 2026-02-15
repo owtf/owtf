@@ -52,9 +52,9 @@ setup: install-dependencies venv activate-virtualenv install-requirements
 ### REQUIREMENTS
 
 install-python-requirements: check-root
-@echo "--> Installing Python development dependencies."
-pip3 install setuptools
-for f in `ls requirements/` ; do pip3 install -r requirements/$$f ; done
+	@echo "--> Installing Python development dependencies."
+	pip3 install setuptools
+	for f in `ls requirements/` ; do pip3 install -r requirements/$$f ; done
 
 install-ui-requirements:
 	@echo "--> Installing Node development dependencies."
@@ -194,11 +194,11 @@ bump-major:
 	git describe --tags
 
 release:
-$(PYTHON) -m build
-twine upload dist/*
+	$(PYTHON) -m build
+	twine upload dist/*
 
 build:
-$(PYTHON) -m build
+	$(PYTHON) -m build
 
 startdb:
 	docker-compose -p $(PROJ) -f docker/docker-compose.yml up -d --no-recreate

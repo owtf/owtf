@@ -56,8 +56,13 @@ jobs:
           python3 -m venv $HOME/.virtualenvs/owtf --clear
           echo "Activate virtual environment"
           source $HOME/.virtualenvs/owtf/bin/activate
-          echo "Running setup.py"
-          echo '\n\n' | python3 setup.py develop
+          echo "Upgrade packaging toolchain"
+          python3 -m pip install --upgrade pip setuptools wheel build
+          echo "Running editable install via pip/pyproject"
+          if ! python3 -m pip install -e .; then
+            echo "pip editable install failed; falling back to setup.py develop"
+            echo '\n\n' | python3 setup.py develop
+          fi
       - name: before_script
         run: |
           source $HOME/.virtualenvs/owtf/bin/activate
