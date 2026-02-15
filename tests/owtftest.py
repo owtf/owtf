@@ -10,6 +10,8 @@ from builtins import input
 import os
 import copy
 import glob
+import signal
+import subprocess
 
 import tornado
 import unittest
@@ -58,8 +60,20 @@ class OWTFCliTestCase(unittest.TestCase):
         if extra_args:
             args += extra_args
         print("with the following options: %s" % args)
-        args_str = " ".join(args)
-        os.system("owtf {}".format(args_str))
+        timeout_seconds = int(os.environ.get("OWTF_TEST_TIMEOUT", "1200"))
+        cmd = ["owtf"] + args
+        process = subprocess.Popen(cmd, start_new_session=True)
+        try:
+            process.wait(timeout=timeout_seconds)
+        except subprocess.TimeoutExpired:
+            # Ensure test runs don't hang forever if OWTF fails to exit.
+            os.killpg(process.pid, signal.SIGTERM)
+            try:
+                process.wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                os.killpg(process.pid, signal.SIGKILL)
+                process.wait(timeout=10)
+            self.fail("OWTF command timed out after {}s: {}".format(timeout_seconds, " ".join(cmd)))
         self.load_logs()
 
     def load_logs(self):
