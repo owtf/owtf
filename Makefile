@@ -5,6 +5,7 @@ mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 VENV_PATH := ${HOME}/.virtualenvs/${PROJ}
 SHELL := /bin/bash
+PY_QUALITY_PATHS := owtf/config.py owtf/lib/exceptions.py owtf/managers/config.py owtf/managers/target.py owtf/requester/base.py owtf/transactions/base.py owtf/transactions/main.py owtf/utils/http.py
 
 .PHONY: venv setup bootstrap web docs lint typecheck-py format-py clean bump build release
 
@@ -121,16 +122,16 @@ build-debian:
 
 lint-py:
 	@echo "--> Linting Python files."
-	python3 -m ruff check owtf tests
-	python3 -m ruff format --check owtf tests
+	python3 -m ruff check $(PY_QUALITY_PATHS)
+	python3 -m ruff format --check $(PY_QUALITY_PATHS)
 
 typecheck-py:
 	@echo "--> Running targeted mypy checks."
-	python3 -m mypy owtf/config.py owtf/lib/exceptions.py owtf/managers/config.py owtf/managers/target.py owtf/requester/base.py owtf/transactions/base.py owtf/transactions/main.py owtf/utils/http.py
+	python3 -m mypy $(PY_QUALITY_PATHS)
 
 format-py:
 	@echo "--> Formatting Python files."
-	python3 -m ruff format owtf tests
+	python3 -m ruff format $(PY_QUALITY_PATHS)
 
 lint-js:
 	@echo "--> Linting JavaScript files."

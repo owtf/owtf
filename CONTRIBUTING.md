@@ -36,7 +36,7 @@ Please make sure you read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 ## Style guidelines
 
 - Follow [PEP 8](https://peps.python.org/pep-0008/) for Python code unless the existing module uses a different convention.
-- Use [ruff](https://docs.astral.sh/ruff/) for both linting and formatting (`make lint-py` / `make format-py`).
+- Use [ruff](https://docs.astral.sh/ruff/) for both linting and formatting (`make lint-py` / `make format-py`) on the maintained runtime module set.
 - Run static type checks with `make typecheck-py` (mypy targeted modules).
 - Type hints are encouraged for new modules and functions.
 - Update or add documentation and tests relevant to your change. New features should include at least one automated test where
