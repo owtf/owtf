@@ -101,11 +101,11 @@ docker-run:
 ### Options to allow docker to have permissive network capabilities, allowing it to run tools such as nmap
 compose-safe:
 	@echo "--> Running the Docker Compose setup with network capabilties for container"
-	docker-compose -f docker/docker-compose.dev.yml up --build
+	docker compose -f docker/docker-compose.dev.yml up --build
 
 compose-unsafe:
 	@echo "--> Running the Docker Compose setup without network capabilties for container"
-	docker-compose -f docker/docker-compose.dev.unsafe.yml up --build
+	docker compose -f docker/docker-compose.dev.unsafe.yml up --build
 
 ### DEBIAN PACKAGING
 
@@ -200,7 +200,7 @@ build:
 	$(PYTHON) setup.py sdist bdist_wheel
 
 startdb:
-	docker-compose -p $(PROJ) -f docker/docker-compose.yml up -d --no-recreate
+	docker compose -p $(PROJ) -f docker/docker-compose.yml up -d --no-recreate
 
 stopdb:
-	docker-compose -p $(PROJ) -f docker/docker-compose.yml down
+	docker compose -p $(PROJ) -f docker/docker-compose.yml down

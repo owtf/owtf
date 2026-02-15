@@ -29,7 +29,7 @@ output "debug_commands" {
     ansible_rerun  = "export ANSIBLE_HOST_KEY_CHECKING=False && ansible-playbook -i inventory.ini owtf-setup.yml"
     setup_complete = "ssh -i ssh-keys/owtf-key ${var.admin_username}@${azurerm_public_ip.main.ip_address} 'ls -la /var/log/owtf-setup-complete'"
     docker_status  = "ssh -i ssh-keys/owtf-key ${var.admin_username}@${azurerm_public_ip.main.ip_address} 'sudo docker ps'"
-    owtf_logs      = "ssh -i ssh-keys/owtf-key ${var.admin_username}@${azurerm_public_ip.main.ip_address} 'cd owtf && docker-compose logs'"
+    owtf_logs      = "ssh -i ssh-keys/owtf-key ${var.admin_username}@${azurerm_public_ip.main.ip_address} 'cd owtf && docker compose logs'"
   }
   description = "Debug commands to monitor OWTF setup progress"
 }

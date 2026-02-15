@@ -41,7 +41,7 @@ pip install cryptography --global-option=build_ext --global-option="-L/usr/local
 
 Building the Docker image is the recommended way to use OWTF so you do not have to worry about dependency conflicts or installing a large toolchain manually.
 
-- Install [`docker` and `docker-compose`](https://docs.docker.com/compose/install/).
+- Install Docker with the Compose plugin (`docker compose`).
 
 ```bash
 git clone https://github.com/owtf/owtf
