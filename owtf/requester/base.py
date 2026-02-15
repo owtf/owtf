@@ -4,33 +4,34 @@ owtf.requester.base
 The Requester module is in charge of simplifying HTTP requests and
 automatically log HTTP transactions by calling the DB module.
 """
+import http.client as client
 import logging
 import sys
 
-import http.client as client
-from urllib.parse import urlencode
-from urllib.request import urlopen, Request
 from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
 from urllib.request import (
     HTTPHandler,
-    HTTPSHandler,
     HTTPRedirectHandler,
+    HTTPSHandler,
     ProxyHandler,
     build_opener,
     install_opener,
+    Request,
+    urlopen,
 )
 
 from owtf.db.session import get_scoped_session
-from owtf.transactions.base import HTTPTransaction
 from owtf.managers.target import is_url_in_scope
 from owtf.managers.transaction import get_first, is_transaction_already_added
 from owtf.managers.url import is_url
 from owtf.plugin.runner import runner
-from owtf.settings import PROXY_CHECK_URL, USER_AGENT, INBOUND_PROXY_IP, INBOUND_PROXY_PORT
+from owtf.settings import INBOUND_PROXY_IP, INBOUND_PROXY_PORT, PROXY_CHECK_URL, USER_AGENT
+from owtf.transactions.base import HTTPTransaction
+from owtf.utils.error import abort_framework
 from owtf.utils.http import derive_http_method
 from owtf.utils.strings import str_to_dict
 from owtf.utils.timer import timer
-from owtf.utils.error import abort_framework
 
 __all__ = ["requester"]
 

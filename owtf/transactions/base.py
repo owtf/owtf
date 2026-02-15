@@ -10,8 +10,8 @@ import logging
 import zlib
 from http.client import responses as response_messages
 
-from owtf.utils.http import derive_http_method
 from tornado.httputil import _unquote_cookie
+from owtf.utils.http import derive_http_method
 
 __all__ = ["HTTPTransaction"]
 
@@ -197,7 +197,7 @@ class HTTPTransaction(object):
             for cookie in self.cookies_list:
                 parsed_cookie = self.parse_cookie(cookie)
                 cookies.append(parsed_cookie)
-        except:
+        except Exception:
             logging.debug("Cannot not parse the cookies")
         return cookies
 

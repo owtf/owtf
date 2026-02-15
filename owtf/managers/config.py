@@ -5,6 +5,7 @@ Manage configuration methods.
 """
 import logging
 import os
+
 import yaml
 
 from owtf.config import config_handler

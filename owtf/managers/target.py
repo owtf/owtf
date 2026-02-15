@@ -15,10 +15,10 @@ from owtf.lib.exceptions import (
     InvalidTargetReference,
     UnresolvableTargetException,
 )
+from owtf.managers.session import add_target_to_session, session_required
 from owtf.models.command import Command
 from owtf.models.session import Session
 from owtf.models.target import Target
-from owtf.managers.session import add_target_to_session, session_required
 from owtf.plugin.params import plugin_params
 from owtf.settings import OUTPUT_PATH
 from owtf.utils.file import (
@@ -716,7 +716,7 @@ def derive_config_from_url(target_url):
     if target_config["target_url"].startswith(
         ("http", "https")
     ):  # target considered as hostname (web plugins)
-        if not target_config["host_name"] in target_config["alternative_ips"]:
+        if target_config["host_name"] not in target_config["alternative_ips"]:
             target_config["top_domain"] = ".".join(hostname_chunks[1:])
         # Set the top URL (get "example.com" from "www.example.com").
         target_config["top_url"] = "{0}://{1}:{2}".format(protocol, host, port)
