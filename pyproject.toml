@@ -37,3 +37,23 @@ exclude = ["node_modules", "node_modules.*"]
 [tool.setuptools.dynamic]
 version = { attr = "owtf.__version__" }
 dependencies = { file = ["requirements/base.txt", "requirements/docs.txt"] }
+
+[tool.black]
+line-length = 120
+target-version = ["py311", "py312"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["owtf/webapp", "owtf/data/tools"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E111", "E114", "E121", "E125", "E128"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+no_implicit_optional = true
