@@ -108,7 +108,10 @@ jobs:
         working-directory: owtf/webapp
         env:
           NODE_OPTIONS: --openssl-legacy-provider
-        run: npm ci --legacy-peer-deps
+        run: |
+          npm ci --legacy-peer-deps
+          # Enzyme + Jest 24 are incompatible with newer Cheerio releases that use node:* imports.
+          npm install --no-save cheerio@1.0.0-rc.12
 
       - name: Run frontend tests
         working-directory: owtf/webapp
