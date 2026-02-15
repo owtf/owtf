@@ -5,7 +5,6 @@ owtf.managers.target
 """
 import logging
 import os
-
 from urllib.parse import urlparse
 
 from owtf.db.session import get_count, get_scoped_session

@@ -7,16 +7,15 @@ automatically log HTTP transactions by calling the DB module.
 import http.client as client
 import logging
 import sys
-
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import (
+    build_opener,
     HTTPHandler,
     HTTPRedirectHandler,
     HTTPSHandler,
-    ProxyHandler,
-    build_opener,
     install_opener,
+    ProxyHandler,
     Request,
     urlopen,
 )

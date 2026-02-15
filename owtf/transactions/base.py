@@ -11,6 +11,7 @@ import zlib
 from http.client import responses as response_messages
 
 from tornado.httputil import _unquote_cookie
+
 from owtf.utils.http import derive_http_method
 
 __all__ = ["HTTPTransaction"]
