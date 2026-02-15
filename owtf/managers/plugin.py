@@ -149,10 +149,16 @@ def load_plugins(session):
         chunks = list(filter(None, plugin.split(os.path.sep)))
         # TODO: Ensure that the variables group, type and file exist when
         # the length of chunks is less than 3.
-        if len(chunks) == 3:
-            group, type, file = chunks
+        if len(chunks) != 3:
+            # Skip helper modules or unexpected paths (e.g. plugins/base.py).
+            continue
+        group, plugin_type, filename = chunks
         # Retrieve the internal name and code of the plugin.
-        name, code = os.path.splitext(file)[0].split("@")
+        file_stem = os.path.splitext(filename)[0]
+        if "@" not in file_stem:
+            # Skip files that are not OWTF plugins.
+            continue
+        name, code = file_stem.split("@", 1)
         # Only load the plugin if in XXX_TEST_GROUPS configuration (e.g. web_testgroups.cfg)
         if session.query(TestGroup).get(code) is None:
             continue
@@ -171,13 +177,13 @@ def load_plugins(session):
         # Save the plugin into the database.
         session.merge(
             Plugin(
-                key="{!s}@{!s}".format(type, code),
+                key="{!s}@{!s}".format(plugin_type, code),
                 group=group,
-                type=type,
+                type=plugin_type,
                 title=name.title().replace("_", " "),
                 name=name,
                 code=code,
-                file=file,
+                file=filename,
                 descrip=plugin_module.DESCRIPTION,
                 attr=attr,
             )
