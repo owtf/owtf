@@ -7,7 +7,7 @@ chosen settings.
 """
 import copy
 from collections import defaultdict
-import imp
+import importlib.util
 import logging
 import os
 
@@ -241,11 +241,15 @@ class PluginRunner(object):
         :type module_file: `str`
         :param module_path: path to the module
         :type module_path: `str`
-        :return: None
-        :rtype: None
+        :return: Loaded module
+        :rtype: module
         """
-        f, filename, desc = imp.find_module(module_file.split(".")[0], [module_path])
-        return imp.load_module(module_name, f, filename, desc)
+        module_file_name = module_file.split(".")[0]
+        full_path = os.path.join(module_path, module_file)
+        spec = importlib.util.spec_from_file_location(module_name, full_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
 
     def chosen_plugin(self, session, plugin, show_reason=False):
         """Verify that the plugin has been chosen by the user.

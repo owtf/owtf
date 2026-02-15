@@ -33,15 +33,13 @@ def derive_http_method(method, data):
 
 def deep_update(source, overrides):
     """Update a nested dictionary or similar mapping.
-
     Modify ``source`` in place.
-
-    :type source: collections.Mapping
-    :type overrides: collections.Mapping
-    :rtype: collections.Mapping
+    :type source: collections.abc.Mapping
+    :type overrides: collections.abc.Mapping
+    :rtype: collections.abc.Mapping
     """
     for key, value in overrides.items():
-        if isinstance(value, collections.Mapping) and value:
+        if isinstance(value, collections.abc.Mapping) and value:
             returned = deep_update(source.get(key, {}), value)
             source[key] = returned
         else:

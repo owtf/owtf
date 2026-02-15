@@ -3,7 +3,7 @@ owtf.managers.plugin
 ~~~~~~~~~~~~~~~~~~~~
 This module manages the plugins and their dependencies
 """
-import imp
+import importlib.util
 import json
 import os
 
@@ -137,13 +137,13 @@ def load_plugins(session):
         if session.query(TestGroup).get(code) is None:
             continue
         # Load the plugin as a module.
-        filename, pathname, desc = imp.find_module(
-            os.path.splitext(os.path.basename(plugin_path))[0],
-            [os.path.dirname(plugin_path)],
+        module_name = os.path.splitext(os.path.basename(plugin_path))[0]
+        spec = importlib.util.spec_from_file_location(
+            module_name,
+            plugin_path
         )
-        plugin_module = imp.load_module(
-            os.path.splitext(file)[0], filename, pathname, desc
-        )
+        plugin_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(plugin_module)
         # Try te retrieve the `attr` dictionary from the module and convert
         # it to json in order to save it into the database.
         attr = None
