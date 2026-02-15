@@ -14,7 +14,6 @@ from owtf.lib.exceptions import APIError
 from owtf.managers.poutput import get_all_poutputs
 from owtf.managers.target import get_target_config_by_id
 from owtf.models.test_group import TestGroup
-from owtf.utils.pycompat import iteritems
 from owtf.api.handlers.jwtauth import jwtauth
 
 
@@ -93,7 +92,7 @@ class ReportExportHandler(APIRequestHandler):
         mapping_type = self.get_argument("mapping", None)
         mappings = {}
         if mapping_type and mapping_type in SUPPORTED_MAPPINGS:
-            for k, v in iteritems(MAPPINGS):
+            for k, v in MAPPINGS.items():
                 if v.get(mapping_type, None) is not None:
                     mappings[k] = v[mapping_type]
 

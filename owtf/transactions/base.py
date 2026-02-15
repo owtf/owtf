@@ -8,10 +8,7 @@ import gzip
 import io
 import logging
 import zlib
-try:
-    from http.client import responses as response_messages
-except ImportError:
-    from httplib import responses as response_messages
+from http.client import responses as response_messages
 
 from owtf.utils.http import derive_http_method
 from tornado.httputil import _unquote_cookie
@@ -163,6 +160,7 @@ class HTTPTransaction(object):
         self.response_size = response_size
         self.response_contents = response_body
 
+    @staticmethod
     def parse_cookie(cookie: str):
         """Parse a ``Cookie`` HTTP header into a dict of name/value pairs.
 
@@ -197,7 +195,7 @@ class HTTPTransaction(object):
         cookies = []
         try:  # parsing may sometimes fail
             for cookie in self.cookies_list:
-                parsed_cookie = parse_cookie(cookie)
+                parsed_cookie = self.parse_cookie(cookie)
                 cookies.append(parsed_cookie)
         except:
             logging.debug("Cannot not parse the cookies")

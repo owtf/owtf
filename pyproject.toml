@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "owtf"
+description = "OWASP+PTES focused try to unite great tools and make pen testing more efficient"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "BSD-3-Clause" }
+authors = [{ name = "Abraham Aranguren", email = "abraham.aranguren@owasp.org" }]
+dynamic = ["version", "dependencies"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+]
+
+[project.urls]
+Homepage = "https://github.com/owtf/owtf"
+Repository = "https://github.com/owtf/owtf"
+
+[project.scripts]
+owtf = "owtf.core:main"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.packages.find]
+exclude = ["node_modules", "node_modules.*"]
+
+[tool.setuptools.dynamic]
+version = { attr = "owtf.__version__" }
+dependencies = { file = ["requirements/base.txt", "requirements/docs.txt"] }

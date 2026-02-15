@@ -7,37 +7,18 @@ automatically log HTTP transactions by calling the DB module.
 import logging
 import sys
 
-try:
-    import http.client as client
-except ImportError:
-    import httplib as client
-try:
-    from urllib.parse import urlparse, urlencode
-    from urllib.request import urlopen, Request
-    from urllib.error import HTTPError, URLError
-    from urllib.request import (
-        HTTPHandler,
-        HTTPSHandler,
-        HTTPRedirectHandler,
-        ProxyHandler,
-        build_opener,
-        install_opener,
-    )
-except ImportError:
-    from urlparse import urlparse
-    from urllib import urlencode
-    from urllib2 import (
-        urlopen,
-        Request,
-        HTTPError,
-        HTTPHandler,
-        HTTPSHandler,
-        HTTPRedirectHandler,
-        ProxyHandler,
-        build_opener,
-        install_opener,
-        URLError,
-    )
+import http.client as client
+from urllib.parse import urlencode
+from urllib.request import urlopen, Request
+from urllib.error import HTTPError, URLError
+from urllib.request import (
+    HTTPHandler,
+    HTTPSHandler,
+    HTTPRedirectHandler,
+    ProxyHandler,
+    build_opener,
+    install_opener,
+)
 
 from owtf.db.session import get_scoped_session
 from owtf.transactions.base import HTTPTransaction
@@ -55,7 +36,7 @@ __all__ = ["requester"]
 
 
 # Intercept raw request trick from:
-# http://stackoverflow.com/questions/6085709/get-headers-sent-in-urllib2-http-request
+# http://stackoverflow.com/questions/6085709/get-headers-sent-in-urllib-http-request
 class _HTTPConnection(client.HTTPConnection):
 
     def send(self, s):
@@ -236,10 +217,11 @@ class Requester(object):
         if "" == post:
             post = None
         if post:
-            if isinstance(post, str) or isinstance(post, unicode):
+            if isinstance(post, str):
                 # Must be a dictionary prior to urlencode.
-                post = str_to_dict(str(post))
-            post = urlencode(post).encode("utf-8")
+                post = str_to_dict(post)
+            if not isinstance(post, (bytes, bytearray)):
+                post = urlencode(post).encode("utf-8")
         return post
 
     def perform_request(self, request):
@@ -284,7 +266,7 @@ class Requester(object):
         :return:
         :rtype:
         """
-        # kludge: necessary to get around urllib2 limitations: Need this to get the exact request that was sent.
+        # kludge: necessary to get around urllib limitations: Need this to get the exact request that was sent.
         global raw_request
         url = str(url)
 
@@ -294,7 +276,7 @@ class Requester(object):
         url = url.strip()  # Clean up URL.
         r = Request(url, post, self.headers)  # GET request.
         if method is not None:
-            # kludge: necessary to do anything other that GET or POST with urllib2
+            # kludge: necessary to do anything other that GET or POST with urllib
             r.get_method = lambda: method
         # MUST create a new Transaction object each time so that lists of
         # transactions can be created and process at plugin-level
@@ -306,7 +288,7 @@ class Requester(object):
             response = self.perform_request(r)
             self.set_successful_transaction(raw_request, response)
         except HTTPError as error:  # page NOT found.
-            # Error is really a response for anything other than 200 OK in urllib2 :)
+            # Error is really a response for anything other than 200 OK in urllib :)
             self.http_transaction.set_transaction(False, raw_request[0], error)
         except URLError as error:  # Connection refused?
             err_message = self.process_http_error_code(error, url)

@@ -8,10 +8,7 @@ import logging
 import os
 import time
 
-try:  # PY3
-    from urllib.parse import urlparse
-except ImportError:  # PY2
-    from urlparse import urlparse
+from urllib.parse import urlparse
 
 from owtf.transactions.base import HTTPTransaction
 from owtf.lib.owtf_process import OWTFProcess
@@ -26,8 +23,8 @@ from owtf.utils.timer import Timer
 class TransactionLogger(OWTFProcess):
     """
     This transaction logging process is started separately from tornado proxy
-    This logger checks for \*.rd files in cache_dir and saves it as owtf db
-    transaction, \*.rd files serve as a message that the file corresponding
+    This logger checks for *.rd files in cache_dir and saves it as owtf db
+    transaction, *.rd files serve as a message that the file corresponding
     to the hash is ready to be converted.
     """
 

@@ -6,7 +6,7 @@ current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 VENV_PATH := ${HOME}/.virtualenvs/${PROJ}
 SHELL := /bin/bash
 
-.PHONY: venv setup web docs lint clean bump build release
+.PHONY: venv setup bootstrap web docs lint clean bump build release
 
 check-root:
 ifeq ($(USER), root)
@@ -51,7 +51,7 @@ setup: install-dependencies venv activate-virtualenv install-requirements
 
 ### REQUIREMENTS
 
-install-python-requirements: setup.py check-root
+install-python-requirements: check-root
 	@echo "--> Installing Python development dependencies."
 	pip3 install setuptools
 	for f in `ls requirements/` ; do pip3 install -r requirements/$$f ; done
@@ -81,6 +81,10 @@ setup-web:
 post-install:
 	@echo "--> Installing dictionaries and tools"
 	python3 scripts/install_tools.py
+
+bootstrap:
+	@echo "--> Running explicit OWTF bootstrap steps"
+	./scripts/install.sh
 
 ### DOCS
 

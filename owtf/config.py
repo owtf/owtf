@@ -9,15 +9,6 @@ repository to get info.
 import logging
 from collections import defaultdict
 
-try:  # PY3
-    from urllib.parse import urlparse
-except ImportError:  # PY2
-    from urlparse import urlparse
-try:
-    import configparser as parser
-except ImportError:
-    import ConfigParser as parser
-
 from owtf.lib.exceptions import PluginAbortException
 from owtf.settings import CONFIG_TYPES, REPLACEMENT_DELIMITER, ROOT_DIR
 
