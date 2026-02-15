@@ -7,9 +7,11 @@ chosen settings.
 """
 import copy
 from collections import defaultdict
-import imp
+import hashlib
+import importlib.util
 import logging
 import os
+import re
 
 from ptp import PTP
 from ptp.libptp.constants import UNKNOWN
@@ -244,8 +246,18 @@ class PluginRunner(object):
         :return: None
         :rtype: None
         """
-        f, filename, desc = imp.find_module(module_file.split(".")[0], [module_path])
-        return imp.load_module(module_name, f, filename, desc)
+        abs_module_path = os.path.join(module_path, module_file)
+        module_stub = os.path.splitext(module_file)[0]
+        module_stub = re.sub(r"[^0-9a-zA-Z_]", "_", module_stub)
+        module_prefix = re.sub(r"[^0-9a-zA-Z_]", "_", module_name) if module_name else "owtf_runtime_plugin"
+        digest = hashlib.md5(abs_module_path.encode("utf-8")).hexdigest()[:10]
+        unique_module_name = "{0}_{1}_{2}".format(module_prefix, module_stub, digest)
+        spec = importlib.util.spec_from_file_location(unique_module_name, abs_module_path)
+        if spec is None or spec.loader is None:
+            abort_framework("Cannot load plugin module from path: {0}".format(abs_module_path))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
 
     def chosen_plugin(self, session, plugin, show_reason=False):
         """Verify that the plugin has been chosen by the user.
