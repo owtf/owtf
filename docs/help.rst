@@ -1,9 +1,7 @@
-Want Help or Request a feature?
-===============================
+.. raw:: html
 
-There are many ways in which you can reach the OWTF Team
-
-    * `IRC channel (irc.freenode.net) <http://webchat.freenode.net/?randomnick=1&channels=%23owtf&prompt=1&uio=MTE9MjM20f>`_
-    * `Github Issue Tracker <https://github.com/owtf/owtf/issues>`_
-    * `User mailing list <https://lists.owasp.org/mailman/listinfo/owasp_owtf>`_
-    * `Developers mailing list <https://lists.owasp.org/mailman/listinfo/owasp_owtf_developers>`_
+   <ul>
+     <li><a href="https://github.com/owtf/owtf/issues" target="_blank" rel="noopener noreferrer">Github Issue Tracker</a></li>
+     <li><a href="https://lists.owasp.org/mailman/listinfo/owasp_owtf" target="_blank" rel="noopener noreferrer">User mailing list</a></li>
+     <li><a href="https://lists.owasp.org/mailman/listinfo/owasp_owtf_developers" target="_blank" rel="noopener noreferrer">Developers mailing list</a></li>
+   </ul>

@@ -3,9 +3,11 @@ owtf.managers.plugin
 ~~~~~~~~~~~~~~~~~~~~
 This module manages the plugins and their dependencies
 """
-import imp
+import hashlib
+import importlib.util
 import json
 import os
+import re
 
 from owtf.models.plugin import Plugin
 from owtf.models.test_group import TestGroup
@@ -14,6 +16,24 @@ from owtf.utils.error import abort_framework
 from owtf.utils.file import FileOperations
 
 TEST_GROUPS = ["web", "network", "auxiliary"]
+
+
+def _safe_module_name(prefix, plugin_path):
+    """Build a deterministic, import-safe module name for a plugin file."""
+    module_stub = os.path.splitext(os.path.basename(plugin_path))[0]
+    module_stub = re.sub(r"[^0-9a-zA-Z_]", "_", module_stub)
+    digest = hashlib.md5(plugin_path.encode("utf-8")).hexdigest()[:10]
+    return "{0}_{1}_{2}".format(prefix, module_stub, digest)
+
+
+def _load_module_from_path(module_name, plugin_path):
+    """Load a Python module from a filesystem path."""
+    spec = importlib.util.spec_from_file_location(module_name, plugin_path)
+    if spec is None or spec.loader is None:
+        abort_framework("Unable to load plugin module from path: {0}".format(plugin_path))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def get_test_groups_config(file_path):
@@ -129,20 +149,23 @@ def load_plugins(session):
         chunks = list(filter(None, plugin.split(os.path.sep)))
         # TODO: Ensure that the variables group, type and file exist when
         # the length of chunks is less than 3.
-        if len(chunks) == 3:
-            group, type, file = chunks
+        if len(chunks) != 3:
+            # Skip helper modules or unexpected paths (e.g. plugins/base.py).
+            continue
+        group, plugin_type, filename = chunks
         # Retrieve the internal name and code of the plugin.
-        name, code = os.path.splitext(file)[0].split("@")
+        file_stem = os.path.splitext(filename)[0]
+        if "@" not in file_stem:
+            # Skip files that are not OWTF plugins.
+            continue
+        name, code = file_stem.split("@", 1)
         # Only load the plugin if in XXX_TEST_GROUPS configuration (e.g. web_testgroups.cfg)
         if session.query(TestGroup).get(code) is None:
             continue
         # Load the plugin as a module.
-        filename, pathname, desc = imp.find_module(
-            os.path.splitext(os.path.basename(plugin_path))[0],
-            [os.path.dirname(plugin_path)],
-        )
-        plugin_module = imp.load_module(
-            os.path.splitext(file)[0], filename, pathname, desc
+        plugin_module = _load_module_from_path(
+            _safe_module_name("owtf_plugin", plugin_path),
+            plugin_path,
         )
         # Try te retrieve the `attr` dictionary from the module and convert
         # it to json in order to save it into the database.
@@ -154,13 +177,13 @@ def load_plugins(session):
         # Save the plugin into the database.
         session.merge(
             Plugin(
-                key="{!s}@{!s}".format(type, code),
+                key="{!s}@{!s}".format(plugin_type, code),
                 group=group,
-                type=type,
+                type=plugin_type,
                 title=name.title().replace("_", " "),
                 name=name,
                 code=code,
-                file=file,
+                file=filename,
                 descrip=plugin_module.DESCRIPTION,
                 attr=attr,
             )

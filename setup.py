@@ -57,13 +57,21 @@ long_description = codecs.open(os.path.abspath("README.md"), "r", "utf-8").read(
 post_script = os.path.join(ROOT_DIR, "scripts/install.sh")
 
 
+def run_post_install_script():
+    skip_post_install = os.environ.get("OWTF_SKIP_POST_INSTALL", "").strip().lower() in {"1", "true", "yes"}
+    if skip_post_install:
+        print("Skipping post install script because OWTF_SKIP_POST_INSTALL is set.")
+        return
+    print("Running post install")
+    call(["/bin/bash", post_script])
+
+
 class PostDevelopCommand(develop):
     """Post-installation for development mode."""
 
     def run(self):
         develop.run(self)
-        print("Running post install")
-        call(["/bin/bash", post_script])
+        run_post_install_script()
 
 
 class PostInstallCommand(install):
@@ -79,8 +87,7 @@ class PostInstallCommand(install):
             installer()
         else:
             super().run()
-        print("Running post install")
-        call(["/bin/bash", post_script])
+        run_post_install_script()
 
 
 setup(

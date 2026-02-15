@@ -7,13 +7,12 @@ chosen settings.
 """
 import copy
 from collections import defaultdict
-import imp
+import hashlib
+import importlib.util
 import logging
 import os
+import re
 
-from ptp import PTP
-from ptp.libptp.constants import UNKNOWN
-from ptp.libptp.exceptions import PTPError
 from sqlalchemy.exc import SQLAlchemyError
 
 from owtf.config import config_handler
@@ -32,6 +31,22 @@ from owtf.utils.strings import wipe_bad_chars
 from owtf.utils.timer import timer
 
 __all__ = ["runner", "show_plugin_list", "show_plugin_types"]
+
+try:
+    from ptp import PTP
+    from ptp.libptp.constants import UNKNOWN
+    from ptp.libptp.exceptions import PTPError
+    _PTP_IMPORT_ERROR = None
+except Exception as e:  # pragma: no cover - depends on optional runtime stack
+    # PTP transitively imports js2py, which is not compatible with Python 3.12 in some releases.
+    # Keep OWTF runnable and skip ranking when PTP cannot be imported.
+    PTP = None
+    UNKNOWN = 0
+
+    class PTPError(Exception):
+        pass
+
+    _PTP_IMPORT_ERROR = e
 
 INTRO_BANNER_GENERAL = """
 Short Intro:
@@ -244,8 +259,18 @@ class PluginRunner(object):
         :return: None
         :rtype: None
         """
-        f, filename, desc = imp.find_module(module_file.split(".")[0], [module_path])
-        return imp.load_module(module_name, f, filename, desc)
+        abs_module_path = os.path.join(module_path, module_file)
+        module_stub = os.path.splitext(module_file)[0]
+        module_stub = re.sub(r"[^0-9a-zA-Z_]", "_", module_stub)
+        module_prefix = re.sub(r"[^0-9a-zA-Z_]", "_", module_name) if module_name else "owtf_runtime_plugin"
+        digest = hashlib.md5(abs_module_path.encode("utf-8")).hexdigest()[:10]
+        unique_module_name = "{0}_{1}_{2}".format(module_prefix, module_stub, digest)
+        spec = importlib.util.spec_from_file_location(unique_module_name, abs_module_path)
+        if spec is None or spec.loader is None:
+            abort_framework("Cannot load plugin module from path: {0}".format(abs_module_path))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
 
     def chosen_plugin(self, session, plugin, show_reason=False):
         """Verify that the plugin has been chosen by the user.
@@ -349,6 +374,9 @@ class PluginRunner(object):
         Returns the ranking value.
 
         """
+        if PTP is None:
+            logging.debug("Skipping PTP ranking because PTP is unavailable: %s", _PTP_IMPORT_ERROR)
+            return -1
 
         def extract_metasploit_modules(cmd):
             """Extract the metasploit modules contained in the plugin output.
