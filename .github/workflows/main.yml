@@ -136,10 +136,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Detect Dockerfile changes
+        id: docker_changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            docker:
+              - 'docker/Dockerfile.backend'
+              - 'docker/Dockerfile.frontend'
+
       - name: Set up Docker Buildx
+        if: steps.docker_changes.outputs.docker == 'true'
         uses: docker/setup-buildx-action@v3
 
       - name: Build backend image
+        if: steps.docker_changes.outputs.docker == 'true'
         run: |
           docker build \
             --pull \
@@ -149,12 +160,17 @@ jobs:
             .
 
       - name: Build frontend image
+        if: steps.docker_changes.outputs.docker == 'true'
         run: |
           docker build \
             --pull \
             --file docker/Dockerfile.frontend \
             --tag owtf-frontend:ci \
             .
+
+      - name: Skip Docker builds (no Dockerfile changes)
+        if: steps.docker_changes.outputs.docker != 'true'
+        run: echo "No Dockerfile changes detected; skipping Docker image builds."
 
   lint:
     name: Lint
