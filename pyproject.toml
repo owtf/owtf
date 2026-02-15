@@ -45,7 +45,7 @@ extend-exclude = ["owtf/webapp", "owtf/data/tools"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]
-ignore = ["E111", "E114", "E121", "E125", "E128"]
+ignore = ["E111", "E114"]
 
 [tool.ruff.format]
 quote-style = "double"
