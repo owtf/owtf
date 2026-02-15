@@ -122,7 +122,7 @@ build-debian:
 lint-py:
 	@echo "--> Linting Python files."
 	python3 -m ruff check owtf tests
-	python3 -m black --check owtf tests
+	python3 -m ruff format --check owtf tests
 
 typecheck-py:
 	@echo "--> Running targeted mypy checks."
@@ -130,7 +130,7 @@ typecheck-py:
 
 format-py:
 	@echo "--> Formatting Python files."
-	python3 -m black owtf tests
+	python3 -m ruff format owtf tests
 
 lint-js:
 	@echo "--> Linting JavaScript files."

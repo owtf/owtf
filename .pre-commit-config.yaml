@@ -4,10 +4,4 @@ repos:
     hooks:
       - id: ruff
         args: [--fix]
-
-  - repo: https://github.com/psf/black
-    rev: 24.3.0
-    hooks:
-      - id: black
-        args: [--line-length=120]
-        language_version: python3.11
+      - id: ruff-format
