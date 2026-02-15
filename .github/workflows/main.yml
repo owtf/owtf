@@ -129,6 +129,33 @@ jobs:
           NODE_OPTIONS: --openssl-legacy-provider
         run: npm test -- --runInBand --watch=false
 
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        run: |
+          docker build \
+            --pull \
+            --file docker/Dockerfile.backend \
+            --target final_install \
+            --tag owtf-backend:ci \
+            .
+
+      - name: Build frontend image
+        run: |
+          docker build \
+            --pull \
+            --file docker/Dockerfile.frontend \
+            --tag owtf-frontend:ci \
+            .
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
