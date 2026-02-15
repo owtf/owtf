@@ -75,14 +75,14 @@ resource "aws_instance" "ec2" {
               sudo apt update -y && sudo apt upgrade -y && sudo apt autoremove -y
               sudo snap install amazon-ssm-agent --classic
               sudo snap start amazon-ssm-agent
-              sudo apt install awscli software-properties-common apt-transport-https ca-certificates curl git docker-compose make -y
+              sudo apt install awscli software-properties-common apt-transport-https ca-certificates curl git make -y
               curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
               echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-              sudo apt-cache policy docker-ce && sudo apt install docker-ce -y
+              sudo apt-cache policy docker-ce && sudo apt install docker-ce docker-compose-plugin -y
               sudo usermod -aG docker ssm-user
               sudo systemctl restart docker
               git clone https://github.com/owtf/owtf.git
-              cd owtf && docker-compose -f docker/docker-compose.dev.yml up --build -d
+              cd owtf && docker compose -f docker/docker-compose.dev.yml up --build -d
               EOF
   depends_on = [aws_lb.alb, aws_vpc.vpc]
 }
