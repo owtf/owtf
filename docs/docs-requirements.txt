@@ -1,6 +1,6 @@
-sphinx
+sphinx==5
 furo
-sphinxcontrib.httpdomain
+sphinxcontrib-httpdomain==1.7.0
 
 # Align the documentation build dependencies with the runtime pins from
 # requirements/base.txt so that the Read the Docs environment can install the
@@ -21,7 +21,7 @@ pyOpenSSL==23.3.0
 PyYAML==6.0.1
 requests==2.31.0
 selenium==4.18.1
-six==1.15.0
+six==1.16.0
 SQLAlchemy==1.4.54
 sqlalchemy_mixins==1.5.3
 tornado==6.2.0
