@@ -3,7 +3,7 @@ owtf.utils.http
 ~~~~~~~~~~~~~~~
 
 """
-import collections
+import collections.abc
 import types
 
 try:  # PY3
@@ -41,7 +41,7 @@ def deep_update(source, overrides):
     :rtype: collections.Mapping
     """
     for key, value in overrides.items():
-        if isinstance(value, collections.Mapping) and value:
+        if isinstance(value, collections.abc.Mapping) and value:
             returned = deep_update(source.get(key, {}), value)
             source[key] = returned
         else:
