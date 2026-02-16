@@ -10,13 +10,13 @@ import sys
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import (
-    build_opener,
     HTTPHandler,
     HTTPRedirectHandler,
     HTTPSHandler,
-    install_opener,
     ProxyHandler,
     Request,
+    build_opener,
+    install_opener,
     urlopen,
 )
 

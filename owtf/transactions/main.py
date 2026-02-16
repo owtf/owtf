@@ -7,7 +7,6 @@ import glob
 import logging
 import os
 import time
-
 from urllib.parse import urlparse
 
 from owtf.lib.owtf_process import OWTFProcess
