@@ -86,9 +86,16 @@ COPY --chown=owtf:owtf setup.py setup.cfg MANIFEST.in README.md ${HOME}/
 # Install OWTF using the recommended method (setup.py)
 RUN cd ${HOME} && \
     python setup.py install
+# Generate SSL certificates for proxy
+RUN mkdir -p ${HOME}/.owtf/proxy/certs && \
+    openssl req -new -x509 -keyout ${HOME}/.owtf/proxy/certs/ca.key \
+    -out ${HOME}/.owtf/proxy/certs/ca.crt -days 3650 -nodes \
+    -subj "/C=US/ST=State/L=City/O=OWTF/CN=OWTF-CA" && \
+    echo "owtf" > ${HOME}/.owtf/proxy/certs/ca_pass.txt && \
+    chown -R owtf:owtf ${HOME}/.owtf
 
 # Reduce cache footprint from pip to keep final image size smaller
-RUN pip cache purge && rm -rf ${HOME}/.cache
+RUN pip cache purge || true && rm -rf ${HOME}/.cache || true
 
 # Stage 3: Runtime image
 FROM base AS final_install
@@ -112,6 +119,7 @@ COPY --from=owtf_setup /home/owtf/setup.py ${HOME}/setup.py
 COPY --from=owtf_setup /home/owtf/setup.cfg ${HOME}/setup.cfg
 COPY --from=owtf_setup /home/owtf/MANIFEST.in ${HOME}/MANIFEST.in
 COPY --from=owtf_setup /home/owtf/README.md ${HOME}/README.md
+COPY --from=owtf_setup /home/owtf/.owtf ${HOME}/.owtf
 
 RUN chown -R owtf:owtf ${HOME}
 
