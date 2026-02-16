@@ -5,7 +5,6 @@ import { SIGNUP_START } from "./constants";
 import { signupUsingSignupAPI } from "./api";
 import { push } from "react-router-redux";
 import { toaster } from "evergreen-ui";
-import "@babel/polyfill";
 
 /**
  * Create the signup of the user from API

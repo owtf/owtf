@@ -4,7 +4,6 @@ import { OTP_START } from "./constants";
 import { OtpVerifyAPI } from "./api";
 import { push } from "react-router-redux";
 import { toaster } from "evergreen-ui";
-import "@babel/polyfill";
 
 export function* postDataToOtpAPI(action) {
   const postOtpAPI = OtpVerifyAPI();

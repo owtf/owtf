@@ -9,7 +9,6 @@ import {
 } from "./actions";
 import { toaster } from "evergreen-ui";
 import { push } from "react-router-redux";
-import "@babel/polyfill";
 
 /**
  * Send the email verification link to the email of the user using API

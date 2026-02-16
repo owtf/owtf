@@ -5,7 +5,6 @@ import { loginUsingLoginAPI, logoutUsingLogoutAPI } from "./api";
 import jwt_decode from "jwt-decode";
 import { push } from "react-router-redux";
 import { toaster } from "evergreen-ui";
-import "@babel/polyfill";
 
 export function* postDataToLoginAPI(action) {
   const postLoginAPI = loginUsingLoginAPI();

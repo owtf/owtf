@@ -4,7 +4,6 @@ import { FORGOT_PASSWORD_EMAIL_START } from "./constants";
 import { emailAPI } from "./api";
 import { toaster } from "evergreen-ui";
 import { push } from "react-router-redux";
-import "@babel/polyfill";
 
 export function* postDataToEmailAPI(action) {
   const postEmailAPI = emailAPI();

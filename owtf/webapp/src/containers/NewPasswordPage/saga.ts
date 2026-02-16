@@ -3,7 +3,6 @@ import { newPasswordSuccess, newPasswordFail } from "./actions";
 import { NEW_PASSWORD_START } from "./constants";
 import { newPasswordAPI } from "./api";
 import { push } from "react-router-redux";
-import "@babel/polyfill";
 import { toaster } from "evergreen-ui";
 
 export function* postDataToNewPasswordAPI(action) {
