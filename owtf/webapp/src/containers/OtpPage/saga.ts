@@ -2,8 +2,8 @@ import { call, put, takeLatest } from "redux-saga/effects";
 import { otpSuccess, otpFail } from "./actions";
 import { OTP_START } from "./constants";
 import { OtpVerifyAPI } from "./api";
-import { push } from "react-router-redux";
 import { toaster } from "evergreen-ui";
+import history from "../../utils/historyUtils";
 
 export function* postDataToOtpAPI(action) {
   const postOtpAPI = OtpVerifyAPI();
@@ -16,7 +16,7 @@ export function* postDataToOtpAPI(action) {
     if (responseData.data["status"] == "success") {
       toaster.success(responseData.data["message"]);
       yield put(otpSuccess(responseData.data["message"], action.otp));
-      yield put(push("/new-password/"));
+      yield call([history, history.push], "/new-password/");
     } else {
       toaster.danger(responseData.data["message"]);
       yield put(otpFail(responseData.data["message"]));

@@ -3,8 +3,8 @@ import { signupFail, signupSuccess } from "./actions";
 import { emailSendStart } from "../EmailVerification/actions";
 import { SIGNUP_START } from "./constants";
 import { signupUsingSignupAPI } from "./api";
-import { push } from "react-router-redux";
 import { toaster } from "evergreen-ui";
+import history from "../../utils/historyUtils";
 
 /**
  * Create the signup of the user from API
@@ -22,7 +22,7 @@ export function* postDataToSignupAPI(action) {
     if (responseData.data["status"] == "success") {
       yield put(signupSuccess(responseData.data["message"], action.email));
       toaster.success(responseData.data["message"]);
-      yield put(push("/email-send/"));
+      yield call([history, history.push], "/email-send/");
       yield put(emailSendStart(signupData["email"]));
     } else {
       yield put(signupFail(responseData.data["message"]));

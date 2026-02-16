@@ -2,8 +2,8 @@ import { call, put, takeLatest } from "redux-saga/effects";
 import { newPasswordSuccess, newPasswordFail } from "./actions";
 import { NEW_PASSWORD_START } from "./constants";
 import { newPasswordAPI } from "./api";
-import { push } from "react-router-redux";
 import { toaster } from "evergreen-ui";
+import history from "../../utils/historyUtils";
 
 export function* postDataToNewPasswordAPI(action) {
   const postNewPasswordAPI = newPasswordAPI();
@@ -19,7 +19,7 @@ export function* postDataToNewPasswordAPI(action) {
       yield put(
         newPasswordSuccess(responseData.data["message"], action.emailOrUsername)
       );
-      yield put(push("/login/"));
+      yield call([history, history.push], "/login/");
     } else {
       toaster.danger(responseData.data["message"]);
       yield put(newPasswordFail(responseData.data["message"]));
