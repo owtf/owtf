@@ -33,7 +33,6 @@ type NavLinkItem = {
   text: string;
   dropdown?: boolean;
   links?: Array<{ linkTo: string; text: string }>;
-  button?: "dark" | "light";
 };
 
 const Logo = ({ brand }: { brand: any }) => (
@@ -133,16 +132,9 @@ export default class NavigationBar extends React.Component<NavigationBarPropsTyp
 
   renderRightSide = (links: NavLinkItem[]) => {
     const dropdownLink = links.find((link) => link.dropdown);
-    const loginLink = links.find((link) => link.button === "dark");
 
     return (
       <div className="flex items-center gap-2">
-        {loginLink && loginLink.linkTo ? (
-          <Button asChild className="hidden sm:inline-flex">
-            <Link to={loginLink.linkTo}>{loginLink.text}</Link>
-          </Button>
-        ) : null}
-
         {dropdownLink ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -178,7 +170,7 @@ export default class NavigationBar extends React.Component<NavigationBarPropsTyp
 
   render() {
     const links = (this.props.links || []) as NavLinkItem[];
-    const navLinks = links.filter((link) => !link.button && !link.dropdown);
+    const navLinks = links.filter((link) => !link.dropdown);
 
     return (
       <nav className="h-16 border-b border-zinc-200 bg-white/95 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/95">

@@ -2,14 +2,13 @@ import Request from "../../utils/request";
 import { API_BASE_URL } from "../../utils/constants";
 
 interface Header {
-  headers: { "Content-Type": string; Authorization: string };
+  headers: { "Content-Type": string };
 }
 
 function getHeaders(): Header {
   return {
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-      Authorization: `Bearer ${localStorage.getItem("token")}`
+      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
     }
   };
 }

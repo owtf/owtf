@@ -4,7 +4,6 @@ owtf.api.handlers.base
 
 """
 import json
-import re
 import uuid
 
 from tornado.escape import url_escape
@@ -39,9 +38,6 @@ else:
 
 __all__ = ["APIRequestHandler", "FileRedirectHandler", "UIRequestHandler"]
 
-# pattern for the authentication token header
-auth_header_pat = re.compile(r"^(?:token|bearer)\s+([^\s]+)$", flags=re.IGNORECASE)
-
 
 class BaseRequestHandler(RequestHandler):
     CORS_ORIGIN = ALLOWED_ORIGINS[1]
@@ -64,7 +60,7 @@ class BaseRequestHandler(RequestHandler):
 
         self.set_header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
         self.set_header("Access-Control-Allow-Credentials", "true")
-        self.set_header("Access-Control-Allow-Headers", "Authorization,Content-Type,X-Requested-With")
+        self.set_header("Access-Control-Allow-Headers", "Content-Type,X-Requested-With")
 
         # Caching headers
         self.add_header("Cache-Control", "no-cache,no-store,max-age=0,must-revalidate")
@@ -177,15 +173,6 @@ class APIRequestHandler(BaseRequestHandler):
                 }
             )
             self.finish()
-
-    def get_auth_token(self):
-        """Get the authorization token from Authorization header"""
-        auth_header = self.request.headers.get("Authorization", "")
-        match = auth_header_pat.match(auth_header)
-        if not match:
-            return None
-        return match.group(1)
-
 
 class UIRequestHandler(BaseRequestHandler):
     def reverse_url(self, name, *args):

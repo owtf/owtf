@@ -51,31 +51,6 @@
   margin-bottom: 0;
 }
 
-.welcomePageContainer__infoLogoContainer__loginButton {
-  margin-top: 1.6rem;
-  padding: 0;
-}
-
-.welcomePageContainer__infoLogoContainer__loginButton a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.9rem;
-  padding: 0.5rem 1.2rem;
-  border: 1px solid #2a3f61;
-  border-radius: 10px;
-  background: #f8fafc;
-  color: #0f172a;
-  font-family: "Inter", Arial, sans-serif;
-  font-size: 1rem;
-  font-weight: 600;
-  box-shadow: var(--owtf-shadow-sm);
-}
-
-.welcomePageContainer__infoLogoContainer__loginButton a:hover {
-  background: #eef2ff;
-}
-
 @media (max-width: 980px) {
   .welcomePageContainer {
     padding: 1.5rem;

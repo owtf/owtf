@@ -7,8 +7,9 @@ VENV_PATH := ${HOME}/.virtualenvs/${PROJ}
 SHELL := /bin/bash
 PY_QUALITY_PATHS := owtf/config.py owtf/lib/exceptions.py owtf/managers/config.py owtf/managers/target.py owtf/requester/base.py owtf/transactions/base.py owtf/transactions/main.py owtf/utils/http.py
 DOCKER_COMPOSE_CMD := $(shell if docker compose version >/dev/null 2>&1; then echo "docker compose"; elif docker-compose --version >/dev/null 2>&1; then echo "docker-compose"; fi)
+LOCAL_BOOTSTRAP_PY := $(shell if command -v python3.11 >/dev/null 2>&1; then echo python3.11; else echo $(PYTHON); fi)
 
-.PHONY: venv setup bootstrap web docs lint typecheck-py format-py clean bump build release local-up local-down local-status local-stop-app local-clean-ports
+.PHONY: venv setup bootstrap web docs lint typecheck-py format-py clean bump build release local-up local-down local-status local-stop-app local-clean-ports local-ensure-venv
 LOCAL_PORTS := 3000 8008 8009 8010
 
 check-compose:
@@ -236,9 +237,18 @@ local-clean-ports:
 	@bash -lc 'for p in $(LOCAL_PORTS); do pids=$$(lsof -ti tcp:$$p -sTCP:LISTEN 2>/dev/null || true); if [ -n "$$pids" ]; then echo "    killing :$$p -> $$pids"; kill $$pids 2>/dev/null || true; fi; done'
 	@bash -lc 'sleep 1'
 
-local-up: local-stop-app local-clean-ports startdb
+local-ensure-venv:
+	@echo "--> Ensuring local OWTF virtualenv exists at $(VENV_PATH)"
+	@bash -lc 'if [ ! -x "$(VENV_PATH)/bin/owtf" ]; then \
+		echo "    Bootstrapping virtualenv with $(LOCAL_BOOTSTRAP_PY)"; \
+		$(LOCAL_BOOTSTRAP_PY) -m venv "$(VENV_PATH)"; \
+		source "$(VENV_PATH)/bin/activate"; \
+		pip install --upgrade pip setuptools wheel; \
+		pip install -e .; \
+	fi'
+
+local-up: local-stop-app local-clean-ports startdb local-ensure-venv
 	@echo "--> Starting OWTF backend + Vite frontend in background"
-	@[ -x "$(VENV_PATH)/bin/owtf" ] || (echo "Missing $(VENV_PATH)/bin/owtf. Run: /opt/homebrew/bin/python3.11 -m venv $(VENV_PATH) && source $(VENV_PATH)/bin/activate && pip install -e ." && exit 1)
 	@mkdir -p .run
 	@bash -lc "source $(VENV_PATH)/bin/activate && nohup owtf > .run/owtf.log 2>&1 & echo \$$! > .run/owtf.pid"
 	@nohup yarn --cwd owtf/webapp start > .run/webapp.log 2>&1 & echo $$! > .run/webapp.pid

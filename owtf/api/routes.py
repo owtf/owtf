@@ -36,11 +36,6 @@ from owtf.api.handlers.transactions import (
     URLSearchHandler,
 )
 from owtf.api.handlers.work import WorkerHandler, WorklistHandler, WorklistSearchHandler
-from owtf.api.handlers.auth import (
-    LogInHandler,
-    LogOutHandler,
-)
-from owtf.api.handlers.api_token import ApiTokenGenerateHandler
 from owtf.api.handlers.proxy import (
     ProxyHistoryHandler,
     ProxyHistoryDetailHandler,
@@ -143,13 +138,6 @@ API_v1_HANDLERS = [
     ),
     tornado.web.url(r"/api/v1/configuration/?$", ConfigurationHandler, name="configuration_api_url"),
     tornado.web.url(r"/api/v1/dashboard/severitypanel/?$", DashboardPanelHandler),
-    tornado.web.url(r"/api/v1/login/?$", LogInHandler, name="login_api_url"),
-    tornado.web.url(r"/api/v1/logout/?$", LogOutHandler, name="logout_api_url"),
-    tornado.web.url(
-        r"/api/v1/generate/api_token/?$",
-        ApiTokenGenerateHandler,
-        name="apitokengenerator_api_url",
-    ),
     # Proxy API endpoints
     tornado.web.url(r"/api/v1/proxy/history/?$", ProxyHistoryHandler, name="proxy_history_api_url"),
     tornado.web.url(

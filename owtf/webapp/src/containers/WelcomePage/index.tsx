@@ -3,18 +3,11 @@
  */
 import React from "react";
 import { Link } from "react-router-dom";
-import { connect } from "react-redux";
-import { createStructuredSelector } from "reselect";
-import { makeSelectLoginIsAuthenticated } from "../LoginPage/selectors";
 const logo = "/img/logo.png";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 
-interface propsType {
-  isAuthenticated: string;
-}
-
-export class WelcomePage extends React.Component<propsType> {
+export class WelcomePage extends React.Component {
   // Since state and props are static,
   // there's no need to re-render this component
   shouldComponentUpdate() {
@@ -38,11 +31,9 @@ export class WelcomePage extends React.Component<propsType> {
                 and run repeatable web assessments with less operational friction.
               </p>
 
-              {!this.props.isAuthenticated ? (
-                <Button asChild className="h-11 px-6 text-base">
-                  <Link to="/login">Log in</Link>
-                </Button>
-              ) : null}
+              <Button asChild className="h-11 px-6 text-base">
+                <Link to="/dashboard">Open Dashboard</Link>
+              </Button>
             </div>
 
             <div className="flex justify-center md:justify-end">
@@ -58,9 +49,4 @@ export class WelcomePage extends React.Component<propsType> {
     );
   }
 }
-
-const mapStateToProps = createStructuredSelector({
-  isAuthenticated: makeSelectLoginIsAuthenticated,
-});
-
-export default connect(mapStateToProps, null)(WelcomePage);
+export default WelcomePage;

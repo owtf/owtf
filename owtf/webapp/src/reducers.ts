@@ -15,7 +15,6 @@ import reportsReducer from "./containers/Report/reducer";
 import worklistReducer from "./containers/WorklistPage/reducer";
 import dashboardReducer from "./containers/Dashboard/reducer";
 import workersReducer from "./containers/WorkersPage/reducer";
-import loginReducer from "./containers/LoginPage/reducer";
 import proxyReducer from "./containers/ProxyPage/reducer";
 
 /*
@@ -61,7 +60,6 @@ export default function createReducer() {
     worklist: worklistReducer,
     dashboard: dashboardReducer,
     workers: workersReducer,
-    login: loginReducer,
     proxyPage: proxyReducer
   });
 }

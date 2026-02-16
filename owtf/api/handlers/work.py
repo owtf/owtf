@@ -33,12 +33,10 @@ from owtf.settings import (
     SIMPLE_HEADERS,
 )
 from owtf.utils.strings import str2bool
-from owtf.api.handlers.jwtauth import jwtauth
 
 __all__ = ["WorkerHandler", "WorklistHandler", "WorklistSearchHandler"]
 
 
-@jwtauth
 class WorkerHandler(APIRequestHandler):
     """Manage workers."""
 
@@ -235,7 +233,6 @@ class WorkerHandler(APIRequestHandler):
             raise APIError(400, "Invalid worker referenced")
 
 
-@jwtauth
 class WorklistHandler(APIRequestHandler):
     """Handle the worklist."""
 
@@ -452,7 +449,6 @@ class WorklistHandler(APIRequestHandler):
             raise APIError(400, "Invalid worker referenced")
 
 
-@jwtauth
 class WorklistSearchHandler(APIRequestHandler):
     """Search worklist."""
 

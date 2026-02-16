@@ -20,7 +20,6 @@ from owtf.managers.transaction import (
     search_all_transactions,
 )
 from owtf.managers.url import get_all_urls, search_all_urls
-from owtf.api.handlers.jwtauth import jwtauth
 
 __all__ = [
     "TransactionDataHandler",
@@ -31,7 +30,6 @@ __all__ = [
 ]
 
 
-@jwtauth
 class TransactionDataHandler(APIRequestHandler):
     """Handle transaction data for the target by ID or all."""
 
@@ -134,7 +132,6 @@ class TransactionDataHandler(APIRequestHandler):
             raise APIError(400, "Invalid target reference provided")
 
 
-@jwtauth
 class TransactionHrtHandler(APIRequestHandler):
     """Integrate HTTP request translator tool."""
 
@@ -182,7 +179,6 @@ class TransactionHrtHandler(APIRequestHandler):
             raise APIError(400, "Invalid parameter type provided")
 
 
-@jwtauth
 class TransactionSearchHandler(APIRequestHandler):
     """Search transaction data in the DB."""
 

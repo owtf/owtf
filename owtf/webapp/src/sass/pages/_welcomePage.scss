@@ -117,35 +117,6 @@
       }
     }
 
-    &__loginButton {
-      margin: 2rem 0;
-      padding: 1rem 0;
-
-      & a {
-        box-shadow: 0px 15px 30px -4px rgba(30, 30, 60, 0.25);
-        -webkit-border-radius: 9;
-        -moz-border-radius: 9;
-        border-radius: 9px;
-        font-size: 600;
-        font-family: $font-family-1;
-        color: $button-color-dark;
-        font-size: 20px;
-        background: $button-color-light;
-        padding: 14px 27px 15px 28px;
-        text-decoration: none;
-
-        &:hover {
-          background: $hover-dark;
-          text-decoration: none;
-        }
-
-        @include md {
-          font-size: 16px;
-          padding: 12px 23px;
-        }
-      }
-    }
-
     @include lg {
       @include justify-content(space-around);
     }

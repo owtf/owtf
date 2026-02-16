@@ -12,7 +12,6 @@ import reportSaga from "./containers/Report/saga";
 import worklistSaga from "./containers/WorklistPage/saga";
 import dashboardSaga from "./containers/Dashboard/saga";
 import workersSaga from "./containers/WorkersPage/saga";
-import loginSaga from "./containers/LoginPage/saga";
 import proxySaga from "./containers/ProxyPage/saga";
 
 export default function* rootSaga() {
@@ -26,7 +25,6 @@ export default function* rootSaga() {
     worklistSaga(),
     dashboardSaga(),
     workersSaga(),
-    loginSaga(),
     proxySaga()
   ]);
 }

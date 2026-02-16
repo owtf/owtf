@@ -5,7 +5,7 @@ Usage
        :maxdepth: 2
 
        usage/starting.rst
-       usage/authentication.rst
+       usage/access-model.rst
        usage/sessions.rst
        usage/targets.rst
        usage/plugins.rst

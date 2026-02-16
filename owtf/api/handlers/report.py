@@ -14,13 +14,11 @@ from owtf.lib.exceptions import APIError
 from owtf.managers.poutput import get_all_poutputs
 from owtf.managers.target import get_target_config_by_id
 from owtf.models.test_group import TestGroup
-from owtf.api.handlers.jwtauth import jwtauth
 
 
 __all__ = ["ReportExportHandler"]
 
 
-@jwtauth
 class ReportExportHandler(APIRequestHandler):
     """Class handling API methods related to export report funtionality.
     This API returns all information about a target scan present in OWTF.

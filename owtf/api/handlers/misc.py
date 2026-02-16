@@ -12,10 +12,8 @@ from owtf.api.handlers.base import APIRequestHandler
 from owtf.lib import exceptions
 from owtf.models.error import Error
 from owtf.managers.poutput import get_severity_freq, plugin_count_output
-from owtf.api.handlers.jwtauth import jwtauth
 
 
-@jwtauth
 class DashboardPanelHandler(APIRequestHandler):
     SUPPORTED_METHODS = ["GET"]
 
@@ -26,7 +24,6 @@ class DashboardPanelHandler(APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
 
-@jwtauth
 class ProgressBarHandler(APIRequestHandler):
     SUPPORTED_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 
@@ -50,7 +47,6 @@ class ProgressBarHandler(APIRequestHandler):
         raise tornado.web.HTTPError(405)
 
 
-@jwtauth
 class ErrorDataHandler(APIRequestHandler):
     SUPPORTED_METHODS = ["GET", "POST", "DELETE", "PATCH"]
 

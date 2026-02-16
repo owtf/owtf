@@ -157,11 +157,7 @@ export class ProxyPage extends React.Component<ProxyPageProps, ProxyPageState> {
 
   downloadCACertificate = async () => {
     try {
-      const response = await fetch("/api/v1/proxy/ca-cert/", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-        },
-      });
+      const response = await fetch("/api/v1/proxy/ca-cert/");
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);

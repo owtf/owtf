@@ -21,14 +21,10 @@ pyOpenSSL==23.3.0
 PyYAML==6.0.1
 requests==2.31.0
 selenium==4.18.1
-six==1.16.0
+six==1.15.0
 SQLAlchemy==1.4.54
 sqlalchemy_mixins==1.5.3
 tornado==6.2.0
-bcrypt==3.2.0
-PyJWT==2.7.0
-bs4==0.0.1
-pyotp==2.6.0
 command-injection-tester==0.0.2
 sslyze==5.2.0
 google-cloud-storage==2.10.0
