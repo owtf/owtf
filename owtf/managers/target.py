@@ -3,6 +3,7 @@ owtf.managers.target
 ~~~~~~~~~~~~~~~~~~~~
 
 """
+
 import logging
 import os
 from urllib.parse import urlparse
@@ -92,9 +93,7 @@ def command_already_registered(session, original_command, target_id=None):
         # If the command was completed and the plugin output to which it
         # is referring exists
         if register_entry.success:
-            if plugin_output_exists(
-                session, register_entry.plugin_key, register_entry.target_id
-            ):
+            if plugin_output_exists(session, register_entry.plugin_key, register_entry.target_id):
                 return get_target_url_for_id(session, register_entry.target_id)
             else:
                 Command.delete_cmd(session, original_command)
@@ -126,9 +125,7 @@ class TargetManager(object):
             self.target_config = get_target_config_by_id(self.session, target_id)
             self.path_config = self.get_path_configs(self.target_config)
         except InvalidTargetReference:
-            raise InvalidTargetReference(
-                "0. Target doesn't exist: {!s}".format(target_id)
-            )
+            raise InvalidTargetReference("0. Target doesn't exist: {!s}".format(target_id))
 
     def get_path_configs(self, target_config):
         """Get paths to output directories
@@ -141,17 +138,11 @@ class TargetManager(object):
         path_config = {}
         # Set the output directory.
         path_config["host_output"] = os.path.join(OUTPUT_PATH, target_config["host_ip"])
-        path_config["port_output"] = os.path.join(
-            path_config["host_output"], target_config["port_number"]
-        )
+        path_config["port_output"] = os.path.join(path_config["host_output"], target_config["port_number"])
         # Set the URL output directory (plugins will save their data here).
-        path_config["url_output"] = os.path.join(
-            get_target_dir(target_config["target_url"])
-        )
+        path_config["url_output"] = os.path.join(get_target_dir(target_config["target_url"]))
         # Set the partial results path.
-        path_config["partial_url_output_path"] = os.path.join(
-            path_config["url_output"], "partial"
-        )
+        path_config["partial_url_output_path"] = os.path.join(path_config["url_output"], "partial")
         return path_config
 
     @property
@@ -245,9 +236,7 @@ def add_target(session, target_url, session_id=None):
         session_obj = session.query(Session).get(session_id)
         target_obj = session.query(Target).filter_by(target_url=target_url).one()
         if session_obj in target_obj.sessions:
-            raise DBIntegrityException(
-                "{!s} already present in Target DB & session".format(target_url)
-            )
+            raise DBIntegrityException("{!s} already present in Target DB & session".format(target_url))
         else:
             add_target_to_session(session, target_obj.id, session_id=session_obj.id)
 
@@ -285,9 +274,7 @@ def update_target(session, data_dict, target_url=None, id=None):
     if target_url:
         target_obj = session.query(Target).filter_by(target_url=target_url).one()
     if not target_obj:
-        raise InvalidTargetReference(
-            "2. Target doesn't exist: {!s}".format(id) if id else str(target_url)
-        )
+        raise InvalidTargetReference("2. Target doesn't exist: {!s}".format(id) if id else str(target_url))
     # TODO: Updating all related attributes when one attribute is changed
     if data_dict.get("scope", None) is not None:
         target_obj.scope = str2bool(data_dict.get("scope", None))
@@ -310,9 +297,7 @@ def delete_target(session, target_url=None, id=None):
     if target_url:
         target_obj = session.query(Target).filter_by(target_url=target_url).one()
     if not target_obj:
-        raise InvalidTargetReference(
-            "3. Target doesn't exist: {!s}".format(id) if id else str(target_url)
-        )
+        raise InvalidTargetReference("3. Target doesn't exist: {!s}".format(id) if id else str(target_url))
     if target_obj:
         target_url = target_obj.target_url
         session.delete(target_obj)
@@ -377,17 +362,13 @@ def target_gen_query(session, filter_data, session_id, for_stats=False):
         if filter_data.get("target_url", None):
             if isinstance(filter_data.get("target_url"), list):
                 filter_data["target_url"] = filter_data["target_url"][0]
-            query = query.filter(
-                Target.target_url.like("%%{!s}%%".format(filter_data["target_url"]))
-            )
+            query = query.filter(Target.target_url.like("%%{!s}%%".format(filter_data["target_url"])))
     else:
         if filter_data.get("target_url", None):
             if isinstance(filter_data["target_url"], str):
                 query = query.filter_by(target_url=filter_data["target_url"])
             if isinstance(filter_data["target_url"], list):
-                query = query.filter(
-                    Target.target_url.in_(filter_data.get("target_url"))
-                )
+                query = query.filter(Target.target_url.in_(filter_data.get("target_url")))
         if filter_data.get("host_ip", None):
             if isinstance(filter_data["host_ip"], str):
                 query = query.filter_by(host_ip=filter_data["host_ip"])
@@ -420,9 +401,7 @@ def target_gen_query(session, filter_data, session_id, for_stats=False):
                 if int(filter_data["limit"]) != -1:
                     query = query.limit(int(filter_data["limit"]))
         except ValueError:
-            raise InvalidParameterType(
-                "Invalid parameter type for target db for id[lt] or id[gt]"
-            )
+            raise InvalidParameterType("Invalid parameter type for target db for id[lt] or id[gt]")
     return query
 
 
@@ -442,9 +421,7 @@ def search_target_configs(session, filter_data=None, session_id=None):
     """
     total = get_count(session.query(Target).filter(Target.sessions.any(id=session_id)))
     filtered_target_objs = target_gen_query(session, filter_data, session_id).all()
-    filtered_number = get_count(
-        target_gen_query(session, filter_data, session_id, for_stats=True)
-    )
+    filtered_number = get_count(target_gen_query(session, filter_data, session_id, for_stats=True))
     results = {
         "records_total": total,
         "records_filtered": filtered_number,
@@ -466,9 +443,7 @@ def get_target_config_dicts(session, filter_data=None, session_id=None):
     """
     if filter_data is None:
         filter_data = {}
-    target_obj_list = target_gen_query(
-        session=session, filter_data=filter_data, session_id=session_id
-    ).all()
+    target_obj_list = target_gen_query(session=session, filter_data=filter_data, session_id=session_id).all()
     return get_target_configs(target_obj_list)
 
 
@@ -603,9 +578,7 @@ def get_aux_target():
                 break  # it will capture only the first one matched
         repeat_delim = ","
         if targets is None:
-            logging.error(
-                "Aux target not found! See your plugin accepted parameters in ./plugins/ folder"
-            )
+            logging.error("Aux target not found! See your plugin accepted parameters in ./plugins/ folder")
             return []
         if "REPEAT_DELIM" in plugin_params.args:
             repeat_delim = plugin_params.args["REPEAT_DELIM"]
@@ -666,9 +639,7 @@ def derive_config_from_url(target_url):
     target_config["target_url"] = target_url
     try:
         parsed_url = urlparse(target_url)
-        if (
-            not parsed_url.hostname and not parsed_url.path
-        ):  # No hostname and no path, urlparse failed.
+        if not parsed_url.hostname and not parsed_url.path:  # No hostname and no path, urlparse failed.
             raise ValueError
     except ValueError:  # Occurs sometimes when parsing invalid IPv6 host for instance
         raise UnresolvableTargetException("Invalid hostname '{!s}'".format(target_url))
@@ -711,9 +682,7 @@ def derive_config_from_url(target_url):
     target_config["top_domain"] = target_config["host_name"]
 
     hostname_chunks = target_config["host_name"].split(".")
-    if target_config["target_url"].startswith(
-        ("http", "https")
-    ):  # target considered as hostname (web plugins)
+    if target_config["target_url"].startswith(("http", "https")):  # target considered as hostname (web plugins)
         if target_config["host_name"] not in target_config["alternative_ips"]:
             target_config["top_domain"] = ".".join(hostname_chunks[1:])
         # Set the top URL (get "example.com" from "www.example.com").

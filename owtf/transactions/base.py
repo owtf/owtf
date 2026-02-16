@@ -4,6 +4,7 @@ owtf.transactions.base
 HTTP_Transaction is a container of useful HTTP Transaction information to
 simplify code both in the framework and the plugins.
 """
+
 import gzip
 import io
 import logging
@@ -18,7 +19,6 @@ __all__ = ["HTTPTransaction"]
 
 
 class HTTPTransaction(object):
-
     def __init__(self, timer):
         self.timer = timer
         self.new = False
@@ -151,7 +151,7 @@ class HTTPTransaction(object):
         self.url = url
         self.method = method
         self.status = status
-        self.found = (self.status == "200 OK")
+        self.found = self.status == "200 OK"
         self.time = time
         self.time_human = time_human
         self.local_timestamp = local_timestamp
@@ -336,7 +336,7 @@ class HTTPTransaction(object):
         self.time = str(response.request_time)
         self.time_human = self.timer.get_time_human(self.time)
         self.local_timestamp = request.local_timestamp
-        self.found = (self.status == "200 OK")
+        self.found = self.status == "200 OK"
         self.cookies_list = response.cookies
         self.new = True
         self.id = ""

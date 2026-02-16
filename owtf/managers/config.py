@@ -3,6 +3,7 @@ owtf.managers.config_manager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Manage configuration methods.
 """
+
 import logging
 import os
 
@@ -148,9 +149,7 @@ def get_all_tools(session):
     results = session.query(Config).filter(Config.key.like("%TOOL_%")).all()
     config_dicts = [config_obj.to_dict() for config_obj in results if config_obj]
     for config_dict in config_dicts:
-        config_dict["value"] = multi_replace(
-            config_dict["value"], config_handler.get_replacement_dict
-        )
+        config_dict["value"] = multi_replace(config_dict["value"], config_handler.get_replacement_dict)
     return config_dicts
 
 
@@ -171,9 +170,7 @@ def update_config_val(session, key, value):
         session.merge(config_obj)
         session.commit()
     else:
-        raise InvalidConfigurationReference(
-            "No setting exists with key: {!s}".format(key)
-        )
+        raise InvalidConfigurationReference("No setting exists with key: {!s}".format(key))
 
 
 def get_conf(session):

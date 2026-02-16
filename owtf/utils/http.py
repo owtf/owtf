@@ -3,6 +3,7 @@ owtf.utils.http
 ~~~~~~~~~~~~~~~
 
 """
+
 import types
 from collections.abc import Mapping
 
