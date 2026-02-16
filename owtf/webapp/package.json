@@ -7,7 +7,7 @@
     "start": "NODE_ENV=development node server",
     "precommit": "pretty-quick --staged",
     "test": "jest",
-    "test:watch": "npm test -- --watch"
+    "test:watch": "jest --watch"
   },
   "repository": {
     "type": "git",

@@ -110,15 +110,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: npm
-          cache-dependency-path: owtf/webapp/package-lock.json
+          cache: yarn
+          cache-dependency-path: owtf/webapp/yarn.lock
 
       - name: Install frontend dependencies
         working-directory: owtf/webapp
         env:
           NODE_OPTIONS: --openssl-legacy-provider
         run: |
-          npm ci --legacy-peer-deps
+          yarn install --frozen-lockfile
           # Enzyme + Jest 24 are incompatible with newer Cheerio releases that use node:* imports.
           npm install --no-save --legacy-peer-deps cheerio@1.0.0-rc.12
 
@@ -127,7 +127,7 @@ jobs:
         env:
           CI: "true"
           NODE_OPTIONS: --openssl-legacy-provider
-        run: npm test -- --runInBand --watch=false
+        run: yarn test --runInBand --watch=false
 
   docker-build:
     name: Docker Build
@@ -236,13 +236,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: npm
-          cache-dependency-path: owtf/webapp/package-lock.json
+          cache: yarn
+          cache-dependency-path: owtf/webapp/yarn.lock
 
       - name: Run frontend lint (if configured)
         working-directory: owtf/webapp
         env:
           NODE_OPTIONS: --openssl-legacy-provider
         run: |
-          npm ci --legacy-peer-deps
-          npm run lint --if-present
+          yarn install --frozen-lockfile
+          if node -e "const scripts = require('./package.json').scripts || {}; process.exit(scripts.lint ? 0 : 1)"; then
+            yarn run lint
+          else
+            echo "No frontend lint script configured; skipping."
+          fi
