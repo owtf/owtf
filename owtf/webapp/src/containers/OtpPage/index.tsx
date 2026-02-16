@@ -10,26 +10,25 @@ import { connect } from "react-redux";
 import { forgotPasswordEmailStart } from "../ForgotPasswordPage/actions";
 import { createStructuredSelector } from "reselect";
 import { makeSelectForgotEmail } from "../ForgotPasswordPage/selectors";
-import logo from "../../../public/img/logo.png";
+const logo = "/img/logo.png";
 
 interface propsType {
-  onSubmit: Function,
-  onResend: Function,
-  emailOrUsername: string
+  onSubmit: Function;
+  onResend: Function;
+  emailOrUsername: string;
 }
 interface stateType {
-  otp: string,
-  otpError: string
+  otp: string;
+  otpError: string;
 }
 
-
-export class OtpPage extends React.Component<propsType, stateType>  {
+export class OtpPage extends React.Component<propsType, stateType> {
   constructor(props, context) {
     super(props, context);
 
     this.state = {
       otp: "",
-      otpError: ""
+      otpError: "",
     };
   }
 
@@ -39,7 +38,7 @@ export class OtpPage extends React.Component<propsType, stateType>  {
 
   isNumeric = (str) => {
     if (typeof str != "string") return false; // only process strings!
-    
+
     return (
       //@ts-ignore
       !isNaN(str) && !isNaN(parseFloat(str)) // use type coercion to parse the _entirety_ of the string
@@ -51,7 +50,7 @@ export class OtpPage extends React.Component<propsType, stateType>  {
    *
    * @param {object} e event which triggered this function
    */
-  handleOtpValidation = e => {
+  handleOtpValidation = (e) => {
     if (!this.state.otp) {
       this.setState({ otpError: "OTP can't be empty" });
     } else if (
@@ -95,8 +94,8 @@ export class OtpPage extends React.Component<propsType, stateType>  {
               placeholder="6 digit code"
               name="text-input-otp"
               value={this.state.otp}
-              onBlur={e => this.handleOtpValidation(e)}
-              onChange={e => this.setState({ otp: e.target.value })}
+              onBlur={(e) => this.handleOtpValidation(e)}
+              onChange={(e) => this.setState({ otp: e.target.value })}
             />
           </div>
           <p className="inputRequiredError">{this.state.otpError}</p>
@@ -129,18 +128,16 @@ export class OtpPage extends React.Component<propsType, stateType>  {
   }
 }
 
-
-
 const mapStateToProps = createStructuredSelector({
-  emailOrUsername: makeSelectForgotEmail
+  emailOrUsername: makeSelectForgotEmail,
 });
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     onSubmit: (emailOrUsername, otp) =>
       dispatch(otpStart(emailOrUsername, otp)),
-    onResend: emailOrUsername =>
-      dispatch(forgotPasswordEmailStart(emailOrUsername))
+    onResend: (emailOrUsername) =>
+      dispatch(forgotPasswordEmailStart(emailOrUsername)),
   };
 };
 

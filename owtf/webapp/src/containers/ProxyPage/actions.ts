@@ -4,7 +4,7 @@
 
 import Request from "../../utils/request";
 import { API_BASE_URL } from "../../utils/constants";
-import { toaster } from "evergreen-ui";
+import toaster from "../../utils/toaster";
 
 // Action types
 export const FETCH_PROXY_HISTORY = "app/ProxyPage/FETCH_PROXY_HISTORY";

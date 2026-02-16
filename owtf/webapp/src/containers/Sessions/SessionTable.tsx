@@ -5,9 +5,9 @@
   */
  
 import React from 'react';
-import { Pane, Spinner,} from 'evergreen-ui';
 import { filter } from 'fuzzaldrin-plus';
 import { RiDeleteBinLine } from 'react-icons/ri';
+import { Spinner } from '../../components/ui/spinner';
 
 interface propsType {
   loading: boolean,
@@ -71,9 +71,9 @@ export default class SessionsTable extends React.Component<propsType, stateType>
 
     if (loading) {
       return (
-        <Pane display="flex" alignItems="center" justifyContent="center" height={400}>
+        <div className="flex h-[400px] items-center justify-center">
           <Spinner size={32} />
-        </Pane>
+        </div>
       );
     }
 
@@ -124,4 +124,3 @@ export default class SessionsTable extends React.Component<propsType, stateType>
     }
   }
 }
-

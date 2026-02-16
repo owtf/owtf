@@ -136,3 +136,7 @@ debian/owtf/
 debian/.debhelper/
 *.deb
 *.tar.gz
+
+**/.run/
+**.venv*
+**/.tmp-ts/

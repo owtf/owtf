@@ -3,6 +3,8 @@ import { Circle } from "rc-progress";
 import TimeAgo from "react-timeago";
 import PropTypes from "prop-types";
 import Dialog from "../../components/DialogBox/dialog";
+const preloaderImage = "/img/Preloader.gif";
+const notRunningImage = "/img/not-running.png";
 
 /**
  *  React Component for one entry of Worker Panel legend.
@@ -12,30 +14,34 @@ import Dialog from "../../components/DialogBox/dialog";
  */
 
 interface workerPanelPropsType {
-  progressData: object,
-  workerData: [],
-  workerLogs: any,
-  onFetchWorkerLogs: Function,
-  pollInterval: number,
-  data?: any
+  progressData: object;
+  workerData: [];
+  workerLogs: any;
+  onFetchWorkerLogs: Function;
+  pollInterval: number;
+  data?: any;
 }
 interface workerPanelStateType {
-  showDialog: boolean,
-  dialogContent: string,
-  isDialogOpened: boolean
+  showDialog: boolean;
+  dialogContent: string;
+  isDialogOpened: boolean;
 }
 
-
-export class Worker extends React.Component<workerPanelPropsType, workerPanelStateType> {
+export class Worker extends React.Component<
+  workerPanelPropsType,
+  workerPanelStateType
+> {
   constructor(props) {
     super(props);
     this.getWork = this.getWork.bind(this);
 
-    {/* @ts-ignore */}
+    {
+      /* @ts-ignore */
+    }
     this.state = {
       showDialog: false,
       dialogContent: "Nothing to show here!",
-      isDialogOpened: false
+      isDialogOpened: false,
     };
 
     this.openDialog = this.openDialog.bind(this);
@@ -45,20 +51,20 @@ export class Worker extends React.Component<workerPanelPropsType, workerPanelSta
   // Function responsible for opening the dialog box
   openDialog() {
     this.setState({
-      isDialogOpened: true
+      isDialogOpened: true,
     });
   }
 
   // Function responsible for closing the dialog box
   closeDialog() {
     this.setState({
-      isDialogOpened: false
+      isDialogOpened: false,
     });
   }
 
   /* Function resposible to make enteries for each worker in worker legend */
   getWork() {
-    let getLog = name => {
+    let getLog = (name) => {
       this.props.onFetchWorkerLogs(name, -1);
       setTimeout(() => {
         const workerLogs = this.props.workerLogs;
@@ -74,10 +80,7 @@ export class Worker extends React.Component<workerPanelPropsType, workerPanelSta
       Work = (
         <div className="workerPanelComponentContainer__workerLegendContainer__workerComponentWrapper__workerComponent__workContainer">
           {/* Loading GIF if worker is busy */}
-          <img
-            className="workerpanel-labelimg"
-            src={require("../../../public/img/Preloader.gif")}
-          />
+          <img className="workerpanel-labelimg" src={preloaderImage} />
           <p>
             {"Worker " +
               this.props.data.id +
@@ -95,10 +98,7 @@ export class Worker extends React.Component<workerPanelPropsType, workerPanelSta
       Work = (
         <div className="workerPanelComponentContainer__workerLegendContainer__workerComponentWrapper__workerComponent__workContainer">
           {/* Constant image if worker is not busy */}
-          <img
-            className="workerpanel-labelimg"
-            src={require("../../../public/img/not-running.png")}
-          />
+          <img className="workerpanel-labelimg" src={notRunningImage} />
           <p>{"Worker " + this.props.data.id + " - " + "Not Running "}</p>
           <button onClick={() => getLog(this.props.data.name)}>Log</button>
         </div>
@@ -124,8 +124,12 @@ export class Worker extends React.Component<workerPanelPropsType, workerPanelSta
           onClose={this.closeDialog}
         >
           <div className="workerPanelComponentContainer__workerLegendContainer__workerComponentWrapper__workerComponent__workerLogContainer">
-     
-            <textarea rows={20} cols={50} value={this.state.dialogContent} disabled></textarea>
+            <textarea
+              rows={20}
+              cols={50}
+              value={this.state.dialogContent}
+              disabled
+            ></textarea>
           </div>
         </Dialog>
       </div>
@@ -153,23 +157,25 @@ export class Worker extends React.Component<workerPanelPropsType, workerPanelSta
 *  Each element of data array represent details of what each worker is doing.
 */
 
-
 interface workerLegendPropsType {
-  workerData: [],
-  workerLogs: boolean | string,
-  onFetchWorkerLogs: Function,
-  pollInterval: number
+  workerData: [];
+  workerLogs: boolean | string;
+  onFetchWorkerLogs: Function;
+  pollInterval: number;
 }
 interface WorkerLegendStateType {
-  intervalId: any
+  intervalId: any;
 }
 
-export class WorkerLegend extends React.Component<workerLegendPropsType, WorkerLegendStateType> {
+export class WorkerLegend extends React.Component<
+  workerLegendPropsType,
+  WorkerLegendStateType
+> {
   constructor(props) {
     super(props);
 
     this.state = {
-      intervalId: null
+      intervalId: null,
     };
 
     this.changeState = this.changeState.bind(this);
@@ -192,10 +198,12 @@ export class WorkerLegend extends React.Component<workerLegendPropsType, WorkerL
   /* Making an AJAX request on source property */
   componentDidMount() {
     this.changeState();
-    {/* @ts-ignore */}
+    {
+      /* @ts-ignore */
+    }
     this.state.intervalId = setInterval(
       this.changeState,
-      this.props.pollInterval
+      this.props.pollInterval,
     );
   }
 
@@ -205,7 +213,7 @@ export class WorkerLegend extends React.Component<workerLegendPropsType, WorkerL
         className="workerPanelComponentContainer__workerLegendContainer__workerComponentWrapper"
         data-test="workerLegendComponent"
       >
-        {this.props.workerData.map((worker: any ,index) => {
+        {this.props.workerData.map((worker: any, index) => {
           return (
             <div key={worker.id}>
               {/* @ts-ignore */}
@@ -215,7 +223,6 @@ export class WorkerLegend extends React.Component<workerLegendPropsType, WorkerL
                 onFetchWorkerLogs={this.props.onFetchWorkerLogs}
               />
             </div>
-
           );
         })}
       </div>
@@ -238,23 +245,25 @@ export class WorkerLegend extends React.Component<workerLegendPropsType, WorkerL
  *    }
  */
 
-
 interface ProgressBarPropsType {
-  pollInterval: number,
-  progressData: any
+  pollInterval: number;
+  progressData: any;
 }
 interface ProgressBarStateType {
-  percent: number,
-  color: any,
-  intervalId: any
+  percent: number;
+  color: any;
+  intervalId: any;
 }
-export class ProgressBar extends React.Component<ProgressBarPropsType, ProgressBarStateType> {
+export class ProgressBar extends React.Component<
+  ProgressBarPropsType,
+  ProgressBarStateType
+> {
   constructor(props) {
     super(props);
     this.state = {
       percent: 0,
       color: "#3FC7FA",
-      intervalId: null
+      intervalId: null,
     };
 
     this.changeState = this.changeState.bind(this);
@@ -263,24 +272,28 @@ export class ProgressBar extends React.Component<ProgressBarPropsType, ProgressB
   /* Function responsible to make changes in state of progres Bar */
   changeState() {
     var colorMap = ["#FE8C6A", "#3FC7FA", "#85D262"];
-    {/* @ts-ignore */}
-    var randNumber = colorMap[parseInt(Math.random() * 3)]
+    {
+      /* @ts-ignore */
+    }
+    var randNumber = colorMap[parseInt(Math.random() * 3)];
     var left_count = this.props.progressData.left_count;
     var complete_count = this.props.progressData.complete_count;
     if (left_count == 0 && complete_count == 0) {
       this.setState({
         percent: 0,
-        color: randNumber
+        color: randNumber,
       });
       clearInterval(this.state.intervalId);
     } else {
-
-      var percentage_done = (complete_count / (left_count + complete_count)) * 100;
-      {/* @ts-ignore */}
+      var percentage_done =
+        (complete_count / (left_count + complete_count)) * 100;
+      {
+        /* @ts-ignore */
+      }
       var randColor1 = colorMap[parseInt(percentage_done / 34)];
       this.setState({
         percent: percentage_done,
-        color: randColor1
+        color: randColor1,
       });
       if (percentage_done == 100) {
         clearInterval(this.state.intervalId);
@@ -290,10 +303,12 @@ export class ProgressBar extends React.Component<ProgressBarPropsType, ProgressB
 
   componentDidMount() {
     this.changeState();
-    {/* @ts-ignore */}
+    {
+      /* @ts-ignore */
+    }
     this.state.intervalId = setInterval(
       this.changeState,
-      this.props.pollInterval
+      this.props.pollInterval,
     );
   }
 
@@ -301,9 +316,13 @@ export class ProgressBar extends React.Component<ProgressBarPropsType, ProgressB
     return (
       <>
         {/* @ts-ignore */}
-        <Circle height={280} percent={this.state.percent} strokeWidth="5" strokeColor={this.state.color} />
+        <Circle
+          height={280}
+          percent={this.state.percent}
+          strokeWidth="5"
+          strokeColor={this.state.color}
+        />
       </>
-
     );
   }
 }
@@ -314,26 +333,29 @@ export class ProgressBar extends React.Component<ProgressBarPropsType, ProgressB
  */
 
 interface workerPanelPropsType {
-  progressData: object,
-  workerData: [],
-  workerLogs: any,
-  onFetchWorkerLogs: Function,
-  pollInterval: number
+  progressData: object;
+  workerData: [];
+  workerLogs: any;
+  onFetchWorkerLogs: Function;
+  pollInterval: number;
 }
 interface workerPanelStateType {
-  percent: number,
-  color: any,
-  intervalId: any
+  percent: number;
+  color: any;
+  intervalId: any;
 }
 
-export default class WorkerPanel extends React.Component<workerPanelPropsType, workerPanelStateType>{
+export default class WorkerPanel extends React.Component<
+  workerPanelPropsType,
+  workerPanelStateType
+> {
   render() {
     const {
       progressData,
       workerData,
       workerLogs,
       onFetchWorkerLogs,
-      pollInterval
+      pollInterval,
     } = this.props;
     return (
       <div

@@ -2,8 +2,8 @@ import { call, put, takeLatest } from "redux-saga/effects";
 import { forgotPasswordEmailSuccess, forgotPasswordEmailFail } from "./actions";
 import { FORGOT_PASSWORD_EMAIL_START } from "./constants";
 import { emailAPI } from "./api";
-import { toaster } from "evergreen-ui";
 import history from "../../utils/historyUtils";
+import toaster from "../../utils/toaster";
 
 export function* postDataToEmailAPI(action) {
   const postEmailAPI = emailAPI();

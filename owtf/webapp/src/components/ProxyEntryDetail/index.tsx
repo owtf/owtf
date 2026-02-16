@@ -4,8 +4,16 @@
  * Component to display detailed information about a proxy entry
  */
 
-import React, { useState } from "react";
-import { Dialog, Tab, Tablist, Pane, Button, Code } from "evergreen-ui";
+import React from "react";
+
+import { Button } from "../ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 
 interface ProxyEntryDetailProps {
   entry: any;
@@ -13,17 +21,9 @@ interface ProxyEntryDetailProps {
 }
 
 const ProxyEntryDetail: React.FC<ProxyEntryDetailProps> = ({ entry, onClose }) => {
-  const [selectedTab, setSelectedTab] = useState(0);
-
-  const tabs = [
-    { index: 0, tab: "Headers" },
-    { index: 1, tab: "Body" },
-    { index: 2, tab: "Raw" }
-  ];
-
   const formatHeaders = (headers: any) => {
     if (!headers || typeof headers !== "object") return "No headers";
-    
+
     return Object.entries(headers)
       .map(([key, value]) => `${key}: ${value}`)
       .join("\n");
@@ -31,9 +31,8 @@ const ProxyEntryDetail: React.FC<ProxyEntryDetailProps> = ({ entry, onClose }) =
 
   const formatBody = (body: any) => {
     if (!body) return "No body content";
-    
+
     if (typeof body === "string") {
-      // Try to format as JSON if possible
       try {
         const parsed = JSON.parse(body);
         return JSON.stringify(parsed, null, 2);
@@ -41,139 +40,92 @@ const ProxyEntryDetail: React.FC<ProxyEntryDetailProps> = ({ entry, onClose }) =
         return body;
       }
     }
-    
+
     return String(body);
   };
 
-  const formatRaw = (entry: any) => {
+  const formatRaw = (data: any) => {
     const lines = [];
-    
-    // First line
-    if (entry.direction === "REQUEST") {
-      lines.push(`${entry.method} ${entry.url} HTTP/1.1`);
+
+    if (data.direction === "REQUEST") {
+      lines.push(`${data.method} ${data.url} HTTP/1.1`);
     } else {
-      lines.push(`HTTP/1.1 ${entry.status_code} Response`);
+      lines.push(`HTTP/1.1 ${data.status_code} Response`);
     }
-    
-    // Headers
-    if (entry.headers && typeof entry.headers === "object") {
-      Object.entries(entry.headers).forEach(([key, value]) => {
+
+    if (data.headers && typeof data.headers === "object") {
+      Object.entries(data.headers).forEach(([key, value]) => {
         lines.push(`${key}: ${value}`);
       });
     }
-    
-    // Empty line
+
     lines.push("");
-    
-    // Body
-    if (entry.body) {
-      lines.push(formatBody(entry.body));
+
+    if (data.body) {
+      lines.push(formatBody(data.body));
     }
-    
+
     return lines.join("\n");
   };
 
   return (
-    <Dialog
-      isShown={true}
-      title={`${entry.direction} - ${entry.method} ${entry.url}`}
-      onCloseComplete={onClose}
-      width="80vw"
-      height="80vh"
-    >
-      <Pane display="flex" flexDirection="column" height="100%">
-        <Pane borderBottom="default" padding={16}>
-          <Tablist>
-            {tabs.map((tab) => (
-              <Tab
-                key={tab.index}
-                isSelected={selectedTab === tab.index}
-                onSelect={() => setSelectedTab(tab.index)}
-              >
-                {tab.tab}
-              </Tab>
-            ))}
-          </Tablist>
-        </Pane>
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-h-[85vh] max-w-5xl overflow-hidden p-0">
+        <DialogHeader className="border-b border-slate-200 px-6 py-4">
+          <DialogTitle className="truncate text-base">
+            {entry.direction} - {entry.method} {entry.url}
+          </DialogTitle>
+        </DialogHeader>
 
-        <Pane flex={1} padding={16} overflow="auto">
-          {selectedTab === 0 && (
-            <div className="proxyEntryDetail__headers">
-              <h4>Headers</h4>
-              <Code
-                appearance="minimal"
-                size={300}
-                isBlock
-                whiteSpace="pre-wrap"
-              >
-                {formatHeaders(entry.headers)}
-              </Code>
-            </div>
-          )}
+        <div className="flex h-[70vh] flex-col overflow-hidden p-4">
+          <Tabs defaultValue="headers" className="flex h-full flex-col overflow-hidden">
+            <TabsList className="w-fit">
+              <TabsTrigger value="headers">Headers</TabsTrigger>
+              <TabsTrigger value="body">Body</TabsTrigger>
+              <TabsTrigger value="raw">Raw</TabsTrigger>
+            </TabsList>
 
-          {selectedTab === 1 && (
-            <div className="proxyEntryDetail__body">
-              <h4>Body</h4>
-              <Code
-                appearance="minimal"
-                size={300}
-                isBlock
-                whiteSpace="pre-wrap"
-              >
-                {formatBody(entry.body)}
-              </Code>
-            </div>
-          )}
+            <TabsContent value="headers" className="mt-3 flex-1 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <h4 className="mb-2 text-sm font-semibold text-slate-800">Headers</h4>
+              <pre className="whitespace-pre-wrap text-xs text-slate-700">{formatHeaders(entry.headers)}</pre>
+            </TabsContent>
 
-          {selectedTab === 2 && (
-            <div className="proxyEntryDetail__raw">
-              <h4>Raw</h4>
-              <Code
-                appearance="minimal"
-                size={300}
-                isBlock
-                whiteSpace="pre-wrap"
-              >
-                {formatRaw(entry)}
-              </Code>
-            </div>
-          )}
-        </Pane>
+            <TabsContent value="body" className="mt-3 flex-1 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <h4 className="mb-2 text-sm font-semibold text-slate-800">Body</h4>
+              <pre className="whitespace-pre-wrap text-xs text-slate-700">{formatBody(entry.body)}</pre>
+            </TabsContent>
 
-        <Pane borderTop="default" padding={16}>
-          <div className="proxyEntryDetail__metadata">
-            <div className="row">
-              <div className="col-md-8">
-                <div><strong>Timestamp:</strong> {entry.timestamp}</div>
-                <div><strong>Protocol:</strong> {entry.protocol}</div>
-                <div><strong>Direction:</strong> {entry.direction}</div>
-                {entry.body_size && (
-                  <div><strong>Body Size:</strong> {entry.body_size} bytes</div>
-                )}
-              </div>
-              <div className="col-md-4 text-end">
-                <button
-                  className="btn btn-primary"
-                  onClick={() => {
-                    // Store the entry in sessionStorage for the Repeater tab
-                    sessionStorage.setItem('owtf_repeater_pending_entry', JSON.stringify(entry));
-                    // Close the detail dialog
-                    onClose();
-                    // Show a message to switch to Repeater tab
-                    alert('Request sent to Repeater! Switch to the Repeater tab to view and edit it.');
-                  }}
-                  title="Send this request to the Repeater tab"
-                >
-                  <i className="fas fa-share me-2"></i>
-                  Send to Repeater
-                </button>
-              </div>
-            </div>
+            <TabsContent value="raw" className="mt-3 flex-1 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <h4 className="mb-2 text-sm font-semibold text-slate-800">Raw</h4>
+              <pre className="whitespace-pre-wrap text-xs text-slate-700">{formatRaw(entry)}</pre>
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        <div className="flex items-end justify-between gap-4 border-t border-slate-200 bg-white px-6 py-4">
+          <div className="space-y-1 text-xs text-slate-600">
+            <div><strong>Timestamp:</strong> {entry.timestamp}</div>
+            <div><strong>Protocol:</strong> {entry.protocol}</div>
+            <div><strong>Direction:</strong> {entry.direction}</div>
+            {entry.body_size && (
+              <div><strong>Body Size:</strong> {entry.body_size} bytes</div>
+            )}
           </div>
-        </Pane>
-      </Pane>
+          <Button
+            type="button"
+            onClick={() => {
+              sessionStorage.setItem("owtf_repeater_pending_entry", JSON.stringify(entry));
+              onClose();
+              alert("Request sent to Repeater! Switch to the Repeater tab to view and edit it.");
+            }}
+            title="Send this request to the Repeater tab"
+          >
+            Send to Repeater
+          </Button>
+        </div>
+      </DialogContent>
     </Dialog>
   );
 };
 
-export default ProxyEntryDetail; 
+export default ProxyEntryDetail;

@@ -6,7 +6,9 @@ import { Link } from "react-router-dom";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import { makeSelectLoginIsAuthenticated } from "../LoginPage/selectors";
-import logo from "../../../public/img/logo.png";
+const logo = "/img/logo.png";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
 
 interface propsType {
   isAuthenticated: string;
@@ -21,33 +23,44 @@ export class WelcomePage extends React.Component<propsType> {
 
   render() {
     return (
-      <div className="welcomePageContainer">
-        <div className="welcomePageContainer__infoLogoContainer">
-          <div className="welcomePageContainer__infoLogoContainer__info">
-            <h1>Offensive Web Testing Framework!</h1>
-            <p>
-              OWASP OWTF Offensive Web Testing Framework! test is a project that
-              aims to make security assessments as efficient as possible.
-            </p>
-            <div className="welcomePageContainer__infoLogoContainer__loginButton">
+      <div className="mx-auto w-full max-w-[1240px] px-4 py-6">
+        <Card className="overflow-hidden border-zinc-200 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-700 p-6 shadow-xl md:p-10">
+          <div className="grid items-center gap-8 md:grid-cols-[1.1fr,0.9fr]">
+            <div className="space-y-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-300">
+                OWASP Security Platform
+              </p>
+              <h1 className="max-w-[16ch] text-5xl font-semibold leading-[1.02] tracking-tight text-zinc-100 md:text-6xl">
+                Offensive Web Testing Framework
+              </h1>
+              <p className="max-w-[42ch] text-base leading-7 text-zinc-300 md:text-lg">
+                OWTF helps security teams automate reconnaissance, validate findings,
+                and run repeatable web assessments with less operational friction.
+              </p>
+
               {!this.props.isAuthenticated ? (
-                <Link to="/login">Log in</Link>
+                <Button asChild className="h-11 px-6 text-base">
+                  <Link to="/login">Log in</Link>
+                </Button>
               ) : null}
             </div>
-          </div>
-          <div className="welcomePageContainer__infoLogoContainer__logo">
-            <div className="welcomePageContainer__infoLogoContainer__logo__container">
-              <img src={logo} alt="brand logo" />
+
+            <div className="flex justify-center md:justify-end">
+              <img
+                src={logo}
+                alt="brand logo"
+                className="h-56 w-56 rounded-full object-cover opacity-90 shadow-2xl md:h-72 md:w-72"
+              />
             </div>
           </div>
-        </div>
+        </Card>
       </div>
     );
   }
 }
 
 const mapStateToProps = createStructuredSelector({
-  isAuthenticated: makeSelectLoginIsAuthenticated
+  isAuthenticated: makeSelectLoginIsAuthenticated,
 });
 
 export default connect(mapStateToProps, null)(WelcomePage);

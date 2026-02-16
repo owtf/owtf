@@ -1,0 +1,99 @@
+.welcomePageContainer {
+  min-height: calc(100vh - 5.4rem);
+  padding: 2.4rem;
+}
+
+.welcomePageContainer__infoLogoContainer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 3.6rem 3.2rem;
+  border: 1px solid var(--owtf-line);
+  border-radius: 24px;
+  background: linear-gradient(135deg, #12233f 0%, #2f4669 50%, #3a5b84 100%);
+  color: #eff6ff;
+  clip-path: none;
+  height: auto;
+  align-items: center;
+  gap: 2.4rem;
+}
+
+.welcomePageContainer__infoLogoContainer__info {
+  width: 52%;
+}
+
+.welcomePageContainer__infoLogoContainer__info h1 {
+  font-family: "Inter", Arial, sans-serif;
+  font-size: clamp(3.6rem, 4.2vw, 5.2rem);
+  line-height: 1.03;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.4rem;
+  color: #f8fafc;
+}
+
+.welcomePageContainer__infoLogoContainer__info p {
+  font-family: "Inter", Arial, sans-serif;
+  font-size: 1.15rem;
+  line-height: 1.7;
+  margin-top: 0;
+  max-width: 52ch;
+  color: #d7e2f0;
+}
+
+.welcomePageContainer__infoLogoContainer__logo {
+  width: 40%;
+}
+
+.welcomePageContainer__infoLogoContainer__logo__container img {
+  width: min(340px, 88%);
+  max-width: 340px;
+  border-radius: 999px;
+  opacity: 0.84;
+  margin-bottom: 0;
+}
+
+.welcomePageContainer__infoLogoContainer__loginButton {
+  margin-top: 1.6rem;
+  padding: 0;
+}
+
+.welcomePageContainer__infoLogoContainer__loginButton a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.9rem;
+  padding: 0.5rem 1.2rem;
+  border: 1px solid #2a3f61;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: "Inter", Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: var(--owtf-shadow-sm);
+}
+
+.welcomePageContainer__infoLogoContainer__loginButton a:hover {
+  background: #eef2ff;
+}
+
+@media (max-width: 980px) {
+  .welcomePageContainer {
+    padding: 1.5rem;
+  }
+
+  .welcomePageContainer__infoLogoContainer {
+    padding: 2.3rem 1.7rem;
+    gap: 1.6rem;
+  }
+
+  .welcomePageContainer__infoLogoContainer__info,
+  .welcomePageContainer__infoLogoContainer__logo {
+    width: 100%;
+    text-align: center;
+  }
+
+  .welcomePageContainer__infoLogoContainer__info p {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

@@ -7,8 +7,8 @@ import {
   emailVerificationSuccess,
   emailVerificationFail
 } from "./actions";
-import { toaster } from "evergreen-ui";
 import history from "../../utils/historyUtils";
+import toaster from "../../utils/toaster";
 
 /**
  * Send the email verification link to the email of the user using API

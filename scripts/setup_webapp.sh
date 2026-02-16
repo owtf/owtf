@@ -38,7 +38,7 @@ ui_setup() {
     cd "${ROOT_DIR}/webapp"
     yarn --silent
     echo "${normal}[*] Yarn dependencies successfully installed.${reset}"
-    echo "${normal}[*] Building using webpack.${reset}"
+    echo "${normal}[*] Building webapp using Vite.${reset}"
     yarn build &> /dev/null
     echo "${normal}[*] Build successful${reset}"
 }

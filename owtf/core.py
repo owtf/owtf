@@ -8,11 +8,21 @@ from __future__ import print_function
 
 from copy import deepcopy
 import logging
+import multiprocessing
 import os
 import signal
 import sys
 
 from tornado.ioloop import IOLoop, PeriodicCallback
+
+# OWTF worker startup currently depends on fork semantics.
+# macOS defaults to "spawn", which breaks worker bootstrap during import-time initialization.
+if sys.platform == "darwin":
+    try:
+        multiprocessing.set_start_method("fork")
+    except RuntimeError:
+        # Start method may already be set when re-entering in child/runtime contexts.
+        pass
 
 from owtf import __version__
 from owtf.api.main import start_server

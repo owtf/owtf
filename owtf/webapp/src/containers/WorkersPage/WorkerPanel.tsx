@@ -1,15 +1,10 @@
-/* Worker Panel component
- *
- * Renders worker details individually inside a panel component
- *
- */
 import React from "react";
-import Moment from "react-moment";
+import moment from "moment";
 import { Link } from "react-router-dom";
-
-import { GrFormClose } from "react-icons/gr";
-import { GrPauseFill } from "react-icons/gr";
-import { GrPlayFill } from "react-icons/gr";
+import { Pause, Play, Square, Trash2, FileText } from "lucide-react";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import { Label } from "../../components/ui/label";
 
 interface propsType {
   worker: any;
@@ -17,115 +12,27 @@ interface propsType {
   pauseWorker: (worker_id: any) => void;
   abortWorker: (worker_id: any) => void;
   deleteWorker: (worker_id: any) => void;
-  handleLogDialogShow: () => void;
+  handleLogDialogShow?: () => void;
   handleLogDialogContent: (logs: any) => void;
   workerLogs: any;
   onFetchWorkerLogs: Function;
-  logDialogContent: string;
+  logDialogContent?: string;
   openDialog: Function;
   key: any;
 }
-interface stateType {
-  showLogs: boolean;
-}
 
-const panelStyle = {
-  primary: "#337ab7",
-  info: "#bce8f1",
-  default: "#ddd"
-};
+interface stateType {
+  selectedLines: number;
+}
 
 export default class WorkerPanel extends React.Component<propsType, stateType> {
   constructor(props) {
     super(props);
-
-    this.getPanelStyle = this.getPanelStyle.bind(this);
-    this.getControlButtons = this.getControlButtons.bind(this);
-    this.getWorkerLog = this.getWorkerLog.bind(this);
-    this.displayLog = this.displayLog.bind(this);
-    this.hideLog = this.hideLog.bind(this);
-    this.openLogModal = this.openLogModal.bind(this);
-
     this.state = {
-      showLogs: false
+      selectedLines: -1,
     };
   }
 
-  /**
-   * Function handles the state of Show log button [BUTTON/MENU]
-   * Renders the show log menu
-   */
-  displayLog() {
-    this.setState((state, props) => ({
-      showLogs: !state.showLogs
-    }));
-
-    this.getWorkerLog(this.props.worker.name, -1);
-  }
-
-  /**
-   * Function handles the state of Show log button [BUTTON/MENU]
-   * Renders the show log button
-   */
-  hideLog() {
-    this.setState((state, props) => ({
-      showLogs: !state.showLogs
-    }));
-  }
-
-  /**
-   * Function handles the background state of worker panel
-   */
-  getPanelStyle() {
-    const worker = this.props.worker;
-    if (worker.busy && !worker.paused) {
-      return panelStyle.primary;
-    } else if (worker.paused) {
-      return panelStyle.info;
-    } else {
-      return panelStyle.default;
-    }
-  }
-
-  /**
-   * Function to get control buttons based on the present state of a worker
-   * It return pause button if worker is active & vice versa
-   */
-  getControlButtons() {
-    const worker = this.props.worker;
-    if (worker.busy) {
-      if (worker.paused) {
-        return (
-          <button onClick={() => this.props.resumeWorker(worker.id)}>
-            <GrPlayFill />
-          </button>
-        );
-      } else {
-        return (
-          <div style={{ display: "flex", margin: "0.5rem" }}>
-            <button onClick={() => this.props.pauseWorker(worker.id)}>
-              <GrPauseFill />
-            </button>
-            <button  onClick={() => this.props.abortWorker(worker.id)}>
-              <GrFormClose />
-            </button>
-          </div>
-        );
-      }
-    } else {
-      return (
-        <button className="wokerPanel_woker_deleteButton" onClick={() => this.props.deleteWorker(worker.id)}>
-          <GrFormClose />
-        </button>
-      );
-    }
-  }
-
-  /**
-   * Function handling log lines
-   * @param {sring} name Worker name
-   * @param {number} lines log lines to show
-   */
   getWorkerLog(name: string, lines: number) {
     this.props.onFetchWorkerLogs(name, lines);
     setTimeout(() => {
@@ -136,103 +43,119 @@ export default class WorkerPanel extends React.Component<propsType, stateType> {
     }, 500);
   }
 
-  /**
-   * Handles the rendering of worker log dialog box
-   * @param {string} worker worker name
-   * @param {number} lines Lines to render
-   */
-  openLogModal(worker: string, lines: number) {
-    this.getWorkerLog(worker, lines);
+  openLogModal = () => {
+    this.getWorkerLog(this.props.worker.name, this.state.selectedLines);
     this.props.openDialog();
+  };
+
+  renderWorkerControls() {
+    const worker = this.props.worker;
+    if (worker.busy && worker.paused) {
+      return (
+        <Button size="sm" variant="outline" onClick={() => this.props.resumeWorker(worker.id)}>
+          <Play className="h-3.5 w-3.5" />
+          Resume
+        </Button>
+      );
+    }
+
+    if (worker.busy && !worker.paused) {
+      return (
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => this.props.pauseWorker(worker.id)}>
+            <Pause className="h-3.5 w-3.5" />
+            Pause
+          </Button>
+          <Button size="sm" variant="destructive" onClick={() => this.props.abortWorker(worker.id)}>
+            <Square className="h-3.5 w-3.5" />
+            Abort
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <Button size="sm" variant="outline" onClick={() => this.props.deleteWorker(worker.id)}>
+        <Trash2 className="h-3.5 w-3.5" />
+        Delete
+      </Button>
+    );
   }
 
   render() {
-    const { worker, logDialogContent } = this.props;
-    const style = this.getPanelStyle();
+    const { worker } = this.props;
+    const relativeStartTime = worker.start_time ? moment(worker.start_time).fromNow() : null;
+
     return (
-      <div className="workerPanelContainer" data-test="workerPanelComponent">
-        <div className="workerPanelContainer__headingContainer">
-          <h1 className="workerPanelContainer__headingContainer__heading">
-            {" "}
-            {"Worker " + worker.id}
-          </h1>
-          <div className="workerPanelContainer__headingContainer__deleteButton pull-right">
-            {this.getControlButtons()}
-          </div>
+      <Card className="border-zinc-200 bg-white/95 p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/85" data-test="workerPanelComponent">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+            Worker {worker.id}
+          </h3>
+          {this.renderWorkerControls()}
         </div>
 
-        <div className="workerPanelContainer__infoContainer">
-          <p className="workerPanelContainer__infoContainer__pid">
-            <strong>PID: </strong>
-            {worker.worker}
+        <div className="space-y-2 text-sm text-zinc-600 dark:text-zinc-300">
+          <p>
+            <span className="font-semibold text-zinc-800 dark:text-zinc-100">PID:</span> {worker.worker}
           </p>
-          {worker.start_time !== undefined ? (
-            <p className="workerPanelContainer__infoContainer__startTime">
-              <strong>Start Time: </strong>
-              {worker.start_time + "(~"}{" "}
-              <Moment date={worker.start_time} durationFromNow /> {")"}
-            </p>
-          ) : (
-            <p className="workerPanelContainer__infoContainer__startTime">
-              <strong>Start Time: </strong>N/A
-            </p>
-          )}
+          <p>
+            <span className="font-semibold text-zinc-800 dark:text-zinc-100">Start:</span>{" "}
+            {worker.start_time ? `${worker.start_time} (~${relativeStartTime})` : "N/A"}
+          </p>
+
           {worker.work.length > 0 ? (
-            <div className="workerPanelContainer__infoContainer__workerWorkContainer">
-              <p>
-                <strong>Target: </strong>
-                <Link to={"/targets/" + worker.work[0]["id"]}>
+            <div className="mt-3 space-y-1 rounded-md border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800/60">
+              <p className="truncate">
+                <span className="font-semibold text-zinc-800 dark:text-zinc-100">Target:</span>{" "}
+                <Link
+                  to={`/targets/${worker.work[0].id}`}
+                  className="text-zinc-800 hover:text-zinc-950 hover:underline dark:text-zinc-100 dark:hover:text-zinc-50"
+                >
                   {worker.work[0].target_url}
                 </Link>
               </p>
               <p>
-                <strong>Plugin: </strong>
-                {worker.work[1].title}
+                <span className="font-semibold text-zinc-800 dark:text-zinc-100">Plugin:</span> {worker.work[1].title}
               </p>
               <p>
-                <strong>Type: </strong>
+                <span className="font-semibold text-zinc-800 dark:text-zinc-100">Type:</span>{" "}
                 {worker.work[1].type.replace("_", " ")}
               </p>
               <p>
-                <strong>Group: </strong>
-                {worker.work[1].group}
+                <span className="font-semibold text-zinc-800 dark:text-zinc-100">Group:</span> {worker.work[1].group}
               </p>
             </div>
-          ) : null}
-
-          <button
-            className="workerPanelContainer__infoContainer__showLogsButton"
-            onClick={() => {
-              this.displayLog();
-            }}
-          >
-            Show logs
-            {this.state.showLogs && (
-              <div className="workerPanelContainer__infoContainer__showLogsButton__dropDownMenu">
-                <span
-                  onClick={() => {
-                    this.hideLog();
-                  }}
-                >
-                  None
-                </span>
-                <span onClick={() => this.openLogModal(worker.name, -1)}>
-                  All
-                </span>
-                {[...Array(10)].map((_, i) => (
-                  <span
-                    key={i + 1}
-                    // @ts-ignore
-                    onClick={() => this.openLogModal(worker.name, i.toString())}
-                  >
-                    {i + 1}
-                  </span>
-                ))}
-              </div>
-            )}
-          </button>
+          ) : (
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">No task currently assigned.</p>
+          )}
         </div>
-      </div>
+
+        <div className="mt-4 flex items-end gap-2">
+          <div className="flex-1">
+            <Label htmlFor={`worker-log-lines-${worker.id}`} className="mb-1 block text-xs font-medium text-zinc-500">
+              Log lines
+            </Label>
+            <select
+              id={`worker-log-lines-${worker.id}`}
+              className="h-9 w-full rounded-md border border-zinc-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+              value={this.state.selectedLines}
+              onChange={(e) => this.setState({ selectedLines: Number(e.target.value) })}
+            >
+              <option value={-1}>All</option>
+              {[...Array(10)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  Last {i + 1}
+                </option>
+              ))}
+            </select>
+          </div>
+          <Button size="sm" onClick={this.openLogModal}>
+            <FileText className="h-3.5 w-3.5" />
+            View Logs
+          </Button>
+        </div>
+      </Card>
     );
   }
 }

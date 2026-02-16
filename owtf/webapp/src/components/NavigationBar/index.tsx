@@ -1,193 +1,195 @@
-/**
- * Navigation Bar
- */
-
-import React, { Component } from "react";
+import React from "react";
 import { Link, NavLink } from "react-router-dom";
-import { BsFillCaretDownFill } from "react-icons/bs";
-import logo from "../../../public/img/logo.png";
-import { FiMenu } from "react-icons/fi";
-import { RiCloseFill } from "react-icons/ri";
+import { Menu, Moon, Sun } from "lucide-react";
+import { Button } from "../ui/button";
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  navigationMenuTriggerStyle,
+} from "../ui/navigation-menu";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "../ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
-interface navgationBarPropsType {
-  brand: any
-  links: any
+const logo = "/img/logo.png";
+
+interface NavigationBarPropsType {
+  brand: any;
+  links: any[];
 }
-interface navgationBarStateType {
-  menuToggle: boolean
+
+interface NavigationBarStateType {
+  theme: "light" | "dark";
 }
-export default class NavigationBar extends Component<navgationBarPropsType, navgationBarStateType>{
+
+type NavLinkItem = {
+  linkTo?: string;
+  text: string;
+  dropdown?: boolean;
+  links?: Array<{ linkTo: string; text: string }>;
+  button?: "dark" | "light";
+};
+
+const Logo = ({ brand }: { brand: any }) => (
+  <Link
+    to={brand.linkTo}
+    className="inline-flex items-center gap-2.5 whitespace-nowrap text-zinc-900 dark:text-zinc-100"
+  >
+    <span className="text-3xl font-semibold tracking-tight">{brand.text}</span>
+    <img src={logo} alt="owtf logo" className="h-7 w-7 rounded-full object-cover" />
+  </Link>
+);
+
+const DesktopNavMenu = ({ links }: { links: NavLinkItem[] }) => (
+  <NavigationMenu className="hidden md:block">
+    <NavigationMenuList>
+      {links.map((link) => {
+        if (link.dropdown || !link.linkTo) {
+          return null;
+        }
+
+        return (
+          <NavigationMenuItem key={link.linkTo}>
+            <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+              <NavLink
+                to={link.linkTo}
+                activeClassName="border-zinc-300 bg-zinc-100 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                className={navigationMenuTriggerStyle()}
+              >
+                {link.text}
+              </NavLink>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+        );
+      })}
+    </NavigationMenuList>
+  </NavigationMenu>
+);
+
+const MobileNavigationSheet = ({ links }: { links: NavLinkItem[] }) => (
+  <Sheet>
+    <SheetTrigger asChild>
+      <Button size="icon" variant="outline" aria-label="Open navigation menu">
+        <Menu className="h-4 w-4" />
+      </Button>
+    </SheetTrigger>
+      <SheetContent side="right" className="px-4 py-3">
+        <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+      <div className="mb-5 border-b border-zinc-200 pb-4 dark:border-zinc-800">
+        <Logo brand={{ linkTo: "/", text: "OWASP OWTF" }} />
+      </div>
+      <nav className="flex flex-col gap-2">
+        {links.map((link) => {
+          if (link.dropdown || !link.linkTo) {
+            return null;
+          }
+          return (
+            <Button key={link.linkTo} asChild variant="ghost" className="justify-start">
+              <Link to={link.linkTo}>{link.text}</Link>
+            </Button>
+          );
+        })}
+      </nav>
+    </SheetContent>
+  </Sheet>
+);
+
+export default class NavigationBar extends React.Component<NavigationBarPropsType, NavigationBarStateType> {
   constructor(props) {
     super(props);
-
     this.state = {
-      menuToggle: false
+      theme: "light",
     };
-
-    this.handleMenuToggle = this.handleMenuToggle.bind(this);
   }
 
-  /* Function resposible for toggling the navigation bar menu in smaller screens */
-  handleMenuToggle() {
-    this.setState((state, props) => ({
-      menuToggle: !state.menuToggle
-    }));
+  componentDidMount() {
+    const storedTheme = localStorage.getItem("owtf-theme");
+    const theme = storedTheme === "dark" ? "dark" : "light";
+    this.applyTheme(theme);
+    this.setState({ theme });
   }
+
+  applyTheme(theme: "light" | "dark") {
+    document.documentElement.setAttribute("data-theme", theme);
+  }
+
+  handleThemeToggle = () => {
+    this.setState(
+      (state) => ({
+        theme: state.theme === "light" ? "dark" : "light",
+      }),
+      () => {
+        this.applyTheme(this.state.theme);
+        localStorage.setItem("owtf-theme", this.state.theme);
+      },
+    );
+  };
+
+  renderRightSide = (links: NavLinkItem[]) => {
+    const dropdownLink = links.find((link) => link.dropdown);
+    const loginLink = links.find((link) => link.button === "dark");
+
+    return (
+      <div className="flex items-center gap-2">
+        {loginLink && loginLink.linkTo ? (
+          <Button asChild className="hidden sm:inline-flex">
+            <Link to={loginLink.linkTo}>{loginLink.text}</Link>
+          </Button>
+        ) : null}
+
+        {dropdownLink ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="hidden sm:inline-flex">
+                {dropdownLink.text}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {(dropdownLink.links || []).map((item) => (
+                <DropdownMenuItem key={item.linkTo} asChild>
+                  <Link to={item.linkTo}>{item.text}</Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
+
+        <Button
+          size="icon"
+          variant="outline"
+          onClick={this.handleThemeToggle}
+          aria-label="Toggle light/dark mode"
+        >
+          {this.state.theme === "dark" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+        </Button>
+
+        <div className="md:hidden">
+          <MobileNavigationSheet links={links} />
+        </div>
+      </div>
+    );
+  };
 
   render() {
-    const { menuToggle } = this.state;
-    return (
-      <nav className="navigationBar">
-        <div className="navigationBar__brandContainer">
-          <Link
-            className="navigationBar__brandContainer__link"
-            to={this.props.brand.linkTo}
-          >
-            {this.props.brand.text}
-          </Link>
-          <img src={logo} alt="owtf logo" />
-        </div>
-        <div
-          className={`navigationBar__navLinksContainer ${menuToggle ? "navMenuSlideIn" : ""
-            }`}
-        >
-          <NavMenu
-            links={this.props.links}
-            menuToggle={this.handleMenuToggle}
-          />
-          <div
-            className="navigationBar__navLinksContainer__closeButton"
-            onClick={this.handleMenuToggle}
-          >
-            <RiCloseFill />
-          </div>
-        </div>
+    const links = (this.props.links || []) as NavLinkItem[];
+    const navLinks = links.filter((link) => !link.button && !link.dropdown);
 
-        <div
-          className="navigationBar__menuButton"
-          onClick={this.handleMenuToggle}
-        >
-          <FiMenu />
+    return (
+      <nav className="h-16 border-b border-zinc-200 bg-white/95 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/95">
+        <div className="mx-auto flex h-full w-full max-w-[1240px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-6 lg:gap-8">
+            <Logo brand={this.props.brand} />
+            <DesktopNavMenu links={navLinks} />
+          </div>
+          {this.renderRightSide(links)}
         </div>
       </nav>
-    );
-  }
-}
-
-interface NavMenuPropsType {
-  menuToggle: Function
-  links: any
-}
-interface NavMenuStateType {
-  isMenuDropped: boolean
-}
-export class NavMenu extends Component<NavMenuPropsType, NavMenuStateType> {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      isMenuDropped: false
-    };
-
-    this.handleDropDown = this.handleDropDown.bind(this);
-  }
-
-  /* Function resposible for toggling the dropdown menu on click */
-  handleDropDown() {
-    this.setState((state, props) => ({
-      isMenuDropped: !state.isMenuDropped
-    }));
-  }
-
-  render() {
-    const { isMenuDropped } = this.state;
-
-    const links = this.props.links.map((link, index) => {
-      if (link.dropdown) {
-        return (
-          <div
-            className="navigationBar__navLinksContainer__linksContainer__linkDropDownContainer"
-            key={index}
-          >
-            <div
-              className="navigationBar__navLinksContainer__linksContainer__linkDropDownContainer__linkText"
-              onClick={this.handleDropDown}
-            >
-              <p>{link.text}</p>
-              <span>
-                <BsFillCaretDownFill />
-              </span>
-            </div>
-
-            {isMenuDropped && (
-              <NavLinkDropdown
-                index={index}
-                links={link.links}
-                text={link.text}
-                toggle={this.handleDropDown}
-              />
-            )}
-          </div>
-        );
-      }
-
-      return (
-        <NavLink
-          className="navigationBar__navLinksContainer__linksContainer__link"
-          activeClassName="activeNavLink"
-          key={index}
-          to={link.linkTo}
-        >
-          {/* @ts-ignore */}
-          <span onClick={this.props.menuToggle}>{link.text}</span>
-        </NavLink>
-      );
-    });
-    return (
-      <>
-        <div className="navigationBar__navLinksContainer__linksContainer">
-          <>{links}</>
-        </div>
-      </>
-    );
-  }
-}
-
-interface NavLinkDropdownPropsType {
-  index: number
-  links: any
-  text: string
-  toggle: Function
-}
-interface NavLinkDropdownStateType {
-  isMenuDropped: boolean
-}
-
-export class NavLinkDropdown extends Component<NavLinkDropdownPropsType, NavLinkDropdownStateType>{
-  render() {
-    const handleDropDown = this.props.toggle;
-
-    const links = this.props.links.map(function (link, index) {
-      return (
-        <div
-          className="navigationBar__navLinksContainer__linksContainer__linkDropDownContainer__droppedLinksContainer__link"
-          key={link.text}
-        >
-          <Link
-            to={link.linkTo}
-            onClick={() => {
-              handleDropDown();
-            }}
-          >
-            {link.text}
-          </Link>
-        </div>
-      );
-    });
-    return (
-      <div className="navigationBar__navLinksContainer__linksContainer__linkDropDownContainer__droppedLinksContainer">
-        {links}
-      </div>
     );
   }
 }

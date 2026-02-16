@@ -3,8 +3,8 @@ import { loginFail, loginSuccess, logout } from "./actions";
 import { LOGIN_START, LOGIN_AUTO_CHECK, LOGOUT } from "./constants";
 import { loginUsingLoginAPI, logoutUsingLogoutAPI } from "./api";
 import jwt_decode from "jwt-decode";
-import { toaster } from "evergreen-ui";
 import history from "../../utils/historyUtils";
+import toaster from "../../utils/toaster";
 
 export function* postDataToLoginAPI(action) {
   const postLoginAPI = loginUsingLoginAPI();

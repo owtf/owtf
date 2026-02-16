@@ -1,11 +1,16 @@
 /**
- * Asynchronously loads the component for Dashboard.
+ * Asynchronously loads the route component.
  */
-import Loadable from 'react-loadable';
+import React, { Suspense, lazy } from "react";
 
-import PageLoadingIndicator from '../../components/PageLoadingIndicator';
+import PageLoadingIndicator from "../../components/PageLoadingIndicator";
 
-export default Loadable({
-  loader: () => import('./index'),
-  loading: PageLoadingIndicator,
-});
+const LazyComponent = lazy(() => import("./index"));
+
+export default function LoadableComponent(props: any) {
+  return React.createElement(
+    Suspense,
+    { fallback: React.createElement(PageLoadingIndicator) },
+    React.createElement(LazyComponent as React.ComponentType<any>, props),
+  );
+}

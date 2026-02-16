@@ -24,8 +24,8 @@ import { makeSelectPostToWorklistError } from "../Plugins/selectors";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
-import { Pane, Heading, Button, Small, Badge, toaster } from "evergreen-ui";
 import "./style.scss";
+import toaster from "../../utils/toaster";
 import Collapse from "./Collapse";
 import update from "immutability-helper";
 

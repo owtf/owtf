@@ -1,0 +1,191 @@
+.navShell {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  min-height: 5.4rem;
+  padding: 0.2rem 1rem;
+  border-bottom: 1px solid var(--owtf-line);
+  background: var(--owtf-nav-bg);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--owtf-nav-shadow);
+}
+
+.navShell__inner {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navShell__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.navShell__brand .navigationBar__brandContainer__link {
+  font-family: "Inter", Arial, sans-serif;
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--owtf-accent);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.navShell__brand .navigationBar__brandContainer__link:link,
+.navShell__brand .navigationBar__brandContainer__link:hover,
+.navShell__brand .navigationBar__brandContainer__link:active,
+.navShell__brand .navigationBar__brandContainer__link:visited {
+  color: var(--owtf-accent);
+}
+
+.navShell .navigationBar__brandContainer img {
+  max-width: 2.2rem;
+  max-height: 2.2rem;
+  margin-left: 0.55rem;
+  opacity: 0.96;
+  top: 0;
+}
+
+.navShell__links {
+  margin-left: auto;
+}
+
+.navShell .navigationBar__navLinksContainer__linksContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.navShell__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto !important;
+  min-width: max-content;
+  min-height: 2.9rem;
+  padding: 0.5rem 0.86rem;
+  border: 1px solid transparent;
+  border-radius: 9px !important;
+  white-space: nowrap;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.navShell__link:hover {
+  background: var(--owtf-surface-2);
+}
+
+.navShell__linkText {
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--owtf-muted);
+  font-family: "Inter", Arial, sans-serif;
+}
+
+.navShell .activeNavLink {
+  border-color: var(--owtf-line) !important;
+  background: var(--owtf-surface-2) !important;
+  box-shadow: var(--owtf-shadow-xs) !important;
+}
+
+.navShell .activeNavLink .navShell__linkText {
+  color: var(--owtf-accent) !important;
+}
+
+.navShell__link--dark {
+  border-color: var(--owtf-line-strong);
+  background: var(--owtf-accent);
+  padding-right: 1.4rem;
+  padding-left: 1.4rem;
+  border-radius: 10px !important;
+}
+
+.navShell__link--dark .navShell__linkText {
+  color: #f8fafc;
+}
+
+.navShell__link--dark:hover {
+  filter: brightness(0.96);
+}
+
+.navShell .navShell__link--dark.activeNavLink {
+  border-color: var(--owtf-accent) !important;
+  background: var(--owtf-accent) !important;
+}
+
+.navShell .navShell__link--dark.activeNavLink .navShell__linkText {
+  color: #f8fafc !important;
+}
+
+.navShell__menuButton {
+  margin-left: 0.7rem;
+}
+
+.themeToggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 6.6rem;
+  height: 3.2rem;
+  margin-left: 0.9rem;
+  border: 1px solid var(--owtf-line);
+  border-radius: 999px !important;
+  background: var(--owtf-surface);
+  padding: 0 0.45rem;
+  cursor: pointer;
+  transition: border-color 160ms ease;
+}
+
+.themeToggle:hover {
+  border-color: var(--owtf-line-strong);
+}
+
+.themeToggle__icon {
+  z-index: 2;
+  width: 2.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--owtf-muted);
+}
+
+.themeToggle__thumb {
+  position: absolute;
+  left: 0.24rem;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 999px;
+  background: var(--owtf-accent);
+  box-shadow: var(--owtf-shadow-xs);
+  transition: transform 180ms ease;
+}
+
+.themeToggle--dark .themeToggle__thumb {
+  transform: translateX(3.3rem);
+}
+
+.themeToggle--dark .themeToggle__icon {
+  color: var(--owtf-muted-2);
+}
+
+@media (max-width: 992px) {
+  .navShell__inner {
+    padding: 0 0.35rem;
+  }
+
+  .navShell__brand .navigationBar__brandContainer__link {
+    font-size: 1.45rem;
+  }
+
+  .navShell__linkText {
+    font-size: 0.94rem;
+  }
+
+  .themeToggle {
+    margin-left: 0.5rem;
+  }
+}

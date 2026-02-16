@@ -19,7 +19,7 @@ export default function configureStore(initialState = {}, history) {
   const middlewares = [sagaMiddleware, routerMiddleware(history)];
 
   // Add loggerMiddleware if using app in development mode.
-  if (process.env.NODE_ENV !== "production") {
+  if (import.meta.env.DEV) {
     const logger = createLogger();
     middlewares.push(logger);
   }
@@ -31,30 +31,23 @@ export default function configureStore(initialState = {}, history) {
    * https://medium.com/@zalmoxis/improve-your-development-workflow-with-redux-devtools-extension-f0379227ff83
    */
   const composeEnhancers =
-    process.env.NODE_ENV !== "production" &&
+    import.meta.env.DEV &&
     typeof window === "object" &&
-    //@ts-ignore
-    window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
-          // TODO Try to remove when `react-router-redux` is out of beta, LOCATION_CHANGE should not be fired more than once after hot reloading
-          shouldHotReload: false
+    // @ts-ignore
+    window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
+      ? // @ts-ignore
+        window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
+          shouldHotReload: false,
         })
       : compose;
 
   const store = createStore(
     createReducer(),
     fromJS(initialState),
-    composeEnhancers(...enhancers)
+    composeEnhancers(...enhancers),
   );
 
   sagaMiddleware.run(rootSaga);
-
-  // Make reducers hot reloadable.
-  if (module.hot) {
-    module.hot.accept("./reducers", () => {
-      const nextRootReducer = require("./reducers").default;
-      store.replaceReducer(nextRootReducer);
-    });
-  }
 
   return store;
 }

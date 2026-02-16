@@ -1,19 +1,38 @@
 import Docxtemplater from "docxtemplater";
-import { importDirectory } from "../../utils/export";
 import JSZip from "jszip";
 import saveAs from "save-as";
 
-//@ts-ignore
-const templates = importDirectory(
-  require.context("./templates/", true, /\.(docx)$/)
+const templateModules = import.meta.glob("./templates/**/*.docx", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
+
+const templates = Object.entries(templateModules).reduce(
+  (acc, [filePath, url]) => {
+    const fileName = filePath.split("/").pop();
+    if (fileName) {
+      acc[fileName] = url;
+    }
+    return acc;
+  },
+  {} as Record<string, string>,
 );
 
 export const templatesNames = Object.keys(templates);
 
 // Funtion responsible for generating docx from JSON using docxtemplater.
-export function getDocxReportFromJSON(json, template) {
-  //@ts-ignore
-  var zip = new JSZip(templates[template]);
+export async function getDocxReportFromJSON(json, template) {
+  const templateUrl = templates[template];
+
+  if (!templateUrl) {
+    throw new Error(`Template '${template}' was not found.`);
+  }
+
+  const templateResponse = await fetch(templateUrl);
+  const templateBuffer = await templateResponse.arrayBuffer();
+
+  var zip = new JSZip(templateBuffer);
   var doc = new Docxtemplater();
   doc.loadZip(zip);
 
@@ -28,12 +47,12 @@ export function getDocxReportFromJSON(json, template) {
       message: error.message,
       name: error.name,
       stack: error.stack,
-      properties: error.properties
+      properties: error.properties,
     };
     console.log(
       JSON.stringify({
-        error: e
-      })
+        error: e,
+      }),
     );
     // The error thrown here contains additional information when logged with JSON.stringify (it contains a property object).
     throw error;
@@ -42,7 +61,7 @@ export function getDocxReportFromJSON(json, template) {
   var out = doc.getZip().generate({
     type: "blob",
     mimeType:
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   });
   saveAs(out, "report.docx");
 }

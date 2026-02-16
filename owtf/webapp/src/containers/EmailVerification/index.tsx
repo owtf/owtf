@@ -4,11 +4,12 @@
  */
 
 import React from "react";
-import { Pane, Heading, Button, Paragraph, Link } from "evergreen-ui";
 import { emailSendStart } from "./actions";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import { makeSignupCreateEmail } from "../SignupPage/selectors";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
 
 interface propsType {
   onResend: Function,
@@ -30,51 +31,26 @@ export class EmailSendPage extends React.Component<propsType>{
 
   render() {
     return (
-      <Pane marginY={100} data-test="emailSendPageComponent">
-        <Pane
-          justifyContent="center"
-          width="35%"
-          elevation={1}
-          margin="auto"
-          padding={5}
-        >
-          <Heading
-            size={700}
-            textAlign="center"
-            marginBottom={20}
-            paddingTop={20}
-          >
-            Email Sent
-          </Heading>
-          <Paragraph size={300} width="60%" marginLeft="20%" marginBottom={5}>
-            We have sent a mail to verify your email address.
-          </Paragraph>
-          <Paragraph size={300} width="60%" marginLeft="20%">
-            If you don't receive, please click here to:
-            <br />
-            <Link>
-              <Button
-                width="20%"
-                marginLeft="40%"
-                justifyContent="center"
-                appearance="primary"
-                intent="none"
-                marginTop={10}
-                marginBottom={10}
-                onClick={this.handleResend}
-              >
-                Resend
-              </Button>
-            </Link>
-          </Paragraph>
-          <Paragraph size={300} width="60%" marginLeft="20%" marginBottom={15}>
-            Once you verify, <Link href="/login">Login</Link> here
-          </Paragraph>
-          <Paragraph size={300} width="60%" marginLeft="20%" marginBottom={20}>
-            If you don't find it in your inbox, check spam folder.
-          </Paragraph>
-        </Pane>
-      </Pane>
+      <div className="mx-auto mt-20 max-w-xl px-4" data-test="emailSendPageComponent">
+        <Card className="border-zinc-200 bg-white/95 shadow-sm">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Email Sent</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-center text-sm text-zinc-600">
+            <p>We have sent a mail to verify your email address.</p>
+            <p>
+              If you do not receive it, click below to resend.
+            </p>
+            <Button onClick={this.handleResend} className="mx-auto" size="sm">
+              Resend
+            </Button>
+            <p>
+              Once you verify, <a className="font-medium text-zinc-700 hover:text-zinc-900 hover:underline" href="/login">log in here</a>.
+            </p>
+            <p>If you do not find it in your inbox, check spam folder.</p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 }

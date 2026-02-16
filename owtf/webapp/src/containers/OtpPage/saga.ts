@@ -2,8 +2,8 @@ import { call, put, takeLatest } from "redux-saga/effects";
 import { otpSuccess, otpFail } from "./actions";
 import { OTP_START } from "./constants";
 import { OtpVerifyAPI } from "./api";
-import { toaster } from "evergreen-ui";
 import history from "../../utils/historyUtils";
+import toaster from "../../utils/toaster";
 
 export function* postDataToOtpAPI(action) {
   const postOtpAPI = OtpVerifyAPI();

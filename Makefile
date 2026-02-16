@@ -6,8 +6,15 @@ current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 VENV_PATH := ${HOME}/.virtualenvs/${PROJ}
 SHELL := /bin/bash
 PY_QUALITY_PATHS := owtf/config.py owtf/lib/exceptions.py owtf/managers/config.py owtf/managers/target.py owtf/requester/base.py owtf/transactions/base.py owtf/transactions/main.py owtf/utils/http.py
+DOCKER_COMPOSE_CMD := $(shell if docker compose version >/dev/null 2>&1; then echo "docker compose"; elif docker-compose --version >/dev/null 2>&1; then echo "docker-compose"; fi)
 
-.PHONY: venv setup bootstrap web docs lint typecheck-py format-py clean bump build release
+.PHONY: venv setup bootstrap web docs lint typecheck-py format-py clean bump build release local-up local-down local-status local-stop-app local-clean-ports
+LOCAL_PORTS := 3000 8008 8009 8010
+
+check-compose:
+ifeq ($(strip $(DOCKER_COMPOSE_CMD)),)
+	$(error Docker Compose not found. Install Docker Compose plugin (`docker compose`) or docker-compose)
+endif
 
 check-root:
 ifeq ($(USER), root)
@@ -104,13 +111,13 @@ docker-run:
 	docker run -it -p 8009:8009 -p 8008:8008 -p 8010:8010 -v $(current_dir):/owtf owtf/owtf /bin/bash
 
 ### Options to allow docker to have permissive network capabilities, allowing it to run tools such as nmap
-compose-safe:
+compose-safe: check-compose
 	@echo "--> Running the Docker Compose setup with network capabilties for container"
-	docker compose -f docker/docker-compose.dev.yml up --build
+	$(DOCKER_COMPOSE_CMD) -f docker/docker-compose.dev.yml up --build
 
-compose-unsafe:
+compose-unsafe: check-compose
 	@echo "--> Running the Docker Compose setup without network capabilties for container"
-	docker compose -f docker/docker-compose.dev.unsafe.yml up --build
+	$(DOCKER_COMPOSE_CMD) -f docker/docker-compose.dev.unsafe.yml up --build
 
 ### DEBIAN PACKAGING
 
@@ -213,8 +220,41 @@ release:
 build:
 	$(PYTHON) setup.py sdist bdist_wheel
 
-startdb:
-	docker compose -p $(PROJ) -f docker/docker-compose.yml up -d --no-recreate
+startdb: check-compose
+	$(DOCKER_COMPOSE_CMD) -p $(PROJ) -f docker/docker-compose.yml up -d
 
-stopdb:
-	docker compose -p $(PROJ) -f docker/docker-compose.yml down
+stopdb: check-compose
+	$(DOCKER_COMPOSE_CMD) -p $(PROJ) -f docker/docker-compose.yml down
+
+local-stop-app:
+	@echo "--> Stopping local backend/frontend processes"
+	@bash -lc '[ -f .run/owtf.pid ] && kill "$$(cat .run/owtf.pid)" 2>/dev/null || true; rm -f .run/owtf.pid'
+	@bash -lc '[ -f .run/webapp.pid ] && kill "$$(cat .run/webapp.pid)" 2>/dev/null || true; rm -f .run/webapp.pid'
+
+local-clean-ports:
+	@echo "--> Releasing local ports: $(LOCAL_PORTS)"
+	@bash -lc 'for p in $(LOCAL_PORTS); do pids=$$(lsof -ti tcp:$$p -sTCP:LISTEN 2>/dev/null || true); if [ -n "$$pids" ]; then echo "    killing :$$p -> $$pids"; kill $$pids 2>/dev/null || true; fi; done'
+	@bash -lc 'sleep 1'
+
+local-up: local-stop-app local-clean-ports startdb
+	@echo "--> Starting OWTF backend + Vite frontend in background"
+	@[ -x "$(VENV_PATH)/bin/owtf" ] || (echo "Missing $(VENV_PATH)/bin/owtf. Run: /opt/homebrew/bin/python3.11 -m venv $(VENV_PATH) && source $(VENV_PATH)/bin/activate && pip install -e ." && exit 1)
+	@mkdir -p .run
+	@bash -lc "source $(VENV_PATH)/bin/activate && nohup owtf > .run/owtf.log 2>&1 & echo \$$! > .run/owtf.pid"
+	@nohup yarn --cwd owtf/webapp start > .run/webapp.log 2>&1 & echo $$! > .run/webapp.pid
+	@echo "--> Ready:"
+	@echo "    UI:      http://localhost:3000"
+	@echo "    API:     http://localhost:8009"
+	@echo "    Health:  http://localhost:8009/debug/health/"
+	@echo "--> Logs:"
+	@echo "    tail -f .run/owtf.log"
+	@echo "    tail -f .run/webapp.log"
+
+local-down: stopdb local-stop-app
+
+local-status:
+	@echo "--> Process status"
+	@bash -lc '[ -f .run/owtf.pid ] && ps -p "$$(cat .run/owtf.pid)" >/dev/null 2>&1 && echo "backend: running (pid $$(cat .run/owtf.pid))" || echo "backend: stopped"'
+	@bash -lc '[ -f .run/webapp.pid ] && ps -p "$$(cat .run/webapp.pid)" >/dev/null 2>&1 && echo "frontend: running (pid $$(cat .run/webapp.pid))" || echo "frontend: stopped"'
+	@echo "--> DB status"
+	@$(DOCKER_COMPOSE_CMD) -p $(PROJ) -f docker/docker-compose.yml ps 2>/dev/null || true

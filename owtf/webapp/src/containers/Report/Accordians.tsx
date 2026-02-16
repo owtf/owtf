@@ -18,7 +18,7 @@ import {
 } from "./selectors";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
-import { Paragraph, Pane, Spinner } from "evergreen-ui";
+import { Spinner } from "../../components/ui/spinner";
 
 interface propTypes {
   targetData: { id: any }

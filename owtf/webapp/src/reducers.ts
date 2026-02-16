@@ -15,11 +15,7 @@ import reportsReducer from "./containers/Report/reducer";
 import worklistReducer from "./containers/WorklistPage/reducer";
 import dashboardReducer from "./containers/Dashboard/reducer";
 import workersReducer from "./containers/WorkersPage/reducer";
-import emailVerificationReducer from "./containers/EmailVerification/reducer";
-import signupReducer from "./containers/SignupPage/reducer";
 import loginReducer from "./containers/LoginPage/reducer";
-import otpReducer from "./containers/OtpPage/reducer";
-import forgotPasswordEmailReducer from "./containers/ForgotPasswordPage/reducer";
 import proxyReducer from "./containers/ProxyPage/reducer";
 
 /*
@@ -65,11 +61,7 @@ export default function createReducer() {
     worklist: worklistReducer,
     dashboard: dashboardReducer,
     workers: workersReducer,
-    email_verification: emailVerificationReducer,
-    signup: signupReducer,
     login: loginReducer,
-    otp: otpReducer,
-    forgot_password: forgotPasswordEmailReducer,
     proxyPage: proxyReducer
   });
 }

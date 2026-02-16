@@ -5,7 +5,6 @@
  */
 import React from "react";
 import { filter } from "fuzzaldrin-plus";
-import { Table } from "evergreen-ui";
 import { Link } from "react-router-dom";
 import { GiPauseButton } from "react-icons/gi";
 import { BsPlayFill } from "react-icons/bs";
@@ -160,7 +159,7 @@ export default class WorklistTable extends React.Component<
     const { worklist, resumeWork, pauseWork, deleteWork } = this.props;
     const items = this.handleTableFilter(worklist);
     return (
-      <Table
+      <div
         className="worklistTableContainer"
         data-test="worklistTableComponent"
       >
@@ -294,7 +293,7 @@ export default class WorklistTable extends React.Component<
             </div>
           ))}
         </div>
-      </Table>
+      </div>
     );
   };
 }

@@ -2,8 +2,8 @@ import { call, put, takeLatest } from "redux-saga/effects";
 import { newPasswordSuccess, newPasswordFail } from "./actions";
 import { NEW_PASSWORD_START } from "./constants";
 import { newPasswordAPI } from "./api";
-import { toaster } from "evergreen-ui";
 import history from "../../utils/historyUtils";
+import toaster from "../../utils/toaster";
 
 export function* postDataToNewPasswordAPI(action) {
   const postNewPasswordAPI = newPasswordAPI();

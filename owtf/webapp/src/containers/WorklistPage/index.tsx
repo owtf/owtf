@@ -1,32 +1,50 @@
 /*
  * WorklistPage
- * This components manages target works and allows us to apply certain action (pause, resume, delete) on them.
+ * Manage queued work and apply pause/resume/delete actions.
  */
 import React from "react";
-import { Spinner, toaster } from "evergreen-ui";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
+import { AlertCircle, Pause, Play, Search, Trash2 } from "lucide-react";
+
+import toaster from "../../utils/toaster";
+import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Spinner } from "../../components/ui/spinner";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
+import { loadWorklist, changeWorklist, deleteWorklist } from "./actions";
 import {
+  makeSelectChangeError,
+  makeSelectDeleteError,
   makeSelectFetchError,
   makeSelectFetchLoading,
   makeSelectFetchWorklist,
-  makeSelectChangeError,
-  makeSelectDeleteError
 } from "./selectors";
-import { loadWorklist, changeWorklist, deleteWorklist } from "./actions";
-import WorklistTable from "./WorklistTable";
-import "./style.scss";
-import { BiError } from "react-icons/bi";
-import { GiPauseButton } from "react-icons/gi";
-import { BsPlayFill } from "react-icons/bs";
-import { RiDeleteBinLine } from "react-icons/ri";
+
+type WorkItem = {
+  id: number;
+  active: boolean;
+  plugin: {
+    name: string;
+    type: string;
+    group: string;
+    min_time: number;
+  };
+  target: {
+    id: number;
+    target_url: string;
+  };
+};
 
 interface PropsType {
   fetchLoading: boolean;
-  fetchError: boolean;
-  worklist: boolean;
-  changeError: boolean;
-  deleteError: boolean;
+  fetchError: boolean | string;
+  worklist: WorkItem[] | false;
+  changeError: boolean | string;
+  deleteError: boolean | string;
   onFetchWorklist: Function;
   onChangeWorklist: Function;
   onDeleteWorklist: Function;
@@ -34,259 +52,266 @@ interface PropsType {
 
 interface StateType {
   globalSearch: string;
-  selection: boolean;
-  worklist: object;
+  selectedIds: number[];
 }
 
 export class WorklistPage extends React.Component<PropsType, StateType> {
-  constructor(props, context) {
-    super(props, context);
-    this.resumeAllWork = this.resumeAllWork.bind(this);
-    this.pauseAllWork = this.pauseAllWork.bind(this);
-    this.deleteAllWork = this.deleteAllWork.bind(this);
-    this.resumeWork = this.resumeWork.bind(this);
-    this.pauseWork = this.pauseWork.bind(this);
-    this.deleteWork = this.deleteWork.bind(this);
-
+  constructor(props: PropsType) {
+    super(props);
     this.state = {
-      globalSearch: "", //handles the search query for the main search box
-      selection: false, // handles selection of checkbox
-      worklist: {} // stores the selected worklist
+      globalSearch: "",
+      selectedIds: [],
     };
   }
 
-  /**
-   * Life cycle method gets called before the component mounts
-   * Fetches all the works using the GET API call - /api/v1/worklist/
-   */
   componentDidMount() {
     this.props.onFetchWorklist();
   }
 
-  /**
-   * Function to resume all works at once
-   * Uses PATCH API - /api/v1/worklist/0/resume
-   */
-  resumeAllWork() {
-    this.props.onChangeWorklist(0, "resume");
+  filteredWorklist = () => {
+    const works = Array.isArray(this.props.worklist) ? this.props.worklist : [];
+    const query = this.state.globalSearch.trim().toLowerCase();
+
+    if (!query) {
+      return works;
+    }
+
+    return works.filter((work) => {
+      const haystack = [
+        work.target.target_url,
+        work.plugin.name.replace(/_/g, " "),
+        work.plugin.type.replace(/_/g, " "),
+        work.plugin.group,
+      ]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  };
+
+  toggleAll = () => {
+    const filtered = this.filteredWorklist();
+    const selectedAll = filtered.length > 0 && filtered.every((work) => this.state.selectedIds.includes(work.id));
+    this.setState({
+      selectedIds: selectedAll ? [] : filtered.map((work) => work.id),
+    });
+  };
+
+  toggleWork = (id: number) => {
+    this.setState((prev) => ({
+      selectedIds: prev.selectedIds.includes(id)
+        ? prev.selectedIds.filter((item) => item !== id)
+        : [...prev.selectedIds, id],
+    }));
+  };
+
+  runBulkAction = (action: "pause" | "resume" | "delete") => {
+    const selected = this.state.selectedIds;
+
+    if (selected.length === 0) {
+      if (action === "delete") {
+        this.props.onDeleteWorklist(0);
+      } else {
+        this.props.onChangeWorklist(0, action);
+      }
+      toaster.success(
+        action === "pause"
+          ? "All works are paused."
+          : action === "resume"
+            ? "All works are resumed."
+            : "All works are deleted.",
+      );
+      return;
+    }
+
+    selected.forEach((id) => {
+      if (action === "delete") {
+        this.props.onDeleteWorklist(id);
+      } else {
+        this.props.onChangeWorklist(id, action);
+      }
+    });
+    toaster.success(
+      action === "pause"
+        ? "Selected works are paused."
+        : action === "resume"
+          ? "Selected works are resumed."
+          : "Selected works are deleted.",
+    );
+    this.setState({ selectedIds: [] });
+  };
+
+  pauseWork = (workId: number) => {
+    this.props.onChangeWorklist(workId, "pause");
     setTimeout(() => {
       if (this.props.changeError === false) {
-        toaster.success("All Works are successfully resumed :)");
+        toaster.warning("Work is paused.");
       } else {
-        toaster.danger("Server replied: " + this.props.changeError);
+        toaster.danger(`Server replied: ${this.props.changeError}`);
       }
-    }, 500);
-  }
+    }, 250);
+  };
 
-  /**
-   * Function to pause all works at once
-   * Uses PATCH API - /api/v1/worklist/0/pause
-   */
-  pauseAllWork() {
-    this.props.onChangeWorklist(0, "pause");
+  resumeWork = (workId: number) => {
+    this.props.onChangeWorklist(workId, "resume");
     setTimeout(() => {
       if (this.props.changeError === false) {
-        toaster.warning("All Works are successfully paused :)");
+        toaster.success("Work is resumed.");
       } else {
-        toaster.danger("Server replied: " + this.props.changeError);
+        toaster.danger(`Server replied: ${this.props.changeError}`);
       }
-    }, 500);
-  }
+    }, 250);
+  };
 
-  /**
-   * Function to delete all works at once
-   * Uses DELETE API - /api/v1/worklist/0/
-   */
-  deleteAllWork() {
-    this.props.onDeleteWorklist(0);
+  deleteWork = (workId: number) => {
+    this.props.onDeleteWorklist(workId);
     setTimeout(() => {
       if (this.props.deleteError === false) {
-        toaster.notify("All Works are successfully deleted :)");
+        toaster.notify("Work is deleted.");
       } else {
-        toaster.danger("Server replied: " + this.props.deleteError);
+        toaster.danger(`Server replied: ${this.props.deleteError}`);
       }
-    }, 500);
-  }
-
-  /**
-   * Function to resume work
-   * @param {number} work_id Id of the work to be resumed
-   * Uses PATCH API - /api/v1/worklist/<work_id>/resume
-   */
-  resumeWork(work_id) {
-    this.props.onChangeWorklist(work_id, "resume");
-    setTimeout(() => {
-      if (this.props.changeError === false) {
-        toaster.success("Work is successfully resumed :)");
-      } else {
-        toaster.danger("Server replied: " + this.props.changeError);
-      }
-    }, 500);
-  }
-
-  /**
-   * Function to pause work
-   * @param {number} work_id Id of the work to be paused
-   * Uses PATCH API - /api/v1/worklist/<work_id>/pause
-   */
-  pauseWork(work_id) {
-    this.props.onChangeWorklist(work_id, "pause");
-    setTimeout(() => {
-      if (this.props.changeError === false) {
-        toaster.warning("Work is successfully paused :)");
-      } else {
-        toaster.danger("Server replied: " + this.props.changeError);
-      }
-    }, 500);
-  }
-
-  /**
-   * Function to delete work
-   * @param {number} work_id Id of the work to be deleted
-   * Uses DELETE API - /api/v1/worklist/<work_id>/
-   */
-  deleteWork(work_id) {
-    this.props.onDeleteWorklist(work_id);
-    setTimeout(() => {
-      if (this.props.deleteError === false) {
-        toaster.notify("Work is successfully deleted :)");
-      } else {
-        toaster.danger("Server replied: " + this.props.deleteError);
-      }
-    }, 500);
-  }
-
-  /**
-   * Function to change state variable worklist
-   * @param {worklist} worklist object with current selected worklist
-   */
-  updatingWorklist = worklist => {
-    this.setState({ worklist: worklist });
-  };
-
-  /**
-   * Function to change state variable selection
-   * @param {val} val (true/false) with which selection should be set
-   */
-  changeSelection = val => {
-    this.setState({ selection: val });
-  };
-
-  /**
-   * Function to delete selected work
-   * Uses Function deleteWork()
-   */
-
-  deleteSelectedWork = () => {
-    // @ts-ignore
-    for (let val of this.state.worklist) {
-      this.deleteWork(val.id);
-    }
-  };
-
-  /**
-   * Function to resume selected work
-   * Uses Function resumeWork()
-   */
-  resumeSelectedWork = () => {
-    // @ts-ignore
-    for (let val of this.state.worklist) {
-      this.resumeWork(val.id);
-    }
-  };
-
-  /**
-   * Function to pause selected work
-   * Uses Function pauseWork()
-   */
-  pauseSelectedWork = () => {
-    // @ts-ignore
-    for (let val of this.state.worklist) {
-      this.pauseWork(val.id);
-    }
+    }, 250);
   };
 
   render() {
-    const { fetchLoading, fetchError, worklist } = this.props;
-    const WorklistTableProps = {
-      worklist,
-      globalSearch: this.state.globalSearch,
-      resumeWork: this.resumeWork,
-      pauseWork: this.pauseWork,
-      deleteWork: this.deleteWork
-    };
+    const { fetchLoading, fetchError } = this.props;
+    const rows = this.filteredWorklist();
+    const selectedCount = this.state.selectedIds.length;
+    const selectedAll = rows.length > 0 && rows.every((work) => this.state.selectedIds.includes(work.id));
+
     return (
-      <div className="worklistComponentContainer" data-test="worklistComponent">
-        <div className="worklistComponentContainer__headerContainer">
-          <div className="worklistComponentContainer__headerContainer__searchInputContainer">
-            <input
-              type="text"
-              className="search-box"
-              placeholder="Search"
-              onChange={e => this.setState({ globalSearch: e.target.value })}
-              value={this.state.globalSearch}
-            />
+      <div className="mx-auto w-full max-w-[1240px] space-y-6 px-4 py-6" data-test="worklistComponent">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Worklist</h1>
+            <p className="text-sm text-zinc-600 dark:text-zinc-300">
+              Monitor queued scan jobs and apply controls in bulk.
+            </p>
           </div>
-          <div className="worklistComponentContainer__headerContainer__buttonsContainer">
-            <button
-              className="worklistComponentContainer__headerContainer__buttonsContainer__pauseAllButton"
-              onClick={
-                !this.state.selection
-                  ? this.pauseAllWork
-                  : this.pauseSelectedWork
-              }
-            >
-              <GiPauseButton />
-              {!this.state.selection ? "Pause All" : "Pause Selected"}
-            </button>
-            <button
-              className="worklistComponentContainer__headerContainer__buttonsContainer__resumeAllButton"
-              onClick={
-                !this.state.selection
-                  ? this.resumeAllWork
-                  : this.resumeSelectedWork
-              }
-            >
-              <BsPlayFill />
-              {!this.state.selection ? "Resume All" : "Resume Selected"}
-            </button>
-            <button
-              className="worklistComponentContainer__headerContainer__buttonsContainer__deleteAllButton"
-              onClick={
-                !this.state.selection
-                  ? this.deleteAllWork
-                  : this.deleteSelectedWork
-              }
-            >
-              <RiDeleteBinLine />
-              {!this.state.selection ? "Delete All" : "Delete Selected"}
-            </button>
+          <div className="flex min-w-[280px] flex-1 items-center gap-2 sm:max-w-sm">
+            <div className="relative w-full">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -tranzinc-y-1/2 text-zinc-400" />
+              <Input
+                type="text"
+                className="pl-9"
+                placeholder="Search by target, plugin, type or group"
+                value={this.state.globalSearch}
+                onChange={(e) => this.setState({ globalSearch: e.target.value })}
+              />
+            </div>
           </div>
         </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" onClick={() => this.runBulkAction("pause")}>
+            <Pause className="h-4 w-4" />
+            {selectedCount > 0 ? `Pause Selected (${selectedCount})` : "Pause All"}
+          </Button>
+          <Button variant="outline" onClick={() => this.runBulkAction("resume")}>
+            <Play className="h-4 w-4" />
+            {selectedCount > 0 ? `Resume Selected (${selectedCount})` : "Resume All"}
+          </Button>
+          <Button variant="destructive" onClick={() => this.runBulkAction("delete")}>
+            <Trash2 className="h-4 w-4" />
+            {selectedCount > 0 ? `Delete Selected (${selectedCount})` : "Delete All"}
+          </Button>
+        </div>
+
         {fetchError !== false ? (
-          <div className="worklistComponentContainer__errorContainer">
-            <BiError />
-            <p>Something went wrong, please try again!</p>
-          </div>
-        ) : null}
-        {fetchLoading !== false ? (
-          <div className="worklistComponentContainer__spinnerContainer">
-            <Spinner />
-          </div>
+          <Alert variant="danger">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Load failed</AlertTitle>
+            <AlertDescription>Something went wrong, please try again.</AlertDescription>
+          </Alert>
         ) : null}
 
-        {worklist !== false ? (
-          // @ts-ignore
-          <WorklistTable
-            {...WorklistTableProps}
-            updatingWorklist={this.updatingWorklist}
-            selection={this.state.selection}
-            changeSelection={this.changeSelection}
-            resumeAllWork={this.resumeAllWork}
-            pauseAllWork={this.pauseAllWork}
-            deleteAllWork={this.deleteAllWork}
-          />
-        ) : null}
+        <Card className="border-zinc-200 bg-white/95 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/80">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-lg">Queued work</CardTitle>
+              <Badge variant="outline">{rows.length} shown</Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {fetchLoading ? (
+              <div className="flex justify-center py-10">
+                <Spinner size={32} />
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[40px]">
+                      <input type="checkbox" aria-label="Select all rows" checked={selectedAll} onChange={this.toggleAll} />
+                    </TableHead>
+                    <TableHead className="w-[120px]">Est. Time</TableHead>
+                    <TableHead>Target</TableHead>
+                    <TableHead>Plugin Group</TableHead>
+                    <TableHead>Plugin Type</TableHead>
+                    <TableHead>Plugin Name</TableHead>
+                    <TableHead className="w-[180px] text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rows.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="py-10 text-center text-sm text-zinc-500 dark:text-zinc-300">
+                        No work items match your current filters.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    rows.map((work) => (
+                      <TableRow key={work.id} className="hover:bg-zinc-50/70 dark:hover:bg-zinc-800/50">
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            aria-label={`Select work ${work.id}`}
+                            checked={this.state.selectedIds.includes(work.id)}
+                            onChange={() => this.toggleWork(work.id)}
+                          />
+                        </TableCell>
+                        <TableCell>{work.plugin.min_time} min</TableCell>
+                        <TableCell className="max-w-[300px] truncate">
+                          <a
+                            href={`/targets/${work.target.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-medium text-zinc-800 hover:text-zinc-950 hover:underline dark:text-zinc-100 dark:hover:text-zinc-50"
+                          >
+                            {work.target.target_url}
+                          </a>
+                        </TableCell>
+                        <TableCell>{work.plugin.group}</TableCell>
+                        <TableCell>{work.plugin.type.replace(/_/g, " ")}</TableCell>
+                        <TableCell className="max-w-[260px] truncate">{work.plugin.name.replace(/_/g, " ")}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-end gap-2">
+                            {work.active ? (
+                              <Button size="sm" variant="outline" onClick={() => this.pauseWork(work.id)}>
+                                <Pause className="h-3.5 w-3.5" />
+                                Pause
+                              </Button>
+                            ) : (
+                              <Button size="sm" variant="outline" onClick={() => this.resumeWork(work.id)}>
+                                <Play className="h-3.5 w-3.5" />
+                                Resume
+                              </Button>
+                            )}
+                            <Button size="sm" variant="destructive" onClick={() => this.deleteWork(work.id)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Delete
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -297,15 +322,14 @@ const mapStateToProps = createStructuredSelector({
   fetchLoading: makeSelectFetchLoading,
   fetchError: makeSelectFetchError,
   changeError: makeSelectChangeError,
-  deleteError: makeSelectDeleteError
+  deleteError: makeSelectDeleteError,
 });
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     onFetchWorklist: () => dispatch(loadWorklist()),
-    onChangeWorklist: (work_id, action_type) =>
-      dispatch(changeWorklist(work_id, action_type)),
-    onDeleteWorklist: work_id => dispatch(deleteWorklist(work_id))
+    onChangeWorklist: (work_id, action_type) => dispatch(changeWorklist(work_id, action_type)),
+    onDeleteWorklist: (work_id) => dispatch(deleteWorklist(work_id)),
   };
 };
 

@@ -4,7 +4,6 @@
  */
 
 import React from "react";
-import {  toaster} from "evergreen-ui";
 import { Link } from "react-router-dom";
 import CKEditor from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
@@ -12,6 +11,7 @@ import "./style.scss";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
 import { changeUserNotes } from "./actions";
+import toaster from "../../utils/toaster";
 import {
   makeSelectChangeNotesLoading,
   makeSelectChangeNotesError

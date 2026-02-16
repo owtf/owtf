@@ -8,7 +8,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { signupStart } from "./actions";
 import { connect } from "react-redux";
-import logo from "../../../public/img/logo.png";
+const logo = "/img/logo.png";
 import { AiFillEyeInvisible } from "react-icons/ai";
 import { AiFillEye } from "react-icons/ai";
 import { EMAIL_REGEX } from "../../utils/validation";
@@ -37,7 +37,7 @@ export class SignupPage extends React.Component<propsType, stateType> {
       confirmPassword: "", //confirmPassword of the user to be added
       errors: {}, //stores errors during form validation
       hidePassword: true, //handles visibility of password input field
-      hideConfirmPassword: true //handles visibility of confirmPassword input field
+      hideConfirmPassword: true, //handles visibility of confirmPassword input field
     };
   }
 
@@ -79,7 +79,7 @@ export class SignupPage extends React.Component<propsType, stateType> {
     ) {
       if (
         !this.state.password.match(
-          /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/
+          /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/,
         )
       ) {
         formIsValid = false;
@@ -114,7 +114,7 @@ export class SignupPage extends React.Component<propsType, stateType> {
       this.state.email,
       this.state.password,
       this.state.confirmPassword,
-      this.state.username
+      this.state.username,
     );
   };
 
@@ -141,8 +141,8 @@ export class SignupPage extends React.Component<propsType, stateType> {
                 placeholder="Username"
                 name="text-input-name"
                 value={this.state.username}
-                onChange={e => this.setState({ username: e.target.value })}
-                onBlur={e => this.handleValidation(e)}
+                onChange={(e) => this.setState({ username: e.target.value })}
+                onBlur={(e) => this.handleValidation(e)}
               />
             </div>
             <p className="inputRequiredError">
@@ -158,8 +158,8 @@ export class SignupPage extends React.Component<propsType, stateType> {
                 placeholder="Email"
                 name="text-input-email"
                 value={this.state.email}
-                onChange={e => this.setState({ email: e.target.value })}
-                onBlur={e => this.handleValidation(e)}
+                onChange={(e) => this.setState({ email: e.target.value })}
+                onBlur={(e) => this.handleValidation(e)}
               />
             </div>
             <p className="inputRequiredError">{this.state.errors["email"]}</p>
@@ -175,13 +175,13 @@ export class SignupPage extends React.Component<propsType, stateType> {
                 name="text-input-password"
                 value={this.state.password}
                 type={this.state.hidePassword ? "password" : "text"}
-                onChange={e => this.setState({ password: e.target.value })}
-                onBlur={e => this.handleValidation(e)}
+                onChange={(e) => this.setState({ password: e.target.value })}
+                onBlur={(e) => this.handleValidation(e)}
               />
               <span
                 className="signupPageContainer__signupComponentContainer__setPasswordInputContainer__passwordViewTogglerContainer"
-                onMouseDown={e => this.setState({ hidePassword: false })}
-                onMouseUp={e => this.setState({ hidePassword: true })}
+                onMouseDown={(e) => this.setState({ hidePassword: false })}
+                onMouseUp={(e) => this.setState({ hidePassword: true })}
               >
                 {this.state.hidePassword ? (
                   <AiFillEyeInvisible />
@@ -205,15 +205,17 @@ export class SignupPage extends React.Component<propsType, stateType> {
                 name="text-input-confirm-password"
                 value={this.state.confirmPassword}
                 type={this.state.hideConfirmPassword ? "password" : "text"}
-                onChange={e =>
+                onChange={(e) =>
                   this.setState({ confirmPassword: e.target.value })
                 }
-                onBlur={e => this.handleValidation(e)}
+                onBlur={(e) => this.handleValidation(e)}
               />
               <span
                 className="signupPageContainer__signupComponentContainer__confirmPasswordInputContainer__passwordViewTogglerContainer"
-                onMouseDown={e => this.setState({ hideConfirmPassword: false })}
-                onMouseUp={e => this.setState({ hideConfirmPassword: true })}
+                onMouseDown={(e) =>
+                  this.setState({ hideConfirmPassword: false })
+                }
+                onMouseUp={(e) => this.setState({ hideConfirmPassword: true })}
               >
                 {this.state.hideConfirmPassword ? (
                   <AiFillEyeInvisible />
@@ -252,7 +254,7 @@ export class SignupPage extends React.Component<propsType, stateType> {
 const mapDispatchToProps = (dispatch: Function) => {
   return {
     onSignup: (email, password, confirmPassword, name) =>
-      dispatch(signupStart(email, password, confirmPassword, name))
+      dispatch(signupStart(email, password, confirmPassword, name)),
   };
 };
 

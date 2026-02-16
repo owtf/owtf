@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { toaster } from 'evergreen-ui';
+import toaster from "../../utils/toaster";
 
 interface ProxyHistoryEntry {
   id: string;

@@ -11,23 +11,22 @@ import { createStructuredSelector } from "reselect";
 import { makeSelectForgotEmail } from "../ForgotPasswordPage/selectors";
 import { AiFillEyeInvisible } from "react-icons/ai";
 import { AiFillEye } from "react-icons/ai";
-import logo from "../../../public/img/logo.png";
+const logo = "/img/logo.png";
 
 interface propsType {
-  onNewPassword: Function,
-  otp:string,
-  emailOrUsername: string
+  onNewPassword: Function;
+  otp: string;
+  emailOrUsername: string;
 }
 interface stateType {
-  newPassword: string,
-  newConfirmPassword: string,
-  errors: object, 
-  hidePassword: boolean, 
-  hideConfirmPassword: boolean 
+  newPassword: string;
+  newConfirmPassword: string;
+  errors: object;
+  hidePassword: boolean;
+  hideConfirmPassword: boolean;
 }
 
-
-export class NewPasswordPage extends React.Component<propsType, stateType>  {
+export class NewPasswordPage extends React.Component<propsType, stateType> {
   constructor(props, context) {
     super(props, context);
 
@@ -36,11 +35,11 @@ export class NewPasswordPage extends React.Component<propsType, stateType>  {
       newConfirmPassword: "",
       errors: {}, //stores errors during form validation
       hidePassword: true, //handles visibility of password input field
-      hideConfirmPassword: true //handles visibility of confirmPassword input field
+      hideConfirmPassword: true, //handles visibility of confirmPassword input field
     };
   }
 
-  handlePasswordValidation = e => {
+  handlePasswordValidation = (e) => {
     // Password
     let formIsValid = true;
     let errors = {};
@@ -54,7 +53,7 @@ export class NewPasswordPage extends React.Component<propsType, stateType>  {
     ) {
       if (
         !this.state.newPassword.match(
-          /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/
+          /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/,
         )
       ) {
         formIsValid = false;
@@ -86,7 +85,7 @@ export class NewPasswordPage extends React.Component<propsType, stateType>  {
     this.props.onNewPassword(
       this.props.emailOrUsername,
       this.state.newPassword,
-      this.props.otp
+      this.props.otp,
     );
   };
 
@@ -118,13 +117,13 @@ export class NewPasswordPage extends React.Component<propsType, stateType>  {
               name="text-input-password"
               value={this.state.newPassword}
               type={this.state.hidePassword ? "password" : "text"}
-              onChange={e => this.setState({ newPassword: e.target.value })}
-              onBlur={e => this.handlePasswordValidation(e)}
+              onChange={(e) => this.setState({ newPassword: e.target.value })}
+              onBlur={(e) => this.handlePasswordValidation(e)}
             />
             <span
               className="resetPasswordPageContainer__resetPasswordComponentContainer__setPasswordInputContainer__passwordViewTogglerContainer"
-              onMouseDown={e => this.setState({ hidePassword: false })}
-              onMouseUp={e => this.setState({ hidePassword: true })}
+              onMouseDown={(e) => this.setState({ hidePassword: false })}
+              onMouseUp={(e) => this.setState({ hidePassword: true })}
             >
               {this.state.hidePassword ? <AiFillEyeInvisible /> : <AiFillEye />}
             </span>
@@ -144,15 +143,15 @@ export class NewPasswordPage extends React.Component<propsType, stateType>  {
               name="text-input-confirm-password"
               value={this.state.newConfirmPassword}
               type={this.state.hideConfirmPassword ? "password" : "text"}
-              onChange={e =>
+              onChange={(e) =>
                 this.setState({ newConfirmPassword: e.target.value })
               }
-              onBlur={e => this.handlePasswordValidation(e)}
+              onBlur={(e) => this.handlePasswordValidation(e)}
             />
             <span
               className="resetPasswordPageContainer__resetPasswordComponentContainer__confirmPasswordInputContainer__passwordViewTogglerContainer"
-              onMouseDown={e => this.setState({ hideConfirmPassword: false })}
-              onMouseUp={e => this.setState({ hideConfirmPassword: true })}
+              onMouseDown={(e) => this.setState({ hideConfirmPassword: false })}
+              onMouseUp={(e) => this.setState({ hideConfirmPassword: true })}
             >
               {this.state.hideConfirmPassword ? (
                 <AiFillEyeInvisible />
@@ -177,16 +176,15 @@ export class NewPasswordPage extends React.Component<propsType, stateType>  {
   }
 }
 
-
 const mapStateToProps = createStructuredSelector({
   otp: makeSelectCreateOtp,
-  emailOrUsername: makeSelectForgotEmail
+  emailOrUsername: makeSelectForgotEmail,
 });
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     onNewPassword: (emailOrUsername, password, otp) =>
-      dispatch(newPasswordStart(emailOrUsername, password, otp))
+      dispatch(newPasswordStart(emailOrUsername, password, otp)),
   };
 };
 //@ts-ignore

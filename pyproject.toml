@@ -36,7 +36,7 @@ exclude = ["node_modules", "node_modules.*"]
 
 [tool.setuptools.dynamic]
 version = { attr = "owtf.__version__" }
-dependencies = { file = ["requirements/base.txt", "requirements/docs.txt"] }
+dependencies = { file = ["requirements/base.txt"] }
 
 [tool.ruff]
 line-length = 120

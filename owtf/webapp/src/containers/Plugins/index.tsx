@@ -4,7 +4,7 @@
 import React from "react";
 import { connect } from "react-redux";
 import { createStructuredSelector } from "reselect";
-import { Spinner } from "evergreen-ui";
+import { Spinner } from "../../components/ui/spinner";
 import {
   makeSelectFetchError,
   makeSelectFetchLoading,

@@ -7,6 +7,7 @@
  */
 
 import React from "react";
+import "../../styles/tailwind.css";
 import { Switch, Route, Router, Redirect } from "react-router-dom";
 import NavigationBar from "../../components/NavigationBar";
 import WelcomePage from "../../containers/WelcomePage/Loadable";
@@ -15,41 +16,32 @@ import TargetsPage from "../../containers/TargetsPage/Loadable";
 import SettingsPage from "../../containers/SettingsPage/Loadable";
 import Help from "../../containers/HelpPage/Loadable";
 import LoginPage from "../../containers/LoginPage/Loadable";
-import SignupPage from "../../containers/SignupPage/Loadable";
-import ForgotPasswordPage from "../../containers/ForgotPasswordPage/Loadable";
-import OtpPage from "../../containers/OtpPage/Loadable";
 import WorkersPage from "../../containers/WorkersPage/Loadable";
 import WorklistPage from "../../containers/WorklistPage/Loadable";
 import NotFoundPage from "../../components/NotFoundPage";
 import TransactionsPage from "../../containers/Transactions/Loadable";
 import ProxyPage from "../../containers/ProxyPage/Loadable";
 import Report from "../../containers/Report/Loadable";
-import EmailSendPage from "../../containers/EmailVerification/Loadable";
-import EmailVerificationPage from "../../containers/EmailVerification/emailVerification";
-import NewPasswordPage from "../../containers/NewPasswordPage/Loadable";
 import LogoutPage from "../../containers/LoginPage/logout";
 import { connect } from "react-redux";
 import { loginAutoCheck } from "../LoginPage/actions";
-import { toaster } from "evergreen-ui";
 import history from "../../utils/historyUtils";
 import { createStructuredSelector } from "reselect";
 import {
   makeSelectLoginIsAuthenticated,
   makeSelectLoginUsername
 } from "../LoginPage/selectors";
-import "../../styles/main.css";
 
 interface propsType {
-  tryAutoLogin: Function,
-  isAuthenticated: string,
-  username: string
+  tryAutoLogin: Function;
+  isAuthenticated: string;
+  username: string;
 }
 
-
 export class App extends React.Component<propsType> {
-  navbar=  {
-    brand:{},
-    links:[]
+  navbar = {
+    brand: {},
+    links: []
   };
 
   constructor(props, context) {
@@ -61,9 +53,17 @@ export class App extends React.Component<propsType> {
   };
 
   render() {
+    const hasStoredToken =
+      typeof window !== "undefined" && Boolean(localStorage.getItem("token"));
+    const isAuthenticated = this.props.isAuthenticated || hasStoredToken;
+    const username =
+      this.props.username ||
+      (typeof window !== "undefined" ? localStorage.getItem("username") : "") ||
+      "Account";
+
     this.navbar = {
-      brand:{},
-      links:[]
+      brand: {},
+      links: []
     };
     this.navbar.brand = { linkTo: "/", text: "OWASP OWTF" };
     this.navbar.links = [
@@ -76,16 +76,17 @@ export class App extends React.Component<propsType> {
       { linkTo: "/transactions", text: "Transactions" },
       { linkTo: "/help", text: "Help" }
     ];
-    if (this.props.isAuthenticated) {
+    if (isAuthenticated) {
       this.navbar.links.push({
         dropdown: true,
-        text: this.props.username,
+        text: username,
         links: [{ linkTo: "/logout", text: "Logout" }]
       });
     } else {
       this.navbar.links.push({
         linkTo: "/login",
-        text: "Login"
+        text: "Log In",
+        button: "dark"
       });
     }
     return (
@@ -93,82 +94,81 @@ export class App extends React.Component<propsType> {
         <div>
           <NavigationBar {...this.navbar} />
           <Switch>
-            <Route exact path="/" component={WelcomePage} />
+            <Route
+              exact
+              path="/"
+              render={() =>
+                isAuthenticated ? <Redirect to="/dashboard" /> : <WelcomePage />
+              }
+            />
             <PrivateRoute
               path="/dashboard"
               component={Dashboard}
-              authenticated={this.props.isAuthenticated}
+              authenticated={isAuthenticated}
             />
             <Route exact path="/targets/:id" component={Report} />
             <PrivateRoute
               path="/targets"
               component={TargetsPage}
-              authenticated={this.props.isAuthenticated}
+              authenticated={isAuthenticated}
             />
             <PrivateRoute
               path="/workers"
               component={WorkersPage}
-              authenticated={this.props.isAuthenticated}
+              authenticated={isAuthenticated}
             />
             <PrivateRoute
               path="/worklist"
               component={WorklistPage}
-              authenticated={this.props.isAuthenticated}
+              authenticated={isAuthenticated}
             />
             <PrivateRoute
               path="/proxy"
               component={ProxyPage}
-              authenticated={this.props.isAuthenticated}
+              authenticated={isAuthenticated}
             />
             <PrivateRoute
               path="/settings"
               component={SettingsPage}
-              authenticated={this.props.isAuthenticated}
+              authenticated={isAuthenticated}
             />
             <PrivateRoute
               path="/transactions"
               component={TransactionsPage}
-              authenticated={this.props.isAuthenticated}
+              authenticated={isAuthenticated}
             />
             <PrivateRoute
               path="/help"
               component={Help}
-              authenticated={this.props.isAuthenticated}
+              authenticated={isAuthenticated}
             />
             <Route
               path="/login"
-              component={this.props.isAuthenticated ? NotFoundPage : LoginPage}
+              render={() =>
+                isAuthenticated ? <Redirect to="/dashboard" /> : <LoginPage />
+              }
             />
             <Route path="/logout" component={LogoutPage} />
-            <Route
-              path="/signup"
-              component={this.props.isAuthenticated ? NotFoundPage : SignupPage}
-            />
+            <Route path="/signup" render={() => <Redirect to="/login" />} />
             <Route
               path="/forgot-password/otp/"
-              component={this.props.isAuthenticated ? NotFoundPage : OtpPage}
+              render={() => <Redirect to="/login" />}
             />
             <Route
               path="/forgot-password/email"
-              component={
-                this.props.isAuthenticated ? NotFoundPage : ForgotPasswordPage
-              }
+              render={() => <Redirect to="/login" />}
             />
             <Route
               path="/email-send/"
-              component={
-                this.props.isAuthenticated ? NotFoundPage : EmailSendPage
-              }
+              render={() => <Redirect to="/login" />}
             />
             <Route
               path="/email-verify/:link"
-              component={EmailVerificationPage}
+              render={() => <Redirect to="/login" />}
             />
             <Route
               path="/new-password/"
-              component={
-                this.props.isAuthenticated ? NotFoundPage : NewPasswordPage
-              }
+              render={() => <Redirect to="/login" />}
             />
             <Route path="*" component={NotFoundPage} />
           </Switch>
@@ -179,9 +179,6 @@ export class App extends React.Component<propsType> {
 }
 
 function PrivateRoute({ component: Component, authenticated, ...rest }) {
-  if (!authenticated) {
-    toaster.danger("Login Required!");
-  }
   return (
     <Route
       {...rest}
@@ -197,8 +194,6 @@ function PrivateRoute({ component: Component, authenticated, ...rest }) {
     />
   );
 }
-
-
 
 const mapStateToProps = createStructuredSelector({
   isAuthenticated: makeSelectLoginIsAuthenticated,

@@ -6,7 +6,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { forgotPasswordEmailStart } from "./actions";
 import { connect } from "react-redux";
-import logo from "../../../public/img/logo.png";
+const logo = "/img/logo.png";
 import { EMAIL_REGEX } from "../../utils/validation";
 
 interface propsType {
@@ -23,7 +23,7 @@ export class ForgotPasswordPage extends React.Component<propsType, stateType> {
 
     this.state = {
       emailOrUsername: "",
-      emailError: ""
+      emailError: "",
     };
   }
 
@@ -32,7 +32,7 @@ export class ForgotPasswordPage extends React.Component<propsType, stateType> {
    *
    * @param {object} e event which triggered this function
    */
-  handleEmailValidation = e => {
+  handleEmailValidation = (e) => {
     if (!this.state.emailOrUsername) {
       this.setState({ emailError: "Email can't be empty" });
     } else if (typeof this.state.emailOrUsername !== "undefined") {
@@ -44,7 +44,7 @@ export class ForgotPasswordPage extends React.Component<propsType, stateType> {
     }
   };
 
-  resetHandler = e => {
+  resetHandler = (e) => {
     if (!this.state.emailError) {
       this.props.onReset(this.state.emailOrUsername);
     }
@@ -76,15 +76,17 @@ export class ForgotPasswordPage extends React.Component<propsType, stateType> {
               placeholder="Username / Email"
               name="text-input-email-or-username"
               value={this.state.emailOrUsername}
-              onChange={e => this.setState({ emailOrUsername: e.target.value })}
-              onBlur={e => this.handleEmailValidation(e)}
+              onChange={(e) =>
+                this.setState({ emailOrUsername: e.target.value })
+              }
+              onBlur={(e) => this.handleEmailValidation(e)}
             />
           </div>
           <p className="inputRequiredError">{this.state.emailError}</p>
 
           <button
             className="forgotPasswordPageContainer__forgotPasswordComponentContainer__submitButton"
-            onClick={e => this.resetHandler(e)}
+            onClick={(e) => this.resetHandler(e)}
             disabled={this.state.emailError ? true : false}
           >
             Reset Password
@@ -99,10 +101,10 @@ export class ForgotPasswordPage extends React.Component<propsType, stateType> {
   }
 }
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
-    onReset: emailOrUsername =>
-      dispatch(forgotPasswordEmailStart(emailOrUsername))
+    onReset: (emailOrUsername) =>
+      dispatch(forgotPasswordEmailStart(emailOrUsername)),
   };
 };
 

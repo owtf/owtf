@@ -46,6 +46,34 @@ class LogInHandler(APIRequestHandler):
 
     SUPPORTED_METHODS = ["POST"]
 
+    def _build_username(self, email):
+        base_name = email.split("@", 1)[0]
+        base_name = re.sub(r"[^a-zA-Z0-9_.-]", "", base_name).strip("._-")
+        if not base_name:
+            base_name = "user"
+
+        candidate = base_name
+        suffix = 1
+        while User.find_by_name(self.session, candidate):
+            candidate = "{}{}".format(base_name, suffix)
+            suffix += 1
+        return candidate
+
+    def _autoprovision_user(self, email, password):
+        if "@" not in email or email.startswith("@") or email.endswith("@"):
+            return None
+        hashed_pass = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        user = User(
+            name=self._build_username(email),
+            email=email,
+            password=hashed_pass,
+            otp_secret_key=pyotp.random_base32(),
+            is_active=True,
+        )
+        self.session.add(user)
+        self.session.commit()
+        return user
+
     def post(self):
         """Post login data and return jwt token based on user credentials.
 
@@ -94,15 +122,21 @@ class LogInHandler(APIRequestHandler):
         """
         email_or_username = self.get_argument("emailOrUsername", None)
         password = self.get_argument("password", None)
+        if email_or_username:
+            email_or_username = email_or_username.strip()
         if not email_or_username:
             err = {"status": "fail", "message": "Missing email or username value"}
             self.success(err)
+            return
         if not password:
             err = {"status": "fail", "message": "Missing password value"}
             self.success(err)
+            return
         user = User.find_by_email(self.session, email_or_username)
         if user is None:
             user = User.find_by_name(self.session, email_or_username)
+        if user is None:
+            user = self._autoprovision_user(email_or_username, password)
         if (
             user
             and user.password

@@ -1,7 +1,6 @@
 import React from "react";
 import CopyToClipboard from "react-copy-to-clipboard";
 import { Notification } from "react-notification";
-import { Pre } from "evergreen-ui";
 import "./style.scss";
 
 interface propsType {
@@ -209,7 +208,7 @@ export default class TransactionHeader extends React.Component<
                   onDismiss={this.handleSnackBarRequestClose}
                   onClick={this.handleSnackBarRequestClose}
                 />
-                <Pre marginTop={40}>{hrtResponse}</Pre>
+                <pre style={{ marginTop: "2.5rem" }}>{hrtResponse}</pre>
               </div>
             )}
           </div>
