@@ -3,8 +3,8 @@ import { loginFail, loginSuccess, logout } from "./actions";
 import { LOGIN_START, LOGIN_AUTO_CHECK, LOGOUT } from "./constants";
 import { loginUsingLoginAPI, logoutUsingLogoutAPI } from "./api";
 import jwt_decode from "jwt-decode";
-import { push } from "react-router-redux";
 import { toaster } from "evergreen-ui";
+import history from "../../utils/historyUtils";
 
 export function* postDataToLoginAPI(action) {
   const postLoginAPI = loginUsingLoginAPI();
@@ -25,7 +25,7 @@ export function* postDataToLoginAPI(action) {
         username = "Username";
       }
       yield put(loginSuccess(token, username));
-      yield put(push("/dashboard"));
+      yield call([history, history.push], "/dashboard");
     } else {
       yield put(loginFail(responseData.data["message"]));
       toaster.danger(responseData.data["message"]);
@@ -69,7 +69,7 @@ export function* postDataToLogoutAPI(action) {
     localStorage.removeItem("token");
     if (responseData.data["status"] == "success") {
       toaster.success("Logout Successful");
-      yield put(push("/"));
+      yield call([history, history.push], "/");
     }
   } catch (error) {
     toaster.danger("Server replied: " + error);
