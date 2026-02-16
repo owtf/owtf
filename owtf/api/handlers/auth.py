@@ -97,9 +97,11 @@ class LogInHandler(APIRequestHandler):
         if not email_or_username:
             err = {"status": "fail", "message": "Missing email or username value"}
             self.success(err)
+            return
         if not password:
             err = {"status": "fail", "message": "Missing password value"}
             self.success(err)
+            return
         user = User.find_by_email(self.session, email_or_username)
         if user is None:
             user = User.find_by_name(self.session, email_or_username)
@@ -185,15 +187,19 @@ class RegisterHandler(APIRequestHandler):
         if not username:
             err = {"status": "fail", "message": "Missing username value"}
             self.success(err)
+            return
         if not email:
             err = {"status": "fail", "message": "Missing email value"}
             self.success(err)
+            return
         if not password:
             err = {"status": "fail", "message": "Missing password value"}
             self.success(err)
+            return
         if not confirm_password:
             err = {"status": "fail", "message": "Missing confirm password value"}
             self.success(err)
+            return
 
         email_already_taken = User.find_by_email(self.session, email)
         name_already_taken = User.find_by_name(self.session, username)
