@@ -5,7 +5,6 @@ owtf.managers.target
 """
 import logging
 import os
-
 from urllib.parse import urlparse
 
 from owtf.db.session import get_count, get_scoped_session
@@ -28,7 +27,6 @@ from owtf.utils.file import (
 )
 from owtf.utils.ip import get_ip_from_hostname, get_ips_from_hostname
 from owtf.utils.strings import str2bool, to_str
-
 
 TARGET_CONFIG = {
     "id": 0,
