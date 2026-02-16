@@ -2,20 +2,18 @@
  * COMMON WEBPACK CONFIGURATION BETWEEN DEVELOPMENT AND PRODUCTION
  */
 
-const path = require("path");
-const webpack = require("webpack");
+import path from "path";
+import webpack from "webpack";
+
 const CleanWebpackPlugin = require("clean-webpack-plugin");
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
-
-const home = require("os").homedir();
-const owtfDir = path.join(home, "owtf", "build");
 
 const PATHS = {
   app: path.join(process.cwd(), "src"),
   build: path.join(process.cwd(), "build"),
 };
 
-module.exports = {
+const commonConfig = {
   entry: [PATHS.app],
   output: {
     path: PATHS.build,
@@ -122,3 +120,5 @@ module.exports = {
     ],
   },
 };
+
+export = commonConfig;

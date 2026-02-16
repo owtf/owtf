@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "OWASP Offensive Web Testing Framework",
   "scripts": {
-    "build": "NODE_ENV=production webpack --config webpack/prod.config.js --color --progress --hide-modules --display-optimization-bailout",
-    "start": "NODE_ENV=development node server",
+    "build": "NODE_ENV=production rm -rf .tmp-ts && node ./node_modules/typescript/bin/tsc --module commonjs --target es2016 --esModuleInterop --skipLibCheck --rootDir . --outDir .tmp-ts webpack/common.config.ts webpack/prod.config.ts && webpack --config .tmp-ts/webpack/prod.config.js --color --progress --hide-modules --display-optimization-bailout",
+    "start": "NODE_ENV=development rm -rf .tmp-ts && node ./node_modules/typescript/bin/tsc --module commonjs --target es2016 --esModuleInterop --skipLibCheck --rootDir . --outDir .tmp-ts server/index.ts server/logger.ts webpack/common.config.ts webpack/dev.config.ts && node .tmp-ts/server/index.js",
     "precommit": "pretty-quick --staged",
     "test": "jest",
     "test:watch": "jest --watch"
@@ -134,8 +134,8 @@
   },
   "jest": {
     "moduleNameMapper": {
-      "\\.(jpg|ico|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/mocks/fileMock.js",
-      "\\.(css|less|scss)$": "<rootDir>/mocks/fileMock.js"
+      "\\.(jpg|ico|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/mocks/fileMock.ts",
+      "\\.(css|less|scss)$": "<rootDir>/mocks/fileMock.ts"
     },
     "moduleFileExtensions": [
       "js",
