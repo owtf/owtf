@@ -21,7 +21,6 @@ import {
   getTransactionAPI,
   getHrtResponseAPI
 } from "./api";
-import "@babel/polyfill";
 
 /**
  * Fetch Transactions request/response handler

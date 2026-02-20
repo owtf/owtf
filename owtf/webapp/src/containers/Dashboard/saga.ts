@@ -19,7 +19,6 @@ import {
 } from "./actions";
 import { getErrorsAPI, postErrorAPI, deleteErrorAPI, getSeverityAPI, getTargetSeverityAPI } from "./api";
 import { Dashboard } from "./index";
-import "@babel/polyfill";
 
 //@ts-ignore
 const dashboard = new Dashboard();

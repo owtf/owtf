@@ -1,8 +1,7 @@
 repos:
-  - repo: https://github.com/ambv/black
-    rev: 22.3.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.2
     hooks:
-      - id: black
-        args: [--line-length=120, --safe]
-        
-        python_version: python3.11
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format

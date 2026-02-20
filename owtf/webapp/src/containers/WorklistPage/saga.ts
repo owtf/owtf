@@ -26,7 +26,6 @@ import {
   patchWorklistAPI,
   deleteWorklistAPI
 } from "./api";
-import "@babel/polyfill";
 
 /**
  * Fetch Worklist request/response handler

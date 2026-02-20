@@ -10,10 +10,8 @@ from collections import defaultdict
 import importlib
 import logging
 import os
+import re
 
-from ptp import PTP
-from ptp.libptp.constants import UNKNOWN
-from ptp.libptp.exceptions import PTPError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import exc
 
@@ -33,6 +31,22 @@ from owtf.utils.strings import wipe_bad_chars
 from owtf.utils.timer import timer
 
 __all__ = ["runner", "show_plugin_list", "show_plugin_types"]
+
+try:
+    from ptp import PTP
+    from ptp.libptp.constants import UNKNOWN
+    from ptp.libptp.exceptions import PTPError
+    _PTP_IMPORT_ERROR = None
+except Exception as e:  # pragma: no cover - depends on optional runtime stack
+    # PTP transitively imports js2py, which is not compatible with Python 3.12 in some releases.
+    # Keep OWTF runnable and skip ranking when PTP cannot be imported.
+    PTP = None
+    UNKNOWN = 0
+
+    class PTPError(Exception):
+        pass
+
+    _PTP_IMPORT_ERROR = e
 
 INTRO_BANNER_GENERAL = """
 Short Intro:
@@ -350,6 +364,9 @@ class PluginRunner(object):
         Returns the ranking value.
 
         """
+        if PTP is None:
+            logging.debug("Skipping PTP ranking because PTP is unavailable: %s", _PTP_IMPORT_ERROR)
+            return -1
 
         def extract_metasploit_modules(cmd):
             """Extract the metasploit modules contained in the plugin output.

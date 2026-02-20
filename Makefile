@@ -5,8 +5,9 @@ mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 VENV_PATH := ${HOME}/.virtualenvs/${PROJ}
 SHELL := /bin/bash
+PY_QUALITY_PATHS := owtf/config.py owtf/lib/exceptions.py owtf/managers/config.py owtf/managers/target.py owtf/requester/base.py owtf/transactions/base.py owtf/transactions/main.py owtf/utils/http.py
 
-.PHONY: venv setup web docs lint clean bump build release
+.PHONY: venv setup bootstrap web docs lint typecheck-py format-py clean bump build release
 
 check-root:
 ifeq ($(USER), root)
@@ -51,7 +52,7 @@ setup: install-dependencies venv activate-virtualenv install-requirements
 
 ### REQUIREMENTS
 
-install-python-requirements: setup.py check-root
+install-python-requirements: check-root
 	@echo "--> Installing Python development dependencies."
 	pip3 install setuptools
 	for f in `ls requirements/` ; do pip3 install -r requirements/$$f ; done
@@ -82,6 +83,10 @@ post-install:
 	@echo "--> Installing dictionaries and tools"
 	python3 scripts/install_tools.py
 
+bootstrap:
+	@echo "--> Running explicit OWTF bootstrap steps"
+	./scripts/install.sh
+
 ### DOCS
 
 docs:
@@ -92,7 +97,7 @@ docs:
 
 docker-build:
 	@echo "--> Building the docker image for develop"
-	docker build -t owtf/owtf -f docker/Dockerfile .
+	docker build -t owtf/owtf -f docker/Dockerfile.backend .
 
 docker-run:
 	@echo "--> Running the Docker development image"
@@ -101,11 +106,11 @@ docker-run:
 ### Options to allow docker to have permissive network capabilities, allowing it to run tools such as nmap
 compose-safe:
 	@echo "--> Running the Docker Compose setup with network capabilties for container"
-	docker-compose -f docker/docker-compose.dev.yml up --build
+	docker compose -f docker/docker-compose.dev.yml up --build
 
 compose-unsafe:
 	@echo "--> Running the Docker Compose setup without network capabilties for container"
-	docker-compose -f docker/docker-compose.dev.unsafe.yml up --build
+	docker compose -f docker/docker-compose.dev.unsafe.yml up --build
 
 ### DEBIAN PACKAGING
 
@@ -117,7 +122,16 @@ build-debian:
 
 lint-py:
 	@echo "--> Linting Python files."
-	pep8 owtf tests  # settings in setup.cfg
+	python3 -m ruff check $(PY_QUALITY_PATHS)
+	python3 -m ruff format --check $(PY_QUALITY_PATHS)
+
+typecheck-py:
+	@echo "--> Running targeted mypy checks."
+	python3 -m mypy $(PY_QUALITY_PATHS)
+
+format-py:
+	@echo "--> Formatting Python files."
+	python3 -m ruff format $(PY_QUALITY_PATHS)
 
 lint-js:
 	@echo "--> Linting JavaScript files."
@@ -129,7 +143,7 @@ lint: lint-py lint-js
 
 test-py: clean-py
 	@echo "--> Running Python tests (see test.log for output)."
-	py.test | tee test.log  # settings in pytest.ini
+	pytest | tee test.log  # settings in setup.cfg
 
 test: test-py
 
@@ -139,7 +153,7 @@ tox: clean-py
 
 coverage-py: clean-py
 	@echo "--> Running Python tests with coverage (see test.log and htmlcov/ for output)."
-	py.test --cov-report html --cov=owtf | tee test.log  # settings in pytest.ini
+	pytest --cov-report html --cov=owtf | tee test.log  # settings in setup.cfg
 
 ### CLEAN
 
@@ -200,7 +214,7 @@ build:
 	$(PYTHON) setup.py sdist bdist_wheel
 
 startdb:
-	docker-compose -p $(PROJ) -f docker/docker-compose.yml up -d --no-recreate
+	docker compose -p $(PROJ) -f docker/docker-compose.yml up -d --no-recreate
 
 stopdb:
-	docker-compose -p $(PROJ) -f docker/docker-compose.yml down
+	docker compose -p $(PROJ) -f docker/docker-compose.yml down

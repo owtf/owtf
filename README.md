@@ -2,7 +2,7 @@
 
 [![Build status](https://github.com/owtf/owtf/actions/workflows/main.yml/badge.svg)](https://github.com/owtf/owtf/actions/workflows/main.yml)
 [![License: BSD 3-Clause](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square)](LICENSE.md)
-[![Python Versions](https://img.shields.io/badge/python-3.8%E2%80%933.11-blue.svg)](https://www.python.org/downloads/)
+[![Python Versions](https://img.shields.io/badge/python-3.11%E2%80%933.12-blue.svg)](https://www.python.org/downloads/)
 
 **OWASP OWTF** helps penetration testers stay efficient and aligned with security standards such as the OWASP Testing Guide (v3 and v4), the OWASP Top 10, PTES, and NIST so that they have more time to:
 
@@ -41,7 +41,7 @@ pip install cryptography --global-option=build_ext --global-option="-L/usr/local
 
 Building the Docker image is the recommended way to use OWTF so you do not have to worry about dependency conflicts or installing a large toolchain manually.
 
-- Install [`docker` and `docker-compose`](https://docs.docker.com/compose/install/).
+- Install Docker with the Compose plugin (`docker compose`).
 
 ```bash
 git clone https://github.com/owtf/owtf
@@ -83,7 +83,8 @@ Create the database:
 ```bash
 git clone https://github.com/owtf/owtf
 cd owtf
-python3 setup.py develop
+pip install -e .
+make bootstrap
 make startdb
 make setup-web
 owtf

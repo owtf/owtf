@@ -6,17 +6,9 @@ The Configuration object parses all configuration files, loads them into
 memory, derives some settings and provides framework modules with a central
 repository to get info.
 """
+
 import logging
 from collections import defaultdict
-
-try:  # PY3
-    from urllib.parse import urlparse
-except ImportError:  # PY2
-    from urlparse import urlparse
-try:
-    import configparser as parser
-except ImportError:
-    import ConfigParser as parser
 
 from owtf.lib.exceptions import PluginAbortException
 from owtf.settings import CONFIG_TYPES, REPLACEMENT_DELIMITER, ROOT_DIR
@@ -31,9 +23,7 @@ class Config(object):
         self.root_dir = ROOT_DIR
         self.config = defaultdict(list)  # General configuration information.
         for type in CONFIG_TYPES:
-            self.config[
-                type
-            ] = {}  # key can consist alphabets, numbers, hyphen & underscore.
+            self.config[type] = {}  # key can consist alphabets, numbers, hyphen & underscore.
         self.cli_options = {}
 
     def is_set(self, key):
@@ -122,7 +112,7 @@ class Config(object):
         return self.get_val(key).split(",")
 
     def set_general_val(self, type, key, value):
-        """ Set value for a key in any config file
+        """Set value for a key in any config file
 
         :param type: Type of config file, framework or general.cfg
         :type type: `str`
@@ -189,9 +179,7 @@ class Config(object):
         :return: Comma-separate string of tcp ports
         :rtype: `str`
         """
-        return ",".join(
-            self.get_val("TCP_PORTS").split(",")[int(start_port):int(end_port)]
-        )
+        return ",".join(self.get_val("TCP_PORTS").split(",")[int(start_port) : int(end_port)])
 
     def get_udp_ports(self, start_port, end_port):
         """Get UDP ports from the config file
@@ -203,9 +191,7 @@ class Config(object):
         :return: Comma-separate string of udp ports
         :rtype: `str`
         """
-        return ",".join(
-            self.get_val("UDP_PORTS").split(",")[int(start_port):int(end_port)]
-        )
+        return ",".join(self.get_val("UDP_PORTS").split(",")[int(start_port) : int(end_port)])
 
 
 config_handler = Config()

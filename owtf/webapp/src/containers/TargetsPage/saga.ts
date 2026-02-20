@@ -30,7 +30,6 @@ import {
   deleteTargetAPI,
   removeTargetFromSessionAPI
 } from "./api";
-import "@babel/polyfill";
 
 /**
  * Fetch Target request/response handler

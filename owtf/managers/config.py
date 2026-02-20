@@ -3,8 +3,10 @@ owtf.managers.config_manager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Manage configuration methods.
 """
+
 import logging
 import os
+
 import yaml
 
 from owtf.config import config_handler
@@ -13,7 +15,6 @@ from owtf.models.config import Config
 from owtf.utils.error import abort_framework
 from owtf.utils.file import FileOperations
 from owtf.utils.strings import multi_replace, str2bool
-from owtf.utils.pycompat import iteritems
 
 
 def load_config_file(file_path, fallback_file_path):
@@ -51,7 +52,7 @@ def load_general_config(session, default, fallback):
     :rtype: None
     """
     config_dump = load_config_file(default, fallback)
-    for section, config_list in iteritems(config_dump):
+    for section, config_list in config_dump.items():
         for config_map in config_list:
             try:
                 old_config_obj = session.query(Config).get(config_map["config"])
@@ -84,7 +85,7 @@ def load_framework_config(default, fallback, root_dir, owtf_pid):
     """
     config_dump = load_config_file(default, fallback)
     config_handler.set_val("FRAMEWORK_DIR", root_dir)  # Needed Later.
-    for section, config_list in iteritems(config_dump):
+    for section, config_list in config_dump.items():
         for config_map in config_list:
             try:
                 config_handler.set_val(
@@ -148,9 +149,7 @@ def get_all_tools(session):
     results = session.query(Config).filter(Config.key.like("%TOOL_%")).all()
     config_dicts = [config_obj.to_dict() for config_obj in results if config_obj]
     for config_dict in config_dicts:
-        config_dict["value"] = multi_replace(
-            config_dict["value"], config_handler.get_replacement_dict
-        )
+        config_dict["value"] = multi_replace(config_dict["value"], config_handler.get_replacement_dict)
     return config_dicts
 
 
@@ -171,9 +170,7 @@ def update_config_val(session, key, value):
         session.merge(config_obj)
         session.commit()
     else:
-        raise InvalidConfigurationReference(
-            "No setting exists with key: {!s}".format(key)
-        )
+        raise InvalidConfigurationReference("No setting exists with key: {!s}".format(key))
 
 
 def get_conf(session):

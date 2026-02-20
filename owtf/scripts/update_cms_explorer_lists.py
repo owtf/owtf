@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 2015/12/13 - Viyat Bhalodia (@delta24) - Updates CMS Explorer lists and merge them with original ones
 """

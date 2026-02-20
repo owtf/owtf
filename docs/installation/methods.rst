@@ -15,10 +15,10 @@ Docker
 ^^^^^^
 
 Docker automates the task of setting up owtf doing all the bootstraping it needs.
-Just make sure that you have ``docker`` and ``docker-compose`` installed and run:
+Just make sure that you have Docker with the Compose plugin (``docker compose``) installed and run:
 
 .. code-block:: bash
 
-	make compose
+	make compose-safe
 
 * If you wish to override the environment variables for docker setup, use the file named ``owtf.env``
