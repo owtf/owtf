@@ -259,8 +259,8 @@ class PluginRunner(object):
         :return: None
         :rtype: None
         """
-        f, filename, desc = impportlib.find_module(module_file.split(".")[0], [module_path])
-        return impportlib.load_module(module_name, f, filename, desc)
+        f, filename, desc = importlib.find_module(module_file.split(".")[0], [module_path])
+        return importlib.load_module(module_name, f, filename, desc)
 
     def chosen_plugin(self, session, plugin, show_reason=False):
         """Verify that the plugin has been chosen by the user.
@@ -565,8 +565,7 @@ class PluginRunner(object):
                     logging.info("Discovered web services: %s", web_targets)
                     for web_url in web_targets:
                         target_manager.add_target(web_url)
-        else:
-            pass
+       #removed dead code: else:pass
 
 
 def show_plugin_list(session, group, msg=INTRO_BANNER_GENERAL):
