@@ -16,7 +16,6 @@ import {
   sessionsDeletingError
 } from './actions';
 import { getSessionsAPI, patchSessionAPI, postSessionAPI, deleteSessionAPI } from "./api";
-import "@babel/polyfill";
 
 /**
  * Fetch Session request/response handler

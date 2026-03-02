@@ -3,8 +3,7 @@ import { forgotPasswordEmailSuccess, forgotPasswordEmailFail } from "./actions";
 import { FORGOT_PASSWORD_EMAIL_START } from "./constants";
 import { emailAPI } from "./api";
 import { toaster } from "evergreen-ui";
-import { push } from "react-router-redux";
-import "@babel/polyfill";
+import history from "../../utils/historyUtils";
 
 export function* postDataToEmailAPI(action) {
   const postEmailAPI = emailAPI();
@@ -16,7 +15,7 @@ export function* postDataToEmailAPI(action) {
     const responseData = yield call(postEmailAPI, forgotPasswordData);
     if (responseData.data["status"] == "success") {
       toaster.success(responseData.data["message"]);
-      yield put(push("/forgot-password/otp/"));
+      yield call([history, history.push], "/forgot-password/otp/");
       yield put(
         forgotPasswordEmailSuccess(
           responseData.data["message"],

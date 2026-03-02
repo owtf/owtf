@@ -3,16 +3,11 @@ owtf.lib.exceptions
 ~~~~~~~~~~~~~~~~~~~
 Declares the framework exceptions and HTTP errors
 """
-try:
-    from http.client import responses
-except ImportError:
-    from httplib import responses
 
 import tornado.web
 
 
 class FrameworkException(Exception):
-
     def __init__(self, value):
         self.parameter = value
 

@@ -4,60 +4,41 @@ owtf.requester.base
 The Requester module is in charge of simplifying HTTP requests and
 automatically log HTTP transactions by calling the DB module.
 """
+
+import http.client as client
 import logging
 import sys
-
-try:
-    import http.client as client
-except ImportError:
-    import httplib as client
-try:
-    from urllib.parse import urlparse, urlencode
-    from urllib.request import urlopen, Request
-    from urllib.error import HTTPError, URLError
-    from urllib.request import (
-        HTTPHandler,
-        HTTPSHandler,
-        HTTPRedirectHandler,
-        ProxyHandler,
-        build_opener,
-        install_opener,
-    )
-except ImportError:
-    from urlparse import urlparse
-    from urllib import urlencode
-    from urllib2 import (
-        urlopen,
-        Request,
-        HTTPError,
-        HTTPHandler,
-        HTTPSHandler,
-        HTTPRedirectHandler,
-        ProxyHandler,
-        build_opener,
-        install_opener,
-        URLError,
-    )
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
+from urllib.request import (
+    HTTPHandler,
+    HTTPRedirectHandler,
+    HTTPSHandler,
+    ProxyHandler,
+    Request,
+    build_opener,
+    install_opener,
+    urlopen,
+)
 
 from owtf.db.session import get_scoped_session
-from owtf.transactions.base import HTTPTransaction
 from owtf.managers.target import is_url_in_scope
 from owtf.managers.transaction import get_first, is_transaction_already_added
 from owtf.managers.url import is_url
 from owtf.plugin.runner import runner
-from owtf.settings import PROXY_CHECK_URL, USER_AGENT, INBOUND_PROXY_IP, INBOUND_PROXY_PORT
+from owtf.settings import INBOUND_PROXY_IP, INBOUND_PROXY_PORT, PROXY_CHECK_URL, USER_AGENT
+from owtf.transactions.base import HTTPTransaction
+from owtf.utils.error import abort_framework
 from owtf.utils.http import derive_http_method
 from owtf.utils.strings import str_to_dict
 from owtf.utils.timer import timer
-from owtf.utils.error import abort_framework
 
 __all__ = ["requester"]
 
 
 # Intercept raw request trick from:
-# http://stackoverflow.com/questions/6085709/get-headers-sent-in-urllib2-http-request
+# http://stackoverflow.com/questions/6085709/get-headers-sent-in-urllib-http-request
 class _HTTPConnection(client.HTTPConnection):
-
     def send(self, s):
         global raw_request
         # Saving to global variable for Requester class to see.
@@ -66,7 +47,6 @@ class _HTTPConnection(client.HTTPConnection):
 
 
 class _HTTPHandler(HTTPHandler):
-
     def http_open(self, req):
         try:
             return self.do_open(_HTTPConnection, req)
@@ -78,7 +58,6 @@ class _HTTPHandler(HTTPHandler):
 
 
 class _HTTPSConnection(client.HTTPSConnection):
-
     def send(self, s):
         global raw_request
         # Saving to global variable for Requester class to see.
@@ -87,7 +66,6 @@ class _HTTPSConnection(client.HTTPSConnection):
 
 
 class _HTTPSHandler(HTTPSHandler):
-
     def https_open(self, req):
         try:
             return self.do_open(_HTTPSConnection, req)
@@ -101,7 +79,6 @@ class _HTTPSHandler(HTTPSHandler):
 # SmartRedirectHandler is courtesy of:
 # http://www.diveintopython.net/http_web_services/redirects.html
 class SmartRedirectHandler(HTTPRedirectHandler):
-
     def http_error_301(self, req, fp, code, msg, headers):
         result = HTTPRedirectHandler.http_error_301(self, req, fp, code, msg, headers)
         result.status = code
@@ -114,7 +91,6 @@ class SmartRedirectHandler(HTTPRedirectHandler):
 
 
 class Requester(object):
-
     def __init__(self, proxy):
         self.http_transaction = None
         self.headers = {"User-Agent": USER_AGENT}
@@ -236,10 +212,11 @@ class Requester(object):
         if "" == post:
             post = None
         if post:
-            if isinstance(post, str) or isinstance(post, unicode):
+            if isinstance(post, str):
                 # Must be a dictionary prior to urlencode.
-                post = str_to_dict(str(post))
-            post = urlencode(post).encode("utf-8")
+                post = str_to_dict(post)
+            if not isinstance(post, (bytes, bytearray)):
+                post = urlencode(post).encode("utf-8")
         return post
 
     def perform_request(self, request):
@@ -284,7 +261,7 @@ class Requester(object):
         :return:
         :rtype:
         """
-        # kludge: necessary to get around urllib2 limitations: Need this to get the exact request that was sent.
+        # kludge: necessary to get around urllib limitations: Need this to get the exact request that was sent.
         global raw_request
         url = str(url)
 
@@ -294,7 +271,7 @@ class Requester(object):
         url = url.strip()  # Clean up URL.
         r = Request(url, post, self.headers)  # GET request.
         if method is not None:
-            # kludge: necessary to do anything other that GET or POST with urllib2
+            # kludge: necessary to do anything other that GET or POST with urllib
             r.get_method = lambda: method
         # MUST create a new Transaction object each time so that lists of
         # transactions can be created and process at plugin-level
@@ -306,7 +283,7 @@ class Requester(object):
             response = self.perform_request(r)
             self.set_successful_transaction(raw_request, response)
         except HTTPError as error:  # page NOT found.
-            # Error is really a response for anything other than 200 OK in urllib2 :)
+            # Error is really a response for anything other than 200 OK in urllib :)
             self.http_transaction.set_transaction(False, raw_request[0], error)
         except URLError as error:  # Connection refused?
             err_message = self.process_http_error_code(error, url)

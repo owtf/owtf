@@ -76,14 +76,6 @@ owtf.utils.process module
     :undoc-members:
     :show-inheritance:
 
-owtf.utils.pycompat module
---------------------------
-
-.. automodule:: owtf.utils.pycompat
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 owtf.utils.signals module
 -------------------------
 

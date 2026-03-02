@@ -2,7 +2,6 @@ import Docxtemplater from "docxtemplater";
 import { importDirectory } from "../../utils/export";
 import JSZip from "jszip";
 import saveAs from "save-as";
-import "@babel/polyfill";
 
 //@ts-ignore
 const templates = importDirectory(

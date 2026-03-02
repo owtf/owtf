@@ -7,7 +7,6 @@ import { LOAD_PLUGINS, POST_TO_WORKLIST } from './constants';
 import { pluginsLoaded, pluginsLoadingError, targetPosted, targetPostingError } from './actions';
 import { loadTargets } from '../TargetsPage/actions';
 import { getPluginsAPI, postTargetsToWorklistAPI } from "./api";
-import "@babel/polyfill";
 
 /**
  * Fetch Plugin request/response handler

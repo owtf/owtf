@@ -33,9 +33,9 @@ URL=$2
 PROXY=$3
 PROXY_IP=$(echo $PROXY | cut -d ":" -f 1)
 PROXY_PORT=$(echo $PROXY | cut -d ":" -f 2)
-USER_AGENT="Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/6.0" # Default to something less obvious
-if [ "$4" != "" ]; then
-	USER_AGENT=$(echo $4 | sed 's/#/ /g') # Expand to real User Agent
+USER_AGENT="Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0" # Fallback; OWTF usually passes configured USER_AGENT
+if [ -n "$4" ]; then
+	USER_AGENT=$(echo "$4" | sed 's/#/ /g') # Expand to real User Agent
 fi
 
 DATE=$(date +%F_%R:%S | sed 's/:/_/g')

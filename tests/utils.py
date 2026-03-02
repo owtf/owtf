@@ -16,15 +16,16 @@ def db_setup(cmd):
     """Reset OWTF database."""
     if cmd not in ["clean", "init"]:
         return
-    formatted_cmd = "make db-{}".format(cmd)
-    pwd = os.getcwd()
-    db_process = subprocess.Popen(
-        "/usr/bin/echo '\n' | %s %s" % (os.path.join(pwd), formatted_cmd),
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+    formatted_cmd = ["make", "db-{}".format(cmd)]
+    subprocess.run(
+        formatted_cmd,
+        cwd=os.getcwd(),
+        input="\n",
+        text=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
     )
-    db_process.wait()
 
 
 def clean_owtf_review():

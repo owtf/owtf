@@ -36,7 +36,6 @@ import {
   getWorkerLogsAPI
 } from "./api";
 import { WorkersPage } from "./index";
-import "@babel/polyfill";
 // @ts-ignore
 const workerspage = new WorkersPage();
 

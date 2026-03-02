@@ -15,9 +15,9 @@ TOOL_BIN=$1
 REPORTER_BIN=$2
 URL=$3
 PROXY=$4
-USER_AGENT="Mozilla/5.0 (X11; Linux i686; rv:6.0) Gecko/20100101 Firefox/6.0" # Default to something less obvious
-if [ -z "$5" ]; then
-	USER_AGENT=$(echo "$4" | sed 's/#/ /g') # Expand to real User Agent
+USER_AGENT="Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0" # Fallback; OWTF usually passes configured USER_AGENT
+if [ -n "$5" ]; then
+	USER_AGENT=$(echo "$5" | sed 's/#/ /g') # Expand to real User Agent
 fi
 
 

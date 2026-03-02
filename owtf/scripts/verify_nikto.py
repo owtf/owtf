@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Tries to put links around nikto findings to save a bit of time in manual verification
 This files actually converts target urls & OSVDB codes into clickable links
@@ -15,8 +15,8 @@ if len(sys.argv) < 3:
     print("Usage: %s <nikto.txt file> <top_url>" % sys.argv[0])
     exit(-1)
 
-osvdb_regexp = re.compile("\+ (OSVDB-[0-9]+):.*")
-url_regexp = re.compile("(/[^ :]*):")
+osvdb_regexp = re.compile(r"\+ (OSVDB-[0-9]+):.*")
+url_regexp = re.compile(r"(/[^ :]*):")
 link_list = []
 top_url = sys.argv[2]
 origin = sys.argv[1]  # The original nikto output file

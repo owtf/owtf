@@ -298,16 +298,15 @@ exports[`Report page component Testing Table component Should render without err
       <div
         className="targetsCollapseDataTableContainer__bodyContainer__rowContainer__outputfiles"
       >
-        <Link
-          replace={false}
-          to="/output_files/undefined/"
+        <a
+          href="http://localhost:8009/output_files/undefined/"
         >
           <button
             disabled={false}
           >
             Browse
           </button>
-        </Link>
+        </a>
       </div>
       <div
         className="targetsCollapseDataTableContainer__bodyContainer__rowContainer__actionButtons"

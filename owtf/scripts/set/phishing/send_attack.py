@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 This is the command-line front-end in charge of processing arguments and call the framework
 """

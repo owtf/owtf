@@ -61,6 +61,7 @@
           - docker-ce
           - docker-ce-cli
           - containerd.io
+          - docker-compose-plugin
         state: present
         update_cache: yes
 
@@ -69,12 +70,6 @@
         name: "{{ admin_user }}"
         groups: docker
         append: yes
-
-    - name: Download Docker Compose
-      get_url:
-        url: "https://github.com/docker/compose/releases/download/v2.21.0/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}"
-        dest: /usr/local/bin/docker-compose
-        mode: '0755'
 
     - name: Start and enable Docker
       systemd:
@@ -118,10 +113,10 @@
         group: "{{ admin_user }}"
         recurse: yes
 
-    - name: Start OWTF with Docker Compose
+    - name: Start OWTF with Docker Compose plugin
       shell: |
         cd /home/{{ admin_user }}/owtf
-        docker-compose -f docker/docker-compose.dev.yml up --build -d
+        docker compose -f docker/docker-compose.dev.yml up --build -d
       become_user: "{{ admin_user }}"
       environment:
         DOCKER_CLIENT_TIMEOUT: 300
