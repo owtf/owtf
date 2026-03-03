@@ -58,8 +58,6 @@ class User(Model):
     @classmethod
     def activate_user(cls, session, user_id):
         db_obj = session.query(cls).filter_by(id=user_id).first()
-        if db_obj is None:
-            return None
         db_obj.is_active = True
         session.commit()
 
@@ -73,7 +71,5 @@ class User(Model):
     @classmethod
     def change_password(cls, session, email, password):
         db_obj = session.query(cls).filter_by(email=email).first()
-        if db_obj is None:
-            return None
         db_obj.password = password
         session.commit()
