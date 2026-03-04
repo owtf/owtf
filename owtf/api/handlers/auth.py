@@ -106,7 +106,7 @@ class LogInHandler(APIRequestHandler):
         if (
             user
             and user.password
-            and bcrypt.hashpw(password.encode("utf-8"), user.password.encode("utf-8")) == user.password.encode("utf-8")
+            and bcrypt.checkpw(password.encode("utf-8"), user.password.encode("utf-8"))
             and user.is_active
         ):
             payload = {
