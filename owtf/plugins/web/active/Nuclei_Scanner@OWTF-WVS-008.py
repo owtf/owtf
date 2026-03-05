@@ -2,21 +2,9 @@
 ACTIVE Plugin for Nuclei Vulnerability Scanner
 https://github.com/projectdiscovery/nuclei
 
-This plugin demonstrates a modern, self-contained plugin architecture that does NOT
-rely on the deprecated plugin_helper or centralized resources.cfg configuration.
+Modern self-contained plugin - no plugin_helper or resources.cfg dependency.
 
-Modern Plugin Design Principles:
-- Self-contained: All logic in one file
-- Direct integration: No resource file lookups
-- Structured output: JSON parsing for clean data
-- Comprehensive error handling: Graceful failures
-- Well documented: Inline comments for maintainability
-- Testable: Can be unit tested independently
-
-This pattern can serve as a template for future plugin development and
-modernization of existing resource-based plugins.
-
-Tool: Nuclei - Fast vulnerability scanner with 3000+ community templates
+Tool: Nuclei - Fast vulnerability scanner with community templates
 Install: go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
         or: brew install nuclei
 """
@@ -24,79 +12,51 @@ import subprocess
 import json
 import logging
 
+from owtf.managers.target import target_manager
+
 DESCRIPTION = "Modern template-based vulnerability scanning via Nuclei"
 
-# Plugin output template (imported from OWTF at runtime)
-PLUGIN_OUTPUT = {"type": None, "output": None}
+PLUGIN_OUTPUT = {"type": "CommandDump", "output": {}}
 
 
 def run(PluginInfo):
     """
-    Execute Nuclei vulnerability scan against target.
-    
-    This function demonstrates modern plugin architecture by:
-    1. Directly executing the tool (no resource lookups)
-    2. Parsing structured JSON output
-    3. Handling all error cases gracefully
-    4. Providing detailed logging
-    5. Returning formatted results for OWTF
-    
+    Execute Nuclei vulnerability scan against the current target.
+
+    Gets target URL from OWTF's target_manager (the correct way to access
+    the current target in OWTF plugins, not from PluginInfo directly).
+
     Args:
-        PluginInfo (dict): OWTF plugin information containing:
-            - TARGET: Target URL to scan
-            - output_path: Where to store results
-            - (other OWTF-specific metadata)
-    
+        PluginInfo (dict): OWTF plugin metadata passed by the runner.
+
     Returns:
-        list: OWTF-formatted plugin output with findings
+        list: OWTF-compatible plugin output with ResourceList for UI rendering.
     """
-    target = PluginInfo.get("TARGET", "")
-    
+    target = target_manager.get_val("target_url")
+
     if not target:
-        logging.error("Nuclei plugin: No target specified")
-        plugin_output = dict(PLUGIN_OUTPUT)
-        plugin_output["type"] = "NucleiScan"
-        plugin_output["output"] = {
-            "status": "error",
-            "message": "No target specified"
-        }
-        return [plugin_output]
-    
-    logging.info(f"Starting Nuclei scan for target: {target}")
-    
-    # Step 1: Verify Nuclei is installed
+        logging.error("Nuclei plugin: Could not retrieve target URL from target_manager")
+        return _error_output("Could not retrieve target URL")
+
+    logging.info("Starting Nuclei scan for target: %s", target)
+
     if not _check_nuclei_installed():
-        error_msg = (
+        msg = (
             "Nuclei is not installed or not in PATH.\n\n"
-            "Installation instructions:\n"
+            "Install instructions:\n"
             "  macOS:  brew install nuclei\n"
             "  Linux:  go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest\n"
-            "  Docker: docker pull projectdiscovery/nuclei:latest\n\n"
-            "Documentation: https://docs.projectdiscovery.io/tools/nuclei/install"
+            "  Docs:   https://docs.projectdiscovery.io/tools/nuclei/install"
         )
         logging.error("Nuclei not found in PATH")
-        plugin_output = dict(PLUGIN_OUTPUT)
-        plugin_output["type"] = "NucleiScan"
-        plugin_output["output"] = {
-            "status": "error",
-            "message": error_msg
-        }
-        return [plugin_output]
-    
-    # Step 2: Execute Nuclei scan
+        return _error_output(msg)
+
     scan_results = _execute_nuclei_scan(target)
-    
-    # Step 3: Format results for OWTF
-    return _format_results(scan_results, target, PluginInfo)
+    return _format_results(scan_results, target)
 
 
 def _check_nuclei_installed():
-    """
-    Verify that Nuclei is installed and accessible.
-    
-    Returns:
-        bool: True if Nuclei is available, False otherwise
-    """
+    """Check if nuclei binary is available in PATH."""
     try:
         result = subprocess.run(
             ["nuclei", "-version"],
@@ -104,7 +64,6 @@ def _check_nuclei_installed():
             timeout=5,
             text=True
         )
-        logging.info(f"Nuclei version check: {result.stdout.strip()}")
         return result.returncode == 0
     except FileNotFoundError:
         return False
@@ -112,186 +71,130 @@ def _check_nuclei_installed():
         logging.warning("Nuclei version check timed out")
         return False
     except Exception as e:
-        logging.error(f"Error checking Nuclei installation: {e}")
+        logging.error("Error checking Nuclei installation: %s", e)
         return False
 
 
 def _execute_nuclei_scan(target):
     """
-    Execute Nuclei scan and parse results.
-    
+    Run nuclei against the target and return parsed findings.
+
     Args:
-        target (str): Target URL to scan
-    
+        target (str): Target URL to scan.
+
     Returns:
-        dict: Scan results with findings list and metadata
+        dict: findings list and success/error status.
     """
-    # Build Nuclei command with optimal settings
     cmd = [
         "nuclei",
         "-u", target,
-        "-json",                    # JSON output for parsing
-        "-silent",                  # Suppress banner
-        "-severity", "critical,high,medium",  # Focus on important findings
-        "-timeout", "10",           # Per-template timeout
-        "-retries", "1",            # Retry failed templates once
-        "-rate-limit", "150",       # Requests per second (be nice to target)
+        "-json",
+        "-silent",
+        "-severity", "critical,high,medium",
+        "-timeout", "10",
+        "-retries", "1",
+        "-rate-limit", "150",
     ]
-    
-    logging.info(f"Executing: {' '.join(cmd)}")
-    
+
+    logging.info("Executing: %s", " ".join(cmd))
+
     try:
-        # Execute with overall timeout of 10 minutes
         result = subprocess.run(
             cmd,
             capture_output=True,
             timeout=600,
             text=True,
-            check=False  # Don't raise on non-zero exit (Nuclei returns 1 if findings found)
+            check=False
         )
-        
-        # Parse JSON output
+
         findings = []
-        for line in result.stdout.strip().split('\n'):
+        for line in result.stdout.strip().split("\n"):
             if line.strip():
                 try:
-                    finding = json.loads(line)
-                    findings.append(_parse_finding(finding))
-                except json.JSONDecodeError as e:
-                    logging.debug(f"Failed to parse JSON line: {e}")
+                    findings.append(json.loads(line))
+                except json.JSONDecodeError:
                     continue
-        
-        logging.info(f"Nuclei scan completed: {len(findings)} findings")
-        
-        return {
-            'success': True,
-            'findings': findings,
-            'total_findings': len(findings),
-            'raw_output': result.stdout,
-            'stderr': result.stderr if result.stderr else None
-        }
-        
+
+        logging.info("Nuclei scan completed: %d findings", len(findings))
+        return {"success": True, "findings": findings}
+
     except subprocess.TimeoutExpired:
         logging.error("Nuclei scan timed out after 10 minutes")
-        return {
-            'success': False,
-            'error': 'Scan timed out (10 minute limit)',
-            'findings': []
-        }
+        return {"success": False, "error": "Scan timed out (10 minute limit)", "findings": []}
     except Exception as e:
-        logging.error(f"Nuclei scan failed: {e}")
-        return {
-            'success': False,
-            'error': str(e),
-            'findings': []
-        }
+        logging.error("Nuclei scan failed: %s", e)
+        return {"success": False, "error": str(e), "findings": []}
 
 
-def _parse_finding(raw_finding):
+def _format_results(scan_results, target):
     """
-    Parse a single Nuclei finding from JSON into clean format.
-    
+    Format scan results as OWTF ResourceList for web UI rendering.
+
+    The OWTF frontend (Table.tsx) renders plugin output by reading
+    ResourceList (list of [label, url] pairs) and ResourceListName.
+    This is the only output structure the UI displays.
+
     Args:
-        raw_finding (dict): Raw JSON finding from Nuclei
-    
-    Returns:
-        dict: Cleaned and formatted finding
-    """
-    info = raw_finding.get('info', {})
-    
-    return {
-        'template_id': raw_finding.get('template-id', 'unknown'),
-        'name': info.get('name', 'Unknown Vulnerability'),
-        'severity': info.get('severity', 'info'),
-        'description': info.get('description', ''),
-        'reference': info.get('reference', []),
-        'tags': info.get('tags', []),
-        'matched_at': raw_finding.get('matched-at', ''),
-        'matcher_name': raw_finding.get('matcher-name', ''),
-        'extracted_results': raw_finding.get('extracted-results', []),
-        'curl_command': raw_finding.get('curl-command', '')
-    }
+        scan_results (dict): Results from _execute_nuclei_scan.
+        target (str): Target URL that was scanned.
 
-
-def _format_results(scan_results, target, plugin_info):
-    """
-    Format scan results for OWTF display.
-    
-    Args:
-        scan_results (dict): Results from _execute_nuclei_scan
-        target (str): Target URL
-        plugin_info (dict): OWTF plugin info
-    
     Returns:
-        list: OWTF-formatted plugin output
+        list: OWTF plugin output list.
     """
-    if not scan_results.get('success'):
-        error_msg = scan_results.get('error', 'Unknown error')
+    if not scan_results.get("success"):
+        error = scan_results.get("error", "Unknown error")
+        return _error_output("Nuclei scan failed: {}".format(error))
+
+    findings = scan_results.get("findings", [])
+
+    if not findings:
         plugin_output = dict(PLUGIN_OUTPUT)
-        plugin_output["type"] = "NucleiScan"
         plugin_output["output"] = {
-            "status": "error",
-            "message": f"Nuclei scan failed: {error_msg}",
-            "target": target
+            "ResourceListName": "Nuclei Scan: {}".format(target),
+            "ResourceList": [
+                ["No vulnerabilities found (critical/high/medium)", target]
+            ]
         }
         return [plugin_output]
-    
-    findings = scan_results.get('findings', [])
-    
-    # Build formatted text output
-    if not findings:
-        output_text = f"✓ No vulnerabilities detected for {target}\n\n"
-        output_text += "Nuclei scan completed successfully with no findings.\n"
-        output_text += "Note: This scanned for critical, high, and medium severity issues only."
-    else:
-        output_text = f"Nuclei Vulnerability Scan Results for {target}\n"
-        output_text += "=" * 80 + "\n\n"
-        output_text += f"Total Findings: {len(findings)}\n\n"
-        
-        # Group by severity
-        by_severity = {}
-        for finding in findings:
-            sev = finding['severity']
-            by_severity.setdefault(sev, []).append(finding)
-        
-        # Display findings grouped by severity
-        for severity in ['critical', 'high', 'medium', 'low', 'info']:
-            if severity not in by_severity:
-                continue
-            
-            output_text += f"\n{'='*80}\n"
-            output_text += f"{severity.upper()} SEVERITY ({len(by_severity[severity])} findings)\n"
-            output_text += f"{'='*80}\n\n"
-            
-            for idx, finding in enumerate(by_severity[severity], 1):
-                output_text += f"{idx}. {finding['name']}\n"
-                output_text += f"   Template: {finding['template_id']}\n"
-                output_text += f"   Matched: {finding['matched_at']}\n"
-                
-                if finding['description']:
-                    output_text += f"   Description: {finding['description']}\n"
-                
-                if finding['tags']:
-                    output_text += f"   Tags: {', '.join(finding['tags'])}\n"
-                
-                if finding['reference']:
-                    output_text += f"   References:\n"
-                    for ref in finding['reference'][:3]:  # Show max 3 refs
-                        output_text += f"     - {ref}\n"
-                
-                output_text += "\n"
-    
-    # Create OWTF plugin output format
+
+    # Build ResourceList from findings sorted by severity
+    severity_order = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
+    sorted_findings = sorted(
+        findings,
+        key=lambda f: severity_order.get(
+            f.get("info", {}).get("severity", "info"), 4
+        )
+    )
+
+    resource_list = []
+    for finding in sorted_findings:
+        info = finding.get("info", {})
+        severity = info.get("severity", "info").upper()
+        name = info.get("name", "Unknown")
+        matched_at = finding.get("matched-at", target)
+        template_id = finding.get("template-id", "")
+
+        # Label: [SEVERITY] Name (template-id) -> links to matched URL
+        label = "[{}] {} ({})".format(severity, name, template_id)
+        resource_list.append([label, matched_at])
+
     plugin_output = dict(PLUGIN_OUTPUT)
-    plugin_output["type"] = "NucleiScan"
     plugin_output["output"] = {
-        "title": "Nuclei Vulnerability Scanner",
-        "scan_output": output_text,
-        "findings_count": len(findings),
-        "severity_breakdown": {
-            sev: len(by_severity.get(sev, [])) 
-            for sev in ['critical', 'high', 'medium', 'low', 'info']
-        }
+        "ResourceListName": "Nuclei Findings for {} ({} total)".format(
+            target, len(findings)
+        ),
+        "ResourceList": resource_list
     }
-    
+    return [plugin_output]
+
+
+def _error_output(message):
+    """Return a standardised error output renderable by the OWTF UI."""
+    plugin_output = dict(PLUGIN_OUTPUT)
+    plugin_output["output"] = {
+        "ResourceListName": "Nuclei Scanner - Error",
+        "ResourceList": [
+            [message, "#"]
+        ]
+    }
     return [plugin_output]
