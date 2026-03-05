@@ -88,7 +88,12 @@ TOOLS:
     value: /usr/bin/httpx-toolkit
   - config: TOOL_GAU
     value: ~/.owtf/tools/restricted/gau/gau
-
+  - config: TOOL_SUBJACK
+    value: ~/go/bin/subjack
+  - config: TOOL_SUBJACK_FINGERPRINTS
+    value: ~/go/src/github.com/haccer/subjack/fingerprints.json
+  - config: TOOL_SUBLIST3R
+    value: ~/.owtf/tools/restricted/sublist3r/Sublist3r/sublist3r.py
 
 
 DICTIONARIES:
