@@ -65,7 +65,7 @@ def poutput_gen_query(session, filter_data, target_id, for_delete=False):
     """
     query = session.query(PluginOutput).filter_by(target_id=target_id)
     if filter_data.get("target_id", None):
-        query.filter_by(target_id=filter_data["target_id"])
+        query = query.filter_by(target_id=filter_data["target_id"])
     if filter_data.get("plugin_key", None):
         if isinstance(filter_data.get("plugin_key"), str):
             query = query.filter_by(plugin_key=filter_data["plugin_key"])
