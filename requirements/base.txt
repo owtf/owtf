@@ -10,7 +10,7 @@ psutil==5.9.4
 psycopg2-binary==2.9.9
 owtf_ptp==0.4.3
 pycurl==7.45.3
-pyOpenSSL==23.3.0
+pyOpenSSL==26.0.0
 PyYAML==6.0.1
 requests==2.31.0
 selenium==4.18.1
