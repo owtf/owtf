@@ -546,6 +546,12 @@ class PasswordChangeHandler(APIRequestHandler):
         password = self.get_argument("password", None)
         email_or_username = self.get_argument("emailOrUsername", None)
         otp = self.get_argument("otp", None)
+        if not email_or_username:
+            self.success({"status": "fail", "message": "Missing email or username"})
+            return
+        if not otp:
+            self.success({"status": "fail", "message": "Missing OTP"})
+            return
         user_obj = User.find_by_email(self.session, email_or_username)
         if user_obj is None:
             user_obj = User.find_by_name(self.session, email_or_username)
