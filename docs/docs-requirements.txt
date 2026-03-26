@@ -19,7 +19,7 @@ owtf_ptp==0.4.3
 pycurl==7.45.3
 pyOpenSSL==23.3.0
 PyYAML==6.0.1
-requests==2.31.0
+requests==2.33.0
 selenium==4.18.1
 six==1.16.0
 SQLAlchemy==1.4.54
