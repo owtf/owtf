@@ -144,11 +144,9 @@ def create_temp_storage_dirs(owtf_pid):
     :return:
     :rtype: None
     """
-    tmp_dir = os.path.join("/tmp", "owtf")
+    tmp_dir = os.path.join("/tmp", "owtf", str(owtf_pid))
     if not os.path.exists(tmp_dir):
-        tmp_dir = os.path.join(tmp_dir, str(owtf_pid))
-        if not os.path.exists(tmp_dir):
-            FileOperations.make_dirs(tmp_dir)
+        FileOperations.make_dirs(tmp_dir)
 
 
 def clean_temp_storage_dirs(owtf_pid):
