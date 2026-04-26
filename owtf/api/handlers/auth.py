@@ -18,6 +18,7 @@ from owtf.settings import (
     JWT_ALGORITHM,
     JWT_EXP_DELTA_SECONDS,
     is_password_valid_regex,
+    is_password_containing_valid_chars,
     is_email_valid_regex,
     EMAIL_FROM,
     SMTP_HOST,
@@ -39,6 +40,29 @@ from bs4 import BeautifulSoup
 from owtf.utils.logger import OWTFLogger
 from owtf.api.handlers.jwtauth import jwtauth
 import pyotp
+
+def get_password_validation_error(password):
+    """Return a human-readable password policy error, or None if valid."""
+    password_allowed_special_char = "@$!%*#?&"
+    if password is None or password == "":
+        return "Missing password value"
+    if len(password) < 8 or len(password) > 20:
+        return "Password must be between 8 and 20 characters long"
+    if not re.search(r"[a-z]", password):
+        return "Password must include at least one lowercase letter"
+    if not re.search(r"[A-Z]", password):
+        return "Password must include at least one uppercase letter"
+    if not re.search(r"\d", password):
+        return "Password must include at least one number"
+    if not re.search(r"[@$!%*#?&]", password):
+        return (
+            f"Password must include at least one special character: {password_allowed_special_char}"
+        )
+    if not re.search(is_password_containing_valid_chars, password):
+        return (
+            f"Password contains invalid characters. Only letters, numbers and {password_allowed_special_char} are allowed"
+        )
+    return None
 
 
 class LogInHandler(APIRequestHandler):
@@ -197,8 +221,8 @@ class RegisterHandler(APIRequestHandler):
 
         email_already_taken = User.find_by_email(self.session, email)
         name_already_taken = User.find_by_name(self.session, username)
-        match_password = re.search(is_password_valid_regex, password)
         match_email = re.search(is_email_valid_regex, email)
+        password_error = get_password_validation_error(password)
 
         if password != confirm_password:
             err = {"status": "fail", "message": "Password doesn't match"}
@@ -206,8 +230,11 @@ class RegisterHandler(APIRequestHandler):
         elif not match_email:
             err = {"status": "fail", "message": "Choose a valid email"}
             self.success(err)
-        elif not match_password:
-            err = {"status": "fail", "message": "Choose a strong password"}
+        elif password_error:
+            err = {"status": "fail", "message": password_error}
+            self.success(err)
+        elif not re.search(is_password_valid_regex, password):
+            err = {"status": "fail", "message": "Password policy validation failed"}
             self.success(err)
         elif name_already_taken:
             err = {"status": "fail", "message": "Username already exists"}
@@ -549,9 +576,12 @@ class PasswordChangeHandler(APIRequestHandler):
         user_obj = User.find_by_email(self.session, email_or_username)
         if user_obj is None:
             user_obj = User.find_by_name(self.session, email_or_username)
-        match_password = re.search(is_password_valid_regex, password)
-        if not match_password:
-            err = {"status": "fail", "message": "Choose a strong password"}
+        password_error = get_password_validation_error(password)
+        if password_error:
+            err = {"status": "fail", "message": password_error}
+            self.success(err)
+        elif not re.search(is_password_valid_regex, password):
+            err = {"status": "fail", "message": "Password policy validation failed"}
             self.success(err)
         elif email_or_username is not None and password is not None and user_obj is not None and otp is not None:
             secret_key = user_obj.otp_secret_key

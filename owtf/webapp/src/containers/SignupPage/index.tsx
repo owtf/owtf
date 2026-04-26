@@ -79,7 +79,7 @@ export class SignupPage extends React.Component<propsType, stateType> {
     ) {
       if (
         !this.state.password.match(
-          /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/
+          /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,20}$/
         )
       ) {
         formIsValid = false;

@@ -148,6 +148,7 @@ REGEXP_IMAGE_URL = "^[^\?]+\.(jpg|jpeg|png|gif|bmp)$"
 REGEXP_VALID_URL = "^[^\?]+\.(shtml|shtm|stm)$"
 REGEXP_SSI_URL = "^(http|ftp)[^ ]+$"
 REGEXP_PASSWORD = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!#%*?&]{8,20}$"
+REGEXP_PASSWORD_ALLOWED_CHARS = "^[A-Za-z\d@$!#%*?&]+$"
 REGEXP_EMAIL = "^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[-]?\w+[.]\w{2,3}$"
 
 # Compile regular expressions once at the beginning for speed purposes:
@@ -157,6 +158,7 @@ is_image_regex = re.compile(REGEXP_IMAGE_URL, re.IGNORECASE)
 is_url_regex = re.compile(REGEXP_VALID_URL, re.IGNORECASE)
 is_ssi_regex = re.compile(REGEXP_SSI_URL, re.IGNORECASE)
 is_password_valid_regex = re.compile(REGEXP_PASSWORD)
+is_password_containing_valid_chars = re.compile(REGEXP_PASSWORD_ALLOWED_CHARS)
 is_email_valid_regex = re.compile(REGEXP_EMAIL, re.IGNORECASE)
 
 # UI

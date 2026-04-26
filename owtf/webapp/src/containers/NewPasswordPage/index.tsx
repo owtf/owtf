@@ -54,7 +54,7 @@ export class NewPasswordPage extends React.Component<propsType, stateType>  {
     ) {
       if (
         !this.state.newPassword.match(
-          /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/
+          /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,20}$/
         )
       ) {
         formIsValid = false;
