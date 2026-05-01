@@ -12,7 +12,7 @@ ENV SHELL=/bin/bash
 
 # Flush the buffer for stderr, stdout logging
 ENV PYTHONUNBUFFERED=1
-# Python won’t try to write .pyc or .pyo files on the import of source modules
+# Python won't try to write .pyc or .pyo files on the import of source modules
 ENV PYTHONDONTWRITEBYTECODE=1
 
 # Needed for installation of pycurl using pip in kali
@@ -81,11 +81,15 @@ RUN pip install -r ${HOME}/requirements/base.txt
 COPY --chown=owtf:owtf bin ${HOME}/bin
 COPY --chown=owtf:owtf owtf ${HOME}/owtf
 COPY --chown=owtf:owtf requirements ${HOME}/requirements
-COPY --chown=owtf:owtf setup.py setup.cfg MANIFEST.in README.md ${HOME}/
+COPY --chown=owtf:owtf setup.py setup.cfg pyproject.toml MANIFEST.in README.md ${HOME}/
 
-# Install OWTF using the recommended method (setup.py)
+# Install OWTF using pip to ensure pyproject.toml entry points are created reliably
+# python setup.py install is deprecated and does not process pyproject.toml,
+# so the owtf console script was never created, causing PATH to resolve
+# 'owtf' to the package directory instead of a binary (exit code 126)
 RUN cd ${HOME} && \
-    python setup.py install
+    pip install . && \
+    which owtf
 
 # Reduce cache footprint from pip to keep final image size smaller
 RUN pip cache purge && rm -rf ${HOME}/.cache
@@ -110,6 +114,7 @@ COPY --from=owtf_setup /home/owtf/owtf ${HOME}/owtf
 COPY --from=owtf_setup /home/owtf/requirements ${HOME}/requirements
 COPY --from=owtf_setup /home/owtf/setup.py ${HOME}/setup.py
 COPY --from=owtf_setup /home/owtf/setup.cfg ${HOME}/setup.cfg
+COPY --from=owtf_setup /home/owtf/pyproject.toml ${HOME}/pyproject.toml
 COPY --from=owtf_setup /home/owtf/MANIFEST.in ${HOME}/MANIFEST.in
 COPY --from=owtf_setup /home/owtf/README.md ${HOME}/README.md
 
