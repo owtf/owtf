@@ -80,17 +80,7 @@ const commonConfig = {
       },
       {
         test: /\.(jpg|png|gif)$/,
-        use: [
-          "file-loader",
-          {
-            loader: "image-webpack-loader",
-            options: {
-              progressive: true,
-              optimizationLevel: 7,
-              interlaced: false,
-            },
-          },
-        ],
+        use: ["file-loader"],
       },
       {
         test: /\.html$/,

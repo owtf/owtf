@@ -3,12 +3,15 @@ owtf.api.handlers.work
 ~~~~~~~~~~~~~~~~~~~~~~
 
 """
+
 from urllib import parse
 
 import tornado.gen
 import tornado.httpclient
 import tornado.web
+
 from owtf.api.handlers.base import APIRequestHandler
+from owtf.api.handlers.jwtauth import jwtauth
 from owtf.api.utils import _filter_headers
 from owtf.lib import exceptions
 from owtf.lib.exceptions import APIError
@@ -33,7 +36,6 @@ from owtf.settings import (
     SIMPLE_HEADERS,
 )
 from owtf.utils.strings import str2bool
-from owtf.api.handlers.jwtauth import jwtauth
 
 __all__ = ["WorkerHandler", "WorklistHandler", "WorklistSearchHandler"]
 
@@ -114,7 +116,8 @@ class WorkerHandler(APIRequestHandler):
             if worker_id and action:
                 if int(worker_id) == 0:
                     getattr(worker_manager, "{}_all_workers".format(action))()
-                getattr(worker_manager, "{}_worker".format(action))(int(worker_id))
+                else:
+                    getattr(worker_manager, "{}_worker".format(action))(int(worker_id))
         except exceptions.InvalidWorkerReference:
             raise APIError(400, "Invalid worker referenced")
 
