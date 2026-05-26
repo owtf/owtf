@@ -187,7 +187,7 @@ class ProxyProcess(OWTFProcess):
             # To run any number of instances
             # "0" equals the number of cores present in a machine
             self.server.start(int(self.instances))
-            tornado.ioloop.IOLoop.instance().start()
+            tornado.ioloop.IOLoop.current().start()
         except BaseException:
             # Cleanup code
             self.clean_up()
@@ -199,7 +199,7 @@ class ProxyProcess(OWTFProcess):
         :rtype: None
         """
         self.server.stop()
-        tornado.ioloop.IOLoop.instance().stop()
+        tornado.ioloop.IOLoop.current().stop()
 
 
 def start_proxy():
@@ -221,7 +221,7 @@ def start_proxy():
             abort_framework("Inbound proxy address already in use")
         # If everything is fine.
         proxy_process = ProxyProcess()
-        logging.warn(
+        logging.warning(
             "Starting HTTP(s) proxy server at %s:%d",
             INBOUND_PROXY_IP,
             INBOUND_PROXY_PORT,
