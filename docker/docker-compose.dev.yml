@@ -22,6 +22,8 @@ services:
     depends_on:
       - owtf-frontend
       - db
+    volumes:
+      - ~/.owtf:/home/owtf/.owtf
     networks:
       - backend
   owtf-frontend:
