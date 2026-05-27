@@ -85,10 +85,10 @@ COPY --chown=owtf:owtf setup.py setup.cfg MANIFEST.in README.md ${HOME}/
 
 # Install OWTF using the recommended method (setup.py)
 RUN cd ${HOME} && \
-    python setup.py install
+    pip install -e .
 
 # Reduce cache footprint from pip to keep final image size smaller
-RUN pip cache purge && rm -rf ${HOME}/.cache
+RUN pip cache purge 2>/dev/null || true && rm -rf ${HOME}/.cache || true
 
 # Stage 3: Runtime image
 FROM base AS final_install
