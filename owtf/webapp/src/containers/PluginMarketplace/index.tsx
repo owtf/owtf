@@ -616,7 +616,7 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
 
   render() {
     const { activeTab } = this.state;
-    const { isAdmin = false } = this.props;
+    const { isAdmin = true } = this.props;
 
     return (
       <div className="marketplacePage">
