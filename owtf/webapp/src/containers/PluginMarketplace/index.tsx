@@ -18,7 +18,6 @@ import {
   makeSelectRunError,
   makeSelectRunResult,
 } from "./selectors";
-import { makeSelectIsAdmin } from "../LoginPage/selectors";
 import {
   loadCommunityPlugins,
   uploadCommunityPlugin,
@@ -57,7 +56,7 @@ interface PropsType {
   runLoading: boolean;
   runError: string | null;
   runResult: any;
-  isAdmin: boolean;
+  isAdmin?: boolean;
   onLoad: (params?: any) => void;
   onUpload: (formData: FormData) => void;
   onRun: (id: number, targetUrl: string) => void;
@@ -617,7 +616,7 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
 
   render() {
     const { activeTab } = this.state;
-    const { isAdmin } = this.props;
+    const { isAdmin = false } = this.props;
 
     return (
       <div className="marketplacePage">
@@ -676,7 +675,6 @@ const mapStateToProps = createStructuredSelector({
   runLoading: makeSelectRunLoading,
   runError: makeSelectRunError,
   runResult: makeSelectRunResult,
-  isAdmin: makeSelectIsAdmin,
 });
 
 const mapDispatchToProps = (dispatch: any) => ({
