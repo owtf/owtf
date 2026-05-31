@@ -1,12 +1,12 @@
 """
-    JSON Web Token auth for Tornado
+JSON Web Token auth for Tornado
 """
-from sqlalchemy.sql.functions import user
-from owtf.models.user_login_token import UserLoginToken
+
 import jwt
-from owtf.settings import JWT_SECRET_KEY, JWT_OPTIONS, JWT_ALGORITHM
 
 from owtf.db.session import Session
+from owtf.models.user_login_token import UserLoginToken
+from owtf.settings import JWT_ALGORITHM, JWT_OPTIONS, JWT_SECRET_KEY
 
 
 def jwtauth(handler_class):
@@ -14,7 +14,6 @@ def jwtauth(handler_class):
 
     def wrap_execute(handler_execute):
         def require_auth(handler, kwargs):
-
             auth = handler.request.headers.get("Authorization")
             if auth:
                 parts = auth.split()
@@ -50,7 +49,6 @@ def jwtauth(handler_class):
             return True
 
         def _execute(self, transforms, *args, **kwargs):
-
             try:
                 require_auth(self, kwargs)
             except Exception:
@@ -62,3 +60,12 @@ def jwtauth(handler_class):
 
     handler_class._execute = wrap_execute(handler_class._execute)
     return handler_class
+
+
+def admin_required(handler_class):
+    """Decorator for endpoints that should be restricted to admin users.
+
+    TODO: enforce an admin role check once the role system is confirmed with
+    mentors.  For now this is identical to @jwtauth (authentication required).
+    """
+    return jwtauth(handler_class)

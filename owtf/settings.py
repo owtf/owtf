@@ -4,6 +4,7 @@ owtf.settings
 
 It contains all the owtf global configs.
 """
+
 import os
 import re
 
@@ -12,7 +13,6 @@ try:
 except NameError:
     FileNotFoundError = IOError
 
-import yaml
 
 HOME_DIR = os.path.expanduser("~")
 OWTF_CONF = os.path.join(HOME_DIR, ".owtf")
@@ -68,6 +68,13 @@ WEB_TEST_GROUPS = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_web", "gro
 NET_TEST_GROUPS = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_net", "groups.cfg")
 AUX_TEST_GROUPS = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_aux", "groups.cfg")
 PLUGINS_DIR = os.path.join(ROOT_DIR, "plugins")
+
+# Community Plugin Marketplace
+COMMUNITY_PLUGINS_DIR = os.path.join(OWTF_CONF, "plugins", "community")
+COMMUNITY_PLUGIN_DEFAULT_TIMEOUT = 300  # seconds per plugin run
+COMMUNITY_PLUGIN_MEMORY_LIMIT = 256 * 1024 * 1024  # 256 MB in bytes
+PLUGIN_UPLOAD_MAX_SIZE = 512 * 1024  # 512 KB in bytes
+PLUGIN_ALLOWED_EXTENSIONS = [".py"]
 
 # Output Settings
 OUTPUT_PATH = "owtf_review"
@@ -140,15 +147,15 @@ PROXY_LOG = "/tmp/owtf/proxy.log"
 
 # Define regex patterns
 REGEXP_FILE_URL = (
-    "^[^\?]+\.(xml|exe|pdf|cs|log|inc|dat|bak|conf|cnf|old|zip|7z|rar|tar|gz|bz2|txt|xls|xlsx|doc|docx|ppt|pptx)$"
+    r"^[^\?]+\.(xml|exe|pdf|cs|log|inc|dat|bak|conf|cnf|old|zip|7z|rar|tar|gz|bz2|txt|xls|xlsx|doc|docx|ppt|pptx)$"
 )
 # Potentially small files will be retrieved for analysis
-REGEXP_SMALL_FILE_URL = "^[^\?]+\.(xml|cs|inc|dat|bak|conf|cnf|old|txt)$"
-REGEXP_IMAGE_URL = "^[^\?]+\.(jpg|jpeg|png|gif|bmp)$"
-REGEXP_VALID_URL = "^[^\?]+\.(shtml|shtm|stm)$"
+REGEXP_SMALL_FILE_URL = r"^[^\?]+\.(xml|cs|inc|dat|bak|conf|cnf|old|txt)$"
+REGEXP_IMAGE_URL = r"^[^\?]+\.(jpg|jpeg|png|gif|bmp)$"
+REGEXP_VALID_URL = r"^[^\?]+\.(shtml|shtm|stm)$"
 REGEXP_SSI_URL = "^(http|ftp)[^ ]+$"
-REGEXP_PASSWORD = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!#%*?&]{8,20}$"
-REGEXP_EMAIL = "^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[-]?\w+[.]\w{2,3}$"
+REGEXP_PASSWORD = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!#%*?&]{8,20}$"
+REGEXP_EMAIL = r"^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[-]?\w+[.]\w{2,3}$"
 
 # Compile regular expressions once at the beginning for speed purposes:
 is_file_regex = re.compile(REGEXP_FILE_URL, re.IGNORECASE)
