@@ -151,8 +151,8 @@ class CacheHandler(object):
                 self.file_lock = FileLock(self.file_path)
                 try:
                     self.file_lock.acquire()
-                except FileLockTimeoutException:
-                    logging.debug("Lock could not be acquired %s", traceback.print_exc)
+                except FileLock.FileLockException:
+                    logging.debug("Lock could not be acquired: %s", traceback.format_exc())
                 # For handling race conditions
                 if os.path.isfile(self.file_path):
                     self.file_lock.release()
