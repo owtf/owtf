@@ -3,6 +3,7 @@ owtf.managers.plugin
 ~~~~~~~~~~~~~~~~~~~~
 This module manages the plugins and their dependencies
 """
+
 import hashlib
 import importlib.util
 import json
@@ -55,11 +56,7 @@ def get_test_groups_config(file_path):
         try:
             code, priority, descrip, hint, url = line.strip().split(" | ")
         except ValueError:
-            abort_framework(
-                "Problem in Test Groups file: '{!s}' -> Cannot parse line: {!s}".format(
-                    file_path, line
-                )
-            )
+            abort_framework("Problem in Test Groups file: '{!s}' -> Cannot parse line: {!s}".format(file_path, line))
         if len(descrip) < 2:
             descrip = hint
         if len(hint) < 2:
@@ -130,13 +127,7 @@ def load_plugins(session):
     # 'PLUGIN_DIR'.
     plugins = []
     for root, _, files in os.walk(PLUGINS_DIR):
-        plugins.extend(
-            [
-                os.path.join(root, filename)
-                for filename in files
-                if filename.endswith("py")
-            ]
-        )
+        plugins.extend([os.path.join(root, filename) for filename in files if filename.endswith("py")])
     plugins = sorted(plugins)
     # Retrieve the information of the plugin.
     for plugin_path in plugins:
@@ -199,9 +190,7 @@ def get_types_for_plugin_group(session, plugin_group):
     :return: List of available plugin types
     :rtype: `list`
     """
-    plugin_types = session.query(Plugin.type).filter_by(
-        group=plugin_group
-    ).distinct().all()
+    plugin_types = session.query(Plugin.type).filter_by(group=plugin_group).distinct().all()
     plugin_types = [i[0] for i in plugin_types]
     return plugin_types
 
@@ -237,11 +226,71 @@ def plugin_gen_query(session, criteria):
     return query.order_by(TestGroup.priority.desc())
 
 
-def get_all_plugin_dicts(session, criteria=None):
-    """Get plugin dicts based on filter criteria
+def get_community_plugin_dicts(session):
+    """Return approved community plugins in the standard OWTF plugin dict shape.
+
+    Community plugins are stored in the ``user_plugins`` table once an admin
+    approves them.  This helper converts those records into the same dict
+    structure used by built-in plugins so the rest of OWTF's pipeline
+    (workers, UI) can treat them identically.
+
+    Two extra fields are added to each community dict:
+
+    - ``"source": "community"`` — signals the runner to execute the plugin
+      through :class:`owtf.plugin.sandbox.SandboxRunner` instead of loading
+      the module directly in the OWTF process.
+    - ``"file_path"`` — absolute path on disk, forwarded to the sandbox so it
+      can locate the file without another database round-trip.
+
+    Import of :class:`~owtf.models.user_plugin.UserPlugin` is deferred to
+    prevent a circular dependency at module load time.
+
+    :param session: SQLAlchemy session
+    :return: list of plugin dicts for every approved community plugin
+    :rtype: `list`
+    """
+    # Deferred to avoid circular import: models.user_plugin → db → managers
+    from owtf.models.user_plugin import APPROVAL_APPROVED, UserPlugin
+
+    approved = session.query(UserPlugin).filter_by(approval_status=APPROVAL_APPROVED).all()
+    result = []
+    for up in approved:
+        code = "community_{}".format(up.id)
+        result.append(
+            {
+                # Mirror the key format used by built-in plugins: "{type}@{code}"
+                "key": "{!s}@{!s}".format(up.type, code),
+                "group": up.group,
+                "type": up.type,
+                "title": up.name.replace("_", " ").title(),
+                "name": up.name,
+                "code": code,
+                "file": os.path.basename(up.file_path),
+                "descrip": up.description,
+                "attr": None,
+                "min_time": None,
+                # Extra fields consumed by the sandboxed execution path only
+                "source": "community",
+                "file_path": up.file_path,
+                "execution_timeout": up.execution_timeout,
+                "memory_limit": up.memory_limit,
+            }
+        )
+    return result
+
+
+def get_all_plugin_dicts(session, criteria=None, include_community=True):
+    """Get plugin dicts based on filter criteria.
+
+    When *include_community* is ``True`` (the default) every approved
+    community plugin from the ``user_plugins`` table is appended to the
+    result alongside the built-in plugins.  Community entries carry
+    ``"source": "community"`` so callers can distinguish them when needed.
 
     :param criteria: Filter criteria
     :type criteria: `dict`
+    :param include_community: Merge approved community plugins into the result
+    :type include_community: `bool`
     :return: List of plugin dicts
     :rtype: `list`
     """
@@ -251,9 +300,19 @@ def get_all_plugin_dicts(session, criteria=None):
         criteria["code"] = Plugin.name_to_code(session, criteria["code"])
     query = plugin_gen_query(session, criteria)
     plugin_obj_list = query.all()
-    plugin_dicts = []
-    for obj in plugin_obj_list:
-        plugin_dicts.append(obj.to_dict())
+    plugin_dicts = [obj.to_dict() for obj in plugin_obj_list]
+
+    if include_community:
+        community = get_community_plugin_dicts(session)
+        # Apply the same group / type filters that were passed for built-ins.
+        if criteria.get("group"):
+            wanted = [criteria["group"]] if isinstance(criteria["group"], str) else criteria["group"]
+            community = [p for p in community if p["group"] in wanted]
+        if criteria.get("type"):
+            wanted = [criteria["type"]] if isinstance(criteria["type"], str) else criteria["type"]
+            community = [p for p in community if p["type"] in wanted]
+        plugin_dicts.extend(community)
+
     return plugin_dicts
 
 
