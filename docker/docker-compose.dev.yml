@@ -24,6 +24,7 @@ services:
       - db
     volumes:
       - ~/.owtf:/home/owtf/.owtf
+      - ..:/home/owtf/owtf
     networks:
       - backend
   owtf-frontend:
