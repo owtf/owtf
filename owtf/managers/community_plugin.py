@@ -289,22 +289,28 @@ def get_community_plugin(session, plugin_id: int) -> Optional[Dict]:
     return plugin.to_dict()
 
 
-def run_community_plugin(session, plugin_id: int, target_url: str) -> Dict:
-    """Execute a community plugin via SandboxRunner.
+def test_run_community_plugin(session, plugin_id: int, target_url: str) -> Dict:
+    """Quick test run of a community plugin against a URL.
 
-    The plugin must be in 'approved' status.
-    Returns a dict describing the execution outcome.
+    This is just a smoke test so the uploader/reviewer can see the plugin
+    actually executes. It skips the normal scan pipeline on purpose
+    (no target manager, no worklist, no output saved). For a real scan,
+    use the plugin runner like the built-in plugins do.
+
+    Plugin must be approved.
     """
     plugin = session.query(UserPlugin).get(plugin_id)
     if plugin is None:
-        return {"success": False, "error": "Plugin not found"}
+        return {"success": False, "error": "Plugin not found", "non_persistent": True, "is_test_run": True}
     if plugin.approval_status != APPROVAL_APPROVED:
         return {
             "success": False,
             "error": "Plugin is not approved (status: {})".format(plugin.approval_status),
+            "non_persistent": True,
+            "is_test_run": True,
         }
     if not os.path.isfile(plugin.file_path):
-        return {"success": False, "error": "Plugin file missing from disk"}
+        return {"success": False, "error": "Plugin file missing from disk", "non_persistent": True, "is_test_run": True}
 
     result: SandboxResult = SandboxRunner.run(
         plugin_path=plugin.file_path,
@@ -312,7 +318,14 @@ def run_community_plugin(session, plugin_id: int, target_url: str) -> Dict:
         timeout=plugin.execution_timeout,
         memory_limit=plugin.memory_limit,
     )
-    return result.to_dict()
+    payload = result.to_dict()
+    payload["non_persistent"] = True
+    payload["is_test_run"] = True
+    return payload
+
+
+# Old name kept as an alias so existing callers still work for now.
+run_community_plugin = test_run_community_plugin
 
 
 def approve_community_plugin(session, plugin_id: int) -> Optional[Dict]:

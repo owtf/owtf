@@ -24,6 +24,7 @@ from owtf.api.handlers.community_plugin import (
     CommunityPluginListHandler,
     CommunityPluginRejectHandler,
     CommunityPluginRunHandler,
+    CommunityPluginTestRunHandler,
     CommunityPluginUploadHandler,
 )
 from owtf.api.handlers.config import ConfigurationHandler
@@ -242,6 +243,13 @@ API_v1_HANDLERS = [
         CommunityPluginUploadHandler,
         name="community_plugin_upload_url",
     ),
+    tornado.web.url(
+        r"/api/v1/community-plugins/([0-9]+)/test-run/?$",
+        CommunityPluginTestRunHandler,
+        name="community_plugin_test_run_url",
+    ),
+    # Old /run/ path kept for now so the UI keeps working until it
+    # switches to /test-run/. Same handler underneath.
     tornado.web.url(
         r"/api/v1/community-plugins/([0-9]+)/run/?$",
         CommunityPluginRunHandler,

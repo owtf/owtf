@@ -403,6 +403,7 @@ class PluginRunner(object):
             timeout=plugin.get("execution_timeout", 300),
             memory_limit=plugin.get("memory_limit", 268435456),
         )
+        output = [{"type": "community_output", "output": result.to_dict()}]
         if not result.success:
             logging.warning(
                 "Community plugin %r did not complete cleanly: %s (exit_code=%s, timed_out=%s)",
@@ -411,7 +412,8 @@ class PluginRunner(object):
                 result.exit_code,
                 result.timed_out,
             )
-        return [{"type": "community_output", "output": result.to_dict()}]
+            raise PluginAbortException(output)
+        return output
 
     @staticmethod
     def rank_plugin(output, pathname):

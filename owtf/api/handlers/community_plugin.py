@@ -46,7 +46,7 @@ from owtf.managers.community_plugin import (
     get_community_plugin,
     list_community_plugins,
     reject_community_plugin,
-    run_community_plugin,
+    test_run_community_plugin,
     upload_community_plugin,
 )
 from owtf.models.user_plugin import APPROVAL_APPROVED
@@ -286,24 +286,30 @@ class CommunityPluginDetailHandler(APIRequestHandler):
 
 
 # ---------------------------------------------------------------------------
-# Run
+# Test Run (smoke test only, not a real OWTF scan)
 # ---------------------------------------------------------------------------
 
 
 @jwtauth
-class CommunityPluginRunHandler(APIRequestHandler):
-    """Execute a community plugin against a target URL."""
+class CommunityPluginTestRunHandler(APIRequestHandler):
+    """Quick test run for a community plugin.
+
+    Runs the plugin once in the sandbox against the given URL and returns
+    the result inline. It skips OWTF's normal scan path (no target manager,
+    no worklist, no saving). For a real scan, schedule the plugin through
+    the regular runner like the built-in plugins.
+    """
 
     SUPPORTED_METHODS = ["POST", "OPTIONS"]
 
     def post(self, plugin_id):
-        """Run a community plugin.
+        """Test-run a community plugin.
 
-        **Request** (application/json):
-          {"target_url": "https://example.com"}
+        Body: ``{"target_url": "https://example.com"}``
 
-        **Response**:
-          {"status": "success", "data": {"success": true, "output": {...}, ...}}
+        Response (note the ``non_persistent`` / ``is_test_run`` flags):
+          ``{"status": "success", "data": {"success": true, "output": {...},
+          "non_persistent": true, "is_test_run": true}}``
         """
         plugin_id = int(plugin_id)
 
@@ -320,7 +326,7 @@ class CommunityPluginRunHandler(APIRequestHandler):
         if not (target_url.startswith("http://") or target_url.startswith("https://")):
             raise APIError(400, "'target_url' must start with http:// or https://")
 
-        result = run_community_plugin(self.session, plugin_id, target_url)
+        result = test_run_community_plugin(self.session, plugin_id, target_url)
 
         if not result.get("success"):
             self.set_status(422)
@@ -328,6 +334,11 @@ class CommunityPluginRunHandler(APIRequestHandler):
             return
 
         self.success(result)
+
+
+# Old name kept so the current UI's /run/ call still works until we
+# update it to /test-run/.
+CommunityPluginRunHandler = CommunityPluginTestRunHandler
 
 
 # ---------------------------------------------------------------------------
