@@ -195,7 +195,7 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
     fd.append("name", uploadName);
     fd.append("description", uploadDescription);
     fd.append("group", uploadGroup);
-    fd.append("plugin_type", uploadType);
+    fd.append("type", uploadType);
     fd.append("author", uploadAuthor);
     fd.append("version", uploadVersion);
     fd.append("tags", uploadTags);
@@ -502,26 +502,9 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
         </p>
         <div className="marketplacePage__grid">
           {pendingPlugins.map((p) => (
-            <div key={p.id}>
-              {this.renderPluginCard(p, false)}
-              <div className="pluginCard__actions" style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
-                <button
-                  className="btn btn-sm btn-success"
-                  onClick={() => this.approvePlugin(p.id)}
-                >
-                  Approve
-                </button>
-                <button
-                  className="btn btn-sm btn-danger"
-                  onClick={() => this.setState({ rejectModalPlugin: p, rejectReason: "" })}
-                >
-                  Reject
-                </button>
-              </div>
-            </div>
+            <div key={p.id}>{this.renderPluginCard(p, false)}</div>
           ))}
         </div>
-        {this.renderRejectModal()}
       </div>
     );
   }
@@ -616,7 +599,7 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
 
   render() {
     const { activeTab } = this.state;
-    const { isAdmin = true } = this.props;
+    const { isAdmin = false } = this.props;
 
     return (
       <div className="marketplacePage">

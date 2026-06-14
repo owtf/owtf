@@ -205,14 +205,13 @@ def upload_community_plugin(
     )
     result["sandbox"] = sandbox_result.to_dict()
 
+    approval_status = APPROVAL_PENDING
+    result["auto_approved"] = False
+
     if sandbox_result.success:
-        approval_status = APPROVAL_APPROVED
-        result["auto_approved"] = True
-        logger.info("Sandbox dry run passed — plugin will be auto-approved: %s", name)
+        logger.info("Sandbox dry run passed; plugin saved as pending review: %s", name)
     else:
-        approval_status = APPROVAL_PENDING
-        result["auto_approved"] = False
-        result["warnings"].append("Sandbox dry run failed — plugin saved as pending: {}".format(sandbox_result.error))
+        result["warnings"].append("Sandbox dry run failed; plugin saved as pending: {}".format(sandbox_result.error))
         logger.warning("Sandbox dry run failed for plugin '%s': %s", name, sandbox_result.error)
 
     # --- Persist metadata to DB ---
