@@ -3,11 +3,12 @@ owtf.models.user
 ~~~~~~~~~~~~~~~~
 
 """
-from sqlalchemy import Column, Integer, Unicode, Boolean
+
+from sqlalchemy import Boolean, Column, Integer, Unicode
+from sqlalchemy.orm import relationship
+
 from owtf.db.model_base import Model
 from owtf.models.email_confirmation import EmailConfirmation
-from sqlalchemy.orm import relationship
-import uuid
 
 
 class User(Model):
@@ -18,6 +19,7 @@ class User(Model):
     email = Column(Unicode(255), nullable=False, unique=True)
     password = Column(Unicode(255), nullable=False)
     is_active = Column(Boolean, default=False)  # checks whether user email is verified
+    is_admin = Column(Boolean, default=False, nullable=False)  # platform admin: can approve/reject community plugins
     otp_secret_key = Column(Unicode(255), nullable=False, unique=True)  # used to generate unique otp
     email_confirmations = relationship(EmailConfirmation, cascade="delete")
     user_login_tokens = relationship("UserLoginToken", cascade="delete")
@@ -45,12 +47,21 @@ class User(Model):
 
     @classmethod
     def add_user(cls, session, user):
-        """Adds an user to the DB"""
+        """Adds an user to the DB.
+
+        Emails listed in ``settings.ADMIN_EMAILS`` are promoted to
+        platform admin on creation so the admin tab is reachable without
+        a manual database update.
+        """
+        from owtf.settings import ADMIN_EMAILS
+
+        email = user["email"]
         new_user = cls(
             name=user["name"],
-            email=user["email"],
+            email=email,
             password=user["password"].decode("utf-8"),
             otp_secret_key=user["otp_secret_key"],
+            is_admin=(email or "").strip().lower() in ADMIN_EMAILS,
         )
         session.add(new_user)
         session.commit()

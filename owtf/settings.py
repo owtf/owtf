@@ -221,3 +221,16 @@ JWT_OPTIONS = {
     "verify_iat": True,
     "verify_aud": False,
 }
+
+# ---------------------------------------------------------------------------
+# Community Plugin Marketplace — admin allow-list
+# ---------------------------------------------------------------------------
+# Emails in this list are treated as platform admins.  When such a user
+# registers (or already exists), is_admin is set to True automatically, so
+# they can access the admin tabs and endpoints without a manual DB update.
+# Override via the OWTF_ADMIN_EMAILS env var (comma-separated).
+import os as _os  # noqa: E402
+
+ADMIN_EMAILS = [
+    e.strip().lower() for e in _os.environ.get("OWTF_ADMIN_EMAILS", "admin@owtf.org").split(",") if e.strip()
+]

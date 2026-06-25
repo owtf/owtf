@@ -3,6 +3,7 @@ owtf.api.handlers.base
 ~~~~~~~~~~~~~~~~~~~~~~
 
 """
+
 import json
 import re
 import uuid
@@ -14,13 +15,13 @@ from owtf import __version__
 from owtf.db.session import Session, get_db_engine
 from owtf.lib.exceptions import APIError
 from owtf.settings import (
-    SERVER_PORT,
-    FILE_SERVER_PORT,
-    USE_SENTRY,
-    SERVER_ADDR,
-    SESSION_COOKIE_NAME,
     ALLOWED_ORIGINS,
     DEBUG,
+    FILE_SERVER_PORT,
+    SERVER_ADDR,
+    SERVER_PORT,
+    SESSION_COOKIE_NAME,
+    USE_SENTRY,
 )
 from owtf.utils.strings import utf8
 
@@ -159,7 +160,7 @@ class APIRequestHandler(BaseRequestHandler):
 
         try:
             exception = utf8(kwargs["exc_info"][1])
-        except:
+        except Exception:
             exception = b""
         if any(isinstance(exception, c) for c in [APIError]):
             # ValidationError is always due to a malformed request
@@ -185,6 +186,21 @@ class APIRequestHandler(BaseRequestHandler):
         if not match:
             return None
         return match.group(1)
+
+    def get_current_user_id(self):
+        """Return the user_id resolved from the JWT, or None when absent."""
+        from owtf.api.handlers.jwtauth import get_user_id_from_request
+
+        return get_user_id_from_request(self)
+
+    def get_current_user_obj(self):
+        """Return the User row for the current JWT, or None when absent."""
+        from owtf.models.user import User
+
+        user_id = self.get_current_user_id()
+        if user_id is None:
+            return None
+        return User.find_by_id(self.session, user_id)
 
 
 class UIRequestHandler(BaseRequestHandler):
