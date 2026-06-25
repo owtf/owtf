@@ -373,3 +373,15 @@
     font-size: 1.2rem;
   }
 }
+
+.adminBadge {
+  display: inline-block;
+  margin-left: 1rem;
+  padding: 0.2rem 0.6rem;
+  background: #5e35b1;
+  color: #fff;
+  border-radius: 0.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  vertical-align: middle;
+}

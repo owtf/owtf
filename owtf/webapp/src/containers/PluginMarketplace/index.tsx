@@ -85,6 +85,7 @@ interface StateType {
   pendingLoading: boolean;
   rejectModalPlugin: Plugin | null;
   rejectReason: string;
+  isAdmin: boolean;
 }
 
 export class PluginMarketplace extends React.Component<PropsType, StateType> {
@@ -113,6 +114,7 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
       pendingLoading: false,
       rejectModalPlugin: null,
       rejectReason: "",
+      isAdmin: false,
     };
 
     this.handleTabChange = this.handleTabChange.bind(this);
@@ -130,6 +132,23 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
 
   componentDidMount() {
     this.props.onLoad({ status: "approved" });
+    this.fetchCurrentUser();
+  }
+
+  fetchCurrentUser() {
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token") || "";
+    fetch("/api/v1/community-plugins/me/", {
+      headers: { Authorization: "Bearer " + token },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.data?.is_admin) {
+          this.setState({ isAdmin: true });
+        }
+      })
+      .catch(() => {
+        /* leave isAdmin = false */
+      });
   }
 
   componentDidUpdate(prevProps: PropsType) {
@@ -598,14 +617,16 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
   }
 
   render() {
-    const { activeTab } = this.state;
-    const { isAdmin = false } = this.props;
+    const { activeTab, isAdmin } = this.state;
 
     return (
       <div className="marketplacePage">
         <div className="container-fluid">
           <div className="marketplacePage__header">
-            <h1>Plugin Marketplace</h1>
+            <h1>
+              Plugin Marketplace
+              {isAdmin && <span className="adminBadge">ADMIN</span>}
+            </h1>
           </div>
 
           <div className="marketplacePage__tabs">
