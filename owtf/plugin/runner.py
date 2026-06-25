@@ -354,10 +354,8 @@ class PluginRunner(object):
         """Run a specific plugin.
 
         Community plugins (identified by ``plugin["source"] == "community"``)
-        are executed in an isolated child process via
-        :class:`owtf.plugin.sandbox.SandboxRunner` so that untrusted code
-        cannot affect the main OWTF process.  Built-in plugins follow the
-        original in-process path.
+        are loaded from their on-disk path. Built-in plugins follow the
+        original in-process path under ``PLUGINS_DIR``.
 
         :param plugin_dir: path of plugin directory
         :type plugin_dir: `str`
@@ -376,44 +374,30 @@ class PluginRunner(object):
         return plugin_output
 
     def _run_community_plugin(self, plugin):
-        """Execute a community plugin through SandboxRunner and return normalised output.
+        """Execute a community plugin via the normal module loader.
 
-        The sandbox result is wrapped in a single-element list of
-        ``{"type": "community_output", "output": ...}`` dicts so it fits the
-        same shape that :func:`owtf.managers.poutput.save_plugin_output`
-        expects for all plugin types.
+        Community plugins are loaded from their on-disk path and invoked
+        with the same ``run(plugin)`` contract that built-in plugins use.
+        Approval is handled before this point; admin review of the source
+        is the trust boundary.
 
         :param plugin: Community plugin dict (must contain ``"file_path"``)
         :type plugin: `dict`
-        :return: Normalised plugin output list
+        :return: Plugin output
         :rtype: `list`
         """
-        # Deferred import keeps the startup cost low and avoids a cycle.
-        from owtf.plugin.sandbox import SandboxRunner
-
-        target_url = target_manager.get_target_url()
+        file_path = plugin["file_path"]
+        path, name = os.path.split(file_path)
+        try:
+            target_url = plugin.get("target_url") or target_manager.get_target_url()
+        except Exception:
+            target_url = plugin.get("target_url")
         logging.info(
-            "Running community plugin %r against %s via SandboxRunner",
+            "Running community plugin %r against %s",
             plugin.get("name"),
             target_url,
         )
-        result = SandboxRunner.run(
-            plugin_path=plugin["file_path"],
-            target_url=target_url,
-            timeout=plugin.get("execution_timeout", 300),
-            memory_limit=plugin.get("memory_limit", 268435456),
-        )
-        output = [{"type": "community_output", "output": result.to_dict()}]
-        if not result.success:
-            logging.warning(
-                "Community plugin %r did not complete cleanly: %s (exit_code=%s, timed_out=%s)",
-                plugin.get("name"),
-                result.error,
-                result.exit_code,
-                result.timed_out,
-            )
-            raise PluginAbortException(output)
-        return output
+        return self.get_module("", name, path + "/").run(plugin)
 
     @staticmethod
     def rank_plugin(output, pathname):

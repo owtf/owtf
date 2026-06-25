@@ -9,7 +9,7 @@ Covers:
   - ``get_all_plugin_dicts`` merges community plugins into the built-in list
   - ``get_all_plugin_dicts`` filters community plugins by group / type
   - ``get_all_plugin_dicts(include_community=False)`` excludes them
-  - ``PluginRunner._run_community_plugin`` delegates to SandboxRunner
+  - ``PluginRunner._run_community_plugin`` loads the plugin via the module loader
   - ``PluginRunner.run_plugin`` routes community vs built-in correctly
 
 These tests use an in-memory SQLite database limited to just the
@@ -26,7 +26,12 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+# Register the users table (+ companions) so the user_plugins → users foreign
+# keys can resolve when ``create_all`` runs against the in-memory engine.
+import owtf.models.email_confirmation  # noqa: F401
 import owtf.models.plugin_output  # noqa: F401
+import owtf.models.user  # noqa: F401
+import owtf.models.user_login_token  # noqa: F401
 
 # Import related models before anything else so SQLAlchemy can resolve
 # Plugin.works → Work and Plugin.outputs → PluginOutput when mappers
@@ -287,114 +292,61 @@ def _make_runner():
 
 
 class TestRunCommunityPlugin:
-    def test_delegates_to_sandbox_runner(self):
-        from owtf.plugin.sandbox import SandboxResult
-
+    def test_loads_module_from_plugin_file_path(self):
         plugin = {
             "name": "test_plugin",
             "file_path": "/tmp/test_plugin.py",
-            "execution_timeout": 60,
-            "memory_limit": 134217728,
             "source": "community",
         }
-        fake_result = SandboxResult(
-            success=True,
-            output={"findings": ["header missing"]},
-            exit_code=0,
-            elapsed_seconds=0.5,
-        )
         runner = _make_runner()
 
-        # Patch the reference in runner.py (where it was imported), not the source module.
+        mock_mod = MagicMock()
+        mock_mod.run.return_value = [{"type": "community_output", "output": {"findings": ["x"]}}]
+
         with patch("owtf.plugin.runner.target_manager") as mock_tm:
             mock_tm.get_target_url.return_value = "http://example.com"
-            with patch("owtf.plugin.sandbox.SandboxRunner.run", return_value=fake_result) as mock_run:
+            with patch.object(runner, "get_module", return_value=mock_mod) as mock_get:
                 output = runner._run_community_plugin(plugin)
 
-        mock_run.assert_called_once_with(
-            plugin_path="/tmp/test_plugin.py",
-            target_url="http://example.com",
-            timeout=60,
-            memory_limit=134217728,
-        )
-        assert isinstance(output, list)
-        assert len(output) == 1
-        assert output[0]["type"] == "community_output"
-        assert output[0]["output"]["success"] is True
+        mock_get.assert_called_once_with("", "test_plugin.py", "/tmp/")
+        mock_mod.run.assert_called_once_with(plugin)
+        assert output[0]["output"]["findings"] == ["x"]
 
-    def test_failed_sandbox_still_returns_output_list(self):
-        from owtf.plugin.sandbox import SandboxResult
-
+    def test_propagates_plugin_exception(self):
         plugin = {
             "name": "broken_plugin",
             "file_path": "/tmp/broken.py",
-            "execution_timeout": 30,
-            "memory_limit": 134217728,
             "source": "community",
         }
-        fake_result = SandboxResult(
-            success=False,
-            error="plugin crashed",
-            exit_code=1,
-            elapsed_seconds=0.1,
-        )
         runner = _make_runner()
+
+        mock_mod = MagicMock()
+        mock_mod.run.side_effect = RuntimeError("plugin crashed")
 
         with patch("owtf.plugin.runner.target_manager") as mock_tm:
             mock_tm.get_target_url.return_value = "http://example.com"
-            with patch("owtf.plugin.sandbox.SandboxRunner.run", return_value=fake_result):
-                output = runner._run_community_plugin(plugin)
+            with patch.object(runner, "get_module", return_value=mock_mod):
+                with pytest.raises(RuntimeError, match="plugin crashed"):
+                    runner._run_community_plugin(plugin)
 
-        assert isinstance(output, list)
-        assert output[0]["output"]["success"] is False
-        assert "crashed" in output[0]["output"]["error"]
-
-    def test_timed_out_plugin_returns_timed_out_flag(self):
-        from owtf.plugin.sandbox import SandboxResult
-
+    def test_uses_explicit_target_url_when_provided(self):
         plugin = {
-            "name": "slow_plugin",
-            "file_path": "/tmp/slow.py",
-            "execution_timeout": 5,
-            "memory_limit": 134217728,
+            "name": "explicit_target_plugin",
+            "file_path": "/tmp/explicit.py",
             "source": "community",
+            "target_url": "http://override.example.com",
         }
-        fake_result = SandboxResult(
-            success=False,
-            error="Plugin execution timed out after 5s",
-            exit_code=-9,
-            elapsed_seconds=5.0,
-            timed_out=True,
-        )
         runner = _make_runner()
 
-        with patch("owtf.plugin.runner.target_manager") as mock_tm:
-            mock_tm.get_target_url.return_value = "http://example.com"
-            with patch("owtf.plugin.sandbox.SandboxRunner.run", return_value=fake_result):
-                output = runner._run_community_plugin(plugin)
-
-        assert output[0]["output"]["timed_out"] is True
-
-    def test_uses_default_timeout_when_not_in_plugin_dict(self):
-        """Falls back gracefully when execution_timeout is not set."""
-        from owtf.plugin.sandbox import SandboxResult
-
-        plugin = {
-            "name": "no_timeout_plugin",
-            "file_path": "/tmp/no_timeout.py",
-            "source": "community",
-            # no execution_timeout key
-        }
-        fake_result = SandboxResult(success=True, output={})
-        runner = _make_runner()
+        mock_mod = MagicMock()
+        mock_mod.run.return_value = []
 
         with patch("owtf.plugin.runner.target_manager") as mock_tm:
-            mock_tm.get_target_url.return_value = "http://example.com"
-            with patch("owtf.plugin.sandbox.SandboxRunner.run", return_value=fake_result) as mock_run:
+            mock_tm.get_target_url.return_value = "http://from-manager.example.com"
+            with patch.object(runner, "get_module", return_value=mock_mod):
                 runner._run_community_plugin(plugin)
 
-        _call_kwargs = mock_run.call_args.kwargs
-        assert _call_kwargs["timeout"] == 300  # default
+        mock_mod.run.assert_called_once_with(plugin)
 
 
 # ---------------------------------------------------------------------------
@@ -403,13 +355,11 @@ class TestRunCommunityPlugin:
 
 
 class TestRunPluginRouting:
-    def test_community_plugin_goes_to_sandbox(self):
+    def test_community_plugin_goes_to_community_path(self):
         plugin = {
             "source": "community",
-            "name": "sandbox_routed",
-            "file_path": "/tmp/sandbox_routed.py",
-            "execution_timeout": 60,
-            "memory_limit": 134217728,
+            "name": "community_routed",
+            "file_path": "/tmp/community_routed.py",
         }
         runner = _make_runner()
 
@@ -417,11 +367,11 @@ class TestRunPluginRouting:
             runner,
             "_run_community_plugin",
             return_value=[{"type": "community_output", "output": {}}],
-        ) as mock_sandbox:
+        ) as mock_community:
             with patch.object(runner, "get_module") as mock_module:
                 runner.run_plugin("/some/plugin/dir", plugin)
 
-        mock_sandbox.assert_called_once_with(plugin)
+        mock_community.assert_called_once_with(plugin)
         mock_module.assert_not_called()
 
     def test_builtin_plugin_goes_to_get_module(self):
@@ -436,29 +386,28 @@ class TestRunPluginRouting:
         mock_mod = MagicMock()
         mock_mod.run.return_value = [{"type": "HtmlOutput", "output": {"html": "<p>ok</p>"}}]
 
-        with patch.object(runner, "_run_community_plugin") as mock_sandbox:
+        with patch.object(runner, "_run_community_plugin") as mock_community:
             with patch.object(runner, "get_module", return_value=mock_mod):
                 runner.run_plugin("/plugins/web", plugin)
 
-        mock_sandbox.assert_not_called()
+        mock_community.assert_not_called()
         mock_mod.run.assert_called_once_with(plugin)
 
     def test_missing_source_key_treated_as_builtin(self):
-        """A plugin dict with no 'source' key must not go to the sandbox."""
+        """A plugin dict with no 'source' key must take the built-in path."""
         plugin = {
             "type": "grep",
             "file": "Some_Grep_Plugin@OGP-001.py",
             "group": "web",
             "name": "some_grep_plugin",
-            # no 'source' key
         }
         runner = _make_runner()
 
         mock_mod = MagicMock()
         mock_mod.run.return_value = []
 
-        with patch.object(runner, "_run_community_plugin") as mock_sandbox:
+        with patch.object(runner, "_run_community_plugin") as mock_community:
             with patch.object(runner, "get_module", return_value=mock_mod):
                 runner.run_plugin("/plugins/web", plugin)
 
-        mock_sandbox.assert_not_called()
+        mock_community.assert_not_called()

@@ -236,11 +236,11 @@ def get_community_plugin_dicts(session):
 
     Two extra fields are added to each community dict:
 
-    - ``"source": "community"`` — signals the runner to execute the plugin
-      through :class:`owtf.plugin.sandbox.SandboxRunner` instead of loading
-      the module directly in the OWTF process.
-    - ``"file_path"`` — absolute path on disk, forwarded to the sandbox so it
-      can locate the file without another database round-trip.
+    - ``"source": "community"`` — signals the runner to load the plugin
+      from disk via :func:`PluginRunner._run_community_plugin` instead of
+      the built-in plugin directory layout.
+    - ``"file_path"`` — absolute path on disk, used by the runner to
+      locate the file without another database round-trip.
 
     Import of :class:`~owtf.models.user_plugin.UserPlugin` is deferred to
     prevent a circular dependency at module load time.
@@ -269,7 +269,7 @@ def get_community_plugin_dicts(session):
                 "descrip": up.description,
                 "attr": None,
                 "min_time": None,
-                # Extra fields consumed by the sandboxed execution path only
+                # Extra fields the community runner branch needs
                 "source": "community",
                 "file_path": up.file_path,
                 "execution_timeout": up.execution_timeout,
