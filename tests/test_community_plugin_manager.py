@@ -11,12 +11,17 @@ Run with:
 """
 
 import textwrap
-from unittest.mock import MagicMock, patch
 
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+# Importing the User model (and its companions) registers the ``users`` table
+# on the shared metadata so the user_plugins → users foreign keys resolve when
+# ``create_all`` runs against the in-memory SQLite engine.
+import owtf.models.email_confirmation  # noqa: F401
+import owtf.models.user  # noqa: F401
+import owtf.models.user_login_token  # noqa: F401
 from owtf.db.model_base import Model
 from owtf.managers.community_plugin import (
     _sanitise_filename,
@@ -97,23 +102,16 @@ class TestSanitiseFilename:
 
 class TestUploadPlugin:
     def test_valid_upload_succeeds(self, session):
-        # Mock sandbox to fail so the plugin is saved as pending (not auto-approved).
-        # This isolates upload logic from sandbox behaviour.
-        mock_result = MagicMock()
-        mock_result.success = False
-        mock_result.error = "sandbox mocked"
-        mock_result.to_dict.return_value = {"success": False, "error": "sandbox mocked"}
-        with patch("owtf.managers.community_plugin.SandboxRunner.run", return_value=mock_result):
-            result = upload_community_plugin(
-                session=session,
-                name="Test Plugin",
-                description="A test",
-                group="web",
-                plugin_type="passive",
-                author="testuser",
-                file_body=GOOD_PLUGIN_SOURCE,
-                original_filename="test_plugin.py",
-            )
+        result = upload_community_plugin(
+            session=session,
+            name="Test Plugin",
+            description="A test",
+            group="web",
+            plugin_type="passive",
+            author="testuser",
+            file_body=GOOD_PLUGIN_SOURCE,
+            original_filename="test_plugin.py",
+        )
         assert result["success"]
         assert result["plugin"]["name"] == "Test Plugin"
         assert result["plugin"]["approval_status"] == "pending"
@@ -246,13 +244,7 @@ class TestListGetPlugin:
         assert data["plugins"][0]["id"] == pid
 
     def test_pending_not_in_approved_list(self, session):
-        # Sandbox mocked to fail so the plugin stays in pending state.
-        mock_result = MagicMock()
-        mock_result.success = False
-        mock_result.error = "sandbox mocked"
-        mock_result.to_dict.return_value = {"success": False, "error": "sandbox mocked"}
-        with patch("owtf.managers.community_plugin.SandboxRunner.run", return_value=mock_result):
-            self._upload(session)
+        self._upload(session)
         data = list_community_plugins(session, status="approved")
         assert data["total"] == 0
 

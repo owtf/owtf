@@ -1,49 +1,35 @@
 """
 owtf.api.handlers.community_plugin
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Tornado request handlers for the Community Plugin Ecosystem.
 
 Endpoints
 ---------
-POST /api/v1/community-plugins/upload
-    Upload a new .py plugin file with metadata.
-    Expects multipart/form-data with fields:
-      name, description, group, type, author
-    And an optional file field:
-      plugin_file (the .py content)
-    Optional fields: category, version, tags, execution_timeout, memory_limit, is_public
-
-GET  /api/v1/community-plugins/
-    List community plugins.  Query params:
-      status      (default: approved)
-      category, group, type, min_rating, q (search), limit, offset
-
-GET  /api/v1/community-plugins/<id>/
-    Get full details of one plugin.
-
-POST /api/v1/community-plugins/<id>/run
-    Execute a plugin against a target.
-    JSON body: {"target_url": "https://example.com"}
-
-POST /api/v1/community-plugins/<id>/approve   (admin-only, no auth check for now)
-POST /api/v1/community-plugins/<id>/reject
-    JSON body for reject: {"reason": "..."}
-
-DELETE /api/v1/community-plugins/<id>/
-    Delete a plugin and its file.
+POST   /api/v1/community-plugins/upload         — upload a .py plugin
+GET    /api/v1/community-plugins/                — list (filters: status, group, type, q ...)
+GET    /api/v1/community-plugins/<id>/           — plugin details (incl. source code)
+POST   /api/v1/community-plugins/<id>/test-run/  — admin-only smoke test (rate-limited)
+POST   /api/v1/community-plugins/<id>/approve/   — admin
+POST   /api/v1/community-plugins/<id>/reject/    — admin, body: {"reason": "..."}
+GET    /api/v1/community-plugins/<id>/audit/log/ — admin, lifecycle events
+GET    /api/v1/community-plugins/me/             — current user profile (id, name, is_admin)
+DELETE /api/v1/community-plugins/<id>/           — admin, delete plugin record + file
 """
 
 import json
 import logging
+import time
+from collections import defaultdict, deque
 
 from owtf.api.handlers.base import APIRequestHandler
-from owtf.api.handlers.jwtauth import admin_required, jwtauth
+from owtf.api.handlers.jwtauth import admin_required, jwtauth, user_is_admin
 from owtf.lib.exceptions import APIError
 from owtf.managers.community_plugin import (
     approve_community_plugin,
     delete_community_plugin,
     get_community_plugin,
+    get_plugin_audit_log,
     list_community_plugins,
     reject_community_plugin,
     test_run_community_plugin,
@@ -58,9 +44,33 @@ __all__ = [
     "CommunityPluginListHandler",
     "CommunityPluginDetailHandler",
     "CommunityPluginRunHandler",
+    "CommunityPluginTestRunHandler",
     "CommunityPluginApproveHandler",
     "CommunityPluginRejectHandler",
+    "CommunityPluginAuditLogHandler",
+    "CommunityPluginMeHandler",
 ]
+
+# ---------------------------------------------------------------------------
+# Rate limiter (in-memory, per-process). Good enough for single-worker MVP.
+# ---------------------------------------------------------------------------
+
+TEST_RUN_LIMIT = 3  # calls
+TEST_RUN_WINDOW_SECONDS = 60
+_test_run_calls: "defaultdict[object, deque]" = defaultdict(deque)
+
+
+def _check_test_run_rate_limit(user_id) -> bool:
+    """Return True if the caller is within budget, False if rate-limited."""
+    key = user_id if user_id is not None else "anonymous"
+    now = time.monotonic()
+    bucket = _test_run_calls[key]
+    while bucket and now - bucket[0] > TEST_RUN_WINDOW_SECONDS:
+        bucket.popleft()
+    if len(bucket) >= TEST_RUN_LIMIT:
+        return False
+    bucket.append(now)
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -77,29 +87,14 @@ class CommunityPluginUploadHandler(APIRequestHandler):
     def post(self):
         """Upload a community plugin.
 
-        **Request** (multipart/form-data):
-          - name         (required, string)
-          - description  (required, string)
-          - group        (required: web | network | auxiliary)
-          - type         (required: active | passive | semi_passive | external | grep)
-          - author       (required, string)
-          - plugin_file  (required, .py file)
-          - category     (optional)
-          - version      (optional, default "1.0.0")
-          - tags         (optional, comma-separated)
-          - execution_timeout (optional, int seconds)
-          - memory_limit      (optional, int bytes)
-          - is_public         (optional, bool)
-
         **Response** (success):
-          {"status": "success", "data": {"plugin": {...}, "warnings": [...]}}
+          ``{"status": "success", "data": {"plugin": {...}, "warnings": [...]}}``
 
         **Response** (validation error):
-          HTTP 422
-          {"status": "fail", "data": {"errors": [...], "violations": [...]}}
+          HTTP 422 — ``{"status": "fail", "data": {"errors": [...], "violations": [...]}}``
         """
         try:
-            # --- Extract text fields ---
+
             def _field(name, default=""):
                 vals = self.request.arguments.get(name)
                 if vals:
@@ -126,7 +121,6 @@ class CommunityPluginUploadHandler(APIRequestHandler):
             except ValueError:
                 memory_limit = 256 * 1024 * 1024
 
-            # --- Extract uploaded file ---
             files = self.request.files.get("plugin_file")
             if not files:
                 raise APIError(400, "No plugin_file provided in the upload")
@@ -135,7 +129,6 @@ class CommunityPluginUploadHandler(APIRequestHandler):
             file_body = file_info["body"]
             original_filename = file_info.get("filename", "plugin.py")
 
-            # --- Delegate to manager ---
             result = upload_community_plugin(
                 session=self.session,
                 name=name,
@@ -151,10 +144,10 @@ class CommunityPluginUploadHandler(APIRequestHandler):
                 execution_timeout=execution_timeout,
                 memory_limit=memory_limit,
                 is_public=is_public,
+                user_id=self.get_current_user_id(),
             )
 
             if not result["success"]:
-                # Return 422 Unprocessable Entity with details
                 self.set_status(422)
                 self.finish(
                     {
@@ -169,20 +162,11 @@ class CommunityPluginUploadHandler(APIRequestHandler):
                 return
 
             self.set_status(201)
-            if result["auto_approved"]:
-                message = (
-                    "Plugin uploaded and auto-approved after passing AST validation "
-                    "and sandbox dry run. It is now live in the marketplace."
-                )
-            else:
-                message = "Plugin uploaded successfully but sandbox dry run failed. It is pending manual review."
             self.success(
                 {
                     "plugin": result["plugin"],
                     "warnings": result["warnings"],
-                    "sandbox": result["sandbox"],
-                    "auto_approved": result["auto_approved"],
-                    "message": message,
+                    "message": "Plugin uploaded successfully and is pending admin review.",
                 }
             )
 
@@ -205,19 +189,6 @@ class CommunityPluginListHandler(APIRequestHandler):
     SUPPORTED_METHODS = ["GET", "OPTIONS"]
 
     def get(self):
-        """List community plugins with optional filtering.
-
-        Query parameters:
-          - status     (default: approved)
-          - category
-          - group      (web | network | auxiliary)
-          - type       (active | passive | semi_passive | external | grep)
-          - min_rating (float)
-          - q          (free-text search on name/description/author)
-          - limit      (int, default 50, max 200)
-          - offset     (int, default 0)
-        """
-
         def _qparam(name, default=None):
             vals = self.request.arguments.get(name)
             if vals:
@@ -275,6 +246,13 @@ class CommunityPluginDetailHandler(APIRequestHandler):
         data = get_community_plugin(self.session, plugin_id)
         if data is None:
             raise APIError(404, "Plugin not found")
+        # Include source code so the admin "View Code" button works without
+        # a second round-trip.
+        try:
+            with open(data["file_path"], "r", encoding="utf-8") as fh:
+                data["source_code"] = fh.read()
+        except OSError:
+            data["source_code"] = None
         self.success(data)
 
     def delete(self, plugin_id):
@@ -286,31 +264,38 @@ class CommunityPluginDetailHandler(APIRequestHandler):
 
 
 # ---------------------------------------------------------------------------
-# Test Run (smoke test only, not a real OWTF scan)
+# Test-Run (admin-only, rate-limited smoke test)
 # ---------------------------------------------------------------------------
 
 
-@jwtauth
+@admin_required
 class CommunityPluginTestRunHandler(APIRequestHandler):
-    """Quick test run for a community plugin.
+    """Smoke-test a community plugin against a URL.
 
-    Runs the plugin once in the sandbox against the given URL and returns
-    the result inline. It skips OWTF's normal scan path (no target manager,
-    no worklist, no saving). For a real scan, schedule the plugin through
-    the regular runner like the built-in plugins.
+    Loads the plugin via the standard module loader and runs it once
+    against the given URL, returning the result inline. Skips OWTF's
+    normal scan path (no target manager, no worklist, no saving) and is
+    rate-limited per user.
     """
 
     SUPPORTED_METHODS = ["POST", "OPTIONS"]
 
     def post(self, plugin_id):
-        """Test-run a community plugin.
+        user_id = self.get_current_user_id()
+        if not _check_test_run_rate_limit(user_id):
+            self.set_status(429)
+            self.finish(
+                {
+                    "status": "fail",
+                    "data": {
+                        "error": "Too many test-run requests. Limit is {} per {}s.".format(
+                            TEST_RUN_LIMIT, TEST_RUN_WINDOW_SECONDS
+                        )
+                    },
+                }
+            )
+            return
 
-        Body: ``{"target_url": "https://example.com"}``
-
-        Response (note the ``non_persistent`` / ``is_test_run`` flags):
-          ``{"status": "success", "data": {"success": true, "output": {...},
-          "non_persistent": true, "is_test_run": true}}``
-        """
         plugin_id = int(plugin_id)
 
         try:
@@ -321,8 +306,6 @@ class CommunityPluginTestRunHandler(APIRequestHandler):
         target_url = body.get("target_url", "").strip()
         if not target_url:
             raise APIError(400, "'target_url' is required")
-
-        # Basic URL sanity — must start with http(s)://
         if not (target_url.startswith("http://") or target_url.startswith("https://")):
             raise APIError(400, "'target_url' must start with http:// or https://")
 
@@ -336,13 +319,13 @@ class CommunityPluginTestRunHandler(APIRequestHandler):
         self.success(result)
 
 
-# Old name kept so the current UI's /run/ call still works until we
-# update it to /test-run/.
+# Alias kept so the original /run/ path still resolves until the UI
+# fully switches to /test-run/.
 CommunityPluginRunHandler = CommunityPluginTestRunHandler
 
 
 # ---------------------------------------------------------------------------
-# Approve / Reject  (admin operations — no extra auth layer for MVP)
+# Approve / Reject (admin)
 # ---------------------------------------------------------------------------
 
 
@@ -354,7 +337,7 @@ class CommunityPluginApproveHandler(APIRequestHandler):
 
     def post(self, plugin_id):
         plugin_id = int(plugin_id)
-        data = approve_community_plugin(self.session, plugin_id)
+        data = approve_community_plugin(self.session, plugin_id, reviewer_id=self.get_current_user_id())
         if data is None:
             raise APIError(404, "Plugin not found")
         self.success(data)
@@ -373,7 +356,51 @@ class CommunityPluginRejectHandler(APIRequestHandler):
         except json.JSONDecodeError:
             body = {}
         reason = body.get("reason", "")
-        data = reject_community_plugin(self.session, plugin_id, reason)
+        data = reject_community_plugin(self.session, plugin_id, reason, reviewer_id=self.get_current_user_id())
         if data is None:
             raise APIError(404, "Plugin not found")
         self.success(data)
+
+
+# ---------------------------------------------------------------------------
+# Audit Log (admin)
+# ---------------------------------------------------------------------------
+
+
+@admin_required
+class CommunityPluginAuditLogHandler(APIRequestHandler):
+    """Return the chronological lifecycle events for a plugin."""
+
+    SUPPORTED_METHODS = ["GET", "OPTIONS"]
+
+    def get(self, plugin_id):
+        plugin_id = int(plugin_id)
+        events = get_plugin_audit_log(self.session, plugin_id)
+        if events is None:
+            raise APIError(404, "Plugin not found")
+        self.success({"plugin_id": plugin_id, "events": events})
+
+
+# ---------------------------------------------------------------------------
+# Me (current-user profile — used by the UI to decide admin tab visibility)
+# ---------------------------------------------------------------------------
+
+
+@jwtauth
+class CommunityPluginMeHandler(APIRequestHandler):
+    """Expose the logged-in user's profile (id, name, email, is_admin)."""
+
+    SUPPORTED_METHODS = ["GET", "OPTIONS"]
+
+    def get(self):
+        user = self.get_current_user_obj()
+        if user is None:
+            raise APIError(401, "Not authenticated")
+        self.success(
+            {
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "is_admin": user_is_admin(user),
+            }
+        )

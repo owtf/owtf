@@ -17,7 +17,8 @@ Design decisions:
 
 import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import relationship
 
 from owtf.db.model_base import Model
 
@@ -52,6 +53,11 @@ class UserPlugin(Model):
     execution_timeout = Column(Integer, default=300, nullable=False)
     memory_limit = Column(Integer, default=268435456, nullable=False)  # 256 MB
     is_public = Column(Boolean, default=True, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    user = relationship("User", foreign_keys=[user_id], backref="uploaded_plugins")
+    reviewed_by_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    reviewer = relationship("User", foreign_keys=[reviewed_by_user_id])
+    reviewed_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
     updated_at = Column(
         DateTime,
@@ -81,9 +87,17 @@ class UserPlugin(Model):
             "execution_timeout": self.execution_timeout,
             "memory_limit": self.memory_limit,
             "is_public": self.is_public,
+            "user_id": self.user_id,
+            "reviewed_by_user_id": self.reviewed_by_user_id,
+            "reviewed_at": self.reviewed_at.isoformat() if self.reviewed_at else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
+
+    @classmethod
+    def get_for_user(cls, session, user_id: int):
+        """Return all plugins uploaded by a specific user."""
+        return session.query(cls).filter_by(user_id=user_id).order_by(cls.created_at.desc()).all()
 
     # ------------------------------------------------------------------
     # Class-level query helpers

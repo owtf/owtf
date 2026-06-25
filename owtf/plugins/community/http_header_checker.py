@@ -60,8 +60,22 @@ def _fetch_headers_urllib(target_url: str) -> dict:
         return {k.lower(): v for k, v in dict(resp.headers).items()}
 
 
-def run(target_url: str) -> dict:
-    """Entry point called by SandboxRunner."""
+def run(PluginInfo) -> dict:
+    """Entry point invoked by the OWTF plugin runner.
+
+    ``PluginInfo`` is the standard plugin dict; ``target_url`` is taken
+    from ``PluginInfo["target_url"]`` when present, otherwise from the
+    target manager.
+    """
+    if isinstance(PluginInfo, dict):
+        target_url = PluginInfo.get("target_url")
+        if not target_url:
+            from owtf.managers.target import target_manager
+
+            target_url = target_manager.get_target_url()
+    else:
+        target_url = PluginInfo
+
     raw_headers = {}
     fetch_method = "unknown"
     error = None
@@ -117,4 +131,4 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--target", required=True, help="Target URL")
     args = parser.parse_args()
-    print(json.dumps(run(args.target), indent=2))
+    print(json.dumps(run({"target_url": args.target}), indent=2))

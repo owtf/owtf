@@ -95,12 +95,22 @@ def _parse_nuclei_output(raw_stdout: str) -> list:
     return findings
 
 
-def run(target_url: str) -> dict:
-    """Entry point called by SandboxRunner.
+def run(PluginInfo) -> dict:
+    """Entry point invoked by the OWTF plugin runner.
 
-    :param target_url: The URL to scan (must start with http:// or https://)
-    :return: JSON-serialisable dict with findings
+    ``PluginInfo`` is the standard plugin dict; ``target_url`` is taken
+    from ``PluginInfo["target_url"]`` when present, otherwise from the
+    target manager.
     """
+    if isinstance(PluginInfo, dict):
+        target_url = PluginInfo.get("target_url")
+        if not target_url:
+            from owtf.managers.target import target_manager
+
+            target_url = target_manager.get_target_url()
+    else:
+        target_url = PluginInfo
+
     error = None
     findings = []
 
@@ -132,7 +142,7 @@ def run(target_url: str) -> dict:
             ],
             capture_output=True,
             text=True,
-            timeout=280,  # stay under SandboxRunner's default 300s limit
+            timeout=280,  # bounded so the runner does not block on a stuck scan
         )
         findings = _parse_nuclei_output(result.stdout)
         if result.returncode not in (0, 1):
@@ -164,5 +174,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="OWTF Nuclei Scanner Community Plugin")
     parser.add_argument("--target", required=True, help="Target URL to scan")
     args = parser.parse_args()
-    output = run(args.target)
+    output = run({"target_url": args.target})
     print(json.dumps(output, indent=2))

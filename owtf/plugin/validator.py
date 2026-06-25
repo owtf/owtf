@@ -6,10 +6,11 @@ AST-based static analysis for community plugin uploads.
 
 Security model
 --------------
-Community plugins run in an isolated subprocess (SandboxRunner), but we still
-want to reject obviously malicious code *before* it touches disk.  This module
-performs a best-effort static analysis; it is NOT a sandbox and cannot catch
-every possible attack, but it raises the bar significantly.
+Community plugins are gated by admin review of their source before
+approval; this module performs a best-effort AST analysis at upload time
+so obviously malicious code is rejected before it lands on disk. It is
+NOT a sandbox and cannot catch every possible attack, but it raises the
+bar significantly and gives reviewers a cleaner queue to look at.
 
 Rules
 -----

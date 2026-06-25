@@ -5,10 +5,12 @@ owtf.managers.community_plugin
 All database-level operations for community-uploaded plugins.
 
 This module owns the "write" path (upload → validate → store) and the
-"read" path (list, get, search, approve/reject).  The sandbox execution
-lives in owtf.plugin.sandbox so this manager stays thin and testable.
+"read" path (list, get, search, approve/reject).  Approved plugins run
+through the normal plugin runner alongside built-in plugins; admin
+review of the source is the trust boundary.
 """
 
+import datetime
 import logging
 import os
 import re
@@ -24,7 +26,6 @@ from owtf.models.user_plugin import (
     VALID_TYPES,
     UserPlugin,
 )
-from owtf.plugin.sandbox import SandboxResult, SandboxRunner
 from owtf.plugin.validator import PluginValidator, ValidationResult
 from owtf.settings import (
     COMMUNITY_PLUGIN_DEFAULT_TIMEOUT,
@@ -35,9 +36,6 @@ from owtf.settings import (
 )
 
 logger = logging.getLogger(__name__)
-
-DRY_RUN_TARGET = "https://www.google.com"
-DRY_RUN_TIMEOUT = 30  # seconds — short, just checking the plugin loads and runs
 
 # ---------------------------------------------------------------------------
 # Filename sanitisation
@@ -132,6 +130,7 @@ def upload_community_plugin(
     execution_timeout: int = COMMUNITY_PLUGIN_DEFAULT_TIMEOUT,
     memory_limit: int = COMMUNITY_PLUGIN_MEMORY_LIMIT,
     is_public: bool = True,
+    user_id: Optional[int] = None,
 ) -> Dict:
     """Validate and persist a new community plugin.
 
@@ -148,8 +147,6 @@ def upload_community_plugin(
         "violations": [],
         "warnings": [],
         "plugin": None,
-        "sandbox": None,
-        "auto_approved": False,
     }
 
     # --- File extension check ---
@@ -196,23 +193,8 @@ def upload_community_plugin(
         result["errors"].append("Failed to save plugin file: {}".format(exc))
         return result
 
-    # --- Sandbox dry run ---
-    sandbox_result: SandboxResult = SandboxRunner.run(
-        plugin_path=file_path,
-        target_url=DRY_RUN_TARGET,
-        timeout=DRY_RUN_TIMEOUT,
-        memory_limit=memory_limit,
-    )
-    result["sandbox"] = sandbox_result.to_dict()
-
     approval_status = APPROVAL_PENDING
-    result["auto_approved"] = False
-
-    if sandbox_result.success:
-        logger.info("Sandbox dry run passed; plugin saved as pending review: %s", name)
-    else:
-        result["warnings"].append("Sandbox dry run failed; plugin saved as pending: {}".format(sandbox_result.error))
-        logger.warning("Sandbox dry run failed for plugin '%s': %s", name, sandbox_result.error)
+    logger.info("Plugin passed AST validation; saved as pending review: %s", name)
 
     # --- Persist metadata to DB ---
     try:
@@ -223,6 +205,7 @@ def upload_community_plugin(
             group=group,
             type=plugin_type,
             author=author.strip(),
+            user_id=user_id,
             file_path=file_path,
             approval_status=approval_status,
             version=version.strip() or "1.0.0",
@@ -290,12 +273,12 @@ def get_community_plugin(session, plugin_id: int) -> Optional[Dict]:
 
 
 def test_run_community_plugin(session, plugin_id: int, target_url: str) -> Dict:
-    """Quick test run of a community plugin against a URL.
+    """Smoke-test an approved community plugin against a single URL.
 
-    This is just a smoke test so the uploader/reviewer can see the plugin
-    actually executes. It skips the normal scan pipeline on purpose
-    (no target manager, no worklist, no output saved). For a real scan,
-    use the plugin runner like the built-in plugins do.
+    Loads and invokes the plugin via the standard module loader so the
+    uploader / reviewer can see it execute. Output is not persisted
+    through the scan pipeline; for a real scan, queue it like a built-in
+    plugin.
 
     Plugin must be approved.
     """
@@ -312,42 +295,96 @@ def test_run_community_plugin(session, plugin_id: int, target_url: str) -> Dict:
     if not os.path.isfile(plugin.file_path):
         return {"success": False, "error": "Plugin file missing from disk", "non_persistent": True, "is_test_run": True}
 
-    result: SandboxResult = SandboxRunner.run(
-        plugin_path=plugin.file_path,
-        target_url=target_url,
-        timeout=plugin.execution_timeout,
-        memory_limit=plugin.memory_limit,
-    )
-    payload = result.to_dict()
-    payload["non_persistent"] = True
-    payload["is_test_run"] = True
-    return payload
+    from owtf.plugin.runner import runner as plugin_runner
+
+    plugin_dict = {
+        "source": "community",
+        "name": plugin.name,
+        "file_path": plugin.file_path,
+        "type": plugin.type,
+        "group": plugin.group,
+        "execution_timeout": plugin.execution_timeout,
+        "target_url": target_url,
+    }
+    try:
+        output = plugin_runner.run_plugin(None, plugin_dict, save_output=False)
+        return {
+            "success": True,
+            "output": output,
+            "non_persistent": True,
+            "is_test_run": True,
+        }
+    except Exception as exc:
+        logger.exception("Community plugin test-run failed: id=%d", plugin_id)
+        return {
+            "success": False,
+            "error": str(exc),
+            "non_persistent": True,
+            "is_test_run": True,
+        }
 
 
-# Old name kept as an alias so existing callers still work for now.
 run_community_plugin = test_run_community_plugin
 
 
-def approve_community_plugin(session, plugin_id: int) -> Optional[Dict]:
+def approve_community_plugin(session, plugin_id: int, reviewer_id: Optional[int] = None) -> Optional[Dict]:
     """Set approval_status to 'approved'.  Returns updated dict or None."""
     plugin = session.query(UserPlugin).get(plugin_id)
     if plugin is None:
         return None
     plugin.approval_status = APPROVAL_APPROVED
     plugin.rejection_reason = None
+    plugin.reviewed_by_user_id = reviewer_id
+    plugin.reviewed_at = datetime.datetime.utcnow()
     session.commit()
+    session.refresh(plugin)
     return plugin.to_dict()
 
 
-def reject_community_plugin(session, plugin_id: int, reason: str = "") -> Optional[Dict]:
+def reject_community_plugin(
+    session, plugin_id: int, reason: str = "", reviewer_id: Optional[int] = None
+) -> Optional[Dict]:
     """Set approval_status to 'rejected' with a reason.  Returns updated dict or None."""
     plugin = session.query(UserPlugin).get(plugin_id)
     if plugin is None:
         return None
     plugin.approval_status = APPROVAL_REJECTED
     plugin.rejection_reason = reason.strip() or "No reason provided"
+    plugin.reviewed_by_user_id = reviewer_id
+    plugin.reviewed_at = datetime.datetime.utcnow()
     session.commit()
+    session.refresh(plugin)
     return plugin.to_dict()
+
+
+def get_plugin_audit_log(session, plugin_id: int) -> Optional[List[Dict]]:
+    """Return a chronological list of lifecycle events for a plugin.
+
+    Events are derived from the plugin's own timestamps — there is no
+    separate audit table in the MVP.  Returns ``None`` when the plugin
+    does not exist.
+    """
+    plugin = session.query(UserPlugin).get(plugin_id)
+    if plugin is None:
+        return None
+    events: List[Dict] = [
+        {
+            "event": "uploaded",
+            "timestamp": plugin.created_at.isoformat() if plugin.created_at else None,
+            "user_id": plugin.user_id,
+            "details": {"name": plugin.name, "version": plugin.version},
+        }
+    ]
+    if plugin.reviewed_at:
+        events.append(
+            {
+                "event": plugin.approval_status,
+                "timestamp": plugin.reviewed_at.isoformat(),
+                "user_id": plugin.reviewed_by_user_id,
+                "details": {"rejection_reason": plugin.rejection_reason} if plugin.rejection_reason else {},
+            }
+        )
+    return events
 
 
 def delete_community_plugin(session, plugin_id: int) -> bool:
