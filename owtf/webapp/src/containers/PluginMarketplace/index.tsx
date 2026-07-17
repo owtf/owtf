@@ -485,7 +485,11 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
           <strong>Plugin requirements</strong>
           <ul>
             <li>Define a module-level <code>DESCRIPTION</code> string.</li>
-            <li>Implement a <code>run(target_url)</code> function returning a dict.</li>
+            <li>
+              Implement a <code>run(PluginInfo)</code> function returning a dict.
+              Read the target URL as <code>PluginInfo["target_url"]</code>. This
+              is the same signature built-in OWTF plugins use.
+            </li>
             <li>Use <code>subprocess.run([...], shell=False)</code> for external tools.</li>
             <li>No <code>eval</code>, <code>exec</code>, <code>os.system</code>, or raw socket access.</li>
             <li>Max file size: 512 KB.</li>

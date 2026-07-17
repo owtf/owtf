@@ -17,9 +17,10 @@ from owtf.plugin.validator import PluginValidator
 VALID_PLUGIN = """
 DESCRIPTION = "A safe example plugin"
 
-def run(target_url):
+def run(PluginInfo):
     import json
     import subprocess
+    target_url = PluginInfo["target_url"]
     result = subprocess.run(["curl", "-sI", target_url], capture_output=True, timeout=10)
     return {"output": result.stdout.decode()}
 """
@@ -47,8 +48,9 @@ class TestValidPlugins:
         source = """
 DESCRIPTION = "Nuclei test"
 
-def run(target_url):
+def run(PluginInfo):
     import subprocess
+    target_url = PluginInfo["target_url"]
     r = subprocess.run(["nuclei", "-u", target_url, "-json"], capture_output=True)
     return {"raw": r.stdout.decode()}
 """
@@ -59,9 +61,9 @@ def run(target_url):
         source = """
 DESCRIPTION = "HTTP checker"
 
-def run(target_url):
+def run(PluginInfo):
     import requests
-    r = requests.get(target_url, timeout=10)
+    r = requests.get(PluginInfo["target_url"], timeout=10)
     return {"status": r.status_code}
 """
         result = validate(source)
@@ -74,8 +76,8 @@ import urllib.request
 
 DESCRIPTION = "Header checker"
 
-def run(target_url):
-    with urllib.request.urlopen(target_url, timeout=5) as r:
+def run(PluginInfo):
+    with urllib.request.urlopen(PluginInfo["target_url"], timeout=5) as r:
         return {"headers": dict(r.headers)}
 """
         result = validate(source)
@@ -92,7 +94,7 @@ class TestBlockedImports:
         source = """
 import os
 DESCRIPTION = "Bad"
-def run(target_url): return {}
+def run(PluginInfo): return {}
 """
         result = validate(source)
         assert not result.passed
@@ -102,7 +104,7 @@ def run(target_url): return {}
         source = """
 import socket
 DESCRIPTION = "Bad"
-def run(target_url): return {}
+def run(PluginInfo): return {}
 """
         result = validate(source)
         assert not result.passed
@@ -112,7 +114,7 @@ def run(target_url): return {}
         source = """
 import sys
 DESCRIPTION = "Bad"
-def run(target_url): return {}
+def run(PluginInfo): return {}
 """
         result = validate(source)
         assert not result.passed
@@ -121,7 +123,7 @@ def run(target_url): return {}
         source = """
 import pickle
 DESCRIPTION = "Bad"
-def run(target_url): return {}
+def run(PluginInfo): return {}
 """
         result = validate(source)
         assert not result.passed
@@ -130,7 +132,7 @@ def run(target_url): return {}
         source = """
 from os import system
 DESCRIPTION = "Bad"
-def run(target_url): return {}
+def run(PluginInfo): return {}
 """
         result = validate(source)
         assert not result.passed
@@ -139,7 +141,7 @@ def run(target_url): return {}
         source = """
 import threading
 DESCRIPTION = "Bad"
-def run(target_url): return {}
+def run(PluginInfo): return {}
 """
         result = validate(source)
         assert not result.passed
@@ -154,7 +156,7 @@ class TestBlockedCalls:
     def test_eval_blocked(self):
         source = """
 DESCRIPTION = "Bad"
-def run(target_url):
+def run(PluginInfo):
     return eval("1+1")
 """
         result = validate(source)
@@ -164,7 +166,7 @@ def run(target_url):
     def test_exec_blocked(self):
         source = """
 DESCRIPTION = "Bad"
-def run(target_url):
+def run(PluginInfo):
     exec("import os")
     return {}
 """
@@ -175,7 +177,7 @@ def run(target_url):
     def test_compile_blocked(self):
         source = """
 DESCRIPTION = "Bad"
-def run(target_url):
+def run(PluginInfo):
     c = compile("1+1", "<string>", "eval")
     return {}
 """
@@ -186,7 +188,7 @@ def run(target_url):
         source = """
 import subprocess
 DESCRIPTION = "Bad"
-def run(target_url):
+def run(PluginInfo):
     import os
     os.system("ls")
     return {}
@@ -198,8 +200,8 @@ def run(target_url):
         source = """
 import subprocess
 DESCRIPTION = "Shell injection risk"
-def run(target_url):
-    subprocess.run("curl " + target_url, shell=True)
+def run(PluginInfo):
+    subprocess.run("curl " + PluginInfo["target_url"], shell=True)
     return {}
 """
         result = validate(source)
@@ -209,7 +211,7 @@ def run(target_url):
     def test_open_write_mode_blocked(self):
         source = """
 DESCRIPTION = "Write attempt"
-def run(target_url):
+def run(PluginInfo):
     with open("/etc/passwd", "w") as f:
         f.write("pwned")
     return {}
@@ -221,7 +223,7 @@ def run(target_url):
     def test_open_append_mode_blocked(self):
         source = """
 DESCRIPTION = "Append attempt"
-def run(target_url):
+def run(PluginInfo):
     open("/tmp/evil", "ab")
     return {}
 """
@@ -231,7 +233,7 @@ def run(target_url):
     def test_open_read_allowed(self):
         source = """
 DESCRIPTION = "Read-only file access is fine"
-def run(target_url):
+def run(PluginInfo):
     with open("/etc/hosts", "r") as f:
         return {"data": f.read()}
 """
@@ -247,7 +249,7 @@ def run(target_url):
 class TestRequiredStructure:
     def test_missing_description_fails(self):
         source = """
-def run(target_url):
+def run(PluginInfo):
     return {}
 """
         result = validate(source)
@@ -278,6 +280,35 @@ x = 1
         assert not result.passed
         assert any("SyntaxError" in v or "syntax" in v.lower() for v in result.violations)
 
+    def test_run_with_plugininfo_signature_passes_without_param_warning(self):
+        """The documented community-plugin contract is run(PluginInfo).
+
+        A plugin that follows it must pass validation without any warning
+        about missing parameters. This locks the validator to the same
+        contract the OWTF plugin runner uses.
+        """
+        source = """
+DESCRIPTION = "Follows the OWTF plugin contract"
+
+def run(PluginInfo):
+    return {"target": PluginInfo["target_url"]}
+"""
+        result = validate(source)
+        assert result.passed, str(result)
+        assert not any("no parameters" in w for w in result.warnings)
+
+    def test_run_with_zero_args_warning_mentions_plugininfo(self):
+        """The zero-arg warning should teach the correct parameter name."""
+        source = """
+DESCRIPTION = "Missing plugin arg"
+
+def run():
+    return {}
+"""
+        result = validate(source)
+        assert result.passed, str(result)
+        assert any("PluginInfo" in w for w in result.warnings)
+
 
 # ---------------------------------------------------------------------------
 # Tests: async functions
@@ -288,7 +319,7 @@ class TestAsyncFunctions:
     def test_async_function_blocked(self):
         source = """
 DESCRIPTION = "Async plugin"
-async def run(target_url):
+async def run(PluginInfo):
     return {}
 """
         result = validate(source)

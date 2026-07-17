@@ -11,7 +11,9 @@ This serves as:
 Plugin structure requirements (enforced by PluginValidator):
   - DESCRIPTION  : module-level string constant
   - ATTR         : dict with group, type, author (optional but recommended)
-  - run(target_url) : entry point, returns a JSON-serialisable dict
+  - run(PluginInfo) : entry point, receives the OWTF plugin dict, returns
+                      a JSON-serialisable dict. Read the target URL as
+                      ``PluginInfo["target_url"]``.
 
 Return value schema::
 

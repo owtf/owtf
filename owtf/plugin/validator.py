@@ -30,7 +30,11 @@ Blocked write-mode open()
 
 Required structure
   - A module-level string constant DESCRIPTION
-  - A top-level function named run(target_url)
+  - A top-level function named run(PluginInfo)
+
+    ``PluginInfo`` is the standard OWTF plugin dict passed by the runner.
+    The target URL is available as ``PluginInfo["target_url"]``. This is
+    the same signature built-in OWTF plugins use.
 """
 
 import ast
@@ -244,14 +248,15 @@ class _SecurityVisitor(ast.NodeVisitor):
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         if node.name == "run":
             self._has_run_func = True
-            # Warn if run() has no parameters (should accept target_url)
+            # Warn if run() has no parameters (should accept PluginInfo dict).
             args = node.args
             total_args = len(args.args) + len(args.posonlyargs)
             if total_args == 0:
                 self.warnings.append(
-                    "Line {}: function 'run' has no parameters — community plugins should accept 'target_url'".format(
-                        node.lineno
-                    )
+                    (
+                        "Line {}: function 'run' has no parameters. Community plugins "
+                        "should accept 'PluginInfo' (the OWTF plugin dict)."
+                    ).format(node.lineno)
                 )
         self.generic_visit(node)
 
@@ -274,7 +279,10 @@ class _SecurityVisitor(ast.NodeVisitor):
         if not self._has_description:
             self.violations.append("Missing required module-level constant: DESCRIPTION (string)")
         if not self._has_run_func:
-            self.violations.append("Missing required function: run(target_url) — this is the plugin entry point")
+            self.violations.append(
+                "Missing required function: run(PluginInfo). "
+                "This is the plugin entry point and must accept the OWTF plugin dict."
+            )
 
 
 # ---------------------------------------------------------------------------

@@ -28,11 +28,13 @@ from owtf.managers.community_plugin import (
     approve_community_plugin,
     delete_community_plugin,
     get_community_plugin,
+    get_community_plugin_source,
     list_community_plugins,
+    list_owner_plugins,
     reject_community_plugin,
     upload_community_plugin,
 )
-from owtf.models.user_plugin import APPROVAL_APPROVED, APPROVAL_REJECTED
+from owtf.models.user_plugin import APPROVAL_APPROVED, APPROVAL_REJECTED, UserPlugin
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -42,8 +44,8 @@ GOOD_PLUGIN_SOURCE = textwrap.dedent(
     """
     DESCRIPTION = "A safe test plugin"
 
-    def run(target_url):
-        return {"target": target_url, "ok": True}
+    def run(PluginInfo):
+        return {"target": PluginInfo.get("target_url"), "ok": True}
     """
 ).encode("utf-8")
 
@@ -51,7 +53,7 @@ BAD_PLUGIN_SOURCE = textwrap.dedent(
     """
     import os
     DESCRIPTION = "Dangerous"
-    def run(target_url):
+    def run(PluginInfo):
         os.system("rm -rf /")
         return {}
     """
@@ -316,3 +318,138 @@ class TestDeletePlugin:
 
     def test_delete_nonexistent_returns_false(self, session):
         assert not delete_community_plugin(session, 99999)
+
+
+# ---------------------------------------------------------------------------
+# Tests: serializers never leak file_path
+# ---------------------------------------------------------------------------
+
+
+def _upload(session, name="LeakCheck", user_id=None):
+    return upload_community_plugin(
+        session=session,
+        name=name,
+        description="d",
+        group="web",
+        plugin_type="passive",
+        author="a",
+        file_body=GOOD_PLUGIN_SOURCE,
+        original_filename="p.py",
+        user_id=user_id,
+    )["plugin"]["id"]
+
+
+class TestSerializersNeverLeakFilePath:
+    """file_path is a server-side implementation detail. It must never
+    appear in any JSON serializer, regardless of audience (public,
+    owner, admin, or the wrapped manager calls that build API bodies)."""
+
+    def test_public_dict_has_no_file_path(self, session):
+        pid = _upload(session, name="Pub")
+        d = get_community_plugin(session, pid)
+        assert "file_path" not in d
+
+    def test_admin_dict_has_no_file_path(self, session):
+        pid = _upload(session, name="Adm")
+        d = get_community_plugin(session, pid, as_admin=True)
+        assert "file_path" not in d
+        # But admins do see the reviewer trail fields.
+        assert "reviewed_by_user_id" in d
+        assert "execution_timeout" in d
+
+    def test_list_response_has_no_file_path(self, session):
+        pid = _upload(session, name="Listed")
+        approve_community_plugin(session, pid)
+        data = list_community_plugins(session, status="approved")
+        assert data["plugins"], "expected at least one plugin"
+        for p in data["plugins"]:
+            assert "file_path" not in p
+
+    def test_upload_result_has_no_file_path(self, session):
+        result = upload_community_plugin(
+            session=session,
+            name="UploadShape",
+            description="d",
+            group="web",
+            plugin_type="passive",
+            author="a",
+            file_body=GOOD_PLUGIN_SOURCE,
+            original_filename="u.py",
+        )
+        assert result["success"]
+        assert "file_path" not in result["plugin"]
+
+    def test_approve_response_has_no_file_path(self, session):
+        pid = _upload(session, name="ApproveShape")
+        d = approve_community_plugin(session, pid, reviewer_id=1)
+        assert "file_path" not in d
+
+    def test_reject_response_has_no_file_path(self, session):
+        pid = _upload(session, name="RejectShape")
+        d = reject_community_plugin(session, pid, "nope", reviewer_id=1)
+        assert "file_path" not in d
+        assert d["rejection_reason"] == "nope"
+
+    def test_owner_dict_carries_rejection_reason(self, session):
+        pid = _upload(session, name="OwnerReject", user_id=42)
+        reject_community_plugin(session, pid, "unsafe pattern", reviewer_id=1)
+        owner = list_owner_plugins(session, user_id=42)
+        assert owner["total"] == 1
+        entry = owner["plugins"][0]
+        assert "file_path" not in entry
+        assert entry["rejection_reason"] == "unsafe pattern"
+
+
+# ---------------------------------------------------------------------------
+# Tests: source endpoint reads file server-side without leaking the path
+# ---------------------------------------------------------------------------
+
+
+class TestSourceEndpoint:
+    def test_returns_source_without_file_path(self, session):
+        pid = _upload(session, name="ShowSrc")
+        data = get_community_plugin_source(session, pid)
+        assert data is not None
+        assert data["plugin_id"] == pid
+        assert data["source_code"] is not None
+        assert "DESCRIPTION" in data["source_code"]
+        assert "file_path" not in data
+
+    def test_missing_plugin_returns_none(self, session):
+        assert get_community_plugin_source(session, 99999) is None
+
+    def test_missing_file_on_disk_returns_none_source(self, session, tmp_path):
+        pid = _upload(session, name="GhostFile")
+        # Yank the file out from under the plugin, then confirm we
+        # return None source_code instead of crashing.
+        plugin = session.query(UserPlugin).get(pid)
+        import os
+
+        os.remove(plugin.file_path)
+        data = get_community_plugin_source(session, pid)
+        assert data is not None
+        assert data["source_code"] is None
+        assert "file_path" not in data
+
+
+# ---------------------------------------------------------------------------
+# Tests: owner listing does not spill other users' work
+# ---------------------------------------------------------------------------
+
+
+class TestOwnerListingIsolation:
+    def test_only_returns_current_users_plugins(self, session):
+        _upload(session, name="MinePluginA", user_id=1)
+        _upload(session, name="MinePluginB", user_id=1)
+        _upload(session, name="TheirsPluginC", user_id=2)
+
+        mine = list_owner_plugins(session, user_id=1)
+        theirs = list_owner_plugins(session, user_id=2)
+        stranger = list_owner_plugins(session, user_id=999)
+
+        mine_names = {p["name"] for p in mine["plugins"]}
+        theirs_names = {p["name"] for p in theirs["plugins"]}
+
+        assert mine_names == {"MinePluginA", "MinePluginB"}
+        assert theirs_names == {"TheirsPluginC"}
+        assert stranger["total"] == 0
