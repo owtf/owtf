@@ -225,12 +225,28 @@ JWT_OPTIONS = {
 # ---------------------------------------------------------------------------
 # Community Plugin Marketplace — admin allow-list
 # ---------------------------------------------------------------------------
-# Emails in this list are treated as platform admins.  When such a user
+# Emails in this list are treated as platform admins. When such a user
 # registers (or already exists), is_admin is set to True automatically, so
 # they can access the admin tabs and endpoints without a manual DB update.
-# Override via the OWTF_ADMIN_EMAILS env var (comma-separated).
+#
+# There is NO default value. Operators must set OWTF_ADMIN_EMAILS
+# explicitly (comma-separated). An earlier version of this file shipped
+# with "admin@owtf.org" pre-populated as a review convenience — that was
+# removed because a hard-coded email in a production release is a
+# credential leak waiting to happen. Admins can also be managed with
+# ``owtf-admin promote <email>`` / ``owtf-admin demote <email>``.
+import logging as _admin_logging  # noqa: E402
 import os as _os  # noqa: E402
 
-ADMIN_EMAILS = [
-    e.strip().lower() for e in _os.environ.get("OWTF_ADMIN_EMAILS", "admin@owtf.org").split(",") if e.strip()
-]
+ADMIN_EMAILS = [e.strip().lower() for e in _os.environ.get("OWTF_ADMIN_EMAILS", "").split(",") if e.strip()]
+
+if not ADMIN_EMAILS:
+    # Loud warning at import time so operators notice the marketplace
+    # has no admin path configured. Not fatal: a dev running OWTF for
+    # the first time on a fresh DB may deliberately want zero admins
+    # until they seed one via the CLI.
+    _admin_logging.getLogger(__name__).warning(
+        "OWTF_ADMIN_EMAILS is empty. No user will be auto-promoted to admin. "
+        "Set the env var to a comma-separated list, or run "
+        "'owtf-admin promote <email>' after registering your account."
+    )
