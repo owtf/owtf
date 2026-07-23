@@ -21,11 +21,14 @@ from owtf.api.handlers.base import FileRedirectHandler
 from owtf.api.handlers.community_plugin import (
     CommunityPluginApproveHandler,
     CommunityPluginAuditLogHandler,
+    CommunityPluginDeleteHandler,
     CommunityPluginDetailHandler,
     CommunityPluginListHandler,
     CommunityPluginMeHandler,
+    CommunityPluginMineHandler,
     CommunityPluginRejectHandler,
     CommunityPluginRunHandler,
+    CommunityPluginSourceHandler,
     CommunityPluginTestRunHandler,
     CommunityPluginUploadHandler,
 )
@@ -276,6 +279,21 @@ API_v1_HANDLERS = [
         r"/api/v1/community-plugins/me/?$",
         CommunityPluginMeHandler,
         name="community_plugin_me_url",
+    ),
+    tornado.web.url(
+        r"/api/v1/community-plugins/mine/?$",
+        CommunityPluginMineHandler,
+        name="community_plugin_mine_url",
+    ),
+    tornado.web.url(
+        r"/api/v1/community-plugins/([0-9]+)/source/?$",
+        CommunityPluginSourceHandler,
+        name="community_plugin_source_url",
+    ),
+    tornado.web.url(
+        r"/api/v1/community-plugins/([0-9]+)/delete/?$",
+        CommunityPluginDeleteHandler,
+        name="community_plugin_delete_url",
     ),
     tornado.web.url(
         r"/api/v1/community-plugins/([0-9]+)/?$",

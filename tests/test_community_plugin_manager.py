@@ -62,10 +62,18 @@ BAD_PLUGIN_SOURCE = textwrap.dedent(
 
 @pytest.fixture()
 def session(tmp_path, monkeypatch):
-    """Provide a fresh in-memory SQLite session and redirect COMMUNITY_PLUGINS_DIR."""
+    """Provide a fresh in-memory SQLite session and redirect COMMUNITY_PLUGINS_DIR.
+
+    Explicit tables= keeps the fixture stable when other test modules
+    (e.g. plugin_manager_integration) register plugin_output / work on
+    the shared metadata. Without the whitelist, create_all would try
+    to create those unrelated tables and fail on their FK targets.
+    """
     monkeypatch.setattr("owtf.managers.community_plugin.COMMUNITY_PLUGINS_DIR", str(tmp_path))
+    from owtf.models.user import User
+
     engine = create_engine("sqlite:///:memory:")
-    Model.metadata.create_all(engine)
+    Model.metadata.create_all(engine, tables=[User.__table__, UserPlugin.__table__])
     Session = sessionmaker(bind=engine)
     s = Session()
     yield s

@@ -70,6 +70,12 @@ class UserPlugin(Model):
         return "<UserPlugin name={!r} status={!r}>".format(self.name, self.approval_status)
 
     def to_dict(self):
+        """Public/safe view. Does not include file_path.
+
+        Callers that need the file path (the runner, delete, etc.) should
+        read plugin.file_path off the ORM object directly. The path is a
+        server-side detail and should not be exposed to any client.
+        """
         return {
             "id": self.id,
             "name": self.name,
@@ -78,21 +84,35 @@ class UserPlugin(Model):
             "group": self.group,
             "type": self.type,
             "author": self.author,
-            "file_path": self.file_path,
             "rating": self.rating,
             "approval_status": self.approval_status,
-            "rejection_reason": self.rejection_reason,
             "version": self.version,
             "tags": self.tags.split(",") if self.tags else [],
-            "execution_timeout": self.execution_timeout,
-            "memory_limit": self.memory_limit,
             "is_public": self.is_public,
-            "user_id": self.user_id,
-            "reviewed_by_user_id": self.reviewed_by_user_id,
-            "reviewed_at": self.reviewed_at.isoformat() if self.reviewed_at else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
+
+    def to_owner_dict(self):
+        """Owner view: public fields + rejection reason so the uploader
+        can see why their submission was rejected."""
+        d = self.to_dict()
+        d["rejection_reason"] = self.rejection_reason
+        d["user_id"] = self.user_id
+        return d
+
+    def to_admin_dict(self):
+        """Admin view: public + owner + reviewer trail + resource limits.
+
+        Still omits file_path. Admins get the source through the
+        admin-only source endpoint, which reads the file server-side.
+        """
+        d = self.to_owner_dict()
+        d["reviewed_by_user_id"] = self.reviewed_by_user_id
+        d["reviewed_at"] = self.reviewed_at.isoformat() if self.reviewed_at else None
+        d["execution_timeout"] = self.execution_timeout
+        d["memory_limit"] = self.memory_limit
+        return d
 
     @classmethod
     def get_for_user(cls, session, user_id: int):

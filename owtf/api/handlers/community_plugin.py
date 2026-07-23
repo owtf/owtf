@@ -4,17 +4,26 @@ owtf.api.handlers.community_plugin
 
 Tornado request handlers for the Community Plugin Ecosystem.
 
+Trust boundaries
+----------------
+Any authenticated user can list approved plugins, see their public
+metadata, upload a new plugin, and see their own uploads. Everything
+else (source viewing, deletion, approve/reject, test-run, audit log,
+admin-scoped listings) needs an admin token.
+
 Endpoints
 ---------
-POST   /api/v1/community-plugins/upload         — upload a .py plugin
-GET    /api/v1/community-plugins/                — list (filters: status, group, type, q ...)
-GET    /api/v1/community-plugins/<id>/           — plugin details (incl. source code)
-POST   /api/v1/community-plugins/<id>/test-run/  — admin-only smoke test (rate-limited)
-POST   /api/v1/community-plugins/<id>/approve/   — admin
-POST   /api/v1/community-plugins/<id>/reject/    — admin, body: {"reason": "..."}
-GET    /api/v1/community-plugins/<id>/audit/log/ — admin, lifecycle events
-GET    /api/v1/community-plugins/me/             — current user profile (id, name, is_admin)
-DELETE /api/v1/community-plugins/<id>/           — admin, delete plugin record + file
+POST   /api/v1/community-plugins/upload          auth,  upload a .py plugin
+GET    /api/v1/community-plugins/                auth,  list approved (public metadata only)
+GET    /api/v1/community-plugins/<id>/           auth,  plugin metadata (no source, no file_path)
+GET    /api/v1/community-plugins/<id>/source/    admin, plugin source code for review
+DELETE /api/v1/community-plugins/<id>/delete/    admin, delete plugin record + file
+POST   /api/v1/community-plugins/<id>/test-run/  admin, rate-limited smoke test
+POST   /api/v1/community-plugins/<id>/approve/   admin
+POST   /api/v1/community-plugins/<id>/reject/    admin, body: {"reason": "..."}
+GET    /api/v1/community-plugins/<id>/audit/log/ admin, lifecycle events
+GET    /api/v1/community-plugins/me/             auth,  current user profile (id, name, is_admin)
+GET    /api/v1/community-plugins/mine/           auth,  current user's uploads (owner view)
 """
 
 import json
@@ -29,8 +38,10 @@ from owtf.managers.community_plugin import (
     approve_community_plugin,
     delete_community_plugin,
     get_community_plugin,
+    get_community_plugin_source,
     get_plugin_audit_log,
     list_community_plugins,
+    list_owner_plugins,
     reject_community_plugin,
     test_run_community_plugin,
     upload_community_plugin,
@@ -43,13 +54,19 @@ __all__ = [
     "CommunityPluginUploadHandler",
     "CommunityPluginListHandler",
     "CommunityPluginDetailHandler",
+    "CommunityPluginSourceHandler",
+    "CommunityPluginDeleteHandler",
     "CommunityPluginRunHandler",
     "CommunityPluginTestRunHandler",
     "CommunityPluginApproveHandler",
     "CommunityPluginRejectHandler",
     "CommunityPluginAuditLogHandler",
     "CommunityPluginMeHandler",
+    "CommunityPluginMineHandler",
 ]
+
+# Statuses a non-admin caller is allowed to filter on.
+_PUBLIC_STATUSES = {APPROVAL_APPROVED}
 
 # ---------------------------------------------------------------------------
 # Rate limiter (in-memory, per-process). Good enough for single-worker MVP.
@@ -184,7 +201,12 @@ class CommunityPluginUploadHandler(APIRequestHandler):
 
 @jwtauth
 class CommunityPluginListHandler(APIRequestHandler):
-    """List and search community plugins."""
+    """List and search community plugins.
+
+    Non-admin callers can only see approved plugins. Any other status
+    filter (pending, rejected, or a bogus value) returns 403. Admins
+    can request any status and get the admin serializer.
+    """
 
     SUPPORTED_METHODS = ["GET", "OPTIONS"]
 
@@ -195,7 +217,20 @@ class CommunityPluginListHandler(APIRequestHandler):
                 return vals[0] if isinstance(vals[0], str) else vals[0].decode("utf-8")
             return default
 
-        status = _qparam("status", APPROVAL_APPROVED)
+        requested_status = _qparam("status", APPROVAL_APPROVED)
+        is_admin = user_is_admin(self.get_current_user_obj())
+
+        # Non-admins are locked to approved-only. Anything else returns
+        # 403 so nobody can probe pending or rejected queues by guessing
+        # a status value.
+        if not is_admin and requested_status not in _PUBLIC_STATUSES:
+            raise APIError(
+                403,
+                "Only admins can filter by '{}'. Use /community-plugins/mine/ for your own uploads.".format(
+                    requested_status
+                ),
+            )
+
         category = _qparam("category")
         group = _qparam("group")
         plugin_type = _qparam("type")
@@ -218,7 +253,7 @@ class CommunityPluginListHandler(APIRequestHandler):
 
         data = list_community_plugins(
             session=self.session,
-            status=status,
+            status=requested_status,
             category=category or None,
             group=group or None,
             plugin_type=plugin_type or None,
@@ -226,34 +261,65 @@ class CommunityPluginListHandler(APIRequestHandler):
             query=q or None,
             limit=limit,
             offset=offset,
+            as_admin=is_admin,
         )
         self.success(data)
 
 
 # ---------------------------------------------------------------------------
-# Detail / Delete
+# Detail (public metadata) / Source (admin) / Delete (admin)
 # ---------------------------------------------------------------------------
 
 
 @jwtauth
 class CommunityPluginDetailHandler(APIRequestHandler):
-    """Get or delete a single community plugin."""
+    """Return metadata for a single community plugin.
 
-    SUPPORTED_METHODS = ["GET", "DELETE", "OPTIONS"]
+    Non-admins get the safe public dict (no file_path, no source_code,
+    no reviewer trail). Admins get the admin dict so review UIs can show
+    rejection reasons and reviewer info in one call. Source code is
+    served only by CommunityPluginSourceHandler.
+    """
+
+    SUPPORTED_METHODS = ["GET", "OPTIONS"]
 
     def get(self, plugin_id):
         plugin_id = int(plugin_id)
-        data = get_community_plugin(self.session, plugin_id)
+        is_admin = user_is_admin(self.get_current_user_obj())
+        data = get_community_plugin(self.session, plugin_id, as_admin=is_admin)
         if data is None:
             raise APIError(404, "Plugin not found")
-        # Include source code so the admin "View Code" button works without
-        # a second round-trip.
-        try:
-            with open(data["file_path"], "r", encoding="utf-8") as fh:
-                data["source_code"] = fh.read()
-        except OSError:
-            data["source_code"] = None
         self.success(data)
+
+
+@admin_required
+class CommunityPluginSourceHandler(APIRequestHandler):
+    """Return the source code of a plugin. Admin only.
+
+    Reads the file server-side and returns its contents so the review UI
+    can show the code without knowing the file's path on disk.
+    """
+
+    SUPPORTED_METHODS = ["GET", "OPTIONS"]
+
+    def get(self, plugin_id):
+        plugin_id = int(plugin_id)
+        data = get_community_plugin_source(self.session, plugin_id)
+        if data is None:
+            raise APIError(404, "Plugin not found")
+        self.success(data)
+
+
+@admin_required
+class CommunityPluginDeleteHandler(APIRequestHandler):
+    """Delete a community plugin record and its file. Admin only.
+
+    Uses the DELETE method but sits on its own URL, separate from the
+    detail GET. Tornado routes by URL first, so keeping them on separate
+    URLs lets us apply admin_required at the class level.
+    """
+
+    SUPPORTED_METHODS = ["DELETE", "OPTIONS"]
 
     def delete(self, plugin_id):
         plugin_id = int(plugin_id)
@@ -404,3 +470,27 @@ class CommunityPluginMeHandler(APIRequestHandler):
                 "is_admin": user_is_admin(user),
             }
         )
+
+
+# ---------------------------------------------------------------------------
+# Mine (uploader's own plugins across all statuses)
+# ---------------------------------------------------------------------------
+
+
+@jwtauth
+class CommunityPluginMineHandler(APIRequestHandler):
+    """List the plugins uploaded by the current user.
+
+    Returns owner-view dicts so the uploader sees rejection_reason for
+    any of their own rejected plugins. The filter uses the user id from
+    the JWT, so nobody can see another user's uploads through this
+    endpoint.
+    """
+
+    SUPPORTED_METHODS = ["GET", "OPTIONS"]
+
+    def get(self):
+        user_id = self.get_current_user_id()
+        if user_id is None:
+            raise APIError(401, "Not authenticated")
+        self.success(list_owner_plugins(self.session, user_id))

@@ -218,7 +218,10 @@ def upload_community_plugin(
         session.commit()
         session.refresh(plugin)
         result["success"] = True
-        result["plugin"] = plugin.to_dict()
+        # Uploader is the owner, so return the owner shape.
+        # rejection_reason is empty on a fresh upload but filled in later
+        # if an admin rejects.
+        result["plugin"] = plugin.to_owner_dict()
         logger.info("Community plugin uploaded: id=%d name=%s", plugin.id, plugin.name)
     except Exception as exc:
         session.rollback()
@@ -243,8 +246,13 @@ def list_community_plugins(
     query: Optional[str] = None,
     limit: int = 50,
     offset: int = 0,
+    as_admin: bool = False,
 ) -> Dict:
-    """Return a paginated list of community plugins matching the filters."""
+    """Return a paginated list of community plugins matching the filters.
+
+    Pass as_admin=True to use the richer serializer (reviewer trail,
+    resource limits, rejection reason). Public callers should leave it False.
+    """
     plugins, total = UserPlugin.search(
         session,
         status=status,
@@ -256,20 +264,55 @@ def list_community_plugins(
         limit=limit,
         offset=offset,
     )
+    serializer = (lambda p: p.to_admin_dict()) if as_admin else (lambda p: p.to_dict())
     return {
         "total": total,
         "limit": limit,
         "offset": offset,
-        "plugins": [p.to_dict() for p in plugins],
+        "plugins": [serializer(p) for p in plugins],
     }
 
 
-def get_community_plugin(session, plugin_id: int) -> Optional[Dict]:
-    """Return a single plugin dict by id, or None if not found."""
+def list_owner_plugins(session, user_id: int) -> Dict:
+    """Return plugins uploaded by user_id, using the owner serializer so
+    rejection reasons are visible to the uploader."""
+    plugins = UserPlugin.get_for_user(session, user_id)
+    return {
+        "total": len(plugins),
+        "plugins": [p.to_owner_dict() for p in plugins],
+    }
+
+
+def get_community_plugin(session, plugin_id: int, as_admin: bool = False) -> Optional[Dict]:
+    """Return a single plugin dict by id, or None if not found.
+
+    Default is the safe public view. Pass as_admin=True to also see
+    reviewer metadata. Source code is served by
+    get_community_plugin_source() behind an admin-only route.
+    """
     plugin = session.query(UserPlugin).get(plugin_id)
     if plugin is None:
         return None
-    return plugin.to_dict()
+    return plugin.to_admin_dict() if as_admin else plugin.to_dict()
+
+
+def get_community_plugin_source(session, plugin_id: int) -> Optional[Dict]:
+    """Return {"plugin_id", "name", "source_code"} for admin review.
+
+    Returns None if the plugin does not exist. source_code is None if
+    the file cannot be read (missing, permission error, etc). file_path
+    is intentionally left out so the server's filesystem layout is not
+    exposed to any client.
+    """
+    plugin = session.query(UserPlugin).get(plugin_id)
+    if plugin is None:
+        return None
+    try:
+        with open(plugin.file_path, "r", encoding="utf-8") as fh:
+            source = fh.read()
+    except OSError:
+        source = None
+    return {"plugin_id": plugin.id, "name": plugin.name, "source_code": source}
 
 
 def test_run_community_plugin(session, plugin_id: int, target_url: str) -> Dict:
@@ -338,7 +381,7 @@ def approve_community_plugin(session, plugin_id: int, reviewer_id: Optional[int]
     plugin.reviewed_at = datetime.datetime.utcnow()
     session.commit()
     session.refresh(plugin)
-    return plugin.to_dict()
+    return plugin.to_admin_dict()
 
 
 def reject_community_plugin(
@@ -354,7 +397,7 @@ def reject_community_plugin(
     plugin.reviewed_at = datetime.datetime.utcnow()
     session.commit()
     session.refresh(plugin)
-    return plugin.to_dict()
+    return plugin.to_admin_dict()
 
 
 def get_plugin_audit_log(session, plugin_id: int) -> Optional[List[Dict]]:
