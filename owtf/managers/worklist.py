@@ -176,6 +176,45 @@ def get_work_for_target(session, in_use_target_list):
         session.commit()
         return (work_dict["target"], work_dict["plugin"])
 
+def get_pending_count(session):
+    """Get count of pending work items in the worklist.
+
+    :return: Number of pending work items
+    :rtype: `int`
+    """
+    return get_count(session.query(Work).filter(Work.active.is_(True)))
+
+def get_work_batch(session, in_use_target_list, batch_size=None):
+    """Get a batch of work items ordered by priority.
+
+    :param in_use_target_list: Target list currently in use
+    :type in_use_target_list: `list`
+    :param batch_size: Number of work items to fetch
+    :type batch_size: `int`
+    :return: List of (target, plugin) tuples
+    :rtype: `list`
+    """
+    if batch_size is None:
+        from owtf.settings import WORKER_BATCH_SIZE
+        batch_size = WORKER_BATCH_SIZE
+
+    query = (
+        session.query(Work)
+        .join(Plugin, Work.plugin_key == Plugin.key)
+        .filter(Work.active.is_(True))
+        .order_by(plugin_priority_expr(Plugin).desc(), Work.id.asc())
+    )
+    if in_use_target_list:
+        query = query.filter(not_(Work.target_id.in_(in_use_target_list)))
+
+    work_objs = query.limit(batch_size).all()
+    results = []
+    for work_obj in work_objs:
+        work_dict = _derive_work_dict(work_obj)
+        session.delete(work_obj)
+        results.append((work_dict["target"], work_dict["plugin"]))
+    session.commit()
+    return results
 
 def get_all_work(session, criteria=None):
     """Get all work dicts based on criteria

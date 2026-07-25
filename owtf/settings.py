@@ -70,9 +70,9 @@ AUX_TEST_GROUPS = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_aux", "gro
 PLUGINS_DIR = os.path.join(ROOT_DIR, "plugins")
 
 # Output Settings
-OUTPUT_PATH = "owtf_review"
-AUX_OUTPUT_PATH = "owtf_review/auxiliary"
-NET_SCANS_PATH = "owtf_review/scans"
+OUTPUT_PATH = os.path.join(HOME_DIR, "owtf_review")
+AUX_OUTPUT_PATH = os.path.join(HOME_DIR, "owtf_review/auxiliary")
+NET_SCANS_PATH = os.path.join(HOME_DIR, "owtf_review/scans")
 
 # The name of the directories relative to output path
 TARGETS_DIR = "targets"
@@ -214,3 +214,9 @@ JWT_OPTIONS = {
     "verify_iat": True,
     "verify_aud": False,
 }
+
+# Worker scaling constants (Phase 2)
+WORKER_MAX_PROCESSES = 8
+WORKER_HIGH_WATER = 50
+WORKER_LOW_WATER = 10
+WORKER_BATCH_SIZE = 5

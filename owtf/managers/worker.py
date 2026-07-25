@@ -11,18 +11,18 @@ from time import strftime
 try:
     import queue
 except ImportError:
-    import Queue as queue
+    pass
 
 import psutil
 
 from owtf.db.session import get_scoped_session
 from owtf.lib.exceptions import InvalidWorkerReference
-from owtf.managers.worklist import get_work_for_target
-from owtf.workers.local import LocalWorker
-from owtf.settings import MIN_RAM_NEEDED, PROCESS_PER_CORE
+from owtf.managers.worklist import get_pending_count, get_work_for_target
+from owtf.settings import MIN_RAM_NEEDED, PROCESS_PER_CORE, WORKER_HIGH_WATER, WORKER_LOW_WATER, WORKER_MAX_PROCESSES
 from owtf.utils.error import abort_framework
-from owtf.utils.process import check_pid, _signal_process
-from owtf.utils.signals import workers_finish, owtf_start
+from owtf.utils.process import _signal_process, check_pid
+from owtf.utils.signals import owtf_start, workers_finish
+from owtf.workers.local import LocalWorker
 
 __all__ = ["worker_manager"]
 
@@ -157,6 +157,19 @@ class WorkerManager(object):
                     if not self.is_any_worker_busy():
                         logging.info("All jobs have been done. Exiting.")
                         workers_finish.send(self)
+
+                else:    
+                    # Dynamic scaling based on pending work
+                    pending = get_pending_count(self.session)
+                    if pending > WORKER_HIGH_WATER and len(self.workers) < WORKER_MAX_PROCESSES:
+                        logging.info("High workload (%d pending), spawning extra worker", pending)
+                        self.spawn_worker()
+                    elif pending < WORKER_LOW_WATER and len(self.workers) > 1:
+                        for i, worker in enumerate(self.workers):
+                            if not worker["busy"]:
+                                logging.info("Low workload (%d pending), removing idle worker", pending)
+                                self.delete_worker(i + 1)
+                                break
 
     def is_any_worker_busy(self):
         """If a worker is still busy, return True. Return False otherwise.
