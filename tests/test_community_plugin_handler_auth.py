@@ -99,7 +99,7 @@ def _decorated(decorator):
         "CommunityPluginDeleteHandler",
         "CommunityPluginApproveHandler",
         "CommunityPluginRejectHandler",
-        "CommunityPluginAuditLogHandler",
+        "CommunityPluginReviewHistoryHandler",
         "CommunityPluginTestRunHandler",
     ],
 )

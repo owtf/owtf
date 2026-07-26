@@ -400,12 +400,13 @@ def reject_community_plugin(
     return plugin.to_admin_dict()
 
 
-def get_plugin_audit_log(session, plugin_id: int) -> Optional[List[Dict]]:
-    """Return a chronological list of lifecycle events for a plugin.
+def get_plugin_review_history(session, plugin_id: int) -> Optional[List[Dict]]:
+    """Return the review timeline for a plugin.
 
-    Events are derived from the plugin's own timestamps — there is no
-    separate audit table in the MVP.  Returns ``None`` when the plugin
-    does not exist.
+    The events are derived from the plugin's own upload and review
+    timestamps. There is no separate append-only audit table yet, so
+    this is a review history view, not an audit log in the strict
+    sense. Returns ``None`` when the plugin does not exist.
     """
     plugin = session.query(UserPlugin).get(plugin_id)
     if plugin is None:

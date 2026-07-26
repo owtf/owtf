@@ -50,7 +50,7 @@ credential leak waiting to happen.
 | `POST /api/v1/community-plugins/<id>/test-run/`       | admin    | Rate-limited, non-persistent, admin-only smoke test. |
 | `POST /api/v1/community-plugins/<id>/approve/`        | admin    | Records reviewer id + timestamp.                   |
 | `POST /api/v1/community-plugins/<id>/reject/`         | admin    | Body: `{"reason": "..."}`. Records reviewer id.    |
-| `GET  /api/v1/community-plugins/<id>/audit/log/`      | admin    | Lifecycle events from the plugin's own timestamps. |
+| `GET  /api/v1/community-plugins/<id>/review-history/` | admin    | Upload and review timeline built from the plugin row's own timestamps. Not an append-only audit log. |
 
 ## Serializer discipline
 
