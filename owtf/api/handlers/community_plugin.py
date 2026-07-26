@@ -8,22 +8,22 @@ Trust boundaries
 ----------------
 Any authenticated user can list approved plugins, see their public
 metadata, upload a new plugin, and see their own uploads. Everything
-else (source viewing, deletion, approve/reject, test-run, audit log,
-admin-scoped listings) needs an admin token.
+else (source viewing, deletion, approve/reject, test-run, review
+history, admin-scoped listings) needs an admin token.
 
 Endpoints
 ---------
-POST   /api/v1/community-plugins/upload          auth,  upload a .py plugin
-GET    /api/v1/community-plugins/                auth,  list approved (public metadata only)
-GET    /api/v1/community-plugins/<id>/           auth,  plugin metadata (no source, no file_path)
-GET    /api/v1/community-plugins/<id>/source/    admin, plugin source code for review
-DELETE /api/v1/community-plugins/<id>/delete/    admin, delete plugin record + file
-POST   /api/v1/community-plugins/<id>/test-run/  admin, rate-limited smoke test
-POST   /api/v1/community-plugins/<id>/approve/   admin
-POST   /api/v1/community-plugins/<id>/reject/    admin, body: {"reason": "..."}
-GET    /api/v1/community-plugins/<id>/audit/log/ admin, lifecycle events
-GET    /api/v1/community-plugins/me/             auth,  current user profile (id, name, is_admin)
-GET    /api/v1/community-plugins/mine/           auth,  current user's uploads (owner view)
+POST   /api/v1/community-plugins/upload                 auth,  upload a .py plugin
+GET    /api/v1/community-plugins/                       auth,  list approved (public metadata only)
+GET    /api/v1/community-plugins/<id>/                  auth,  plugin metadata (no source, no file_path)
+GET    /api/v1/community-plugins/<id>/source/           admin, plugin source code for review
+DELETE /api/v1/community-plugins/<id>/delete/           admin, delete plugin record + file
+POST   /api/v1/community-plugins/<id>/test-run/         admin, rate-limited smoke test
+POST   /api/v1/community-plugins/<id>/approve/          admin
+POST   /api/v1/community-plugins/<id>/reject/           admin, body: {"reason": "..."}
+GET    /api/v1/community-plugins/<id>/review-history/   admin, upload + review timeline
+GET    /api/v1/community-plugins/me/                    auth,  current user profile (id, name, is_admin)
+GET    /api/v1/community-plugins/mine/                  auth,  current user's uploads (owner view)
 """
 
 import json
@@ -39,7 +39,7 @@ from owtf.managers.community_plugin import (
     delete_community_plugin,
     get_community_plugin,
     get_community_plugin_source,
-    get_plugin_audit_log,
+    get_plugin_review_history,
     list_community_plugins,
     list_owner_plugins,
     reject_community_plugin,
@@ -47,6 +47,14 @@ from owtf.managers.community_plugin import (
     upload_community_plugin,
 )
 from owtf.models.user_plugin import APPROVAL_APPROVED
+from owtf.settings import (
+    COMMUNITY_PLUGIN_DEFAULT_TIMEOUT,
+    COMMUNITY_PLUGIN_MAX_MEMORY,
+    COMMUNITY_PLUGIN_MAX_TIMEOUT,
+    COMMUNITY_PLUGIN_MEMORY_LIMIT,
+    COMMUNITY_PLUGIN_MIN_MEMORY,
+    COMMUNITY_PLUGIN_MIN_TIMEOUT,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +68,7 @@ __all__ = [
     "CommunityPluginTestRunHandler",
     "CommunityPluginApproveHandler",
     "CommunityPluginRejectHandler",
-    "CommunityPluginAuditLogHandler",
+    "CommunityPluginReviewHistoryHandler",
     "CommunityPluginMeHandler",
     "CommunityPluginMineHandler",
 ]
@@ -88,6 +96,31 @@ def _check_test_run_rate_limit(user_id) -> bool:
         return False
     bucket.append(now)
     return True
+
+
+def _parse_bounded_int(field_name, raw_value, default, low, high, unit):
+    """Turn an uploader-supplied string into an int inside [low, high].
+
+    An empty string means the uploader did not send the field, so we
+    fall back to ``default``. A non-integer or out-of-range value is
+    surfaced as a 400 so the uploader knows their value was rejected
+    instead of silently replaced.
+    """
+    if raw_value == "":
+        return default
+    try:
+        value = int(raw_value)
+    except ValueError:
+        raise APIError(
+            400,
+            "{} must be an integer number of {}".format(field_name, unit),
+        )
+    if not (low <= value <= high):
+        raise APIError(
+            400,
+            "{} must be between {} and {} {}".format(field_name, low, high, unit),
+        )
+    return value
 
 
 # ---------------------------------------------------------------------------
@@ -128,15 +161,27 @@ class CommunityPluginUploadHandler(APIRequestHandler):
             tags = _field("tags") or None
             is_public = _field("is_public", "true").lower() not in ("false", "0", "no")
 
-            try:
-                execution_timeout = int(_field("execution_timeout", "300"))
-            except ValueError:
-                execution_timeout = 300
-
-            try:
-                memory_limit = int(_field("memory_limit", str(256 * 1024 * 1024)))
-            except ValueError:
-                memory_limit = 256 * 1024 * 1024
+            # execution_timeout and memory_limit come from the uploader so
+            # they are treated as untrusted. We accept them only if they
+            # parse as an int and sit inside the configured bounds. A bad
+            # value returns 400 instead of silently falling back, so the
+            # uploader knows their number was rejected.
+            execution_timeout = _parse_bounded_int(
+                "execution_timeout",
+                _field("execution_timeout", ""),
+                COMMUNITY_PLUGIN_DEFAULT_TIMEOUT,
+                COMMUNITY_PLUGIN_MIN_TIMEOUT,
+                COMMUNITY_PLUGIN_MAX_TIMEOUT,
+                "seconds",
+            )
+            memory_limit = _parse_bounded_int(
+                "memory_limit",
+                _field("memory_limit", ""),
+                COMMUNITY_PLUGIN_MEMORY_LIMIT,
+                COMMUNITY_PLUGIN_MIN_MEMORY,
+                COMMUNITY_PLUGIN_MAX_MEMORY,
+                "bytes",
+            )
 
             files = self.request.files.get("plugin_file")
             if not files:
@@ -429,19 +474,25 @@ class CommunityPluginRejectHandler(APIRequestHandler):
 
 
 # ---------------------------------------------------------------------------
-# Audit Log (admin)
+# Review History (admin)
 # ---------------------------------------------------------------------------
 
 
 @admin_required
-class CommunityPluginAuditLogHandler(APIRequestHandler):
-    """Return the chronological lifecycle events for a plugin."""
+class CommunityPluginReviewHistoryHandler(APIRequestHandler):
+    """Return the upload and review timeline for a plugin.
+
+    Called it a review history rather than an audit log because the
+    events are derived from the plugin row's own timestamps, not from
+    an append-only audit table. An audit log implies stronger integrity
+    guarantees than that.
+    """
 
     SUPPORTED_METHODS = ["GET", "OPTIONS"]
 
     def get(self, plugin_id):
         plugin_id = int(plugin_id)
-        events = get_plugin_audit_log(self.session, plugin_id)
+        events = get_plugin_review_history(self.session, plugin_id)
         if events is None:
             raise APIError(404, "Plugin not found")
         self.success({"plugin_id": plugin_id, "events": events})

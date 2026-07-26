@@ -73,6 +73,14 @@ PLUGINS_DIR = os.path.join(ROOT_DIR, "plugins")
 COMMUNITY_PLUGINS_DIR = os.path.join(OWTF_CONF, "plugins", "community")
 COMMUNITY_PLUGIN_DEFAULT_TIMEOUT = 300  # seconds per plugin run
 COMMUNITY_PLUGIN_MEMORY_LIMIT = 256 * 1024 * 1024  # 256 MB in bytes
+# Bounds on the execution_timeout and memory_limit values an uploader
+# can send with a plugin. Anything outside these ranges is rejected by
+# the upload handler with a 400 so a single upload cannot ask for a
+# 24 hour run or many GB of RAM and take the scanner host with it.
+COMMUNITY_PLUGIN_MIN_TIMEOUT = 10  # seconds
+COMMUNITY_PLUGIN_MAX_TIMEOUT = 900  # 15 minutes
+COMMUNITY_PLUGIN_MIN_MEMORY = 32 * 1024 * 1024  # 32 MB
+COMMUNITY_PLUGIN_MAX_MEMORY = 1024 * 1024 * 1024  # 1 GB
 PLUGIN_UPLOAD_MAX_SIZE = 512 * 1024  # 512 KB in bytes
 PLUGIN_ALLOWED_EXTENSIONS = [".py"]
 
