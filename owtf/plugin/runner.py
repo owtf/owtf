@@ -23,6 +23,7 @@ from owtf.managers.poutput import save_partial_output, save_plugin_output
 from owtf.managers.target import target_manager
 from owtf.managers.transaction import num_transactions
 from owtf.net.scanner import Scanner
+from owtf.plugin.harness import execute_with_timeout
 from owtf.settings import AUX_OUTPUT_PATH, PLUGINS_DIR
 from owtf.utils.error import abort_framework, user_abort
 from owtf.utils.file import FileOperations, get_output_dir_target
@@ -364,7 +365,8 @@ class PluginRunner(object):
         """
         plugin_path = self.get_plugin_full_path(plugin_dir, plugin)
         path, name = os.path.split(plugin_path)
-        plugin_output = self.get_module("", name, path + "/").run(plugin)
+        module = self.get_module("", name, path + "/")
+        plugin_output = execute_with_timeout(module.run, plugin)
         return plugin_output
 
     @staticmethod
