@@ -222,6 +222,61 @@ class TestUploadPlugin:
         assert any("name" in e.lower() for e in result["errors"])
 
 
+class TestFailedUploadIsClean:
+    """A rejected upload must not leave a half-created plugin behind:
+    no DB row, no file on disk, no partial state that a later reviewer
+    could stumble on. Locks in the manager's early-return ordering
+    (validate first, then persist)."""
+
+    def _count_plugin_files(self, tmp_path):
+        return len(list(tmp_path.glob("*.py")))
+
+    def test_dangerous_source_leaves_no_row_or_file(self, session, tmp_path):
+        result = upload_community_plugin(
+            session=session,
+            name="Attacker",
+            description="Bad",
+            group="web",
+            plugin_type="active",
+            author="attacker",
+            file_body=BAD_PLUGIN_SOURCE,
+            original_filename="attack.py",
+        )
+        assert not result["success"]
+        assert session.query(UserPlugin).count() == 0
+        assert self._count_plugin_files(tmp_path) == 0
+
+    def test_bad_metadata_leaves_no_row_or_file(self, session, tmp_path):
+        result = upload_community_plugin(
+            session=session,
+            name="",
+            description="",
+            group="invalid_group",
+            plugin_type="passive",
+            author="",
+            file_body=GOOD_PLUGIN_SOURCE,
+            original_filename="p.py",
+        )
+        assert not result["success"]
+        assert session.query(UserPlugin).count() == 0
+        assert self._count_plugin_files(tmp_path) == 0
+
+    def test_bad_extension_leaves_no_row_or_file(self, session, tmp_path):
+        result = upload_community_plugin(
+            session=session,
+            name="ShellPlugin",
+            description="desc",
+            group="web",
+            plugin_type="passive",
+            author="user",
+            file_body=GOOD_PLUGIN_SOURCE,
+            original_filename="plugin.sh",
+        )
+        assert not result["success"]
+        assert session.query(UserPlugin).count() == 0
+        assert self._count_plugin_files(tmp_path) == 0
+
+
 # ---------------------------------------------------------------------------
 # Tests: list / get
 # ---------------------------------------------------------------------------
