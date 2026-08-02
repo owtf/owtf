@@ -64,7 +64,6 @@ __all__ = [
     "CommunityPluginDetailHandler",
     "CommunityPluginSourceHandler",
     "CommunityPluginDeleteHandler",
-    "CommunityPluginRunHandler",
     "CommunityPluginTestRunHandler",
     "CommunityPluginApproveHandler",
     "CommunityPluginRejectHandler",
@@ -428,11 +427,6 @@ class CommunityPluginTestRunHandler(APIRequestHandler):
             return
 
         self.success(result)
-
-
-# Alias kept so the original /run/ path still resolves until the UI
-# fully switches to /test-run/.
-CommunityPluginRunHandler = CommunityPluginTestRunHandler
 
 
 # ---------------------------------------------------------------------------

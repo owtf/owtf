@@ -367,9 +367,6 @@ def test_run_community_plugin(session, plugin_id: int, target_url: str) -> Dict:
         }
 
 
-run_community_plugin = test_run_community_plugin
-
-
 def approve_community_plugin(session, plugin_id: int, reviewer_id: Optional[int] = None) -> Optional[Dict]:
     """Set approval_status to 'approved'.  Returns updated dict or None."""
     plugin = session.query(UserPlugin).get(plugin_id)

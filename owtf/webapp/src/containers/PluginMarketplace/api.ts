@@ -45,7 +45,9 @@ export async function uploadCommunityPlugin(formData: FormData): Promise<any> {
 }
 
 export async function runCommunityPlugin(id: number, targetUrl: string): Promise<any> {
-  const res = await fetch(`${API_BASE_URL}community-plugins/${id}/run/`, {
+  // Backend endpoint is /test-run/. The old /run/ alias was removed once
+  // the frontend was ready to switch, so this must stay on /test-run/.
+  const res = await fetch(`${API_BASE_URL}community-plugins/${id}/test-run/`, {
     method: "POST",
     headers: { ...authHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify({ target_url: targetUrl }),
