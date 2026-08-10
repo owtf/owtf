@@ -133,3 +133,69 @@ def test_missing_table_is_ignored():
 
     # Should not raise.
     run_startup_upgrades(engine)
+
+
+def test_upgrade_adds_is_admin_to_existing_users_table():
+    """Simulate an operator upgrading to the marketplace release. Their
+    users table predates the marketplace and has no is_admin column, so
+    the very first User query would raise UndefinedColumn on boot unless
+    the upgrader adds the column. This is the regression viyatb flagged
+    in the review of PR #1444.
+    """
+    engine = create_engine("sqlite:///:memory:")
+
+    # Hand-build a pre-marketplace users table (no is_admin, no
+    # user_plugins yet). Matches the schema an existing install would
+    # have on disk before pulling this branch.
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                """
+                CREATE TABLE users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name VARCHAR(255) NOT NULL UNIQUE,
+                    email VARCHAR(255) NOT NULL UNIQUE,
+                    password VARCHAR(255) NOT NULL,
+                    is_active BOOLEAN,
+                    otp_secret_key VARCHAR(255) NOT NULL UNIQUE
+                )
+                """
+            )
+        )
+
+    before = _column_names(engine, "users")
+    assert "is_admin" not in before
+
+    run_startup_upgrades(engine)
+
+    after = _column_names(engine, "users")
+    assert "is_admin" in after, "is_admin column must be added on upgrade"
+
+    # Confirm the ORM can now issue a plain User query without hitting
+    # UndefinedColumn. This is the actual failure mode we are guarding
+    # against: any endpoint that touches User.is_admin blows up otherwise.
+    with engine.begin() as conn:
+        # A row with is_admin defaulted to FALSE.
+        conn.execute(
+            text(
+                "INSERT INTO users (name, email, password, is_active, otp_secret_key) "
+                "VALUES ('alice', 'a@example.com', 'x', 1, 'k1')"
+            )
+        )
+        row = conn.execute(text("SELECT is_admin FROM users WHERE name='alice'")).fetchone()
+    assert row is not None
+    # SQLite stores BOOLEAN as 0/1; both False and 0 mean the same thing here.
+    assert row[0] in (0, False)
+
+
+def test_users_upgrade_is_idempotent():
+    """Running the upgrader twice against a users table that already has
+    is_admin must be a no-op and must not raise."""
+    engine = create_engine("sqlite:///:memory:")
+    UserPlugin.metadata.create_all(engine, tables=[User.__table__, UserPlugin.__table__])
+
+    run_startup_upgrades(engine)
+    run_startup_upgrades(engine)
+
+    cols = _column_names(engine, "users")
+    assert "is_admin" in cols

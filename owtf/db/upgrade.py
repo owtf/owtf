@@ -45,6 +45,13 @@ _USER_PLUGIN_COLUMN_UPGRADES = [
     ("category", "VARCHAR(64)"),
 ]
 
+# users.is_admin was added for the community plugin marketplace. Existing
+# installs already have a users table, so create_all will not add the new
+# column and any User query would blow up with UndefinedColumn on boot.
+_USERS_COLUMN_UPGRADES = [
+    ("is_admin", "BOOLEAN NOT NULL DEFAULT FALSE"),
+]
+
 
 def _existing_columns(engine, table_name):
     """Return the set of column names present on *table_name*, or an
@@ -88,3 +95,4 @@ def run_startup_upgrades(engine):
     ``create_all``. Safe to call repeatedly.
     """
     _add_missing_columns(engine, "user_plugins", _USER_PLUGIN_COLUMN_UPGRADES)
+    _add_missing_columns(engine, "users", _USERS_COLUMN_UPGRADES)
