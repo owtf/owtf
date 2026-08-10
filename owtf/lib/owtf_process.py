@@ -4,7 +4,12 @@ owtf.lib.owtf_process
 
 Consists of owtf process class and its manager
 """
-from multiprocessing import Process, Queue
+import sys
+import multiprocessing
+
+mp_context = multiprocessing.get_context("fork" if sys.platform == "darwin" else None)
+Process = mp_context.Process
+Queue = mp_context.Queue
 
 from owtf.db.session import get_scoped_session
 from owtf.utils.error import setup_signal_handlers
