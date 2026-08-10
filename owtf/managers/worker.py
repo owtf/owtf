@@ -77,7 +77,8 @@ class WorkerManager(object):
         :rtype: None
         """
         # Check if maximum limit of processes has reached
-        while len(self.workers) < self.get_allowed_process_count():
+        max_workers = min(self.get_allowed_process_count(), WORKER_MAX_PROCESSES)
+        while len(self.workers) < max_workers:
             self.spawn_worker()
         if not len(self.workers):
             abort_framework("Zero worker processes created because of lack of memory")
@@ -157,19 +158,6 @@ class WorkerManager(object):
                     if not self.is_any_worker_busy():
                         logging.info("All jobs have been done. Exiting.")
                         workers_finish.send(self)
-
-                else:    
-                    # Dynamic scaling based on pending work
-                    pending = get_pending_count(self.session)
-                    if pending > WORKER_HIGH_WATER and len(self.workers) < WORKER_MAX_PROCESSES:
-                        logging.info("High workload (%d pending), spawning extra worker", pending)
-                        self.spawn_worker()
-                    elif pending < WORKER_LOW_WATER and len(self.workers) > 1:
-                        for i, worker in enumerate(self.workers):
-                            if not worker["busy"]:
-                                logging.info("Low workload (%d pending), removing idle worker", pending)
-                                self.delete_worker(i + 1)
-                                break
 
     def is_any_worker_busy(self):
         """If a worker is still busy, return True. Return False otherwise.
