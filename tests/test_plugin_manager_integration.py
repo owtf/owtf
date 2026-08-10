@@ -272,6 +272,81 @@ class TestGetAllPluginDictsWithCommunity:
 
 
 # ---------------------------------------------------------------------------
+# for_api stripping — regression for the file_path leak on /api/v1/plugins/
+#
+# The trust model says file_path never leaves the server. The legacy
+# ``PluginDataHandler`` calls ``get_all_plugin_dicts`` and hands the
+# result straight back to the client. Anything that must not be
+# serialised has to be dropped before it gets that far, so
+# ``get_community_plugin_dicts`` and ``get_all_plugin_dicts`` must strip
+# the runner-only fields when the caller opts in with ``for_api=True``.
+# ---------------------------------------------------------------------------
+
+
+class TestForApiStripsInternalFields:
+    _INTERNAL = ("source", "file_path", "execution_timeout", "memory_limit")
+
+    def test_get_community_plugin_dicts_default_keeps_runner_fields(self, session):
+        from owtf.managers.plugin import get_community_plugin_dicts
+
+        _make_user_plugin(session, "runner_default_p", suffix="_for_api_a")
+        result = get_community_plugin_dicts(session)
+        p = result[0]
+        for field in self._INTERNAL:
+            assert field in p, "runner path must keep '{}'".format(field)
+
+    def test_get_community_plugin_dicts_for_api_strips_runner_fields(self, session):
+        from owtf.managers.plugin import get_community_plugin_dicts
+
+        _make_user_plugin(session, "api_strip_p", suffix="_for_api_b")
+        result = get_community_plugin_dicts(session, for_api=True)
+        assert len(result) == 1
+        p = result[0]
+        for field in self._INTERNAL:
+            assert field not in p, "API path must not expose '{}'".format(field)
+        # Public metadata is still there.
+        assert p["name"] == "api_strip_p_for_api_b"
+        assert p["group"] == "web"
+        assert p["descrip"].startswith("Test plugin")
+
+    def test_get_all_plugin_dicts_for_api_strips_community_fields(self, session):
+        """The legacy /api/v1/plugins/ endpoint calls this with for_api=True.
+        Any community plugin in the response must have file_path scrubbed."""
+        from owtf.managers.plugin import get_all_plugin_dicts
+
+        _make_user_plugin(session, "list_endpoint_p", suffix="_for_api_c")
+
+        empty_query = MagicMock()
+        empty_query.all.return_value = []
+        with patch("owtf.managers.plugin.plugin_gen_query", return_value=empty_query):
+            result = get_all_plugin_dicts(session, for_api=True)
+
+        # Every entry in the response must be clean of the runner-only
+        # fields, no matter where it came from.
+        for entry in result:
+            for field in self._INTERNAL:
+                assert field not in entry, "leaked '{}' in {!r}".format(field, entry)
+
+    def test_get_all_plugin_dicts_default_still_has_runner_fields(self, session):
+        """The worklist / runner path uses the default (for_api=False) and
+        must still receive file_path so it can locate the plugin on disk."""
+        from owtf.managers.plugin import get_all_plugin_dicts
+
+        _make_user_plugin(session, "runner_path_p", suffix="_for_api_d")
+
+        empty_query = MagicMock()
+        empty_query.all.return_value = []
+        with patch("owtf.managers.plugin.plugin_gen_query", return_value=empty_query):
+            result = get_all_plugin_dicts(session)
+
+        community = [p for p in result if p.get("source") == "community"]
+        assert community, "expected at least one community entry on the runner path"
+        for entry in community:
+            for field in self._INTERNAL:
+                assert field in entry, "runner path lost '{}'".format(field)
+
+
+# ---------------------------------------------------------------------------
 # PluginRunner._run_community_plugin
 #
 # PluginRunner imports owtf.db.session at module level and connects to

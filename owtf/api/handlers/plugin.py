@@ -108,24 +108,30 @@ class PluginDataHandler(APIRequestHandler):
                 ]
             }
         """
+        # for_api=True strips server-side fields (file_path, source,
+        # execution_timeout, memory_limit) from community plugin entries
+        # before they are handed back to the client. The trust model
+        # guarantees file_path never leaves the server; this endpoint is
+        # the only path that merges community plugins into a client-facing
+        # response, so the stripping has to happen here.
         try:
             filter_data = dict(self.request.arguments)
             if not plugin_group:  # Check if plugin_group is present in url
-                self.success(get_all_plugin_dicts(self.session, filter_data))
+                self.success(get_all_plugin_dicts(self.session, filter_data, for_api=True))
             if plugin_group and (not plugin_type) and (not plugin_code):
                 filter_data.update({"group": plugin_group})
-                self.success(get_all_plugin_dicts(self.session, filter_data))
+                self.success(get_all_plugin_dicts(self.session, filter_data, for_api=True))
             if plugin_group and plugin_type and (not plugin_code):
                 if plugin_type not in get_types_for_plugin_group(self.session, plugin_group):
                     raise APIError(422, "Plugin type not found in selected plugin group")
                 filter_data.update({"type": plugin_type, "group": plugin_group})
-                self.success(get_all_plugin_dicts(self.session, filter_data))
+                self.success(get_all_plugin_dicts(self.session, filter_data, for_api=True))
             if plugin_group and plugin_type and plugin_code:
                 if plugin_type not in get_types_for_plugin_group(self.session, plugin_group):
                     raise APIError(422, "Plugin type not found in selected plugin group")
                 filter_data.update({"type": plugin_type, "group": plugin_group, "code": plugin_code})
                 # This combination will be unique, so have to return a dict
-                results = get_all_plugin_dicts(self.session, filter_data)
+                results = get_all_plugin_dicts(self.session, filter_data, for_api=True)
                 if results:
                     self.success(results[0])
                 else:

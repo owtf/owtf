@@ -226,7 +226,7 @@ def plugin_gen_query(session, criteria):
     return query.order_by(TestGroup.priority.desc())
 
 
-def get_community_plugin_dicts(session):
+def get_community_plugin_dicts(session, for_api=False):
     """Return approved community plugins in the standard OWTF plugin dict shape.
 
     Community plugins are stored in the ``user_plugins`` table once an admin
@@ -234,7 +234,8 @@ def get_community_plugin_dicts(session):
     structure used by built-in plugins so the rest of OWTF's pipeline
     (workers, UI) can treat them identically.
 
-    Two extra fields are added to each community dict:
+    Two extra fields are added to each community dict when *for_api* is
+    False (the default, used by the runner):
 
     - ``"source": "community"`` — signals the runner to load the plugin
       from disk via :func:`PluginRunner._run_community_plugin` instead of
@@ -242,10 +243,18 @@ def get_community_plugin_dicts(session):
     - ``"file_path"`` — absolute path on disk, used by the runner to
       locate the file without another database round-trip.
 
+    When *for_api* is True those internal fields are stripped so the
+    dict is safe to hand back through an HTTP response. Callers that
+    forward these dicts to a client (the legacy ``/api/v1/plugins/``
+    list) must set for_api=True. The trust model explicitly promises
+    that ``file_path`` never leaves the server.
+
     Import of :class:`~owtf.models.user_plugin.UserPlugin` is deferred to
     prevent a circular dependency at module load time.
 
     :param session: SQLAlchemy session
+    :param for_api: strip runner-only fields for an HTTP response
+    :type for_api: `bool`
     :return: list of plugin dicts for every approved community plugin
     :rtype: `list`
     """
@@ -256,30 +265,31 @@ def get_community_plugin_dicts(session):
     result = []
     for up in approved:
         code = "community_{}".format(up.id)
-        result.append(
-            {
-                # Mirror the key format used by built-in plugins: "{type}@{code}"
-                "key": "{!s}@{!s}".format(up.type, code),
-                "group": up.group,
-                "type": up.type,
-                "title": up.name.replace("_", " ").title(),
-                "name": up.name,
-                "code": code,
-                "file": os.path.basename(up.file_path),
-                "descrip": up.description,
-                "attr": None,
-                "min_time": None,
-                # Extra fields the community runner branch needs
-                "source": "community",
-                "file_path": up.file_path,
-                "execution_timeout": up.execution_timeout,
-                "memory_limit": up.memory_limit,
-            }
-        )
+        entry = {
+            # Mirror the key format used by built-in plugins: "{type}@{code}"
+            "key": "{!s}@{!s}".format(up.type, code),
+            "group": up.group,
+            "type": up.type,
+            "title": up.name.replace("_", " ").title(),
+            "name": up.name,
+            "code": code,
+            "file": os.path.basename(up.file_path),
+            "descrip": up.description,
+            "attr": None,
+            "min_time": None,
+        }
+        if not for_api:
+            # Runner-only fields. Anything served through an HTTP
+            # response gets built without these keys via for_api=True.
+            entry["source"] = "community"
+            entry["file_path"] = up.file_path
+            entry["execution_timeout"] = up.execution_timeout
+            entry["memory_limit"] = up.memory_limit
+        result.append(entry)
     return result
 
 
-def get_all_plugin_dicts(session, criteria=None, include_community=True):
+def get_all_plugin_dicts(session, criteria=None, include_community=True, for_api=False):
     """Get plugin dicts based on filter criteria.
 
     When *include_community* is ``True`` (the default) every approved
@@ -287,10 +297,18 @@ def get_all_plugin_dicts(session, criteria=None, include_community=True):
     result alongside the built-in plugins.  Community entries carry
     ``"source": "community"`` so callers can distinguish them when needed.
 
+    *for_api* controls whether the community entries carry the internal
+    runner fields (``source``, ``file_path``, ``execution_timeout``,
+    ``memory_limit``). Set it to True when the return value is going to
+    be serialised into an HTTP response. Runner and worklist paths must
+    keep the default so they can still locate the plugin on disk.
+
     :param criteria: Filter criteria
     :type criteria: `dict`
     :param include_community: Merge approved community plugins into the result
     :type include_community: `bool`
+    :param for_api: strip runner-only fields for an HTTP response
+    :type for_api: `bool`
     :return: List of plugin dicts
     :rtype: `list`
     """
@@ -303,7 +321,7 @@ def get_all_plugin_dicts(session, criteria=None, include_community=True):
     plugin_dicts = [obj.to_dict() for obj in plugin_obj_list]
 
     if include_community:
-        community = get_community_plugin_dicts(session)
+        community = get_community_plugin_dicts(session, for_api=for_api)
         # Apply the same group / type filters that were passed for built-ins.
         if criteria.get("group"):
             wanted = [criteria["group"]] if isinstance(criteria["group"], str) else criteria["group"]
