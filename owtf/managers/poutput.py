@@ -4,6 +4,7 @@ owtf.managers.poutput
 Manage plugin output.
 """
 import json
+import logging
 import os
 
 from owtf.db.session import get_count
@@ -13,9 +14,7 @@ from owtf.managers.target import target_manager, target_required
 from owtf.models.plugin_output import PluginOutput
 from owtf.models.target import Target
 from owtf.models.work import Work
-from owtf.settings import DATE_TIME_FORMAT
 from owtf.utils.file import FileOperations, get_output_dir_target
-from owtf.utils.timer import timer
 
 
 def plugin_output_exists(session, plugin_key, target_id):
@@ -304,7 +303,22 @@ def save_plugin_output(session, plugin, output, target_id=None):
     :return: None
     :rtype: None
     """
+    from owtf.plugin.normalizer import OutputDeduplicator
     from owtf.plugin.runner import runner
+
+    output_json = json.dumps(output)
+
+    # Check for duplicate before saving
+    if OutputDeduplicator.is_duplicate(session, plugin["code"], target_id, output_json):
+        logging.info(
+            "Skipping duplicate output for plugin %s on target %d",
+            plugin["code"],
+            target_id,
+        )
+        return
+
+    # Compute fingerprint for this output
+    fingerprint = OutputDeduplicator.compute_fingerprint(plugin["code"], target_id, output_json)
 
     session.merge(
         PluginOutput(
@@ -312,7 +326,7 @@ def save_plugin_output(session, plugin, output, target_id=None):
             plugin_code=plugin["code"],
             plugin_group=plugin["group"],
             plugin_type=plugin["type"],
-            output=json.dumps(output),
+            output=output_json,
             start_time=plugin["start"],
             end_time=plugin["end"],
             status=plugin["status"],
