@@ -37,7 +37,6 @@ from owtf.lib.exceptions import APIError
 from owtf.managers.community_plugin import (
     approve_community_plugin,
     delete_community_plugin,
-    get_community_plugin,
     get_community_plugin_source,
     get_plugin_review_history,
     list_community_plugins,
@@ -46,7 +45,7 @@ from owtf.managers.community_plugin import (
     test_run_community_plugin,
     upload_community_plugin,
 )
-from owtf.models.user_plugin import APPROVAL_APPROVED
+from owtf.models.user_plugin import APPROVAL_APPROVED, UserPlugin
 from owtf.settings import (
     COMMUNITY_PLUGIN_DEFAULT_TIMEOUT,
     COMMUNITY_PLUGIN_MAX_MEMORY,
@@ -319,21 +318,45 @@ class CommunityPluginListHandler(APIRequestHandler):
 class CommunityPluginDetailHandler(APIRequestHandler):
     """Return metadata for a single community plugin.
 
-    Non-admins get the safe public dict (no file_path, no source_code,
-    no reviewer trail). Admins get the admin dict so review UIs can show
-    rejection reasons and reviewer info in one call. Source code is
-    served only by CommunityPluginSourceHandler.
+    Access rules match the trust model. Admins can read any plugin and
+    get the admin dict (rejection reason, reviewer trail, resource
+    limits). A regular user can only read a plugin that is approved,
+    or one they uploaded themselves; the uploader gets the owner dict
+    so they can see their own rejection reason. Anyone else who guesses
+    a plugin id gets a 404, not a 403, so the endpoint does not act as
+    an oracle for the existence of pending or rejected uploads.
+
+    Source code is served only by CommunityPluginSourceHandler.
     """
 
     SUPPORTED_METHODS = ["GET", "OPTIONS"]
 
     def get(self, plugin_id):
         plugin_id = int(plugin_id)
-        is_admin = user_is_admin(self.get_current_user_obj())
-        data = get_community_plugin(self.session, plugin_id, as_admin=is_admin)
-        if data is None:
+        current_user = self.get_current_user_obj()
+        is_admin = user_is_admin(current_user)
+
+        plugin = self.session.query(UserPlugin).get(plugin_id)
+        if plugin is None:
             raise APIError(404, "Plugin not found")
-        self.success(data)
+
+        current_user_id = getattr(current_user, "id", None) if current_user is not None else None
+        is_owner = current_user_id is not None and plugin.user_id == current_user_id
+        is_approved = plugin.approval_status == APPROVAL_APPROVED
+
+        # A non-admin, non-owner asking about a pending or rejected
+        # plugin gets the same 404 as an id that does not exist, so
+        # ids cannot be scraped to build a directory of other users'
+        # unpublished submissions.
+        if not is_admin and not is_owner and not is_approved:
+            raise APIError(404, "Plugin not found")
+
+        if is_admin:
+            self.success(plugin.to_admin_dict())
+        elif is_owner:
+            self.success(plugin.to_owner_dict())
+        else:
+            self.success(plugin.to_dict())
 
 
 @admin_required
