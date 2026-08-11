@@ -350,7 +350,7 @@ def test_run_community_plugin(session, plugin_id: int, target_url: str) -> Dict:
         "target_url": target_url,
     }
     try:
-        output = plugin_runner.run_plugin(None, plugin_dict, save_output=False)
+        output = plugin_runner.run_plugin(None, plugin_dict)
         return {
             "success": True,
             "output": output,

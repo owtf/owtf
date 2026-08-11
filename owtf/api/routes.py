@@ -43,7 +43,6 @@ from owtf.api.handlers.plugin import (
     PluginDataHandler,
     PluginNameOutput,
     PluginOutputHandler,
-    PluginUploadHandler,
 )
 from owtf.api.handlers.proxy import (
     CertificateDownloadHandler,
@@ -92,11 +91,6 @@ API_v1_HANDLERS = [
         r"/api/v1/sessions/?([0-9]+)?/?(activate|add|remove)?/?$",
         OWTFSessionHandler,
         name="owtf_sessions_api_url",
-    ),
-    tornado.web.url(
-        r"/api/v1/plugins/upload/?$",
-        PluginUploadHandler,
-        name="plugin_upload_url",
     ),
     tornado.web.url(
         r"/api/v1/plugins/?" + plugin_group_re + "/?" + plugin_type_re + "/?" + plugin_code_re + "/?$",

@@ -6,10 +6,6 @@ owtf.api.handlers.plugin
 
 import collections
 import logging
-import os
-import re
-import unicodedata
-import uuid
 
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.api.handlers.jwtauth import jwtauth
@@ -19,36 +15,10 @@ from owtf.lib.exceptions import APIError
 from owtf.managers.plugin import get_all_plugin_dicts, get_types_for_plugin_group
 from owtf.managers.poutput import delete_all_poutput, get_all_poutputs, update_poutput
 from owtf.models.test_group import TestGroup
-from owtf.models.user_plugin import (
-    APPROVAL_PENDING,
-    VALID_GROUPS,
-    VALID_TYPES,
-    UserPlugin,
-)
-from owtf.plugin.validator import PluginValidator
-from owtf.settings import (
-    COMMUNITY_PLUGINS_DIR,
-    PLUGIN_ALLOWED_EXTENSIONS,
-    PLUGIN_UPLOAD_MAX_SIZE,
-)
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["PluginNameOutput", "PluginDataHandler", "PluginOutputHandler", "PluginUploadHandler"]
-
-_SAFE_STEM_RE = re.compile(r"[^\w\-. ]")
-_MAX_STEM = 80
-
-
-def _make_upload_path(name: str) -> str:
-    """Return a unique, collision-free absolute path for a plugin upload."""
-    try:
-        normalised = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
-    except Exception:
-        normalised = name
-    stem = _SAFE_STEM_RE.sub("_", normalised).strip(". ")[:_MAX_STEM] or "plugin"
-    os.makedirs(COMMUNITY_PLUGINS_DIR, exist_ok=True)
-    return os.path.join(COMMUNITY_PLUGINS_DIR, "{}_{}{}".format(stem, uuid.uuid4().hex[:8], ".py"))
+__all__ = ["PluginNameOutput", "PluginDataHandler", "PluginOutputHandler"]
 
 
 @jwtauth
@@ -57,7 +27,6 @@ class PluginDataHandler(APIRequestHandler):
 
     SUPPORTED_METHODS = ["GET"]
 
-    # TODO: Creation of user plugins
     def get(self, plugin_group=None, plugin_type=None, plugin_code=None):
         """Get plugin data based on user filter data.
 
@@ -417,196 +386,3 @@ class PluginOutputHandler(APIRequestHandler):
             raise APIError(400, "Invalid target reference provided")
         except exceptions.InvalidParameterType:
             raise APIError(400, "Invalid parameter type provided")
-
-
-@jwtauth
-class PluginUploadHandler(APIRequestHandler):
-    """Upload a community plugin via POST /api/v1/plugins/upload.
-
-    Accepts a multipart/form-data request containing a .py file and metadata.
-    The file is scanned with PluginValidator (AST-based static analysis) before
-    it is saved to disk.  On passing all checks the metadata is written to the
-    UserPlugin table with approval_status='pending' so an administrator must
-    approve the plugin before it becomes visible to other users.
-
-    **Request** (multipart/form-data):
-      - name         (required, 3-128 chars)
-      - description  (required)
-      - group        (required: web | network | auxiliary, default web)
-      - type         (required: active | passive | semi_passive | external | grep, default passive)
-      - author       (required)
-      - plugin_file  (required, .py file, max 512 KB)
-      - category     (optional)
-      - version      (optional, default "1.0.0")
-      - tags         (optional, comma-separated)
-
-    **Response** (success, HTTP 201):
-      {"status": "success", "data": {"plugin": {...}, "warnings": [...]}}
-
-    **Response** (validation failure, HTTP 422):
-      {"status": "fail", "data": {"errors": [...], "violations": [...], "warnings": [...]}}
-    """
-
-    SUPPORTED_METHODS = ["POST", "OPTIONS"]
-
-    def post(self):
-        try:
-
-            def _field(name, default=""):
-                vals = self.request.arguments.get(name)
-                if vals:
-                    v = vals[0]
-                    return v if isinstance(v, str) else v.decode("utf-8")
-                return default
-
-            name = _field("name").strip()
-            description = _field("description").strip()
-            group = _field("group", "web")
-            plugin_type = _field("type", "passive")
-            author = _field("author").strip()
-            category = (_field("category") or "").strip() or None
-            version = (_field("version", "1.0.0") or "1.0.0").strip()
-            tags_raw = _field("tags") or None
-
-            # ── 1. File presence ──────────────────────────────────────────
-            files = self.request.files.get("plugin_file")
-            if not files:
-                raise APIError(400, "No plugin_file provided in the upload")
-
-            file_info = files[0]
-            file_body = file_info["body"]
-            original_filename = file_info.get("filename", "plugin.py")
-
-            # ── 2. Basic file checks ──────────────────────────────────────
-            errors = []
-            _, ext = os.path.splitext(original_filename)
-            if ext.lower() not in PLUGIN_ALLOWED_EXTENSIONS:
-                errors.append("Invalid file type '{}'. Only .py files are accepted.".format(ext))
-
-            if len(file_body) > PLUGIN_UPLOAD_MAX_SIZE:
-                errors.append("Plugin file exceeds the maximum size of {} KB.".format(PLUGIN_UPLOAD_MAX_SIZE // 1024))
-
-            # ── 3. Metadata validation ────────────────────────────────────
-            if not name or len(name) < 3:
-                errors.append("'name' must be at least 3 characters")
-            elif len(name) > 128:
-                errors.append("'name' must not exceed 128 characters")
-
-            if not description:
-                errors.append("'description' is required")
-
-            if group not in VALID_GROUPS:
-                errors.append("'group' must be one of: {}".format(", ".join(sorted(VALID_GROUPS))))
-
-            if plugin_type not in VALID_TYPES:
-                errors.append("'type' must be one of: {}".format(", ".join(sorted(VALID_TYPES))))
-
-            if not author:
-                errors.append("'author' is required")
-            elif len(author) > 128:
-                errors.append("'author' must not exceed 128 characters")
-
-            if errors:
-                self.set_status(422)
-                self.finish(
-                    {
-                        "status": "fail",
-                        "data": {"errors": errors, "violations": [], "warnings": []},
-                    }
-                )
-                return
-
-            # ── 4. Duplicate name check ───────────────────────────────────
-            if UserPlugin.get_by_name(self.session, name):
-                self.set_status(422)
-                self.finish(
-                    {
-                        "status": "fail",
-                        "data": {
-                            "errors": ["A plugin named '{}' already exists. Choose a unique name.".format(name)],
-                            "violations": [],
-                            "warnings": [],
-                        },
-                    }
-                )
-                return
-
-            # ── 5. AST security scan ──────────────────────────────────────
-            validation = PluginValidator.validate_bytes(file_body, filename=original_filename)
-            if not validation.passed:
-                logger.warning(
-                    "Plugin upload rejected due to AST violations — name=%s violations=%s",
-                    name,
-                    validation.violations,
-                )
-                self.set_status(422)
-                self.finish(
-                    {
-                        "status": "fail",
-                        "data": {
-                            "errors": [],
-                            "violations": validation.violations,
-                            "warnings": validation.warnings,
-                        },
-                    }
-                )
-                return
-
-            # ── 6. Save file to disk ──────────────────────────────────────
-            file_path = _make_upload_path(name)
-            try:
-                with open(file_path, "wb") as fh:
-                    fh.write(file_body)
-            except OSError as exc:
-                raise APIError(500, "Failed to save plugin file: {}".format(exc))
-
-            # ── 7. Persist metadata to DB with 'pending' status ───────────
-            try:
-                plugin = UserPlugin(
-                    name=name,
-                    description=description,
-                    category=category,
-                    group=group,
-                    type=plugin_type,
-                    author=author,
-                    file_path=file_path,
-                    approval_status=APPROVAL_PENDING,
-                    version=version,
-                    tags=tags_raw.strip() if tags_raw else None,
-                )
-                self.session.add(plugin)
-                self.session.commit()
-                self.session.refresh(plugin)
-            except Exception as exc:
-                self.session.rollback()
-                # Clean up the orphaned file on DB failure
-                try:
-                    os.remove(file_path)
-                except OSError:
-                    pass
-                raise APIError(500, "Database error while saving plugin: {}".format(str(exc)))
-
-            logger.info(
-                "Plugin uploaded and queued for review — id=%d name=%s author=%s",
-                plugin.id,
-                plugin.name,
-                plugin.author,
-            )
-
-            self.set_status(201)
-            self.success(
-                {
-                    "plugin": plugin.to_dict(),
-                    "warnings": validation.warnings,
-                    "message": (
-                        "Plugin uploaded and stored as pending review. "
-                        "It will become visible in the marketplace after administrator approval."
-                    ),
-                }
-            )
-
-        except APIError:
-            raise
-        except Exception as exc:
-            logger.exception("Unhandled error in PluginUploadHandler.post")
-            raise APIError(500, "Internal server error during plugin upload: {}".format(str(exc)))
