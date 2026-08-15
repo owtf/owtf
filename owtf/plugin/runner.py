@@ -5,13 +5,14 @@ owtf.plugin.runner
 The module is in charge of running all plugins taking into account the
 chosen settings.
 """
+
 import copy
-from collections import defaultdict
 import hashlib
 import importlib.util
 import logging
 import os
 import re
+from collections import defaultdict
 
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -36,6 +37,7 @@ try:
     from ptp import PTP
     from ptp.libptp.constants import UNKNOWN
     from ptp.libptp.exceptions import PTPError
+
     _PTP_IMPORT_ERROR = None
 except Exception as e:  # pragma: no cover - depends on optional runtime stack
     # PTP transitively imports js2py, which is not compatible with Python 3.12 in some releases.
@@ -67,7 +69,6 @@ WEB Plugin Types:
 
 
 class PluginRunner(object):
-
     def __init__(self):
         # Complicated stuff to keep everything Pythonic and from blowing up
         def handle_signal(sender, **kwargs):
@@ -175,7 +176,7 @@ class PluginRunner(object):
         :return: The logs from execution registry
         :rtype: `dict`
         """
-        return self.exec_registry[config_handler.target][self.get_last_plugin_exec(plugin):]
+        return self.exec_registry[config_handler.target][self.get_last_plugin_exec(plugin) :]
 
     def get_plugin_output_dir(self, plugin):
         """Get plugin directory by test type
@@ -321,9 +322,8 @@ class PluginRunner(object):
         if not self.chosen_plugin(session=session, plugin=plugin, show_reason=show_reason):
             return False  # Skip not chosen plugins
         # Grep plugins to be always run and overwritten (they run once after semi_passive and then again after active)
-        if (
-            plugin_already_run(session=session, plugin_info=plugin)
-            and ((not self.force_overwrite and not ("grep" == plugin["type"])) or plugin["type"] == "external")
+        if plugin_already_run(session=session, plugin_info=plugin) and (
+            (not self.force_overwrite and not ("grep" == plugin["type"])) or plugin["type"] == "external"
         ):
             if show_reason:
                 logging.warning(
@@ -351,9 +351,9 @@ class PluginRunner(object):
         return "{0}/{1}/{2}".format(plugin_dir, plugin["type"], plugin["file"])  # Path to run the plugin
 
     def run_plugin(self, plugin_dir, plugin, save_output=True):
-        """Run a specific plugin
+        """Run a plugin. Community plugins dispatch to _run_community_plugin.
 
-        :param plugin_dir: path of plugin directory
+        :param plugin_dir: path of plugin directory (built-in plugins only)
         :type plugin_dir: `str`
         :param plugin: Plugin dict
         :type plugin: `dict`
@@ -362,10 +362,24 @@ class PluginRunner(object):
         :return: Plugin output
         :rtype: `dict`
         """
+        if plugin.get("source") == "community":
+            return self._run_community_plugin(plugin)
         plugin_path = self.get_plugin_full_path(plugin_dir, plugin)
         path, name = os.path.split(plugin_path)
         plugin_output = self.get_module("", name, path + "/").run(plugin)
         return plugin_output
+
+    def _run_community_plugin(self, plugin):
+        """Load an approved community plugin from disk and call run(plugin)."""
+        file_path = plugin["file_path"]
+        path, name = os.path.split(file_path)
+        try:
+            target_url = plugin.get("target_url") or target_manager.get_target_url()
+        except Exception:
+            # target_manager may not be configured yet on a test-run path.
+            target_url = plugin.get("target_url")
+        logging.info("Running community plugin %r against %s", plugin.get("name"), target_url)
+        return self.get_module("", name, path + "/").run(plugin)
 
     @staticmethod
     def rank_plugin(output, pathname):

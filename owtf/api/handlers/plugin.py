@@ -3,16 +3,20 @@ owtf.api.handlers.plugin
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
+
 import collections
+import logging
 
 from owtf.api.handlers.base import APIRequestHandler
+from owtf.api.handlers.jwtauth import jwtauth
 from owtf.constants import MAPPINGS
 from owtf.lib import exceptions
 from owtf.lib.exceptions import APIError
 from owtf.managers.plugin import get_all_plugin_dicts, get_types_for_plugin_group
 from owtf.managers.poutput import delete_all_poutput, get_all_poutputs, update_poutput
 from owtf.models.test_group import TestGroup
-from owtf.api.handlers.jwtauth import jwtauth
+
+logger = logging.getLogger(__name__)
 
 __all__ = ["PluginNameOutput", "PluginDataHandler", "PluginOutputHandler"]
 
@@ -23,7 +27,6 @@ class PluginDataHandler(APIRequestHandler):
 
     SUPPORTED_METHODS = ["GET"]
 
-    # TODO: Creation of user plugins
     def get(self, plugin_group=None, plugin_type=None, plugin_code=None):
         """Get plugin data based on user filter data.
 
@@ -74,24 +77,30 @@ class PluginDataHandler(APIRequestHandler):
                 ]
             }
         """
+        # for_api=True strips server-side fields (file_path, source,
+        # execution_timeout, memory_limit) from community plugin entries
+        # before they are handed back to the client. The trust model
+        # guarantees file_path never leaves the server; this endpoint is
+        # the only path that merges community plugins into a client-facing
+        # response, so the stripping has to happen here.
         try:
             filter_data = dict(self.request.arguments)
             if not plugin_group:  # Check if plugin_group is present in url
-                self.success(get_all_plugin_dicts(self.session, filter_data))
+                self.success(get_all_plugin_dicts(self.session, filter_data, for_api=True))
             if plugin_group and (not plugin_type) and (not plugin_code):
                 filter_data.update({"group": plugin_group})
-                self.success(get_all_plugin_dicts(self.session, filter_data))
+                self.success(get_all_plugin_dicts(self.session, filter_data, for_api=True))
             if plugin_group and plugin_type and (not plugin_code):
                 if plugin_type not in get_types_for_plugin_group(self.session, plugin_group):
                     raise APIError(422, "Plugin type not found in selected plugin group")
                 filter_data.update({"type": plugin_type, "group": plugin_group})
-                self.success(get_all_plugin_dicts(self.session, filter_data))
+                self.success(get_all_plugin_dicts(self.session, filter_data, for_api=True))
             if plugin_group and plugin_type and plugin_code:
                 if plugin_type not in get_types_for_plugin_group(self.session, plugin_group):
                     raise APIError(422, "Plugin type not found in selected plugin group")
                 filter_data.update({"type": plugin_type, "group": plugin_group, "code": plugin_code})
                 # This combination will be unique, so have to return a dict
-                results = get_all_plugin_dicts(self.session, filter_data)
+                results = get_all_plugin_dicts(self.session, filter_data, for_api=True)
                 if results:
                     self.success(results[0])
                 else:
