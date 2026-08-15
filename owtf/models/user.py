@@ -47,12 +47,16 @@ class User(Model):
 
     @classmethod
     def add_user(cls, session, user):
-        """Adds an user to the DB"""
+        """Add a user to the DB. Emails on ADMIN_EMAILS are promoted on creation."""
+        from owtf.settings import ADMIN_EMAILS
+
+        email = user["email"]
         new_user = cls(
             name=user["name"],
-            email=user["email"],
+            email=email,
             password=user["password"].decode("utf-8"),
             otp_secret_key=user["otp_secret_key"],
+            is_admin=(email or "").strip().lower() in ADMIN_EMAILS,
         )
         session.add(new_user)
         session.commit()
