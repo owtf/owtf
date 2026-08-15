@@ -3,11 +3,12 @@ owtf.models.user
 ~~~~~~~~~~~~~~~~
 
 """
-from sqlalchemy import Column, Integer, Unicode, Boolean
+
+from sqlalchemy import Boolean, Column, Integer, Unicode
+from sqlalchemy.orm import relationship
+
 from owtf.db.model_base import Model
 from owtf.models.email_confirmation import EmailConfirmation
-from sqlalchemy.orm import relationship
-import uuid
 
 
 class User(Model):
@@ -18,6 +19,7 @@ class User(Model):
     email = Column(Unicode(255), nullable=False, unique=True)
     password = Column(Unicode(255), nullable=False)
     is_active = Column(Boolean, default=False)  # checks whether user email is verified
+    is_admin = Column(Boolean, default=False, nullable=False)  # platform admin flag
     otp_secret_key = Column(Unicode(255), nullable=False, unique=True)  # used to generate unique otp
     email_confirmations = relationship(EmailConfirmation, cascade="delete")
     user_login_tokens = relationship("UserLoginToken", cascade="delete")
