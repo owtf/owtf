@@ -19,6 +19,7 @@ import otpSaga from "./containers/OtpPage/saga";
 import newPasswordSaga from "./containers/NewPasswordPage/saga";
 import loginSaga from "./containers/LoginPage/saga";
 import proxySaga from "./containers/ProxyPage/saga";
+import marketplaceSaga from "./containers/PluginMarketplace/saga";
 
 export default function* rootSaga() {
   yield all([
@@ -37,6 +38,7 @@ export default function* rootSaga() {
     forgotPasswordEmailSaga(),
     otpSaga(),
     newPasswordSaga(),
-    proxySaga()
+    proxySaga(),
+    marketplaceSaga()
   ]);
 }
