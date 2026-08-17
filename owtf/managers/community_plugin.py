@@ -3,9 +3,8 @@ owtf.managers.community_plugin
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Database-level operations for community-uploaded plugins: upload,
-validate, store, list, approve, reject, delete, and test-run. Approved
-plugins run through the normal plugin runner; admin review of the
-source is the trust boundary.
+validate, store, list, approve, reject, and delete. Admin review of
+the source is the trust boundary.
 """
 
 import datetime
