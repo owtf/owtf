@@ -3,13 +3,14 @@ owtf.models.plugin
 ~~~~~~~~~~~~~~~~~~
 
 """
-from sqlalchemy import Column, String, ForeignKey, UniqueConstraint, or_
+
+from sqlalchemy import Column, ForeignKey, String, UniqueConstraint, or_
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 
 from owtf.db.model_base import Model
 from owtf.utils.timer import timer
-from owtf.models import test_group
+
 
 class Plugin(Model):
     __tablename__ = "plugins"
@@ -23,6 +24,11 @@ class Plugin(Model):
     descrip = Column(String, nullable=True)
     file = Column(String)
     attr = Column(String, nullable=True)
+    # None for built-in plugins, "community" for uploads from the marketplace.
+    source = Column(String(32), nullable=True)
+    # Absolute path on disk. Set only when source="community"; built-in
+    # plugins are located from group/type/file under PLUGINS_DIR.
+    file_path = Column(String(512), nullable=True)
     works = relationship("Work", backref="plugin", cascade="delete")
     outputs = relationship("PluginOutput", backref="plugin")
 

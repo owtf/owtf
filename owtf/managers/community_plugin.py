@@ -265,6 +265,45 @@ def test_run_community_plugin(session, plugin_id, target_url):
         return {"success": False, "error": str(exc)}
 
 
+def _plugin_key(up):
+    """Deterministic key used to mirror a community plugin into the plugins table."""
+    return "{}@community_{}".format(up.type, up.id)
+
+
+def _sync_to_plugins_table(session, up):
+    """Insert or refresh the plugins-table mirror for an approved community plugin.
+
+    Approved community plugins live alongside built-in plugins in the
+    plugins table so the standard worklist FK, worker lookup, and runner
+    dispatch work without special cases.
+    """
+    from owtf.models.plugin import Plugin
+
+    key = _plugin_key(up)
+    row = session.query(Plugin).filter_by(key=key).first()
+    if row is None:
+        row = Plugin(key=key)
+        session.add(row)
+    row.title = up.name.replace("_", " ").title()
+    row.name = up.name
+    row.code = None  # no test_groups link; plugin_gen_query uses an outer join
+    row.group = up.group
+    row.type = up.type
+    row.descrip = up.description
+    row.file = os.path.basename(up.file_path)
+    row.attr = None
+    row.source = "community"
+    row.file_path = up.file_path
+
+
+def _unsync_from_plugins_table(session, up):
+    from owtf.models.plugin import Plugin
+
+    row = session.query(Plugin).filter_by(key=_plugin_key(up)).first()
+    if row is not None:
+        session.delete(row)
+
+
 def approve_community_plugin(session, plugin_id, reviewer_id=None):
     plugin = session.query(UserPlugin).get(plugin_id)
     if plugin is None:
@@ -273,6 +312,7 @@ def approve_community_plugin(session, plugin_id, reviewer_id=None):
     plugin.rejection_reason = None
     plugin.reviewed_by_user_id = reviewer_id
     plugin.reviewed_at = datetime.datetime.utcnow()
+    _sync_to_plugins_table(session, plugin)
     session.commit()
     session.refresh(plugin)
     return plugin.to_admin_dict()
@@ -282,10 +322,13 @@ def reject_community_plugin(session, plugin_id, reason="", reviewer_id=None):
     plugin = session.query(UserPlugin).get(plugin_id)
     if plugin is None:
         return None
+    was_approved = plugin.approval_status == APPROVAL_APPROVED
     plugin.approval_status = APPROVAL_REJECTED
     plugin.rejection_reason = reason.strip() or "No reason provided"
     plugin.reviewed_by_user_id = reviewer_id
     plugin.reviewed_at = datetime.datetime.utcnow()
+    if was_approved:
+        _unsync_from_plugins_table(session, plugin)
     session.commit()
     session.refresh(plugin)
     return plugin.to_admin_dict()
@@ -322,6 +365,7 @@ def delete_community_plugin(session, plugin_id):
     if plugin is None:
         return False
     file_path = plugin.file_path
+    _unsync_from_plugins_table(session, plugin)
     session.delete(plugin)
     session.commit()
     try:

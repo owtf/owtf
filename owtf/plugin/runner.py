@@ -12,6 +12,8 @@ import importlib.util
 import logging
 import os
 import re
+import signal
+import threading
 from collections import defaultdict
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -49,6 +51,26 @@ except Exception as e:  # pragma: no cover - depends on optional runtime stack
         pass
 
     _PTP_IMPORT_ERROR = e
+
+
+class CommunityPluginTimeout(Exception):
+    """Raised when a community plugin exceeds its execution_timeout."""
+
+
+def _run_with_alarm(fn, arg, timeout):
+    """Call fn(arg) under a SIGALRM watchdog. Main-thread only."""
+
+    def _handler(signum, frame):
+        raise CommunityPluginTimeout("community plugin exceeded {}s".format(timeout))
+
+    prev_handler = signal.signal(signal.SIGALRM, _handler)
+    signal.alarm(timeout)
+    try:
+        return fn(arg)
+    finally:
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, prev_handler)
+
 
 INTRO_BANNER_GENERAL = """
 Short Intro:
@@ -370,7 +392,13 @@ class PluginRunner(object):
         return plugin_output
 
     def _run_community_plugin(self, plugin):
-        """Load an approved community plugin from disk and call run(plugin)."""
+        """Load an approved community plugin from disk and call run(plugin).
+
+        Enforces ``plugin['execution_timeout']`` via SIGALRM when the runner
+        is on the main thread (the test-run request path). From a worker
+        thread SIGALRM is unavailable, so the timeout is not enforced and
+        the caller sees a warning instead of a silent skip.
+        """
         file_path = plugin["file_path"]
         path, name = os.path.split(file_path)
         try:
@@ -379,7 +407,17 @@ class PluginRunner(object):
             # target_manager may not be configured yet on a test-run path.
             target_url = plugin.get("target_url")
         logging.info("Running community plugin %r against %s", plugin.get("name"), target_url)
-        return self.get_module("", name, path + "/").run(plugin)
+        module = self.get_module("", name, path + "/")
+        timeout = int(plugin.get("execution_timeout") or 0)
+        if timeout > 0 and threading.current_thread() is threading.main_thread():
+            return _run_with_alarm(module.run, plugin, timeout)
+        if timeout > 0:
+            logging.warning(
+                "Community plugin %r execution_timeout=%ss is not enforced from a worker thread",
+                plugin.get("name"),
+                timeout,
+            )
+        return module.run(plugin)
 
     @staticmethod
     def rank_plugin(output, pathname):

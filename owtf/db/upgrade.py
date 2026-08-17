@@ -35,6 +35,11 @@ _USERS_COLUMN_UPGRADES = [
     ("is_admin", "BOOLEAN NOT NULL DEFAULT FALSE"),
 ]
 
+_PLUGINS_COLUMN_UPGRADES = [
+    ("source", "VARCHAR(32)"),
+    ("file_path", "VARCHAR(512)"),
+]
+
 
 def _existing_columns(engine, table_name):
     inspector = inspect(engine)
@@ -67,3 +72,4 @@ def run_startup_upgrades(engine):
     """Apply every registered ADD COLUMN upgrade. Idempotent."""
     _add_missing_columns(engine, "user_plugins", _USER_PLUGIN_COLUMN_UPGRADES)
     _add_missing_columns(engine, "users", _USERS_COLUMN_UPGRADES)
+    _add_missing_columns(engine, "plugins", _PLUGINS_COLUMN_UPGRADES)
