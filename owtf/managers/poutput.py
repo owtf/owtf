@@ -331,6 +331,7 @@ def save_plugin_output(session, plugin, output, target_id=None):
             end_time=plugin["end"],
             status=plugin["status"],
             target_id=target_id,
+            fingerprint=fingerprint,
             # Save path only if path exists i.e if some files were to be stored it will be there
             output_path=(
                 plugin["output_path"]

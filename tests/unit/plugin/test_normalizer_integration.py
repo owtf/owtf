@@ -13,10 +13,10 @@ class TestNormalizerIntegration(unittest.TestCase):
 
     def test_is_duplicate_detects_repeated_save(self):
         """is_duplicate() should detect when same output is saved twice."""
-        from owtf.db.session import session_manager
+        from owtf.db.session import get_scoped_session
         from owtf.models.plugin_output import PluginOutput
 
-        session = session_manager.get_session()
+        session = get_scoped_session()
         try:
             # First save
             plugin_code = "OWTF-TEST-001"
