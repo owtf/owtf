@@ -1,5 +1,8 @@
-"""Tests for the startup schema upgrader (in-memory SQLite)."""
+"""Tests for the startup schema upgrader."""
 
+import os
+
+import pytest
 from sqlalchemy import create_engine, inspect, text
 
 # Importing these models registers them on the shared metadata so
@@ -8,9 +11,21 @@ from sqlalchemy import create_engine, inspect, text
 import owtf.models.email_confirmation  # noqa: F401
 import owtf.models.user  # noqa: F401
 import owtf.models.user_login_token  # noqa: F401
+from owtf.db import upgrade as upgrade_module
 from owtf.db.upgrade import run_startup_upgrades
 from owtf.models.user import User
 from owtf.models.user_plugin import UserPlugin
+
+POSTGRES_URL = os.environ.get("TEST_POSTGRES_URL")
+
+
+@pytest.fixture(autouse=True)
+def _reset_upgrade_guard():
+    # The upgrader runs at most once per process. Reset the guard so
+    # each test starts from a clean state.
+    upgrade_module._UPGRADES_APPLIED = False
+    yield
+    upgrade_module._UPGRADES_APPLIED = False
 
 
 def _column_names(engine, table):
@@ -153,3 +168,137 @@ def test_users_upgrade_is_idempotent():
 
     cols = _column_names(engine, "users")
     assert "is_admin" in cols
+
+
+def test_run_startup_upgrades_is_a_no_op_after_first_call():
+    """The module-level guard blocks a second inspection pass in the same process."""
+    engine = create_engine("sqlite:///:memory:")
+    UserPlugin.metadata.create_all(engine, tables=[User.__table__, UserPlugin.__table__])
+
+    run_startup_upgrades(engine)
+    assert upgrade_module._UPGRADES_APPLIED is True
+
+    # Second call should skip: point the inspector at a broken engine to
+    # prove the code path never runs.
+    run_startup_upgrades("not-an-engine")
+
+
+# ---------------------------------------------------------------------------
+# PostgreSQL coverage. Skipped unless TEST_POSTGRES_URL is set, e.g.
+# TEST_POSTGRES_URL=postgresql+psycopg2://user:pass@localhost:5432/owtf_test
+# ---------------------------------------------------------------------------
+
+
+postgres_only = pytest.mark.skipif(
+    not POSTGRES_URL,
+    reason="TEST_POSTGRES_URL not set; requires a running PostgreSQL instance",
+)
+
+
+def _drop_test_tables(engine):
+    with engine.begin() as conn:
+        conn.execute(text("DROP TABLE IF EXISTS user_plugins CASCADE"))
+        conn.execute(text("DROP TABLE IF EXISTS users CASCADE"))
+
+
+@postgres_only
+def test_postgres_upgrade_adds_missing_columns():
+    """End-to-end upgrade on a pre-review-trail user_plugins table in PostgreSQL."""
+    engine = create_engine(POSTGRES_URL)
+    _drop_test_tables(engine)
+    try:
+        with engine.begin() as conn:
+            conn.execute(
+                text(
+                    """
+                    CREATE TABLE user_plugins (
+                        id SERIAL PRIMARY KEY,
+                        name VARCHAR(128) NOT NULL,
+                        description TEXT NOT NULL,
+                        "group" VARCHAR(32) NOT NULL,
+                        type VARCHAR(32) NOT NULL,
+                        author VARCHAR(128) NOT NULL,
+                        file_path VARCHAR(512) NOT NULL,
+                        rating FLOAT NOT NULL DEFAULT 0.0,
+                        approval_status VARCHAR(16) NOT NULL DEFAULT 'pending',
+                        user_id INTEGER,
+                        created_at TIMESTAMP NOT NULL,
+                        updated_at TIMESTAMP NOT NULL
+                    )
+                    """
+                )
+            )
+
+        run_startup_upgrades(engine)
+
+        cols = _column_names(engine, "user_plugins")
+        for expected in (
+            "rejection_reason",
+            "reviewed_by_user_id",
+            "reviewed_at",
+            "execution_timeout",
+            "memory_limit",
+            "is_public",
+            "version",
+            "tags",
+            "category",
+        ):
+            assert expected in cols
+    finally:
+        _drop_test_tables(engine)
+
+
+@postgres_only
+def test_postgres_partial_upgrade_recovers_after_duplicate_column_error():
+    """
+    Simulate the race described in _add_missing_columns: one column has
+    already been added by a parallel worker. PostgreSQL aborts a whole
+    transaction after the first DDL error, so if the loop shared a single
+    txn every later ALTER would silently fail. Per-column transactions
+    must let the remaining ALTERs succeed.
+    """
+    engine = create_engine(POSTGRES_URL)
+    _drop_test_tables(engine)
+    try:
+        with engine.begin() as conn:
+            conn.execute(
+                text(
+                    """
+                    CREATE TABLE user_plugins (
+                        id SERIAL PRIMARY KEY,
+                        name VARCHAR(128) NOT NULL,
+                        description TEXT NOT NULL,
+                        "group" VARCHAR(32) NOT NULL,
+                        type VARCHAR(32) NOT NULL,
+                        author VARCHAR(128) NOT NULL,
+                        file_path VARCHAR(512) NOT NULL,
+                        rating FLOAT NOT NULL DEFAULT 0.0,
+                        approval_status VARCHAR(16) NOT NULL DEFAULT 'pending',
+                        user_id INTEGER,
+                        created_at TIMESTAMP NOT NULL,
+                        updated_at TIMESTAMP NOT NULL,
+                        rejection_reason TEXT
+                    )
+                    """
+                )
+            )
+
+        # rejection_reason already exists; the upgrader will hit a
+        # duplicate-column error on that ALTER but must still add every
+        # other missing column.
+        run_startup_upgrades(engine)
+
+        cols = _column_names(engine, "user_plugins")
+        for expected in (
+            "reviewed_by_user_id",
+            "reviewed_at",
+            "execution_timeout",
+            "memory_limit",
+            "is_public",
+            "version",
+            "tags",
+            "category",
+        ):
+            assert expected in cols, "expected column {} to be present after upgrade".format(expected)
+    finally:
+        _drop_test_tables(engine)

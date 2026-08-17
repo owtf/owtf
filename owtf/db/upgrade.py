@@ -3,10 +3,9 @@ owtf.db.upgrade
 ~~~~~~~~~~~~~~~
 
 Idempotent ALTER TABLE ADD COLUMN runner for tables that gained new
-columns after their initial release. OWTF does not use Alembic, and
-``create_all`` never adds columns to an existing table, so upgraded
-installs would otherwise crash with UndefinedColumn on the first
-query.
+columns after their initial release. Called once at app startup from
+owtf.core.main; also guarded so repeat calls in the same process are
+a no-op.
 """
 
 import logging
@@ -14,6 +13,8 @@ import logging
 from sqlalchemy import inspect, text
 
 logger = logging.getLogger(__name__)
+
+_UPGRADES_APPLIED = False
 
 
 # Each entry is (column_name, DDL fragment) appended after
@@ -49,21 +50,26 @@ def _add_missing_columns(engine, table_name, upgrades):
         # Table has not been created yet; create_all will build it fresh.
         return
 
-    with engine.begin() as conn:
-        for col_name, ddl in upgrades:
-            if col_name in present:
-                continue
-            stmt = "ALTER TABLE {} ADD COLUMN {} {}".format(table_name, col_name, ddl)
-            logger.info("Upgrading schema: %s", stmt)
-            try:
+    # One transaction per column. PostgreSQL aborts the whole transaction
+    # on the first DDL error, so wrapping the loop in a single txn would
+    # silently lose every ALTER after a duplicate-column race.
+    for col_name, ddl in upgrades:
+        if col_name in present:
+            continue
+        stmt = "ALTER TABLE {} ADD COLUMN {} {}".format(table_name, col_name, ddl)
+        logger.info("Upgrading schema: %s", stmt)
+        try:
+            with engine.begin() as conn:
                 conn.execute(text(stmt))
-            except Exception as exc:
-                # Do not let one failing column stop the rest. Most often this
-                # is a race with a parallel worker that already added it.
-                logger.warning("Schema upgrade failed for %s.%s: %s", table_name, col_name, exc)
+        except Exception as exc:
+            logger.warning("Schema upgrade failed for %s.%s: %s", table_name, col_name, exc)
 
 
 def run_startup_upgrades(engine):
-    """Apply every registered ADD COLUMN upgrade. Idempotent."""
+    """Apply every registered ADD COLUMN upgrade. Runs at most once per process."""
+    global _UPGRADES_APPLIED
+    if _UPGRADES_APPLIED:
+        return
+    _UPGRADES_APPLIED = True
     _add_missing_columns(engine, "user_plugins", _USER_PLUGIN_COLUMN_UPGRADES)
     _add_missing_columns(engine, "users", _USERS_COLUMN_UPGRADES)

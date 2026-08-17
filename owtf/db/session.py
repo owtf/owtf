@@ -15,7 +15,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
 from owtf.db.model_base import Model
-from owtf.db.upgrade import run_startup_upgrades
 from owtf.settings import DATABASE_IP, DATABASE_NAME, DATABASE_PASS, DATABASE_PORT, DATABASE_USER
 
 DB_URI = "postgresql+psycopg2://{}:{}@{}:{}/{}".format(
@@ -52,12 +51,7 @@ def flush_transaction(method):
 def get_db_engine():
     try:
         engine = create_engine(DB_URI, poolclass=NullPool)
-        # create_all makes brand-new installs work. run_startup_upgrades
-        # adds columns to tables that existed before those columns were
-        # introduced, so upgrading an existing install does not crash on
-        # first request.
         Model.metadata.create_all(engine)
-        run_startup_upgrades(engine)
         return engine
     except exc.OperationalError as e:
         logging.error("Could not create engine - Exception occured\n%s", str(e))
