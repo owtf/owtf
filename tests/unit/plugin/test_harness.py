@@ -95,3 +95,49 @@ def test_uses_default_timeout_from_settings():
     
     assert isinstance(result, dict)
     assert result["status"] == "success"
+
+
+def test_retry_on_error():
+    """Plugin should retry on error up to max_retries."""
+    attempt_count = [0]
+    
+    def failing_plugin_func(plugin):
+        attempt_count[0] += 1
+        if attempt_count[0] < 2:
+            raise ValueError("Plugin failed")
+        return {"status": "success"}
+    
+    plugin = {"code": "TEST-007"}
+    result = execute_with_timeout(failing_plugin_func, plugin, timeout=5, max_retries=2)
+    
+    assert isinstance(result, dict)
+    assert result["status"] == "success"
+    assert attempt_count[0] == 2
+
+
+def test_no_retry_on_timeout():
+    """Plugin should NOT retry on timeout."""
+    attempt_count = [0]
+    
+    def slow_plugin_func(plugin):
+        attempt_count[0] += 1
+        import time
+        time.sleep(10)
+    
+    plugin = {"code": "TEST-008"}
+    result = execute_with_timeout(slow_plugin_func, plugin, timeout=1, max_retries=2)
+    
+    assert isinstance(result, TimeoutResult)
+    assert attempt_count[0] == 1
+
+
+def test_exhausts_retries_and_returns_error():
+    """Plugin should return ErrorResult after exhausting all retries."""
+    def always_failing_plugin(plugin):
+        raise RuntimeError("Persistent failure")
+    
+    plugin = {"code": "TEST-009"}
+    result = execute_with_timeout(always_failing_plugin, plugin, timeout=5, max_retries=2)
+    
+    assert isinstance(result, ErrorResult)
+    assert "Persistent failure" in result.message

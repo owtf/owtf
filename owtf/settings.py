@@ -223,4 +223,4 @@ WORKER_BATCH_SIZE = globals().get("WORKER_BATCH_SIZE", 5)
 
 # Plugin execution constants
 PLUGIN_TIMEOUT = 300  # 5 minutes
-PLUGIN_MAX_RETRIES = 2
+PLUGIN_MAX_RETRIES = 2  # Max retries on plugin failure
