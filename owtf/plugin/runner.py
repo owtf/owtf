@@ -24,6 +24,7 @@ from owtf.managers.target import target_manager
 from owtf.managers.transaction import num_transactions
 from owtf.net.scanner import Scanner
 from owtf.plugin.harness import execute_with_timeout, TimeoutResult, ErrorResult
+from owtf.plugin.metrics import get_metrics
 from owtf.settings import AUX_OUTPUT_PATH, PLUGINS_DIR
 from owtf.utils.error import abort_framework, user_abort
 from owtf.utils.file import FileOperations, get_output_dir_target
@@ -507,11 +508,25 @@ class PluginRunner(object):
         finally:
             plugin["status"] = status_msg
             plugin["end"] = self.timer.get_end_date_time("Plugin")
+            # Record metrics for Phase 4
+            start_time = plugin.get("start")
+            end_time = plugin.get("end")
+            error = abort_reason if abort_reason else None
+            get_metrics().record_execution(
+                plugin_code=plugin["code"],
+                plugin_group=plugin["group"],
+                plugin_type=plugin["type"],
+                status=status_msg,
+                start_time=start_time,
+                end_time=end_time,
+                error=error
+            )
             # Only rank if output is actual data (not TimeoutResult/ErrorResult)
             if isinstance(output, dict):
                 plugin["owtf_rank"] = self.rank_plugin(output, self.get_plugin_output_dir(plugin))
             else:
                 plugin["owtf_rank"] = None
+            plugin["owtf_rank"] = self.rank_plugin(output, self.get_plugin_output_dir(plugin))
             try:
                 if status_msg == "Successful":
                     save_plugin_output(session=session, plugin=plugin, output=output)

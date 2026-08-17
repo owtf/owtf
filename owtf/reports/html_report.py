@@ -27,7 +27,7 @@ class HTMLReportGenerator:
         :param output_file: Output file path (optional)
         :return: HTML string
         """
-        summary = self.metrics.get_summary()
+        summary = self.metrics.get_summary() if self.metrics else {}
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         html = f"""<!DOCTYPE html>
