@@ -137,6 +137,18 @@
 
   &__actions {
     margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  &__rejectionReason {
+    font-size: 1.2rem;
+    color: #a94442;
+    background-color: #f2dede;
+    padding: 0.6rem 0.8rem;
+    border-radius: 0.3rem;
+    border: 1px solid #ebccd1;
   }
 }
 

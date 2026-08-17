@@ -43,7 +43,10 @@ interface Plugin {
   tags: string[];
   version: string;
   category: string | null;
+  rejection_reason?: string | null;
 }
+
+type CardMode = "browse" | "pending" | "mine";
 
 interface PropsType {
   plugins: Plugin[];
@@ -66,7 +69,7 @@ interface PropsType {
 }
 
 interface StateType {
-  activeTab: "browse" | "upload" | "pending";
+  activeTab: "browse" | "upload" | "pending" | "mine";
   search: string;
   filterGroup: string;
   filterType: string;
@@ -83,8 +86,13 @@ interface StateType {
   dragOver: boolean;
   pendingPlugins: Plugin[];
   pendingLoading: boolean;
+  minePlugins: Plugin[];
+  mineLoading: boolean;
   rejectModalPlugin: Plugin | null;
   rejectReason: string;
+  sourceModalPlugin: Plugin | null;
+  sourceCode: string | null;
+  sourceLoading: boolean;
   isAdmin: boolean;
 }
 
@@ -112,8 +120,13 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
       dragOver: false,
       pendingPlugins: [],
       pendingLoading: false,
+      minePlugins: [],
+      mineLoading: false,
       rejectModalPlugin: null,
       rejectReason: "",
+      sourceModalPlugin: null,
+      sourceCode: null,
+      sourceLoading: false,
       isAdmin: false,
     };
 
@@ -128,6 +141,11 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
     this.handleFileDrop = this.handleFileDrop.bind(this);
     this.handleFileSelect = this.handleFileSelect.bind(this);
     this.loadPendingPlugins = this.loadPendingPlugins.bind(this);
+    this.loadMinePlugins = this.loadMinePlugins.bind(this);
+    this.viewSource = this.viewSource.bind(this);
+    this.closeSourceModal = this.closeSourceModal.bind(this);
+    this.openRejectModal = this.openRejectModal.bind(this);
+    this.closeRejectModal = this.closeRejectModal.bind(this);
   }
 
   componentDidMount() {
@@ -164,10 +182,12 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
     }
   }
 
-  handleTabChange(tab: "browse" | "upload" | "pending") {
+  handleTabChange(tab: "browse" | "upload" | "pending" | "mine") {
     this.setState({ activeTab: tab });
     if (tab === "pending") {
       this.loadPendingPlugins();
+    } else if (tab === "mine") {
+      this.loadMinePlugins();
     }
   }
 
@@ -278,6 +298,45 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
       .catch(() => this.setState({ pendingLoading: false }));
   }
 
+  loadMinePlugins() {
+    this.setState({ mineLoading: true });
+    fetch("/api/v1/community-plugins/mine/", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        this.setState({ minePlugins: data?.data?.plugins || [], mineLoading: false });
+      })
+      .catch(() => this.setState({ mineLoading: false }));
+  }
+
+  viewSource(plugin: Plugin) {
+    this.setState({ sourceModalPlugin: plugin, sourceCode: null, sourceLoading: true });
+    fetch(`/api/v1/community-plugins/${plugin.id}/source/`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        this.setState({ sourceCode: data?.data?.source_code || "", sourceLoading: false });
+      })
+      .catch(() => {
+        this.setState({ sourceLoading: false });
+        toaster.danger("Failed to load plugin source.");
+      });
+  }
+
+  closeSourceModal() {
+    this.setState({ sourceModalPlugin: null, sourceCode: null });
+  }
+
+  openRejectModal(plugin: Plugin) {
+    this.setState({ rejectModalPlugin: plugin, rejectReason: "" });
+  }
+
+  closeRejectModal() {
+    this.setState({ rejectModalPlugin: null, rejectReason: "" });
+  }
+
   resetUploadForm() {
     this.setState({
       uploadName: "",
@@ -297,7 +356,8 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
     );
   }
 
-  renderPluginCard(plugin: Plugin, showRun = true) {
+  renderPluginCard(plugin: Plugin, mode: CardMode = "browse") {
+    const { isAdmin } = this.state;
     return (
       <div key={plugin.id} className="pluginCard">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -320,13 +380,42 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
 
         <div className="pluginCard__meta">by {plugin.author}</div>
 
-        {showRun && plugin.approval_status === "approved" && (
+        {mode === "mine" && plugin.approval_status === "rejected" && plugin.rejection_reason && (
+          <div className="pluginCard__rejectionReason">
+            <strong>Rejection reason:</strong> {plugin.rejection_reason}
+          </div>
+        )}
+
+        {mode === "browse" && isAdmin && plugin.approval_status === "approved" && (
           <div className="pluginCard__actions">
             <button
               className="btn btn-sm btn-primary"
               onClick={() => this.handleRunRequest(plugin)}
             >
               Run on Target
+            </button>
+          </div>
+        )}
+
+        {mode === "pending" && (
+          <div className="pluginCard__actions">
+            <button
+              className="btn btn-sm btn-outline-secondary"
+              onClick={() => this.viewSource(plugin)}
+            >
+              View Source
+            </button>
+            <button
+              className="btn btn-sm btn-success"
+              onClick={() => this.approvePlugin(plugin.id)}
+            >
+              Approve
+            </button>
+            <button
+              className="btn btn-sm btn-danger"
+              onClick={() => this.openRejectModal(plugin)}
+            >
+              Reject
             </button>
           </div>
         )}
@@ -525,7 +614,40 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
         </p>
         <div className="marketplacePage__grid">
           {pendingPlugins.map((p) => (
-            <div key={p.id}>{this.renderPluginCard(p, false)}</div>
+            <div key={p.id}>{this.renderPluginCard(p, "pending")}</div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  renderMineTab() {
+    const { minePlugins, mineLoading } = this.state;
+
+    if (mineLoading) {
+      return (
+        <div style={{ textAlign: "center", padding: "3rem" }}>
+          <Spinner />
+        </div>
+      );
+    }
+
+    if (minePlugins.length === 0) {
+      return (
+        <div className="marketplacePage__empty">
+          <p>You have not uploaded any plugins yet.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div>
+        <p style={{ fontSize: "1.4rem", color: "#6c757d", marginBottom: "1.5rem" }}>
+          {minePlugins.length} plugin{minePlugins.length !== 1 ? "s" : ""} uploaded by you
+        </p>
+        <div className="marketplacePage__grid">
+          {minePlugins.map((p) => (
+            <div key={p.id}>{this.renderPluginCard(p, "mine")}</div>
           ))}
         </div>
       </div>
@@ -537,7 +659,10 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
     if (!rejectModalPlugin) return null;
 
     return (
-      <div className="runModal" onClick={(e) => e.target === e.currentTarget && this.setState({ rejectModalPlugin: null, rejectReason: "" })}>
+      <div
+        className="runModal"
+        onClick={(e) => e.target === e.currentTarget && this.closeRejectModal()}
+      >
         <div className="runModal__dialog">
           <h4>Reject: {rejectModalPlugin.name}</h4>
           <div className="uploadForm__field">
@@ -556,11 +681,38 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
             >
               Confirm Reject
             </button>
-            <button
-              className="btn btn-outline-secondary"
-              onClick={() => this.setState({ rejectModalPlugin: null, rejectReason: "" })}
-            >
+            <button className="btn btn-outline-secondary" onClick={this.closeRejectModal}>
               Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  renderSourceModal() {
+    const { sourceModalPlugin, sourceCode, sourceLoading } = this.state;
+    if (!sourceModalPlugin) return null;
+
+    return (
+      <div
+        className="runModal"
+        onClick={(e) => e.target === e.currentTarget && this.closeSourceModal()}
+      >
+        <div className="runModal__dialog">
+          <h4>Source: {sourceModalPlugin.name}</h4>
+          {sourceLoading ? (
+            <div style={{ textAlign: "center", padding: "2rem" }}>
+              <Spinner />
+            </div>
+          ) : (
+            <pre className="runModal__result">
+              <code>{sourceCode ?? "(source not available)"}</code>
+            </pre>
+          )}
+          <div className="runModal__actions">
+            <button className="btn btn-outline-secondary" onClick={this.closeSourceModal}>
+              Close
             </button>
           </div>
         </div>
@@ -648,6 +800,13 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
             >
               Upload
             </button>
+            <button
+              type="button"
+              className={`btn btn-lg ${activeTab === "mine" ? "btn-primary" : "btn-outline-secondary"}`}
+              onClick={() => this.handleTabChange("mine")}
+            >
+              My Plugins
+            </button>
             {isAdmin && (
               <button
                 type="button"
@@ -662,11 +821,14 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
           <div className="marketplacePage__content">
             {activeTab === "browse" && this.renderBrowseTab()}
             {activeTab === "upload" && this.renderUploadTab()}
+            {activeTab === "mine" && this.renderMineTab()}
             {activeTab === "pending" && isAdmin && this.renderPendingTab()}
           </div>
         </div>
 
         {this.renderRunModal()}
+        {this.renderRejectModal()}
+        {this.renderSourceModal()}
       </div>
     );
   }
