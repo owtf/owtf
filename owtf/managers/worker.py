@@ -54,7 +54,7 @@ class WorkerManager(object):
         :rtype: `int`
         """
         cpu_count = multiprocessing.cpu_count()
-        return PROCESS_PER_CORE * cpu_count
+        return min(PROCESS_PER_CORE * cpu_count, WORKER_MAX_PROCESSES)
 
     def get_task(self):
         """Fetch task dict for worker
