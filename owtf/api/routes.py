@@ -28,7 +28,6 @@ from owtf.api.handlers.community_plugin import (
     CommunityPluginRejectHandler,
     CommunityPluginReviewHistoryHandler,
     CommunityPluginSourceHandler,
-    CommunityPluginTestRunHandler,
     CommunityPluginUploadHandler,
 )
 from owtf.api.handlers.config import ConfigurationHandler
@@ -240,11 +239,6 @@ API_v1_HANDLERS = [
         r"/api/v1/community-plugins/upload/?$",
         CommunityPluginUploadHandler,
         name="community_plugin_upload_url",
-    ),
-    tornado.web.url(
-        r"/api/v1/community-plugins/([0-9]+)/test-run/?$",
-        CommunityPluginTestRunHandler,
-        name="community_plugin_test_run_url",
     ),
     tornado.web.url(
         r"/api/v1/community-plugins/([0-9]+)/approve/?$",

@@ -1,9 +1,9 @@
 """Tests for the trust boundaries on the community plugin endpoints.
 
-Admin-only handlers (source, delete, approve, reject, review-history,
-test-run) must not reach the handler body without admin rights, and the
-list handler must refuse non-admin status=pending/rejected queries
-before touching the DB.
+Admin-only handlers (source, delete, approve, reject, review-history)
+must not reach the handler body without admin rights, and the list
+handler must refuse non-admin status=pending/rejected queries before
+touching the DB.
 """
 
 from unittest.mock import MagicMock
@@ -92,7 +92,6 @@ def _decorated(decorator):
         "CommunityPluginApproveHandler",
         "CommunityPluginRejectHandler",
         "CommunityPluginReviewHistoryHandler",
-        "CommunityPluginTestRunHandler",
     ],
 )
 def test_admin_handlers_reject_non_admin(handler_cls_name):

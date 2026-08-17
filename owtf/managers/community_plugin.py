@@ -237,34 +237,6 @@ def get_community_plugin_source(session, plugin_id):
     return {"plugin_id": plugin.id, "name": plugin.name, "source_code": source}
 
 
-def test_run_community_plugin(session, plugin_id, target_url):
-    """Run an approved plugin once against a URL. Result is not persisted."""
-    plugin = session.query(UserPlugin).get(plugin_id)
-    if plugin is None:
-        return {"success": False, "error": "Plugin not found"}
-    if plugin.approval_status != APPROVAL_APPROVED:
-        return {"success": False, "error": "Plugin is not approved (status: {})".format(plugin.approval_status)}
-    if not os.path.isfile(plugin.file_path):
-        return {"success": False, "error": "Plugin file missing from disk"}
-
-    from owtf.plugin.runner import runner as plugin_runner
-
-    plugin_dict = {
-        "source": "community",
-        "name": plugin.name,
-        "file_path": plugin.file_path,
-        "type": plugin.type,
-        "group": plugin.group,
-        "execution_timeout": plugin.execution_timeout,
-        "target_url": target_url,
-    }
-    try:
-        return {"success": True, "output": plugin_runner.run_plugin(None, plugin_dict)}
-    except Exception as exc:
-        logger.exception("Community plugin test-run failed: id=%d", plugin_id)
-        return {"success": False, "error": str(exc)}
-
-
 def approve_community_plugin(session, plugin_id, reviewer_id=None):
     plugin = session.query(UserPlugin).get(plugin_id)
     if plugin is None:
