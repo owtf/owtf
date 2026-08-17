@@ -161,7 +161,6 @@ def test_admin_required_rejects_non_admin(monkeypatch):
         "owtf.models.user.User.find_by_id",
         staticmethod(lambda session, uid: fake_user),
     )
-    monkeypatch.setattr(jwtauth_module, "ADMIN_EMAILS", set(), raising=False)
 
     h = Decorated(headers={"Authorization": f"Bearer {token}"})
 

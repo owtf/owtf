@@ -81,17 +81,9 @@ def get_user_id_from_request(handler):
 
 
 def user_is_admin(user):
-    """True if user.is_admin is set, or their email is on ADMIN_EMAILS."""
-    if user is None:
-        return False
-    if getattr(user, "is_admin", False):
-        return True
-    # Local import so `monkeypatch.setattr(jwtauth_module, "ADMIN_EMAILS", ...)`
-    # in the decorator tests can override the value at check time.
-    from owtf.settings import ADMIN_EMAILS
-
-    email = (getattr(user, "email", "") or "").strip().lower()
-    return email in ADMIN_EMAILS
+    """True if the user row has is_admin set. ADMIN_EMAILS only seeds this flag
+    at registration and login; it is never consulted per request."""
+    return bool(user and getattr(user, "is_admin", False))
 
 
 def admin_required(handler_class):

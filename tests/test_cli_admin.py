@@ -85,3 +85,27 @@ def test_email_lookup_is_case_insensitive(db, capsys):
     rc = cli_admin.main(["promote", "REG@Example.COM"])
     assert rc == 0
     assert _read_admin_flag(db, "reg@example.com") is True
+
+
+def test_demote_revokes_admin_even_when_email_is_in_allow_list(db, capsys, monkeypatch):
+    """After demote, user_is_admin (the auth path admin_required uses) must
+    return False even if the email is still in OWTF_ADMIN_EMAILS."""
+    from owtf.api.handlers.jwtauth import user_is_admin
+
+    monkeypatch.setattr("owtf.settings.ADMIN_EMAILS", ["reg@example.com"])
+
+    cli_admin.main(["promote", "reg@example.com"])
+    session = db()
+    try:
+        user = session.query(User).filter(User.email == "reg@example.com").one()
+        assert user_is_admin(user) is True
+    finally:
+        session.close()
+
+    cli_admin.main(["demote", "reg@example.com"])
+    session = db()
+    try:
+        user = session.query(User).filter(User.email == "reg@example.com").one()
+        assert user_is_admin(user) is False, "demoted user must lose admin access even when email is in ADMIN_EMAILS"
+    finally:
+        session.close()
