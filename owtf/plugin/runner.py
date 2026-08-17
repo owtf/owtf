@@ -23,7 +23,7 @@ from owtf.managers.poutput import save_partial_output, save_plugin_output
 from owtf.managers.target import target_manager
 from owtf.managers.transaction import num_transactions
 from owtf.net.scanner import Scanner
-from owtf.plugin.harness import execute_with_timeout
+from owtf.plugin.harness import execute_with_timeout, TimeoutResult, ErrorResult
 from owtf.settings import AUX_OUTPUT_PATH, PLUGINS_DIR
 from owtf.utils.error import abort_framework, user_abort
 from owtf.utils.file import FileOperations, get_output_dir_target
@@ -467,8 +467,18 @@ class PluginRunner(object):
         abort_reason = ""
         try:
             output = self.run_plugin(plugin_dir, plugin)
-            status_msg = "Successful"
-            status["SomeSuccessful"] = True
+            # Check for distinct outcomes from harness
+            if isinstance(output, TimeoutResult):
+                status_msg = "Timeout"
+                abort_reason = output.message
+                status["SomeTimeout"] = True
+            elif isinstance(output, ErrorResult):
+                status_msg = "Error"
+                abort_reason = output.message
+                status["SomeError"] = True
+            else:
+                status_msg = "Successful"
+                status["SomeSuccessful"] = True
         except KeyboardInterrupt:
             # Just explain why crashed.
             status_msg = "Aborted"
@@ -497,7 +507,11 @@ class PluginRunner(object):
         finally:
             plugin["status"] = status_msg
             plugin["end"] = self.timer.get_end_date_time("Plugin")
-            plugin["owtf_rank"] = self.rank_plugin(output, self.get_plugin_output_dir(plugin))
+            # Only rank if output is actual data (not TimeoutResult/ErrorResult)
+            if isinstance(output, dict):
+                plugin["owtf_rank"] = self.rank_plugin(output, self.get_plugin_output_dir(plugin))
+            else:
+                plugin["owtf_rank"] = None
             try:
                 if status_msg == "Successful":
                     save_plugin_output(session=session, plugin=plugin, output=output)

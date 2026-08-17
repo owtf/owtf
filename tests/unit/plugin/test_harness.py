@@ -1,47 +1,97 @@
 """
 tests.unit.plugin.test_harness
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Unit tests for plugin execution harness.
+Unit tests for plugin execution harness with timeout support.
 """
-from owtf.plugin.harness import execute_with_timeout
+import signal
+import time
+from owtf.plugin.harness import execute_with_timeout, TimeoutResult, ErrorResult
 from owtf.settings import PLUGIN_TIMEOUT
 
 
-def test_plugin_timeout_constant_is_positive():
-    """PLUGIN_TIMEOUT must be a positive integer."""
-    assert isinstance(PLUGIN_TIMEOUT, int)
-    assert PLUGIN_TIMEOUT > 0
-
-
-def test_execute_with_timeout_success():
-    """execute_with_timeout should return result on success."""
-    def mock_func(plugin):
-        return {"status": "success", "output": "test"}
-
-    plugin = {"code": "OWTF-TEST-001", "group": "web"}
-    result = execute_with_timeout(mock_func, plugin, timeout=5)
-
-    assert result is not None
+def test_successful_execution_returns_output():
+    """Successful plugin execution should return actual output."""
+    def mock_plugin_func(plugin):
+        return {"status": "success", "output": "test data"}
+    
+    plugin = {"code": "TEST-001"}
+    result = execute_with_timeout(mock_plugin_func, plugin, timeout=5)
+    
+    assert isinstance(result, dict)
     assert result["status"] == "success"
+    assert result["output"] == "test data"
 
 
-def test_execute_with_timeout_exception():
-    """execute_with_timeout should return None on exception."""
-    def mock_func(plugin):
-        raise Exception("plugin error")
+def test_timeout_returns_timeout_result():
+    """Plugin execution that times out should return TimeoutResult."""
+    def slow_plugin_func(plugin):
+        time.sleep(10)  # Sleep longer than timeout
+        return {"status": "success"}
+    
+    plugin = {"code": "TEST-002"}
+    result = execute_with_timeout(slow_plugin_func, plugin, timeout=1)
+    
+    assert isinstance(result, TimeoutResult)
+    assert result.timeout == 1
+    assert "timed out" in result.message.lower()
 
-    plugin = {"code": "OWTF-TEST-001", "group": "web"}
-    result = execute_with_timeout(mock_func, plugin, timeout=5)
 
-    assert result is None
+def test_exception_returns_error_result():
+    """Plugin execution that raises exception should return ErrorResult."""
+    def error_plugin_func(plugin):
+        raise ValueError("Plugin failed")
+    
+    plugin = {"code": "TEST-003"}
+    result = execute_with_timeout(error_plugin_func, plugin, timeout=5)
+    
+    assert isinstance(result, ErrorResult)
+    assert "Plugin failed" in result.message
 
 
-def test_execute_with_timeout_uses_default():
-    """execute_with_timeout should use PLUGIN_TIMEOUT when not specified."""
-    def mock_func(plugin):
-        return {"status": "ok"}
+def test_plugin_attribute_error_returns_error_result():
+    """Plugin's own AttributeError should return ErrorResult, not retry."""
+    def plugin_with_attr_error(plugin):
+        # Plugin raises its own AttributeError
+        obj = None
+        obj.nonexistent_method()  # This raises AttributeError
+    
+    plugin = {"code": "TEST-004"}
+    result = execute_with_timeout(plugin_with_attr_error, plugin, timeout=5)
+    
+    assert isinstance(result, ErrorResult)
+    # Should NOT retry - should catch and return error
 
-    plugin = {"code": "OWTF-TEST-001", "group": "web"}
-    result = execute_with_timeout(mock_func, plugin)  # No timeout specified
 
-    assert result is not None
+def test_sigalrm_handler_restored():
+    """Previous SIGALRM handler should be restored after execution."""
+    def custom_handler(signum, frame):
+        pass
+    
+    # Set a custom handler
+    old_handler = signal.signal(signal.SIGALRM, custom_handler)
+    
+    def normal_plugin_func(plugin):
+        return {"status": "success"}
+    
+    plugin = {"code": "TEST-005"}
+    execute_with_timeout(normal_plugin_func, plugin, timeout=5)
+    
+    # Handler should be restored
+    current_handler = signal.signal(signal.SIGALRM, old_handler)
+    assert current_handler == custom_handler
+    
+    # Restore original
+    signal.signal(signal.SIGALRM, old_handler)
+
+
+def test_uses_default_timeout_from_settings():
+    """Should use PLUGIN_TIMEOUT from settings if not specified."""
+    def quick_plugin(plugin):
+        return {"status": "success"}
+    
+    plugin = {"code": "TEST-006"}
+    # Should not raise error - should use default timeout
+    result = execute_with_timeout(quick_plugin, plugin)
+    
+    assert isinstance(result, dict)
+    assert result["status"] == "success"
