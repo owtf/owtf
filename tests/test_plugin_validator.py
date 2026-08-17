@@ -268,6 +268,85 @@ def run():
         assert any("PluginInfo" in w for w in result.warnings)
 
 
+class TestAliasBypass:
+    def test_aliased_subprocess_run_with_shell_true_blocked(self):
+        source = """
+from subprocess import run as process
+DESCRIPTION = "aliased shell injection"
+def run(PluginInfo):
+    process("id", shell=True)
+"""
+        result = validate(source)
+        assert not result.passed
+        assert any("shell=True" in v for v in result.violations)
+
+    def test_aliased_subprocess_module_with_shell_true_blocked(self):
+        source = """
+import subprocess as sp
+DESCRIPTION = "aliased module shell injection"
+def run(PluginInfo):
+    sp.run("id", shell=True)
+"""
+        result = validate(source)
+        assert not result.passed
+        assert any("shell=True" in v for v in result.violations)
+
+    def test_from_subprocess_import_run_without_shell_is_allowed(self):
+        source = """
+from subprocess import run
+DESCRIPTION = "safe subprocess"
+def run_wrapper():
+    run(["ls"])
+def run(PluginInfo):
+    run_wrapper()
+"""
+        result = validate(source)
+        assert result.passed, str(result)
+
+
+class TestModuleContract:
+    def test_nested_run_does_not_satisfy_contract(self):
+        source = """
+DESCRIPTION = "nested run should not count"
+def wrapper():
+    def run(PluginInfo):
+        return {}
+"""
+        result = validate(source)
+        assert not result.passed
+        assert any("run(PluginInfo)" in v for v in result.violations)
+
+    def test_description_must_be_string_literal(self):
+        source = """
+DESCRIPTION = 42
+def run(PluginInfo):
+    return {}
+"""
+        result = validate(source)
+        assert not result.passed
+        assert any("DESCRIPTION" in v and "string" in v for v in result.violations)
+
+    def test_description_from_expression_rejected(self):
+        source = """
+DESCRIPTION = "a" + "b"
+def run(PluginInfo):
+    return {}
+"""
+        result = validate(source)
+        assert not result.passed
+
+    def test_nested_description_does_not_satisfy_contract(self):
+        source = """
+def wrapper():
+    DESCRIPTION = "nested"
+def run(PluginInfo):
+    return {}
+"""
+        result = validate(source)
+        assert not result.passed
+        assert any("DESCRIPTION" in v for v in result.violations)
+
+
 class TestAsyncFunctions:
     def test_async_function_blocked(self):
         source = """

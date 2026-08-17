@@ -87,6 +87,16 @@ BLOCKED_ATTR_CALLS = frozenset(
 
 WRITE_MODES = frozenset({"w", "wb", "a", "ab", "x", "xb", "w+", "wb+", "a+", "ab+", "r+", "rb+"})
 
+SUBPROCESS_SHELL_CALLS = frozenset(
+    {
+        "subprocess.Popen",
+        "subprocess.run",
+        "subprocess.call",
+        "subprocess.check_call",
+        "subprocess.check_output",
+    }
+)
+
 
 @dataclass
 class ValidationResult:
@@ -106,16 +116,54 @@ class ValidationResult:
         return "\n".join(lines)
 
 
+def _check_module_contract(tree):
+    """Enforce top-level DESCRIPTION string and top-level run() entry point."""
+    violations = []
+    warnings = []
+    has_description = False
+    has_run = False
+
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if not (isinstance(target, ast.Name) and target.id == "DESCRIPTION"):
+                    continue
+                if isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
+                    has_description = True
+                else:
+                    violations.append("Line {}: DESCRIPTION must be a string literal".format(node.lineno))
+        elif isinstance(node, ast.FunctionDef) and node.name == "run":
+            has_run = True
+            args = node.args
+            if len(args.args) + len(args.posonlyargs) == 0:
+                warnings.append(
+                    "Line {}: function 'run' has no parameters. Community plugins "
+                    "should accept 'PluginInfo' (the OWTF plugin dict).".format(node.lineno)
+                )
+
+    if not has_description:
+        violations.append("Missing required module-level string constant: DESCRIPTION")
+    if not has_run:
+        violations.append(
+            "Missing required top-level function: run(PluginInfo). "
+            "This is the plugin entry point and must accept the OWTF plugin dict."
+        )
+    return violations, warnings
+
+
 class _SecurityVisitor(ast.NodeVisitor):
     def __init__(self, filename="<unknown>"):
         self.filename = filename
         self.violations = []
         self.warnings = []
-        self._has_run_func = False
-        self._has_description = False
+        # local name -> dotted origin, e.g. "sp" -> "subprocess",
+        # "process" -> "subprocess.run".
+        self.aliases = {}
 
     def visit_Import(self, node):
         for alias in node.names:
+            local = alias.asname or alias.name.split(".")[0]
+            self.aliases[local] = alias.name
             root = alias.name.split(".")[0]
             if root in BLOCKED_IMPORTS:
                 self.violations.append("Line {}: blocked import '{}'".format(node.lineno, alias.name))
@@ -126,28 +174,42 @@ class _SecurityVisitor(ast.NodeVisitor):
         root = module.split(".")[0]
         if root in BLOCKED_IMPORTS:
             self.violations.append("Line {}: blocked import 'from {} import ...'".format(node.lineno, module))
+        for alias in node.names:
+            local = alias.asname or alias.name
+            self.aliases[local] = "{}.{}".format(module, alias.name) if module else alias.name
         self.generic_visit(node)
+
+    def _resolve(self, func):
+        """Return the dotted origin for a Call.func node, following import aliases."""
+        if isinstance(func, ast.Name):
+            return self.aliases.get(func.id, func.id)
+        if isinstance(func, ast.Attribute):
+            parts = [func.attr]
+            cur = func.value
+            while isinstance(cur, ast.Attribute):
+                parts.append(cur.attr)
+                cur = cur.value
+            if isinstance(cur, ast.Name):
+                parts.append(self.aliases.get(cur.id, cur.id))
+                return ".".join(reversed(parts))
+        return None
 
     def visit_Call(self, node):
         func = node.func
+        qualified = self._resolve(func)
 
         if isinstance(func, ast.Name) and func.id in BLOCKED_BUILTINS:
             self.violations.append("Line {}: blocked built-in call '{}()'".format(node.lineno, func.id))
 
-        elif isinstance(func, ast.Attribute):
-            try:
-                full = ast.unparse(func)
-            except AttributeError:
-                full = ""
-            if full in BLOCKED_ATTR_CALLS:
-                self.violations.append("Line {}: blocked call '{}()'".format(node.lineno, full))
+        if qualified in BLOCKED_ATTR_CALLS:
+            self.violations.append("Line {}: blocked call '{}()'".format(node.lineno, qualified))
 
-            if func.attr in ("Popen", "run", "call", "check_call", "check_output"):
-                for kw in node.keywords:
-                    if kw.arg == "shell" and isinstance(kw.value, ast.Constant) and kw.value.value is True:
-                        self.violations.append(
-                            "Line {}: subprocess called with shell=True (use a list of args)".format(node.lineno)
-                        )
+        if qualified in SUBPROCESS_SHELL_CALLS:
+            for kw in node.keywords:
+                if kw.arg == "shell" and isinstance(kw.value, ast.Constant) and kw.value.value is True:
+                    self.violations.append(
+                        "Line {}: subprocess called with shell=True (use a list of args)".format(node.lineno)
+                    )
 
         if isinstance(func, ast.Name) and func.id == "open":
             self._check_open_mode(node)
@@ -169,23 +231,6 @@ class _SecurityVisitor(ast.NodeVisitor):
                 )
             )
 
-    def visit_Assign(self, node):
-        for target in node.targets:
-            if isinstance(target, ast.Name) and target.id == "DESCRIPTION":
-                self._has_description = True
-        self.generic_visit(node)
-
-    def visit_FunctionDef(self, node):
-        if node.name == "run":
-            self._has_run_func = True
-            args = node.args
-            if len(args.args) + len(args.posonlyargs) == 0:
-                self.warnings.append(
-                    "Line {}: function 'run' has no parameters. Community plugins "
-                    "should accept 'PluginInfo' (the OWTF plugin dict).".format(node.lineno)
-                )
-        self.generic_visit(node)
-
     def visit_AsyncFunctionDef(self, node):
         self.violations.append("Line {}: async functions are not permitted in community plugins".format(node.lineno))
         self.generic_visit(node)
@@ -198,15 +243,6 @@ class _SecurityVisitor(ast.NodeVisitor):
                 )
             )
         self.generic_visit(node)
-
-    def finalize(self):
-        if not self._has_description:
-            self.violations.append("Missing required module-level constant: DESCRIPTION (string)")
-        if not self._has_run_func:
-            self.violations.append(
-                "Missing required function: run(PluginInfo). "
-                "This is the plugin entry point and must accept the OWTF plugin dict."
-            )
 
 
 class PluginValidator:
@@ -222,15 +258,14 @@ class PluginValidator:
                 violations=["SyntaxError at line {}: {}".format(exc.lineno, exc.msg)],
             )
 
+        contract_violations, contract_warnings = _check_module_contract(tree)
+
         visitor = _SecurityVisitor(filename=filename)
         visitor.visit(tree)
-        visitor.finalize()
 
-        return ValidationResult(
-            passed=len(visitor.violations) == 0,
-            violations=visitor.violations,
-            warnings=visitor.warnings,
-        )
+        violations = contract_violations + visitor.violations
+        warnings = contract_warnings + visitor.warnings
+        return ValidationResult(passed=not violations, violations=violations, warnings=warnings)
 
     @staticmethod
     def validate_file(path):
