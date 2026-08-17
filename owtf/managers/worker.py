@@ -17,7 +17,7 @@ import psutil
 
 from owtf.db.session import get_scoped_session
 from owtf.lib.exceptions import InvalidWorkerReference
-from owtf.managers.worklist import get_pending_count, get_work_for_target
+from owtf.managers.worklist import get_pending_count, get_work_batch, get_work_for_target
 from owtf.settings import MIN_RAM_NEEDED, PROCESS_PER_CORE, WORKER_HIGH_WATER, WORKER_LOW_WATER, WORKER_MAX_PROCESSES
 from owtf.utils.error import abort_framework
 from owtf.utils.process import _signal_process, check_pid
@@ -123,6 +123,31 @@ class WorkerManager(object):
         :return: None
         :rtype: None
         """
+        # Fetch work batch at the start
+        work_batch = get_work_batch(self.session, self.targets_in_use(), WORKER_BATCH_SIZE)
+        batch_index = 0
+        # Check pending work and scale workers accordingly
+        pending_count = get_pending_count(self.session)
+        current_worker_count = len(self.workers)
+
+        # Scale UP if pending work exceeds HIGH_WATER
+        if pending_count > WORKER_HIGH_WATER and current_worker_count < WORKER_MAX_PROCESSES:
+            logging.info(
+                "Pending work (%d) exceeds HIGH_WATER (%d), spawning worker",
+                pending_count,
+                WORKER_HIGH_WATER
+            )
+            self.spawn_worker()
+
+        # Scale DOWN if pending work drops below LOW_WATER
+        elif pending_count < WORKER_LOW_WATER and current_worker_count > 1:
+            logging.info(
+                "Pending work (%d) below LOW_WATER (%d), draining idle worker",
+                pending_count,
+                WORKER_LOW_WATER
+            )
+            # Drain one idle worker (don't spawn new work for it)
+            # This is handled naturally as workers complete current batch
         # Loop while there is some work in worklist
         for k in range(0, len(self.workers)):
             if (
@@ -141,7 +166,10 @@ class WorkerManager(object):
                         self.workers[k]["worker"].pid,
                     )
                     self.spawn_worker(index=k)
-                work_to_assign = self.get_task()
+                work_to_assign = None
+                if batch_index < len(work_batch):
+                    work_to_assign = work_batch[batch_index]
+                    batch_index += 1
                 if work_to_assign:
                     logging.info(
                         "Work assigned to %s with pid %d",
