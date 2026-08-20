@@ -11,6 +11,7 @@ tests exercise that whole flow:
                               ->  PluginRunner.run_plugin routes to _run_community_plugin
 """
 
+import os
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -154,8 +155,11 @@ class TestWorklistEndToEnd:
         up = _make_user_plugin(session, tmp_path)
         approve_community_plugin(session, up.id)
 
-        # SQLite does not enforce FKs by default, so this alone isn't
-        # proof. The next test hits real postgres.
+        # SQLite does not enforce FKs by default, so this asserts the ORM
+        # backref path and the value round-trip. Real postgres FK
+        # enforcement lives in TestWorklistEndToEndPostgres below, gated
+        # on TEST_POSTGRES_URL so it only runs where a live server is
+        # available.
         work = Work(target_id=None, plugin_key=_plugin_key(up), active=True)
         session.add(work)
         session.commit()
@@ -166,6 +170,75 @@ class TestWorklistEndToEnd:
         assert got.plugin.file_path == up.file_path
 
 
+@pytest.mark.skipif(
+    not os.environ.get("TEST_POSTGRES_URL"),
+    reason="TEST_POSTGRES_URL is not set; skipping live postgres FK check",
+)
+class TestWorklistEndToEndPostgres:
+    """Prove the FK is satisfied on real postgres, which does enforce it.
+
+    Set TEST_POSTGRES_URL to a psycopg2 URL for an empty scratch database
+    to run these, for example::
+
+        TEST_POSTGRES_URL=postgresql+psycopg2://owtf:owtf@127.0.0.1:5432/owtf_test pytest
+    """
+
+    @pytest.fixture()
+    def pg_engine(self):
+        from owtf.db.upgrade import run_startup_upgrades
+
+        url = os.environ["TEST_POSTGRES_URL"]
+        eng = create_engine(url)
+        Model.metadata.drop_all(eng)
+        Model.metadata.create_all(eng)
+        run_startup_upgrades(eng)
+        yield eng
+        Model.metadata.drop_all(eng)
+        eng.dispose()
+
+    @pytest.fixture()
+    def pg_session(self, pg_engine):
+        Session = sessionmaker(bind=pg_engine)
+        s = Session()
+        yield s
+        s.close()
+
+    def test_add_work_with_unknown_plugin_key_violates_fk(self, pg_session):
+        from sqlalchemy.exc import IntegrityError
+
+        pg_session.add(Work(target_id=None, plugin_key="does_not_exist@community_999", active=True))
+        with pytest.raises(IntegrityError):
+            pg_session.commit()
+        pg_session.rollback()
+
+    def test_add_work_with_approved_plugin_key_is_accepted(self, pg_session, tmp_path):
+        up = _make_user_plugin(pg_session, tmp_path)
+        approve_community_plugin(pg_session, up.id)
+
+        pg_session.add(Work(target_id=None, plugin_key=_plugin_key(up), active=True))
+        pg_session.commit()
+
+        got = pg_session.query(Work).filter_by(plugin_key=_plugin_key(up)).one()
+        assert got.plugin is not None
+        assert got.plugin.source == "community"
+
+
+@pytest.fixture()
+def _stub_scoped_session():
+    """Stop PluginRunner from opening a real DB connection.
+
+    ``owtf.plugin.runner`` builds a module-level ``runner = PluginRunner()``
+    singleton, and ``PluginRunner.__init__`` calls ``get_scoped_session()``.
+    Both the module import and every direct construction need the stub, so
+    we patch the source (``owtf.db.session.get_scoped_session``) before the
+    runner module is imported for the first time. None of the tests below
+    exercise ``self.session``.
+    """
+    with patch("owtf.db.session.get_scoped_session"):
+        yield
+
+
+@pytest.mark.usefixtures("_stub_scoped_session")
 class TestRunnerDispatchOnPluginDict:
     def test_run_plugin_routes_to_community_when_source_is_community(self, tmp_path):
         from owtf.plugin.runner import PluginRunner
@@ -196,6 +269,7 @@ class TestRunnerDispatchOnPluginDict:
         assert out == [{"builtin": True}]
 
 
+@pytest.mark.usefixtures("_stub_scoped_session")
 class TestCommunityPluginTimeoutEnforcement:
     def test_alarm_kills_a_slow_plugin_on_the_main_thread(self, tmp_path):
         """A community plugin that ignores its execution_timeout must be
