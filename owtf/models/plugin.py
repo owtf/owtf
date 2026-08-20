@@ -9,6 +9,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 
 from owtf.db.model_base import Model
+from owtf.models import test_group  # noqa: F401  register TestGroup so Plugin.code FK resolves
 from owtf.utils.timer import timer
 
 
