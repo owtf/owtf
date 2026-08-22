@@ -57,8 +57,8 @@ class OutputDeduplicator:
                 component="normalizer",
                 event_type="duplicate_detected",
                 target_id=target_id,
-                plugin_code=plugin_code,
-                details={"existing_output_id": existing.id}
+                plugin_code=plugin_key,
+                details={"existing_output_id": existing.id},
             )
             return True
         return False
