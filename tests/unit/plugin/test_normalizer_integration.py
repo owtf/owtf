@@ -5,7 +5,7 @@ Integration tests for output deduplication with database backend.
 """
 import unittest
 
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, inspect
+from sqlalchemy import Column, Integer, MetaData, String, Table, create_engine, inspect
 
 from owtf.plugin.normalizer import OutputDeduplicator
 
@@ -18,14 +18,14 @@ class TestNormalizerIntegration(unittest.TestCase):
         plugin_key = "test@OWTF-TEST-001"
         target_id = 1
         output = '{"status": "success"}'
-        
+
         # Compute fingerprint twice for same data
         fp1 = OutputDeduplicator.compute_fingerprint(plugin_key, target_id, output)
         fp2 = OutputDeduplicator.compute_fingerprint(plugin_key, target_id, output)
-        
+
         # Should be identical (indicating duplicate detection works)
         self.assertEqual(fp1, fp2)
-        
+
         # Different output should have different fingerprint
         output2 = '{"status": "failed"}'
         fp3 = OutputDeduplicator.compute_fingerprint(plugin_key, target_id, output2)
@@ -51,8 +51,7 @@ class TestNormalizerIntegration(unittest.TestCase):
         self.assertEqual(fp1, fp2)
 
     def test_upgrade_adds_fingerprint_column_to_existing_table(self):
-        """Migration should add fingerprint column to existing plugin_output table."""
-        from sqlalchemy import Column, Integer, MetaData, String, Table, create_engine
+        """Migration should add fingerprint column to existing plugin_outputs table."""
 
         from owtf.db.migrations import upgrade_add_fingerprint_column
 
@@ -61,7 +60,7 @@ class TestNormalizerIntegration(unittest.TestCase):
         metadata = MetaData()
 
         Table(
-            'plugin_output',
+            "plugin_outputs",
             metadata,
             Column('id', Integer, primary_key=True),
             Column('plugin_key', String),
@@ -76,8 +75,10 @@ class TestNormalizerIntegration(unittest.TestCase):
 
         # Verify fingerprint column exists
         inspector = inspect(engine)
-        columns = [col['name'] for col in inspector.get_columns('plugin_output')]
-        self.assertIn('fingerprint', columns)
+        columns = [col["name"] for col in inspector.get_columns("plugin_outputs")]
+        self.assertIn("fingerprint", columns)
+        indexes = inspector.get_indexes("plugin_outputs")
+        self.assertTrue(any(index["name"] == "ix_plugin_outputs_fingerprint" for index in indexes))
 
 if __name__ == "__main__":
     unittest.main()

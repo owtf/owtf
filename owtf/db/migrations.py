@@ -3,42 +3,37 @@ owtf.db.migrations
 ~~~~~~~~~~~~~~~~~~
 Database schema migrations for GSoC 2026 phases.
 """
+
 import logging
 
-from sqlalchemy import text
-from sqlalchemy.exc import OperationalError, ProgrammingError
+from sqlalchemy import inspect, text
 
 logger = logging.getLogger(__name__)
 
 
+PLUGIN_OUTPUTS_TABLE = "plugin_outputs"
+FINGERPRINT_INDEX = "ix_plugin_outputs_fingerprint"
+
+
 def upgrade_add_fingerprint_column(engine):
-    """Add fingerprint column to plugin_output table if it doesn't exist."""
+    """Add the plugin-output fingerprint column and unique index if needed.
+
+    ``PluginOutput.__tablename__`` is ``plugin_outputs``.  The previous
+    migration used the singular name and therefore silently skipped every
+    existing OWTF database.
+    """
+    inspector = inspect(engine)
+    if PLUGIN_OUTPUTS_TABLE not in inspector.get_table_names():
+        logger.info("%s table does not exist yet; skipping fingerprint migration", PLUGIN_OUTPUTS_TABLE)
+        return
+
     with engine.begin() as conn:
-        try:
-            from sqlalchemy import inspect
-            inspector = inspect(engine)
-            
-            # Check if plugin_output table exists first
-            tables = inspector.get_table_names()
-            if 'plugin_output' not in tables:
-                logger.info("plugin_output table does not exist yet, skipping fingerprint migration")
-                return
-            
-            # Check if fingerprint column already exists
-            columns = [col['name'] for col in inspector.get_columns('plugin_output')]
-            if 'fingerprint' not in columns:
-                conn.execute(text(
-                    "ALTER TABLE plugin_output ADD COLUMN fingerprint VARCHAR"
-                ))
-                conn.execute(text(
-                    "CREATE UNIQUE INDEX IF NOT EXISTS ix_plugin_output_fingerprint ON plugin_output(fingerprint)"
-                ))
-                logger.info("Fingerprint column and index added to plugin_output table")
-            else:
-                logger.info("Fingerprint column already exists on plugin_output table")
-        except (ProgrammingError, OperationalError) as e:
-            logger.exception("Could not add fingerprint column due to database error")
-            raise
-        except Exception as e:
-            logger.exception("Unexpected error during fingerprint column migration")
-            raise
+        columns = {column["name"] for column in inspect(conn).get_columns(PLUGIN_OUTPUTS_TABLE)}
+        if "fingerprint" not in columns:
+            conn.execute(text(f"ALTER TABLE {PLUGIN_OUTPUTS_TABLE} ADD COLUMN fingerprint VARCHAR"))
+            logger.info("Fingerprint column added to %s", PLUGIN_OUTPUTS_TABLE)
+
+        conn.execute(
+            text(f"CREATE UNIQUE INDEX IF NOT EXISTS {FINGERPRINT_INDEX} ON {PLUGIN_OUTPUTS_TABLE} (fingerprint)")
+        )
+        logger.info("Fingerprint index verified on %s", PLUGIN_OUTPUTS_TABLE)
