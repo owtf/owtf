@@ -7,8 +7,17 @@ Plugin execution with timeout support and retry logic using signals (Unix) or fa
 import logging
 import signal
 
+from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException, UnreachableTargetException
+
 logger = logging.getLogger(__name__)
 
+class _PluginTimeoutHandler:
+    """Callable signal handler object for plugin execution timeout."""
+    def __init__(self, timeout):
+        self.timeout = timeout
+
+    def __call__(self, signum, frame):
+        raise TimeoutError(f"Plugin execution timed out after {self.timeout}s")
 
 class TimeoutResult:
     """Indicates plugin execution timed out."""
@@ -49,11 +58,9 @@ def execute_with_timeout(func, plugin, timeout=None, max_retries=None):
 
     for attempt in range(max_retries + 1):
         try:
-            def timeout_handler(signum, frame):
-                raise TimeoutError(f"Plugin execution timed out after {timeout}s")
-
             # Save previous handler to restore later
-            old_handler = signal.signal(signal.SIGALRM, timeout_handler)
+            handler = _PluginTimeoutHandler(timeout)
+            old_handler = signal.signal(signal.SIGALRM, handler)
             signal.alarm(timeout)
 
             try:
@@ -69,12 +76,17 @@ def execute_with_timeout(func, plugin, timeout=None, max_retries=None):
             logger.warning("Plugin %s: %s", plugin.get("code"), str(e))
             return TimeoutResult(timeout)
 
+        except (PluginAbortException, UnreachableTargetException, FrameworkAbortException):
+            raise  # Propagate these exceptions without retrying
+
         except AttributeError as e:
             # SIGALRM not available on Windows/macOS
             if "signal" in str(e).lower() or "SIGALRM" in str(e):
                 logger.debug("Timeout not supported on this platform, executing without timeout")
                 try:
                     return func(plugin)
+                except (PluginAbortException, UnreachableTargetException, FrameworkAbortException):
+                    raise  # Propagate these exceptions without retrying
                 except Exception as plugin_error:
                     last_error = plugin_error
             else:
