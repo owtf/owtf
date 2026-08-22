@@ -306,19 +306,19 @@ def save_plugin_output(session, plugin, output, target_id=None):
     from owtf.plugin.normalizer import OutputDeduplicator
     from owtf.plugin.runner import runner
 
-    output_json = json.dumps(output)
+    output_json = json.dumps(output, sort_keys=True, separators=(",", ":"))
 
     # Check for duplicate before saving
-    if OutputDeduplicator.is_duplicate(session, plugin["code"], target_id, output_json):
+    if OutputDeduplicator.is_duplicate(session, plugin["key"], target_id, output_json):
         logging.info(
             "Skipping duplicate output for plugin %s on target %d",
-            plugin["code"],
+            plugin["key"],
             target_id,
         )
         return
 
     # Compute fingerprint for this output
-    fingerprint = OutputDeduplicator.compute_fingerprint(plugin["code"], target_id, output_json)
+    fingerprint = OutputDeduplicator.compute_fingerprint(plugin["key"], target_id, output_json)
 
     session.merge(
         PluginOutput(
