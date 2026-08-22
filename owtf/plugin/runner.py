@@ -519,7 +519,8 @@ class PluginRunner(object):
                 status=status_msg,
                 start_time=start_time,
                 end_time=end_time,
-                error=error
+                error=error,
+                session=session,
             )
             # Only rank if output is actual data (not TimeoutResult/ErrorResult)
             if isinstance(output, dict):

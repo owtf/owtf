@@ -20,16 +20,20 @@ class HTMLReportGenerator:
         """
         self.metrics = metrics
 
-    def generate(self, title="OWTF Security Report", output_file=None):
+    def generate(self, title="OWTF Security Report", output_file=None, session=None):
         """Generate HTML report.
 
         :param title: Report title
         :param output_file: Output file path (optional)
         :return: HTML string
         """
-        summary = self.metrics.get_summary() if self.metrics else {}
+        summary = self.metrics.get_summary(session=session) if self.metrics else {}
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
+        total_successful = sum(m['successful'] for m in summary.values())
+        total_failed = sum(
+            m['aborted'] + m['unreachable'] + m['failed'] + m['timeouts']
+            for m in summary.values()
+        )
         html = f"""<!DOCTYPE html>
 <html>
 <head>
@@ -38,7 +42,10 @@ class HTMLReportGenerator:
     <style>
         body {{ font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }}
         .header {{ background: #2c3e50; color: white; padding: 20px; border-radius: 5px; }}
-        .section {{ background: white; margin: 20px 0; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }}
+        .section {{
+            background: white; margin: 20px 0; padding: 20px;
+            border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }}
         table {{ width: 100%; border-collapse: collapse; }}
         th {{ background: #34495e; color: white; padding: 10px; text-align: left; }}
         td {{ padding: 10px; border-bottom: 1px solid #ecf0f1; }}
@@ -62,10 +69,10 @@ class HTMLReportGenerator:
                 <strong>Total Plugins Run:</strong> {sum(m['total_runs'] for m in summary.values())}
             </div>
             <div class="metric-box">
-                <strong>Successful:</strong> <span class="success">{sum(m['successful'] for m in summary.values())}</span>
+                <strong>Successful:</strong> <span class="success">{total_successful}</span>
             </div>
             <div class="metric-box">
-                <strong>Failed/Aborted:</strong> <span class="error">{sum(m['aborted'] + m['unreachable'] for m in summary.values())}</span>
+                <strong>Failed/Aborted:</strong> <span class="error">{total_failed}</span>
             </div>
             <div class="metric-box">
                 <strong>Average Success Rate:</strong> {self._avg_success_rate(summary):.1f}%
