@@ -6,12 +6,12 @@ The module is in charge of running all plugins taking into account the
 chosen settings.
 """
 import copy
-from collections import defaultdict
 import hashlib
 import importlib.util
 import logging
 import os
 import re
+from collections import defaultdict
 
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -23,7 +23,7 @@ from owtf.managers.poutput import save_partial_output, save_plugin_output
 from owtf.managers.target import target_manager
 from owtf.managers.transaction import num_transactions
 from owtf.net.scanner import Scanner
-from owtf.plugin.harness import execute_with_timeout, TimeoutResult, ErrorResult
+from owtf.plugin.harness import ErrorResult, TimeoutResult, execute_with_timeout
 from owtf.plugin.metrics import get_metrics
 from owtf.settings import AUX_OUTPUT_PATH, PLUGINS_DIR
 from owtf.utils.error import abort_framework, user_abort
