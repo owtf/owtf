@@ -211,7 +211,7 @@ def get_work_batch(session, in_use_target_list, batch_size=None):
     results = []
     for work_obj in work_objs:
         work_dict = _derive_work_dict(work_obj)
-        session.delete(work_obj)
+        work_obj.active = False  # Mark as inactive to prevent re-fetching
         results.append((work_dict["target"], work_dict["plugin"]))
     session.commit()
     return results

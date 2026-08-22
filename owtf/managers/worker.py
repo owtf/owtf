@@ -18,7 +18,14 @@ import psutil
 from owtf.db.session import get_scoped_session
 from owtf.lib.exceptions import InvalidWorkerReference
 from owtf.managers.worklist import get_pending_count, get_work_batch, get_work_for_target
-from owtf.settings import MIN_RAM_NEEDED, PROCESS_PER_CORE, WORKER_HIGH_WATER, WORKER_LOW_WATER, WORKER_MAX_PROCESSES
+from owtf.settings import (
+    MIN_RAM_NEEDED,
+    PROCESS_PER_CORE,
+    WORKER_BATCH_SIZE,
+    WORKER_HIGH_WATER,
+    WORKER_LOW_WATER,
+    WORKER_MAX_PROCESSES,
+)
 from owtf.utils.error import abort_framework
 from owtf.utils.process import _signal_process, check_pid
 from owtf.utils.signals import owtf_start, workers_finish
@@ -141,14 +148,15 @@ class WorkerManager(object):
 
         # Scale DOWN if pending work drops below LOW_WATER
         elif pending_count < WORKER_LOW_WATER and current_worker_count > 1:
-            logging.info(
-                "Pending work (%d) below LOW_WATER (%d), draining idle worker",
-                pending_count,
-                WORKER_LOW_WATER
-            )
-            # Drain one idle worker (don't spawn new work for it)
-            # This is handled naturally as workers complete current batch
-        # Loop while there is some work in worklist
+            for k in range(len(self.workers)):
+                if not self.workers[k]["busy"]:
+                    logging.info("Pending work (%d) below LOW_WATER (%d), draining worker %s",
+                                  pending_count,
+                                  WORKER_LOW_WATER,
+                                  self.workers[k]["worker"].name
+                                  )
+                    self.workers[k]["busy"] = True
+                    break
         for k in range(0, len(self.workers)):
             if (
                 not self.workers[k]["worker"].output_q.empty()
