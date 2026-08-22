@@ -11,7 +11,7 @@ from time import strftime
 try:
     import queue
 except ImportError:
-    pass
+    import Queue as queue
 
 import psutil
 
@@ -131,14 +131,16 @@ class WorkerManager(object):
         :rtype: None
         """
         # Fetch work batch at the start
-        work_batch = get_work_batch(self.session, self.targets_in_use(), WORKER_BATCH_SIZE)
+        idle_count = sum(1 for worker in self.workers if not worker["busy"])
+        work_batch = get_work_batch(self.session, self.targets_in_use(), idle_count, WORKER_BATCH_SIZE)
         batch_index = 0
         # Check pending work and scale workers accordingly
         pending_count = get_pending_count(self.session)
         current_worker_count = len(self.workers)
+        max_allowed_workers = self.get_allowed_process_count()
 
         # Scale UP if pending work exceeds HIGH_WATER
-        if pending_count > WORKER_HIGH_WATER and current_worker_count < WORKER_MAX_PROCESSES:
+        if pending_count > WORKER_HIGH_WATER and current_worker_count < max_allowed_workers:
             logging.info(
                 "Pending work (%d) exceeds HIGH_WATER (%d), spawning worker",
                 pending_count,
@@ -155,9 +157,11 @@ class WorkerManager(object):
                                   WORKER_LOW_WATER,
                                   self.workers[k]["worker"].name
                                   )
-                    self.workers[k]["busy"] = True
+                    self.workers[k]["drain"] = True
                     break
         for k in range(0, len(self.workers)):
+            if self.workers[k].get("drain"):
+                continue  # Skip draining workers
             if (
                 not self.workers[k]["worker"].output_q.empty()
                 or not check_pid(self.workers[k]["worker"].pid)
@@ -184,7 +188,10 @@ class WorkerManager(object):
                         self.workers[k]["worker"].name,
                         self.workers[k]["worker"].pid,
                     )
-                    trash_can = self.workers[k]["worker"].output_q.get()
+                    try:
+                        trash_can = self.workers[k]["worker"].output_q.get_nowait()
+                    except queue.Empty:
+                        pass
                     # Assign work ,set target to used,and process to busy
                     self.workers[k]["worker"].input_q.put(work_to_assign)
                     self.workers[k]["work"] = work_to_assign
@@ -210,7 +217,14 @@ class WorkerManager(object):
         :return: None
         :rtype: None
         """
-        for item in self.workers:
+        for item in self.workers[:]:
+            if item.get("drain"):
+                try:
+                    _signal_process(item["worker"].pid, signal.SIGTERM)
+                    item["worker"].poison_q.put("DIE")
+                except Exception as e:
+                    logging.warning("Failed to terminate draining worker: %s", str(e))
+                continue
             # Check if process is doing some work
             if item["busy"]:
                 if item["paused"]:
