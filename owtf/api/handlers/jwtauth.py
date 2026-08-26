@@ -81,8 +81,9 @@ def get_user_id_from_request(handler):
 
 
 def user_is_admin(user):
-    """True if the user row has is_admin set. ADMIN_EMAILS only seeds this flag
-    at registration and login; it is never consulted per request."""
+    """True if the user row has is_admin set. ADMIN_EMAILS is a one-time
+    seed at registration only; the auth path reads users.is_admin, so
+    demoting a user with owtf-admin sticks across logins."""
     return bool(user and getattr(user, "is_admin", False))
 
 

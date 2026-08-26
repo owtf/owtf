@@ -108,12 +108,6 @@ class LogInHandler(APIRequestHandler):
             and bcrypt.hashpw(password.encode("utf-8"), user.password.encode("utf-8")) == user.password.encode("utf-8")
             and user.is_active
         ):
-            from owtf.settings import ADMIN_EMAILS
-
-            if (user.email or "").strip().lower() in ADMIN_EMAILS and not user.is_admin:
-                user.is_admin = True
-                self.session.commit()
-
             payload = {
                 "user_id": user.id,
                 "exp": datetime.utcnow() + timedelta(seconds=JWT_EXP_DELTA_SECONDS),
