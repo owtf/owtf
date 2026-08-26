@@ -4,6 +4,7 @@ import os
 
 import pytest
 from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.exc import OperationalError
 
 # Importing these models registers them on the shared metadata so
 # create_all(tables=[...]) can resolve their foreign keys without
@@ -181,6 +182,110 @@ def test_run_startup_upgrades_is_a_no_op_after_first_call():
     # Second call should skip: point the inspector at a broken engine to
     # prove the code path never runs.
     run_startup_upgrades("not-an-engine")
+
+
+def test_guard_stays_unset_when_upgrade_fails(monkeypatch):
+    """A DDL failure must leave the guard False so the next start retries."""
+    engine = create_engine("sqlite:///:memory:")
+    UserPlugin.metadata.create_all(engine, tables=[User.__table__, UserPlugin.__table__])
+
+    # Force a real (non-duplicate-column) DBAPI failure on every ALTER.
+    def _boom(engine_arg, table_name, upgrades):
+        raise OperationalError("ALTER TABLE ...", {}, Exception("disk full"))
+
+    monkeypatch.setattr(upgrade_module, "_add_missing_columns", _boom)
+
+    with pytest.raises(OperationalError):
+        run_startup_upgrades(engine)
+
+    assert upgrade_module._UPGRADES_APPLIED is False, (
+        "guard must stay False after a failed upgrade so the next start retries"
+    )
+
+
+def test_non_duplicate_ddl_error_is_raised():
+    """Only duplicate-column races are swallowed; every other error stops startup."""
+    engine = create_engine("sqlite:///:memory:")
+
+    # Create user_plugins with a broken column definition so the first
+    # ALTER hits a genuine SQL error rather than a duplicate-column race.
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                """
+                CREATE TABLE user_plugins (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name VARCHAR(128) NOT NULL
+                )
+                """
+            )
+        )
+
+    # Point the upgrader at a bogus DDL fragment. SQLite raises
+    # OperationalError("near ...: syntax error"), which is not a
+    # duplicate-column race and must propagate.
+    monkeypatch_upgrades = [("garbage_col", "NOT A REAL TYPE ((")]
+    original = upgrade_module._USER_PLUGIN_COLUMN_UPGRADES
+    upgrade_module._USER_PLUGIN_COLUMN_UPGRADES = monkeypatch_upgrades
+    try:
+        with pytest.raises(OperationalError):
+            run_startup_upgrades(engine)
+    finally:
+        upgrade_module._USER_PLUGIN_COLUMN_UPGRADES = original
+
+    assert upgrade_module._UPGRADES_APPLIED is False
+
+
+def test_duplicate_column_race_is_swallowed_and_other_columns_added():
+    """A duplicate-column error on one ALTER must not stop the rest of the batch."""
+    engine = create_engine("sqlite:///:memory:")
+
+    # Legacy table plus rejection_reason already added by a hypothetical
+    # sibling worker. The upgrader will hit "duplicate column" on
+    # rejection_reason and must continue with the remaining columns.
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                """
+                CREATE TABLE user_plugins (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name VARCHAR(128) NOT NULL,
+                    rejection_reason TEXT
+                )
+                """
+            )
+        )
+
+    # Rebuild _existing_columns behaviour to omit rejection_reason so
+    # the upgrader tries to add it again, triggering the race path.
+    original_existing = upgrade_module._existing_columns
+
+    def _pretend_rejection_reason_missing(engine_arg, table_name):
+        cols = original_existing(engine_arg, table_name)
+        cols.discard("rejection_reason")
+        return cols
+
+    upgrade_module._existing_columns = _pretend_rejection_reason_missing
+    try:
+        run_startup_upgrades(engine)
+    finally:
+        upgrade_module._existing_columns = original_existing
+
+    cols = _column_names(engine, "user_plugins")
+    # The rest of the batch still landed.
+    for expected in (
+        "reviewed_by_user_id",
+        "reviewed_at",
+        "execution_timeout",
+        "memory_limit",
+        "is_public",
+        "version",
+        "tags",
+        "category",
+    ):
+        assert expected in cols
+    # Guard is set because the run succeeded end to end.
+    assert upgrade_module._UPGRADES_APPLIED is True
 
 
 # ---------------------------------------------------------------------------

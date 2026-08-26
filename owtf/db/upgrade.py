@@ -11,6 +11,7 @@ a no-op.
 import logging
 
 from sqlalchemy import inspect, text
+from sqlalchemy.exc import DBAPIError
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,23 @@ def _existing_columns(engine, table_name):
     return {col["name"] for col in inspector.get_columns(table_name)}
 
 
+def _is_duplicate_column_error(exc):
+    """Return True only if the driver reported the benign duplicate-column race.
+
+    Every other DDL error is a real failure and must be re-raised so
+    startup stops instead of leaving a half-upgraded schema behind.
+    """
+    # PostgreSQL / psycopg2 exposes SQLSTATE via orig.pgcode. 42701 is
+    # "duplicate_column".
+    orig = getattr(exc, "orig", None)
+    pgcode = getattr(orig, "pgcode", None)
+    if pgcode == "42701":
+        return True
+    # SQLite and the generic fallback: the driver message contains
+    # "duplicate column".
+    return "duplicate column" in str(exc).lower()
+
+
 def _add_missing_columns(engine, table_name, upgrades):
     present = _existing_columns(engine, table_name)
     if not present:
@@ -61,15 +79,29 @@ def _add_missing_columns(engine, table_name, upgrades):
         try:
             with engine.begin() as conn:
                 conn.execute(text(stmt))
-        except Exception as exc:
-            logger.warning("Schema upgrade failed for %s.%s: %s", table_name, col_name, exc)
+        except DBAPIError as exc:
+            if _is_duplicate_column_error(exc):
+                # Another worker beat us to this ALTER between our
+                # inspector check and the ALTER itself. Safe to skip.
+                logger.info(
+                    "Column %s.%s already added by another worker, skipping.",
+                    table_name,
+                    col_name,
+                )
+                continue
+            raise
 
 
 def run_startup_upgrades(engine):
-    """Apply every registered ADD COLUMN upgrade. Runs at most once per process."""
+    """Apply every registered ADD COLUMN upgrade.
+
+    Runs at most once per process. The guard is set only after every
+    upgrade succeeds so a transient DB error does not leave the process
+    thinking the schema is already up to date.
+    """
     global _UPGRADES_APPLIED
     if _UPGRADES_APPLIED:
         return
-    _UPGRADES_APPLIED = True
     _add_missing_columns(engine, "user_plugins", _USER_PLUGIN_COLUMN_UPGRADES)
     _add_missing_columns(engine, "users", _USERS_COLUMN_UPGRADES)
+    _UPGRADES_APPLIED = True
