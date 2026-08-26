@@ -28,6 +28,17 @@ import {
 } from "./actions";
 import "./style.scss";
 
+// Parse the JSON body only when the HTTP status is 2xx. Without this
+// guard, a 403 or 500 returning a JSON error body was falling through
+// to the .then() success block, so the UI cheerfully reported
+// "Plugin approved" for admin actions that had actually been denied.
+function parseJsonIfOk(res: Response): Promise<any> {
+  if (!res.ok) {
+    return Promise.reject(new Error("HTTP " + res.status));
+  }
+  return res.json();
+}
+
 const GROUPS = ["web", "network", "auxiliary"];
 const PLUGIN_TYPES = ["active", "passive", "semi_passive", "external", "grep"];
 
@@ -260,7 +271,7 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
       method: "POST",
       headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
     })
-      .then((r) => r.json())
+      .then(parseJsonIfOk)
       .then(() => {
         toaster.success("Plugin approved.");
         this.loadPendingPlugins();
@@ -277,7 +288,7 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
       },
       body: JSON.stringify({ reason }),
     })
-      .then((r) => r.json())
+      .then(parseJsonIfOk)
       .then(() => {
         toaster.success("Plugin rejected.");
         this.setState({ rejectModalPlugin: null, rejectReason: "" });
@@ -291,7 +302,7 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
     fetch("/api/v1/community-plugins/?status=pending", {
       headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
     })
-      .then((r) => r.json())
+      .then(parseJsonIfOk)
       .then((data) => {
         this.setState({ pendingPlugins: data?.data?.plugins || [], pendingLoading: false });
       })
@@ -303,7 +314,7 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
     fetch("/api/v1/community-plugins/mine/", {
       headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
     })
-      .then((r) => r.json())
+      .then(parseJsonIfOk)
       .then((data) => {
         this.setState({ minePlugins: data?.data?.plugins || [], mineLoading: false });
       })
@@ -315,7 +326,7 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
     fetch(`/api/v1/community-plugins/${plugin.id}/source/`, {
       headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
     })
-      .then((r) => r.json())
+      .then(parseJsonIfOk)
       .then((data) => {
         this.setState({ sourceCode: data?.data?.source_code || "", sourceLoading: false });
       })

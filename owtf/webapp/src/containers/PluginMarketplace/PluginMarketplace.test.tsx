@@ -1,5 +1,6 @@
 import React from "react";
 import { shallow } from "enzyme";
+import { toaster } from "evergreen-ui";
 import "../../setupTests";
 import { PluginMarketplace } from "./index";
 
@@ -127,5 +128,66 @@ describe("PluginMarketplace", () => {
     const spy = jest.spyOn(wrapper.instance() as any, "loadPendingPlugins").mockImplementation(() => {});
     wrapper.instance().handleTabChange("pending");
     expect(spy).toHaveBeenCalled();
+  });
+
+  // ---------------------------------------------------------------------
+  // viyatb PR-6 blocker: approve/reject/source/list responses parsed JSON
+  // without checking response.ok, so a 403 or 500 was silently reported as
+  // "Plugin approved". These tests lock in the failure path.
+  // ---------------------------------------------------------------------
+
+  it("shows a failure toast (not success) when approve returns 403", async () => {
+    (global as any).fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: false,
+        status: 403,
+        json: () => Promise.resolve({ status: "fail", message: "Admin required" }),
+      })
+    );
+    const successSpy = jest.spyOn(toaster, "success").mockImplementation(() => undefined as any);
+    const dangerSpy = jest.spyOn(toaster, "danger").mockImplementation(() => undefined as any);
+
+    const wrapper = shallow(<PluginMarketplace {...baseProps} />);
+    const loadSpy = jest.spyOn(wrapper.instance() as any, "loadPendingPlugins").mockImplementation(() => {});
+
+    wrapper.instance().approvePlugin(42);
+    // Let the fetch promise chain resolve.
+    await new Promise((r) => setImmediate(r));
+
+    expect(successSpy).not.toHaveBeenCalled();
+    expect(dangerSpy).toHaveBeenCalledWith("Failed to approve plugin.");
+    expect(loadSpy).not.toHaveBeenCalled();
+
+    successSpy.mockRestore();
+    dangerSpy.mockRestore();
+  });
+
+  it("shows a failure toast (not success) when reject returns 500", async () => {
+    (global as any).fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: false,
+        status: 500,
+        json: () => Promise.resolve({ status: "fail", message: "server exploded" }),
+      })
+    );
+    const successSpy = jest.spyOn(toaster, "success").mockImplementation(() => undefined as any);
+    const dangerSpy = jest.spyOn(toaster, "danger").mockImplementation(() => undefined as any);
+
+    const wrapper = shallow(<PluginMarketplace {...baseProps} />);
+    // Prime the modal state so we can also verify it stays open on failure.
+    wrapper.setState({ rejectModalPlugin: basePlugin, rejectReason: "shell=True" });
+
+    wrapper.instance().rejectPlugin(basePlugin.id, "shell=True");
+    await new Promise((r) => setImmediate(r));
+
+    expect(successSpy).not.toHaveBeenCalled();
+    expect(dangerSpy).toHaveBeenCalledWith("Failed to reject plugin.");
+    // Modal must not be cleared on failure; the admin should see the error
+    // and be able to retry without re-typing the reason.
+    expect(wrapper.state("rejectModalPlugin")).toEqual(basePlugin);
+    expect(wrapper.state("rejectReason")).toBe("shell=True");
+
+    successSpy.mockRestore();
+    dangerSpy.mockRestore();
   });
 });
