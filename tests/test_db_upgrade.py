@@ -74,7 +74,6 @@ def test_upgrade_adds_missing_review_columns():
         "reviewed_by_user_id",
         "reviewed_at",
         "execution_timeout",
-        "memory_limit",
         "is_public",
         "version",
         "tags",

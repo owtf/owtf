@@ -76,7 +76,6 @@ def _make_user_plugin(session, tmp_path, name="test_plugin", status=APPROVAL_PEN
         file_path=str(path),
         approval_status=status,
         execution_timeout=30,
-        memory_limit=134217728,
     )
     session.add(up)
     session.commit()
@@ -168,6 +167,63 @@ class TestWorklistEndToEnd:
         assert got.plugin is not None
         assert got.plugin.source == "community"
         assert got.plugin.file_path == up.file_path
+
+
+@pytest.mark.usefixtures("_stub_scoped_session")
+class TestExecutionTimeoutFlowsFromWorkRowIntoRunner:
+    """viyatb's PR-4 blocker: the mirror must carry execution_timeout so a
+    real queued run sees the configured bound instead of timeout=0.
+
+    Path exercised end to end:
+        UserPlugin.execution_timeout
+          -> approve_community_plugin  (mirrors into plugins.execution_timeout)
+          -> Work row referencing the mirror
+          -> _derive_work_dict(work)
+          -> work_dict["plugin"]["execution_timeout"]
+          -> PluginRunner._run_community_plugin reads plugin["execution_timeout"]
+    """
+
+    def test_derive_work_dict_carries_execution_timeout(self, session, tmp_path):
+        from owtf.managers.worklist import _derive_work_dict
+
+        up = _make_user_plugin(session, tmp_path, name="timed_plugin")
+        # Confirm the source-of-truth value the uploader configured.
+        assert up.execution_timeout == 30
+
+        approve_community_plugin(session, up.id)
+
+        work = Work(target_id=None, plugin_key=_plugin_key(up), active=True)
+        session.add(work)
+        session.commit()
+        session.refresh(work)
+
+        work_dict = _derive_work_dict(work)
+        # This is exactly the dict the worker hands to the runner.
+        assert work_dict["plugin"]["source"] == "community"
+        assert work_dict["plugin"]["file_path"] == up.file_path
+        assert work_dict["plugin"]["execution_timeout"] == 30, (
+            "mirror must carry execution_timeout so the runner enforces "
+            "the configured bound instead of falling back to 0"
+        )
+
+    def test_runner_reads_the_timeout_the_work_dict_carries(self, session, tmp_path):
+        """Read the same value the runner does, from the same dict shape."""
+        from owtf.managers.worklist import _derive_work_dict
+
+        up = _make_user_plugin(session, tmp_path, name="timed_plugin_runner")
+        up.execution_timeout = 120
+        session.commit()
+        approve_community_plugin(session, up.id)
+
+        work = Work(target_id=None, plugin_key=_plugin_key(up), active=True)
+        session.add(work)
+        session.commit()
+        session.refresh(work)
+
+        plugin_dict = _derive_work_dict(work)["plugin"]
+        # This is the exact expression PluginRunner._run_community_plugin uses.
+        timeout = int(plugin_dict.get("execution_timeout") or 0)
+        assert timeout == 120, "runner would fall back to timeout=0 without this"
 
 
 @pytest.mark.skipif(

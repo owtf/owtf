@@ -24,7 +24,6 @@ _USER_PLUGIN_COLUMN_UPGRADES = [
     ("reviewed_by_user_id", "INTEGER"),
     ("reviewed_at", "TIMESTAMP"),
     ("execution_timeout", "INTEGER NOT NULL DEFAULT 300"),
-    ("memory_limit", "INTEGER NOT NULL DEFAULT 268435456"),
     ("is_public", "BOOLEAN NOT NULL DEFAULT TRUE"),
     ("version", "VARCHAR(32) NOT NULL DEFAULT '1.0.0'"),
     ("tags", "VARCHAR(256)"),
@@ -35,9 +34,14 @@ _USERS_COLUMN_UPGRADES = [
     ("is_admin", "BOOLEAN NOT NULL DEFAULT FALSE"),
 ]
 
+# execution_timeout on the built-in plugins table is set only on the
+# community-plugin mirror rows; built-in plugins leave it NULL. This
+# lets Plugin.to_dict() carry the timeout through _derive_work_dict
+# into the runner unchanged.
 _PLUGINS_COLUMN_UPGRADES = [
     ("source", "VARCHAR(32)"),
     ("file_path", "VARCHAR(512)"),
+    ("execution_timeout", "INTEGER"),
 ]
 
 

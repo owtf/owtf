@@ -4,7 +4,7 @@ owtf.models.plugin
 
 """
 
-from sqlalchemy import Column, ForeignKey, String, UniqueConstraint, or_
+from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint, or_
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 
@@ -30,6 +30,10 @@ class Plugin(Model):
     # Absolute path on disk. Set only when source="community"; built-in
     # plugins are located from group/type/file under PLUGINS_DIR.
     file_path = Column(String(512), nullable=True)
+    # Seconds. Set only when source="community"; built-in plugins leave
+    # it NULL. Plugin.to_dict() surfaces this so _derive_work_dict
+    # carries the timeout unchanged into the runner.
+    execution_timeout = Column(Integer, nullable=True)
     works = relationship("Work", backref="plugin", cascade="delete")
     outputs = relationship("PluginOutput", backref="plugin")
 

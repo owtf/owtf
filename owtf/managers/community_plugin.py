@@ -26,7 +26,6 @@ from owtf.models.user_plugin import (
 from owtf.plugin.validator import PluginValidator
 from owtf.settings import (
     COMMUNITY_PLUGIN_DEFAULT_TIMEOUT,
-    COMMUNITY_PLUGIN_MEMORY_LIMIT,
     COMMUNITY_PLUGINS_DIR,
     PLUGIN_ALLOWED_EXTENSIONS,
     PLUGIN_UPLOAD_MAX_SIZE,
@@ -96,7 +95,6 @@ def upload_community_plugin(
     version="1.0.0",
     tags=None,
     execution_timeout=COMMUNITY_PLUGIN_DEFAULT_TIMEOUT,
-    memory_limit=COMMUNITY_PLUGIN_MEMORY_LIMIT,
     is_public=True,
     user_id=None,
 ):
@@ -156,7 +154,6 @@ def upload_community_plugin(
             version=version.strip() or "1.0.0",
             tags=tags.strip() if tags else None,
             execution_timeout=execution_timeout,
-            memory_limit=memory_limit,
             is_public=is_public,
         )
         session.add(plugin)
@@ -294,6 +291,10 @@ def _sync_to_plugins_table(session, up):
     row.attr = None
     row.source = "community"
     row.file_path = up.file_path
+    # Carry the timeout through so the worker's plugin dict, built from
+    # this row via Plugin.to_dict, has the same execution_timeout the
+    # runner reads. Without this a real queued run sees timeout=0.
+    row.execution_timeout = up.execution_timeout
 
 
 def _unsync_from_plugins_table(session, up):
