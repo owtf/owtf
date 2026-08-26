@@ -122,6 +122,49 @@ class WorkerManager(object):
                 continue
         return target_ids
 
+    @staticmethod
+    def _read_worker_result(worker):
+        """Return the latest terminal event currently queued by a worker."""
+        terminal_result = None
+        while True:
+            try:
+                result = worker["worker"].output_q.get_nowait()
+            except queue.Empty:
+                break
+
+            if result in ("done", "failed"):
+                terminal_result = result
+            elif result == "Started":
+                continue
+            else:
+                logging.warning("Unknown worker result: %r", result)
+                terminal_result = "failed"
+
+        return terminal_result
+
+    @staticmethod
+    def _clear_worker_assignment(worker):
+        worker["work"] = ()
+        worker["work_id"] = None
+        worker["busy"] = False
+        worker["start_time"] = "NA"
+
+    def _resolve_worker_work(self, worker, result=None, interrupted=False):
+        """Delete successful work or reactivate failed/interrupted work."""
+        work_id = worker.get("work_id")
+        if work_id is None:
+            return
+
+        if result == "done":
+            delete_work(self.session, work_id)
+        elif result == "failed" or interrupted:
+            requeue_work(self.session, work_id)
+        else:
+            return
+
+        self._clear_worker_assignment(worker)
+
+
     def manage_workers(self):
         """This function manages workers, it polls on each queue of worker
         checks if it has done his work and then gives it new work
@@ -130,10 +173,12 @@ class WorkerManager(object):
         :return: None
         :rtype: None
         """
-        # --- Pass 1: reap workers that finished or died since last cycle ---
+        # --- Pass 1: resolve workers from the previous cycle ---
         for k, worker in enumerate(self.workers):
             if worker.get("drain"):
                 continue  # handled in Pass 2
+
+            result = self._read_worker_result(worker)
 
             if not check_pid(worker["worker"].pid):
                 logging.info(
@@ -141,27 +186,16 @@ class WorkerManager(object):
                     worker["worker"].name,
                     worker["worker"].pid,
                 )
-                if worker.get("work_id") is not None:
-                    requeue_work(self.session, worker["work_id"])
-                    logging.info(
-                        "Requeued work_id %d held by dead worker %s",
-                        worker["work_id"],
-                        worker["worker"].name,
-                    )
+                self._resolve_worker_work(
+                    worker,
+                    result=result,
+                    interrupted=True,
+                )
                 self.spawn_worker(index=k)
                 continue
 
-            if not worker["worker"].output_q.empty():
-                try:
-                    worker["worker"].output_q.get_nowait()
-                except queue.Empty:
-                    pass
-                if worker.get("work_id") is not None:
-                    delete_work(self.session, worker["work_id"])
-                worker["work"] = ()
-                worker["work_id"] = None
-                worker["busy"] = False
-                worker["start_time"] = "NA"
+            if result in ("done", "failed"):
+                self._resolve_worker_work(worker, result=result)
 
         # --- Pass 2: remove workers already flagged to drain ---
         still_active = []
@@ -182,13 +216,12 @@ class WorkerManager(object):
                     worker["worker"].terminate()
                     worker["worker"].join()
 
-                if worker.get("work_id") is not None:
-                    requeue_work(self.session, worker["work_id"])
-                    logging.info(
-                        "Requeued work_id %d held by drained worker %s",
-                        worker["work_id"],
-                        worker["worker"].name
-                    )
+                result = self._read_worker_result(worker)
+                self._resolve_worker_work(
+                    worker,
+                    result=result,
+                    interrupted=result != "done",
+                )
                 continue
 
             still_active.append(worker)
@@ -228,11 +261,23 @@ class WorkerManager(object):
                 worker["worker"].name,
                 worker["worker"].pid,
             )
-            worker["worker"].input_q.put(work_to_assign)
+            # Track ownership before enqueueing so an immediate worker exit
+            # can be requeued on the next manager cycle.
             worker["work"] = work_to_assign
             worker["work_id"] = work_id
             worker["busy"] = True
             worker["start_time"] = strftime("%Y/%m/%d %H:%M:%S")
+            try:
+                worker["worker"].input_q.put(work_to_assign)
+            except Exception:
+                logging.exception(
+                    "Unable to assign work_id %s to worker %s",
+                    work_id,
+                    worker["worker"].name,
+                )
+                requeue_work(self.session, work_id)
+                self._clear_worker_assignment(worker)
+
 
         if not self.keep_working and not self.is_any_worker_busy():
             logging.info("All jobs have been done. Exiting.")
@@ -265,9 +310,14 @@ class WorkerManager(object):
             if item["busy"]:
                 if item["paused"]:
                     _signal_process(item["worker"].pid, signal.SIGCONT)
-                trash = item["worker"].output_q.get()
-                item["busy"] = False
-                item["work"] = ()
+                result = item["worker"].output_q.get()
+                if item.get("work_id") is not None:
+                    if result == "done":
+                        delete_work(self.session, item["work_id"])
+                    else:
+                        requeue_work(self.session, item["work_id"])
+                self._clear_worker_assignment(item)
+
             item["worker"].poison_q.put("DIE")
 
     def join_workers(self):

@@ -91,8 +91,10 @@ def test_manage_workers_two_cycles_no_stranded_work_and_drain_removal():
             for i in range(4)
         ]
 
-        with mock.patch("owtf.managers.worker.check_pid", return_value=True), \
-             mock.patch("owtf.managers.worker._signal_process"):
+        with mock.patch("owtf.managers.worker.WORKER_LOW_WATER", 3), \
+                mock.patch("owtf.managers.worker.check_pid", return_value=True), \
+                mock.patch("owtf.managers.worker._signal_process"):
+
 
             # ---- Cycle 1 ----
             manager.manage_workers()
@@ -101,6 +103,8 @@ def test_manage_workers_two_cycles_no_stranded_work_and_drain_removal():
             # exactly one idle worker to drain as part of normal Pass 3
             drained = [w for w in manager.workers if w.get("drain")]
             assert len(drained) == 1, "expected exactly one worker flagged to drain"
+            assert drained[0]["work_id"] is None
+            assert drained[0]["busy"] is False
 
             # Only workers confirmed ready this cycle should hold claimed work
             assigned = [w for w in manager.workers if w["work_id"] is not None]
