@@ -179,6 +179,18 @@ class _SecurityVisitor(ast.NodeVisitor):
             self.aliases[local] = "{}.{}".format(module, alias.name) if module else alias.name
         self.generic_visit(node)
 
+    def visit_Assign(self, node):
+        # Follow simple `x = subprocess.run` (and similar) aliases so a
+        # later `x("id", shell=True)` call still resolves to the underlying
+        # dotted name and gets caught by the existing dispatcher. Only
+        # single-target Name assignments; anything more complex falls
+        # through and is left to visit_Call.
+        if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+            origin = self._resolve(node.value)
+            if origin:
+                self.aliases[node.targets[0].id] = origin
+        self.generic_visit(node)
+
     def _resolve(self, func):
         """Return the dotted origin for a Call.func node, following import aliases."""
         if isinstance(func, ast.Name):
@@ -206,10 +218,21 @@ class _SecurityVisitor(ast.NodeVisitor):
 
         if qualified in SUBPROCESS_SHELL_CALLS:
             for kw in node.keywords:
-                if kw.arg == "shell" and isinstance(kw.value, ast.Constant) and kw.value.value is True:
-                    self.violations.append(
-                        "Line {}: subprocess called with shell=True (use a list of args)".format(node.lineno)
-                    )
+                if kw.arg != "shell":
+                    continue
+                # Only a literal shell=False is safe. Literal True, a
+                # variable, or any other expression must be flagged so
+                # authors cannot smuggle shell=True past the validator
+                # by aliasing the flag through a local name.
+                if isinstance(kw.value, ast.Constant) and kw.value.value is False:
+                    continue
+                if isinstance(kw.value, ast.Constant) and kw.value.value is True:
+                    detail = "shell=True"
+                else:
+                    detail = "shell=<non-literal-False value>"
+                self.violations.append(
+                    "Line {}: subprocess called with {} (use a list of args or shell=False)".format(node.lineno, detail)
+                )
 
         if isinstance(func, ast.Name) and func.id == "open":
             self._check_open_mode(node)

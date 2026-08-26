@@ -303,6 +303,44 @@ def run(PluginInfo):
         result = validate(source)
         assert result.passed, str(result)
 
+    def test_local_name_alias_of_subprocess_run_with_shell_true_blocked(self):
+        """`x = subprocess.run; x("id", shell=True)` must be caught same as a direct call."""
+        source = """
+import subprocess
+DESCRIPTION = "aliased local name"
+def run(PluginInfo):
+    x = subprocess.run
+    x("id", shell=True)
+"""
+        result = validate(source)
+        assert not result.passed
+        assert any("shell" in v.lower() for v in result.violations)
+
+    def test_shell_arg_via_variable_blocked(self):
+        """shell=<variable> must be flagged; only literal shell=False is accepted."""
+        source = """
+import subprocess
+DESCRIPTION = "variable shell arg"
+def run(PluginInfo):
+    flag = True
+    subprocess.run("id", shell=flag)
+"""
+        result = validate(source)
+        assert not result.passed
+        assert any("shell" in v.lower() for v in result.violations)
+
+    def test_explicit_shell_false_is_allowed(self):
+        """The one shell= value we do accept is literal False."""
+        source = """
+import subprocess
+DESCRIPTION = "explicit shell=False"
+def run(PluginInfo):
+    subprocess.run(["ls"], shell=False)
+    return {}
+"""
+        result = validate(source)
+        assert result.passed, str(result)
+
 
 class TestModuleContract:
     def test_nested_run_does_not_satisfy_contract(self):
