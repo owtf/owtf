@@ -42,9 +42,12 @@ def test_get_work_batch_respects_batch_size():
     session = get_scoped_session()
     try:
         batch_size = 3
-        result = get_work_batch(session, [], idle_worker_count=batch_size, batch_size=batch_size)
+        result = get_work_batch(session, [], ready_worker_count=batch_size, batch_size=batch_size)
         if result:
             assert len(result) <= batch_size, f"Expected at most {batch_size} items, got {len(result)}"
+            # Each item is now (work_id, target, plugin)
+            for item in result:
+                assert len(item) == 3
     finally:
         session.close()
 
@@ -56,7 +59,7 @@ def test_get_work_batch_default_batch_size():
 
     session = get_scoped_session()
     try:
-        result = get_work_batch(session, [], idle_worker_count=WORKER_BATCH_SIZE)
+        result = get_work_batch(session, [], ready_worker_count=WORKER_BATCH_SIZE)
         assert result is None or isinstance(result, list)
         if result:
             assert len(result) <= WORKER_BATCH_SIZE
@@ -77,13 +80,15 @@ def test_work_batch_with_idle_workers_no_loss():
             session.add(work)
         session.commit()
 
-        batch = get_work_batch(session, [], idle_worker_count=5, batch_size=5)
+        batch = get_work_batch(session, [], ready_worker_count=5, batch_size=5)
         assert len(batch) == 5
+        for work_id, target, plugin in batch:
+            assert work_id is not None
 
         remaining = session.query(Work).filter(Work.active.is_(True)).count()
         assert remaining == 5
 
-        batch2 = get_work_batch(session, [], idle_worker_count=5, batch_size=5)
+        batch2 = get_work_batch(session, [], ready_worker_count=5, batch_size=5)
         assert len(batch2) == 5
 
         remaining = session.query(Work).filter(Work.active.is_(True)).count()

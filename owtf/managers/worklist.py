@@ -184,26 +184,62 @@ def get_pending_count(session):
     """
     return get_count(session.query(Work).filter(Work.active.is_(True)))
 
-def get_work_batch(session, in_use_target_list, idle_worker_count, batch_size=None):
+def delete_work(session, work_id):
+    """Delete a completed work item.
+
+    :param work_id: Primary key of the Work row to delete
+    :type work_id: `int`
+    :return: None
+    :rtype: None
+    """
+    work_obj = session.query(Work).get(work_id)
+    if work_obj is not None:
+        session.delete(work_obj)
+        session.commit()
+
+def requeue_work(session, work_id):
+    """Requeue a work item that was claimed but never completed —
+    typically because the worker holding it died mid-task.
+
+    :param work_id: Primary key of the Work row to requeue
+    :type work_id: `int`
+    :return: None
+    :rtype: None
+    """
+    work_obj = session.query(Work).get(work_id)
+    if work_obj is not None:
+        work_obj.active = True
+        session.commit()
+
+def get_work_batch(session, in_use_target_list, ready_worker_count, batch_size=None):
     """Get a batch of work items ordered by priority.
+
+    Only as many rows are claimed as there are workers confirmed ready to
+    run them this same cycle (see WorkerManager.manage_workers), so a
+    claimed row is never left stranded waiting for a worker that won't
+    take it until later.
 
     :param in_use_target_list: Target list currently in use
     :type in_use_target_list: `list`
-    :param batch_size: Number of work items to fetch
+    :param ready_worker_count: Number of workers confirmed ready to take
+        new work this cycle
+    :type ready_worker_count: `int`
+    :param batch_size: Max number of work items to fetch
     :type batch_size: `int`
-    :return: List of (target, plugin) tuples
+    :return: List of (work_id, target, plugin) tuples
     :rtype: `list`
     """
     if batch_size is None:
         from owtf.settings import WORKER_BATCH_SIZE
         batch_size = WORKER_BATCH_SIZE
-    # Validate batch_size
+
     if not isinstance(batch_size, int) or batch_size <= 0:
         from owtf.lib.exceptions import InvalidParameterType
         raise InvalidParameterType("batch_size must be a positive integer")
-        # Only fetch as many rows as there are idle workers
-    
-    fetch_count = min(idle_worker_count, batch_size)
+
+    fetch_count = min(ready_worker_count, batch_size)
+    if fetch_count <= 0:
+        return []
 
     query = (
         session.query(Work)
@@ -218,8 +254,8 @@ def get_work_batch(session, in_use_target_list, idle_worker_count, batch_size=No
     results = []
     for work_obj in work_objs:
         work_dict = _derive_work_dict(work_obj)
-        work_obj.active = False  # Mark as inactive to prevent re-fetching
-        results.append((work_dict["target"], work_dict["plugin"]))
+        work_obj.active = False  # Soft claim; caller deletes on completion or requeues on failure
+        results.append((work_dict["id"], work_dict["target"], work_dict["plugin"]))
     session.commit()
     return results
 
