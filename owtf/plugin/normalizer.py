@@ -41,6 +41,7 @@ class OutputDeduplicator:
         :rtype: `bool`
         """
         from owtf.models.plugin_output import PluginOutput
+        from owtf.utils.structured_logging import log_structured
 
         fingerprint = OutputDeduplicator.compute_fingerprint(plugin_key, target_id, output)
 
@@ -51,6 +52,13 @@ class OutputDeduplicator:
                 plugin_key,
                 target_id,
                 existing.id,
+            )
+            log_structured(
+                component="normalizer",
+                event_type="duplicate_detected",
+                target_id=target_id,
+                plugin_code=plugin_key,
+                details={"existing_output_id": existing.id},
             )
             return True
         return False

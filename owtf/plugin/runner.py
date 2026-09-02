@@ -5,6 +5,7 @@ owtf.plugin.runner
 The module is in charge of running all plugins taking into account the
 chosen settings.
 """
+
 import copy
 import hashlib
 import importlib.util
@@ -24,6 +25,7 @@ from owtf.managers.target import target_manager
 from owtf.managers.transaction import num_transactions
 from owtf.net.scanner import Scanner
 from owtf.plugin.harness import ErrorResult, TimeoutResult, execute_with_timeout
+from owtf.plugin.metrics import get_metrics
 from owtf.settings import AUX_OUTPUT_PATH, PLUGINS_DIR
 from owtf.utils.error import abort_framework, user_abort
 from owtf.utils.file import FileOperations, get_output_dir_target
@@ -37,6 +39,7 @@ try:
     from ptp import PTP
     from ptp.libptp.constants import UNKNOWN
     from ptp.libptp.exceptions import PTPError
+
     _PTP_IMPORT_ERROR = None
 except Exception as e:  # pragma: no cover - depends on optional runtime stack
     # PTP transitively imports js2py, which is not compatible with Python 3.12 in some releases.
@@ -68,7 +71,6 @@ WEB Plugin Types:
 
 
 class PluginRunner(object):
-
     def __init__(self):
         # Complicated stuff to keep everything Pythonic and from blowing up
         def handle_signal(sender, **kwargs):
@@ -176,7 +178,7 @@ class PluginRunner(object):
         :return: The logs from execution registry
         :rtype: `dict`
         """
-        return self.exec_registry[config_handler.target][self.get_last_plugin_exec(plugin):]
+        return self.exec_registry[config_handler.target][self.get_last_plugin_exec(plugin) :]
 
     def get_plugin_output_dir(self, plugin):
         """Get plugin directory by test type
@@ -322,9 +324,8 @@ class PluginRunner(object):
         if not self.chosen_plugin(session=session, plugin=plugin, show_reason=show_reason):
             return False  # Skip not chosen plugins
         # Grep plugins to be always run and overwritten (they run once after semi_passive and then again after active)
-        if (
-            plugin_already_run(session=session, plugin_info=plugin)
-            and ((not self.force_overwrite and not ("grep" == plugin["type"])) or plugin["type"] == "external")
+        if plugin_already_run(session=session, plugin_info=plugin) and (
+            (not self.force_overwrite and not ("grep" == plugin["type"])) or plugin["type"] == "external"
         ):
             if show_reason:
                 logging.warning(
@@ -507,7 +508,23 @@ class PluginRunner(object):
         finally:
             plugin["status"] = status_msg
             plugin["end"] = self.timer.get_end_date_time("Plugin")
-            # Rank any real output — everything except the two harness
+            # Record metrics for Phase 4
+            start_time = plugin.get("start")
+            end_time = plugin.get("end")
+            error = abort_reason if abort_reason else None
+            get_metrics().record_execution(
+                plugin_key=plugin["key"],
+                plugin_code=plugin["code"],
+                plugin_group=plugin["group"],
+                plugin_type=plugin["type"],
+                status=status_msg,
+                start_time=start_time,
+                end_time=end_time,
+                error=error,
+                session=session,
+            )
+            # Rank any real output, including the list shape used by most
+            # plugins, but never timeout/error result objects.
             if output is not None and not isinstance(output, (TimeoutResult, ErrorResult)):
                 plugin["owtf_rank"] = self.rank_plugin(output, self.get_plugin_output_dir(plugin))
             else:
