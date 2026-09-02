@@ -3,9 +3,8 @@ owtf.managers.community_plugin
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Database-level operations for community-uploaded plugins: upload,
-validate, store, list, approve, reject, delete, and test-run. Approved
-plugins run through the normal plugin runner; admin review of the
-source is the trust boundary.
+validate, store, list, approve, reject, and delete. Admin review of
+the source is the trust boundary.
 """
 
 import datetime
@@ -26,7 +25,6 @@ from owtf.models.user_plugin import (
 from owtf.plugin.validator import PluginValidator
 from owtf.settings import (
     COMMUNITY_PLUGIN_DEFAULT_TIMEOUT,
-    COMMUNITY_PLUGIN_MEMORY_LIMIT,
     COMMUNITY_PLUGINS_DIR,
     PLUGIN_ALLOWED_EXTENSIONS,
     PLUGIN_UPLOAD_MAX_SIZE,
@@ -96,7 +94,6 @@ def upload_community_plugin(
     version="1.0.0",
     tags=None,
     execution_timeout=COMMUNITY_PLUGIN_DEFAULT_TIMEOUT,
-    memory_limit=COMMUNITY_PLUGIN_MEMORY_LIMIT,
     is_public=True,
     user_id=None,
 ):
@@ -156,7 +153,6 @@ def upload_community_plugin(
             version=version.strip() or "1.0.0",
             tags=tags.strip() if tags else None,
             execution_timeout=execution_timeout,
-            memory_limit=memory_limit,
             is_public=is_public,
         )
         session.add(plugin)
@@ -197,6 +193,7 @@ def list_community_plugins(
         group=group,
         plugin_type=plugin_type,
         min_rating=min_rating,
+        is_public=None if as_admin else True,
         query=query,
         limit=limit,
         offset=offset,
@@ -220,6 +217,8 @@ def get_community_plugin(session, plugin_id, as_admin=False):
     """Return a plugin dict, or None if not found. Public view by default."""
     plugin = session.query(UserPlugin).get(plugin_id)
     if plugin is None:
+        return None
+    if not as_admin and (plugin.approval_status != APPROVAL_APPROVED or not plugin.is_public):
         return None
     return plugin.to_admin_dict() if as_admin else plugin.to_dict()
 
@@ -265,6 +264,76 @@ def test_run_community_plugin(session, plugin_id, target_url):
         return {"success": False, "error": str(exc)}
 
 
+def _plugin_key(up):
+    """Deterministic key used to mirror a community plugin into the plugins table."""
+    return "{}@{}".format(up.type, _plugin_code(up))
+
+
+def _plugin_code(up):
+    """Stable code used by plugin selection, outputs, and reports."""
+    return "COMMUNITY-{}".format(up.id)
+
+
+def _sync_to_plugins_table(session, up):
+    """Insert or refresh the plugins-table mirror for an approved community plugin.
+
+    Approved community plugins live alongside built-in plugins in the
+    plugins table so the standard worklist FK, worker lookup, and runner
+    dispatch work without special cases.
+    """
+    from owtf.models.plugin import Plugin
+    from owtf.models.test_group import TestGroup
+
+    key = _plugin_key(up)
+    code = _plugin_code(up)
+    test_group = session.query(TestGroup).get(code)
+    if test_group is None:
+        test_group = TestGroup(code=code)
+        session.add(test_group)
+    test_group.group = up.group
+    test_group.descrip = up.description
+    test_group.hint = "Community plugin"
+    test_group.url = ""
+    test_group.priority = 0
+
+    row = session.query(Plugin).filter_by(key=key).first()
+    if row is None:
+        row = Plugin(key=key)
+        session.add(row)
+    row.title = up.name.replace("_", " ").title()
+    row.name = up.name
+    row.code = code
+    row.group = up.group
+    row.type = up.type
+    row.descrip = up.description
+    row.file = os.path.basename(up.file_path)
+    row.attr = None
+    row.source = "community"
+    row.file_path = up.file_path
+    # Carry the timeout through so the worker's plugin dict, built from
+    # this row via Plugin.to_dict, has the same execution_timeout the
+    # runner reads. Without this a real queued run sees timeout=0.
+    row.execution_timeout = up.execution_timeout
+
+
+def _unsync_from_plugins_table(session, up):
+    from owtf.models.plugin import Plugin
+    from owtf.models.plugin_output import PluginOutput
+    from owtf.models.test_group import TestGroup
+
+    row = session.query(Plugin).filter_by(key=_plugin_key(up)).first()
+    if row is not None:
+        session.delete(row)
+        session.flush()
+
+    code = _plugin_code(up)
+    has_outputs = session.query(PluginOutput.id).filter_by(plugin_code=code).first() is not None
+    if not has_outputs:
+        test_group = session.query(TestGroup).get(code)
+        if test_group is not None:
+            session.delete(test_group)
+
+
 def approve_community_plugin(session, plugin_id, reviewer_id=None):
     plugin = session.query(UserPlugin).get(plugin_id)
     if plugin is None:
@@ -273,6 +342,7 @@ def approve_community_plugin(session, plugin_id, reviewer_id=None):
     plugin.rejection_reason = None
     plugin.reviewed_by_user_id = reviewer_id
     plugin.reviewed_at = datetime.datetime.utcnow()
+    _sync_to_plugins_table(session, plugin)
     session.commit()
     session.refresh(plugin)
     return plugin.to_admin_dict()
@@ -282,10 +352,13 @@ def reject_community_plugin(session, plugin_id, reason="", reviewer_id=None):
     plugin = session.query(UserPlugin).get(plugin_id)
     if plugin is None:
         return None
+    was_approved = plugin.approval_status == APPROVAL_APPROVED
     plugin.approval_status = APPROVAL_REJECTED
     plugin.rejection_reason = reason.strip() or "No reason provided"
     plugin.reviewed_by_user_id = reviewer_id
     plugin.reviewed_at = datetime.datetime.utcnow()
+    if was_approved:
+        _unsync_from_plugins_table(session, plugin)
     session.commit()
     session.refresh(plugin)
     return plugin.to_admin_dict()
@@ -322,6 +395,7 @@ def delete_community_plugin(session, plugin_id):
     if plugin is None:
         return False
     file_path = plugin.file_path
+    _unsync_from_plugins_table(session, plugin)
     session.delete(plugin)
     session.commit()
     try:

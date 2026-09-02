@@ -41,7 +41,6 @@ class UserPlugin(Model):
     version = Column(String(32), default="1.0.0", nullable=False)
     tags = Column(String(256), nullable=True)
     execution_timeout = Column(Integer, default=300, nullable=False)
-    memory_limit = Column(Integer, default=268435456, nullable=False)  # 256 MB
     is_public = Column(Boolean, default=True, nullable=False)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
     user = relationship("User", foreign_keys=[user_id], backref="uploaded_plugins")
@@ -86,12 +85,15 @@ class UserPlugin(Model):
         return d
 
     def to_admin_dict(self):
-        """Admin view: owner fields plus reviewer trail and resource limits."""
+        """Admin view: owner fields plus reviewer trail and execution_timeout.
+
+        memory_limit is intentionally not exposed: runtime memory limiting is
+        out of scope for now, so surfacing it as a knob would be misleading.
+        """
         d = self.to_owner_dict()
         d["reviewed_by_user_id"] = self.reviewed_by_user_id
         d["reviewed_at"] = self.reviewed_at.isoformat() if self.reviewed_at else None
         d["execution_timeout"] = self.execution_timeout
-        d["memory_limit"] = self.memory_limit
         return d
 
     @classmethod
@@ -111,6 +113,7 @@ class UserPlugin(Model):
         plugin_type=None,
         min_rating=None,
         status=None,
+        is_public=None,
         query=None,
         limit=50,
         offset=0,
@@ -118,6 +121,8 @@ class UserPlugin(Model):
         q = session.query(cls)
         if status:
             q = q.filter(cls.approval_status == status)
+        if is_public is not None:
+            q = q.filter(cls.is_public.is_(is_public))
         if category:
             q = q.filter(cls.category == category)
         if group:

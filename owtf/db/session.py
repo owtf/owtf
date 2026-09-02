@@ -4,10 +4,9 @@ owtf.db.session
 
 This file handles all the database transactions.
 """
-
 import functools
-import logging
 import sys
+import logging
 
 from sqlalchemy import create_engine, exc, func
 from sqlalchemy.orm import Session as _Session
@@ -15,8 +14,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
 from owtf.db.model_base import Model
-from owtf.db.upgrade import run_startup_upgrades
-from owtf.settings import DATABASE_IP, DATABASE_NAME, DATABASE_PASS, DATABASE_PORT, DATABASE_USER
+from owtf.settings import DATABASE_IP, DATABASE_NAME, DATABASE_PASS, DATABASE_USER, DATABASE_PORT
 
 DB_URI = "postgresql+psycopg2://{}:{}@{}:{}/{}".format(
     DATABASE_USER, DATABASE_PASS, DATABASE_IP, DATABASE_PORT, DATABASE_NAME
@@ -52,12 +50,7 @@ def flush_transaction(method):
 def get_db_engine():
     try:
         engine = create_engine(DB_URI, poolclass=NullPool)
-        # create_all makes brand-new installs work. run_startup_upgrades
-        # adds columns to tables that existed before those columns were
-        # introduced, so upgrading an existing install does not crash on
-        # first request.
         Model.metadata.create_all(engine)
-        run_startup_upgrades(engine)
         return engine
     except exc.OperationalError as e:
         logging.error("Could not create engine - Exception occured\n%s", str(e))
@@ -70,10 +63,10 @@ def get_scoped_session():
 
 
 class Session(_Session):
-    """Custom session meant to utilize add on the model.
-    This Session overrides the add/add_all methods to prevent them
-    from being used. This is to for using the add methods on the
-    models themselves where overriding is available.
+    """ Custom session meant to utilize add on the model.
+        This Session overrides the add/add_all methods to prevent them
+        from being used. This is to for using the add methods on the
+        models themselves where overriding is available.
     """
 
     _add = _Session.add

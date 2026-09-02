@@ -4,14 +4,12 @@ owtf.api.handlers.community_plugin
 
 Tornado handlers for the community plugin marketplace. Any
 authenticated user can list approved plugins, upload, and see their
-own uploads. Source viewing, delete, approve/reject, test-run, and
-review history require an admin token.
+own uploads. Source viewing, delete, approve/reject, and review
+history require an admin token.
 """
 
 import json
 import logging
-import time
-from collections import defaultdict, deque
 
 from owtf.api.handlers.base import APIRequestHandler
 from owtf.api.handlers.jwtauth import admin_required, jwtauth, user_is_admin
@@ -24,24 +22,16 @@ from owtf.managers.community_plugin import (
     list_community_plugins,
     list_owner_plugins,
     reject_community_plugin,
-    test_run_community_plugin,
     upload_community_plugin,
 )
 from owtf.models.user_plugin import APPROVAL_APPROVED, UserPlugin
 from owtf.settings import (
     COMMUNITY_PLUGIN_DEFAULT_TIMEOUT,
-    COMMUNITY_PLUGIN_MAX_MEMORY,
     COMMUNITY_PLUGIN_MAX_TIMEOUT,
-    COMMUNITY_PLUGIN_MEMORY_LIMIT,
-    COMMUNITY_PLUGIN_MIN_MEMORY,
     COMMUNITY_PLUGIN_MIN_TIMEOUT,
 )
 
 logger = logging.getLogger(__name__)
-
-TEST_RUN_LIMIT = 3
-TEST_RUN_WINDOW_SECONDS = 60
-_test_run_calls = defaultdict(deque)
 
 
 def _first_arg(handler, name, default=""):
@@ -50,19 +40,6 @@ def _first_arg(handler, name, default=""):
     if not vals:
         return default
     return vals[0] if isinstance(vals[0], str) else vals[0].decode("utf-8")
-
-
-def _check_test_run_rate_limit(user_id):
-    """True if the caller is under the per-user budget, False otherwise."""
-    key = user_id if user_id is not None else "anonymous"
-    now = time.monotonic()
-    bucket = _test_run_calls[key]
-    while bucket and now - bucket[0] > TEST_RUN_WINDOW_SECONDS:
-        bucket.popleft()
-    if len(bucket) >= TEST_RUN_LIMIT:
-        return False
-    bucket.append(now)
-    return True
 
 
 def _parse_bounded_int(field_name, raw_value, default, low, high, unit):
@@ -94,15 +71,6 @@ class CommunityPluginUploadHandler(APIRequestHandler):
                 COMMUNITY_PLUGIN_MAX_TIMEOUT,
                 "seconds",
             )
-            memory_limit = _parse_bounded_int(
-                "memory_limit",
-                _first_arg(self, "memory_limit", ""),
-                COMMUNITY_PLUGIN_MEMORY_LIMIT,
-                COMMUNITY_PLUGIN_MIN_MEMORY,
-                COMMUNITY_PLUGIN_MAX_MEMORY,
-                "bytes",
-            )
-
             files = self.request.files.get("plugin_file")
             if not files:
                 raise APIError(400, "No plugin_file provided in the upload")
@@ -121,7 +89,6 @@ class CommunityPluginUploadHandler(APIRequestHandler):
                 version=_first_arg(self, "version", "1.0.0"),
                 tags=_first_arg(self, "tags") or None,
                 execution_timeout=execution_timeout,
-                memory_limit=memory_limit,
                 is_public=_first_arg(self, "is_public", "true").lower() not in ("false", "0", "no"),
                 user_id=self.get_current_user_id(),
             )
@@ -226,9 +193,9 @@ class CommunityPluginDetailHandler(APIRequestHandler):
 
         current_user_id = getattr(current_user, "id", None) if current_user is not None else None
         is_owner = current_user_id is not None and plugin.user_id == current_user_id
-        is_approved = plugin.approval_status == APPROVAL_APPROVED
+        is_publicly_visible = plugin.approval_status == APPROVAL_APPROVED and plugin.is_public
 
-        if not is_admin and not is_owner and not is_approved:
+        if not is_admin and not is_owner and not is_publicly_visible:
             raise APIError(404, "Plugin not found")
 
         if is_admin:
@@ -263,46 +230,6 @@ class CommunityPluginDeleteHandler(APIRequestHandler):
         if not delete_community_plugin(self.session, int(plugin_id)):
             raise APIError(404, "Plugin not found")
         self.success(None)
-
-
-@admin_required
-class CommunityPluginTestRunHandler(APIRequestHandler):
-    """Run an approved plugin once against a URL. Rate-limited per user, not saved."""
-
-    SUPPORTED_METHODS = ["POST", "OPTIONS"]
-
-    def post(self, plugin_id):
-        if not _check_test_run_rate_limit(self.get_current_user_id()):
-            self.set_status(429)
-            self.finish(
-                {
-                    "status": "fail",
-                    "data": {
-                        "error": "Too many test-run requests. Limit is {} per {}s.".format(
-                            TEST_RUN_LIMIT, TEST_RUN_WINDOW_SECONDS
-                        )
-                    },
-                }
-            )
-            return
-
-        try:
-            body = json.loads(self.request.body)
-        except json.JSONDecodeError:
-            raise APIError(400, "Request body must be valid JSON")
-
-        target_url = body.get("target_url", "").strip()
-        if not target_url:
-            raise APIError(400, "'target_url' is required")
-        if not (target_url.startswith("http://") or target_url.startswith("https://")):
-            raise APIError(400, "'target_url' must start with http:// or https://")
-
-        result = test_run_community_plugin(self.session, int(plugin_id), target_url)
-        if not result.get("success"):
-            self.set_status(422)
-            self.finish({"status": "fail", "data": result})
-            return
-        self.success(result)
 
 
 @admin_required

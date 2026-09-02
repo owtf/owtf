@@ -201,7 +201,7 @@ class BaseShell(object):
         except KeyboardInterrupt:
             os.killpg(proc.pid, signal.SIGINT)
             out, err = proc.communicate()
-            logging.warn(out.decode("utf-8"))
+            logging.warning(out.decode("utf-8"))
             output += out.decode("utf-8")
             try:
                 os.killpg(

@@ -196,13 +196,13 @@ def get_types_for_plugin_group(session, plugin_group):
 
 
 def plugin_gen_query(session, criteria):
-    """Generate a SQLAlchemy query based on the filter criteria
-    :param criteria: Filter criteria
-    :type criteria: `dict`
-    :return:
-    :rtype:
+    """Generate a SQLAlchemy query based on the filter criteria.
+
+    Uses an outer join to keep legacy plugin rows visible if their test-group
+    metadata is missing. Approved community plugins receive a synthetic test
+    group when they are mirrored into this table.
     """
-    query = session.query(Plugin).join(TestGroup)
+    query = session.query(Plugin).outerjoin(TestGroup, Plugin.code == TestGroup.code)
     if criteria.get("type", None):
         if isinstance(criteria["type"], str):
             query = query.filter(Plugin.type == criteria["type"])
@@ -223,73 +223,21 @@ def plugin_gen_query(session, criteria):
             query = query.filter(Plugin.name == criteria["name"])
         if isinstance(criteria["name"], list):
             query = query.filter(Plugin.name.in_(criteria["name"]))
-    return query.order_by(TestGroup.priority.desc())
+    return query.order_by(TestGroup.priority.desc().nullslast())
 
 
-def get_community_plugin_dicts(session, for_api=False):
-    """Approved community plugins in the built-in plugin dict shape.
+def get_all_plugin_dicts(session, criteria=None):
+    """Get plugin dicts based on filter criteria.
 
-    Runner path (for_api=False, default) adds "source": "community",
-    "file_path", "execution_timeout", "memory_limit" so PluginRunner
-    can dispatch and load the file. API path (for_api=True) strips
-    those internal fields; file_path must never leave the server.
+    Community plugins are persisted into the plugins table on approval
+    (see owtf.managers.community_plugin), so they come back through the
+    standard query alongside built-in ones. They carry
+    ``source="community"`` and an absolute ``file_path``.
     """
-    # Deferred to avoid a circular import: user_plugin -> db -> managers.
-    from owtf.models.user_plugin import APPROVAL_APPROVED, UserPlugin
-
-    approved = session.query(UserPlugin).filter_by(approval_status=APPROVAL_APPROVED).all()
-    result = []
-    for up in approved:
-        code = "community_{}".format(up.id)
-        entry = {
-            # Mirror the built-in key format: "{type}@{code}".
-            "key": "{!s}@{!s}".format(up.type, code),
-            "group": up.group,
-            "type": up.type,
-            "title": up.name.replace("_", " ").title(),
-            "name": up.name,
-            "code": code,
-            "file": os.path.basename(up.file_path),
-            "descrip": up.description,
-            "attr": None,
-            "min_time": None,
-        }
-        if not for_api:
-            entry["source"] = "community"
-            entry["file_path"] = up.file_path
-            entry["execution_timeout"] = up.execution_timeout
-            entry["memory_limit"] = up.memory_limit
-        result.append(entry)
-    return result
-
-
-def get_all_plugin_dicts(session, criteria=None, include_community=True, for_api=False):
-    """Built-in plugins plus (optionally) approved community plugins.
-
-    Community entries carry ``"source": "community"`` so callers can
-    tell them apart. Pass ``for_api=True`` when serialising into an
-    HTTP response so runner-only fields (file_path etc.) are stripped.
-    """
-    if criteria is None:
-        criteria = {}
+    criteria = dict(criteria or {})
     if "code" in criteria:
         criteria["code"] = Plugin.name_to_code(session, criteria["code"])
-    query = plugin_gen_query(session, criteria)
-    plugin_obj_list = query.all()
-    plugin_dicts = [obj.to_dict() for obj in plugin_obj_list]
-
-    if include_community:
-        community = get_community_plugin_dicts(session, for_api=for_api)
-        # Apply the same group / type filters that were passed for built-ins.
-        if criteria.get("group"):
-            wanted = [criteria["group"]] if isinstance(criteria["group"], str) else criteria["group"]
-            community = [p for p in community if p["group"] in wanted]
-        if criteria.get("type"):
-            wanted = [criteria["type"]] if isinstance(criteria["type"], str) else criteria["type"]
-            community = [p for p in community if p["type"] in wanted]
-        plugin_dicts.extend(community)
-
-    return plugin_dicts
+    return [obj.to_dict() for obj in plugin_gen_query(session, criteria).all()]
 
 
 def get_plugins_by_type(session, plugin_type):
