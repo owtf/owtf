@@ -53,6 +53,7 @@ OWASP OWTF much better:
  * Robert Hansen @RSNake
  * Sachin Kamath @iamskamath - https://sachinwrites.xyz
  * Sandro Gauci @sandrogauci - http://www.enablesecurity.com
+ * Saurabh Gupta @saurabh4269 - https://saurabh4269.github.io/
  * Shadab Zafar
  * @sharad1126
  * Tapan Sharma

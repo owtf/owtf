@@ -2,12 +2,11 @@
 JWT auth decorators for Tornado handlers.
 
 @jwtauth requires a valid Bearer token. @admin_required layers an admin
-check on top. Failed auth raises tornado.web.Finish so the wrapped
+check on top. Failed auth finishes the response in the wrapper so the
 handler never runs after a 401/403.
 """
 
 import jwt
-import tornado.web
 
 from owtf.db.session import Session
 from owtf.models.user_login_token import UserLoginToken
@@ -15,32 +14,35 @@ from owtf.settings import JWT_ALGORITHM, JWT_OPTIONS, JWT_SECRET_KEY
 
 
 def _reject(handler, status, message):
-    """Abort the request. Raises tornado.web.Finish so the handler body never runs."""
-    handler._transforms = []
+    """Write and finish an authentication failure response."""
     handler.set_status(status)
     handler.write({"success": False, "message": message})
-    raise tornado.web.Finish()
+    handler.finish()
 
 
 def _require_valid_jwt(handler):
-    """Verify the Authorization header. Raises tornado.web.Finish on failure."""
+    """Return the authenticated user id, or finish the response and return None."""
     auth = handler.request.headers.get("Authorization")
     if not auth:
         _reject(handler, 401, "Missing authorization")
+        return None
 
     parts = auth.split()
     if len(parts) != 2 or parts[0].lower() != "bearer":
         _reject(handler, 401, "Invalid header authorization")
+        return None
 
     token = parts[1]
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, options=JWT_OPTIONS, algorithms=[JWT_ALGORITHM])
     except Exception:
         _reject(handler, 401, "Unauthorized")
+        return None
 
     user_id = payload.get("user_id")
     if user_id is None:
         _reject(handler, 401, "Unauthorized")
+        return None
 
     session = Session()
     try:
@@ -49,6 +51,8 @@ def _require_valid_jwt(handler):
         session.close()
     if user_token is None:
         _reject(handler, 401, "Unauthorized")
+        return None
+    return user_id
 
 
 def jwtauth(handler_class):
@@ -56,7 +60,9 @@ def jwtauth(handler_class):
 
     def wrap_execute(handler_execute):
         def _execute(self, transforms, *args, **kwargs):
-            _require_valid_jwt(self)
+            self._transforms = transforms
+            if _require_valid_jwt(self) is None:
+                return None
             return handler_execute(self, transforms, *args, **kwargs)
 
         return _execute
@@ -81,17 +87,10 @@ def get_user_id_from_request(handler):
 
 
 def user_is_admin(user):
-    """True if user.is_admin is set, or their email is on ADMIN_EMAILS."""
-    if user is None:
-        return False
-    if getattr(user, "is_admin", False):
-        return True
-    # Local import so `monkeypatch.setattr(jwtauth_module, "ADMIN_EMAILS", ...)`
-    # in the decorator tests can override the value at check time.
-    from owtf.settings import ADMIN_EMAILS
-
-    email = (getattr(user, "email", "") or "").strip().lower()
-    return email in ADMIN_EMAILS
+    """True if the user row has is_admin set. ADMIN_EMAILS is a one-time
+    seed at registration only; the auth path reads users.is_admin, so
+    demoting a user with owtf-admin sticks across logins."""
+    return bool(user and getattr(user, "is_admin", False))
 
 
 def admin_required(handler_class):
@@ -101,14 +100,17 @@ def admin_required(handler_class):
     def _execute(self, transforms, *args, **kwargs):
         from owtf.models.user import User
 
-        _require_valid_jwt(self)
+        self._transforms = transforms
+        user_id = _require_valid_jwt(self)
+        if user_id is None:
+            return None
 
-        user_id = get_user_id_from_request(self)
         session = Session()
         try:
-            user = User.find_by_id(session, user_id) if user_id else None
+            user = User.find_by_id(session, user_id)
             if not user_is_admin(user):
                 _reject(self, 403, "Admin privileges required")
+                return None
         finally:
             session.close()
 

@@ -4,6 +4,7 @@ owtf.api.handlers.targets
 
 """
 from owtf.api.handlers.base import APIRequestHandler
+from owtf.models.session import Session as OWTFSession
 from owtf.lib import exceptions
 from owtf.lib.exceptions import InvalidTargetReference, APIError
 from owtf.managers.target import (
@@ -64,11 +65,10 @@ class TargetConfigHandler(APIRequestHandler):
             }
         """
         try:
-            # If no target_id, means /target is accessed with or without filters
             if not target_id:
-                # Get all filter data here, so that it can be passed
                 filter_data = dict(self.request.arguments)
-                self.success(get_target_config_dicts(self.session, filter_data))
+                session_id = OWTFSession.get_active(self.session)
+                self.success(get_target_config_dicts(self.session, filter_data, session_id=session_id))
             else:
                 self.success(get_target_config_by_id(self.session, target_id))
         except InvalidTargetReference:
