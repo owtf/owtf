@@ -11,7 +11,6 @@ import json
 import logging
 import os
 import re
-import traceback
 
 import tornado.httputil
 
@@ -105,6 +104,11 @@ class CacheHandler(object):
         :return:
         :rtype:
         """
+        file_lock = getattr(self, "file_lock", None)
+        if file_lock is None or not file_lock.locked():
+            logging.debug("Skipping cache write because this handler does not own the lock")
+            return
+
         try:
             response_body = self.request.response_buffer
             binary_response = False
@@ -151,8 +155,9 @@ class CacheHandler(object):
                 self.file_lock = FileLock(self.file_path)
                 try:
                     self.file_lock.acquire()
-                except FileLockTimeoutException:
-                    logging.debug("Lock could not be acquired %s", traceback.print_exc)
+                except FileLock.FileLockException:
+                    logging.debug("Lock could not be acquired", exc_info=True)
+                    return None
                 # For handling race conditions
                 if os.path.isfile(self.file_path):
                     self.file_lock.release()
