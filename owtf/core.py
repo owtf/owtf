@@ -31,6 +31,7 @@ from owtf.managers.session import _ensure_default_session
 from owtf.managers.target import load_targets
 from owtf.managers.worklist import load_works
 from owtf.models.plugin import Plugin
+from owtf.models.user_plugin import UserPlugin  # noqa: F401 - register the table before create_all
 from owtf.plugin.runner import show_plugin_list
 from owtf.proxy.main import start_proxy
 from owtf.settings import (
@@ -59,6 +60,7 @@ owtf_pid = None
 
 # Get a global DB connection instance
 from owtf.db.session import get_scoped_session
+from owtf.db.upgrade import run_startup_upgrades
 
 db = get_scoped_session()
 
@@ -329,6 +331,7 @@ def main():
 
     # Bootstrap the DB
     create_temp_storage_dirs(owtf_pid)
+    run_startup_upgrades(db.get_bind())
     try:
         _ensure_default_session(db)
         load_framework_config(
