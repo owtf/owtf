@@ -85,7 +85,7 @@ BLOCKED_ATTR_CALLS = frozenset(
     }
 )
 
-WRITE_MODES = frozenset({"w", "wb", "a", "ab", "x", "xb", "w+", "wb+", "a+", "ab+", "r+", "rb+"})
+READ_ONLY_MODES = frozenset({"r", "rt", "tr", "rb", "br"})
 
 SUBPROCESS_SHELL_CALLS = frozenset(
     {
@@ -135,10 +135,14 @@ def _check_module_contract(tree):
         elif isinstance(node, ast.FunctionDef) and node.name == "run":
             has_run = True
             args = node.args
-            if len(args.args) + len(args.posonlyargs) == 0:
-                warnings.append(
-                    "Line {}: function 'run' has no parameters. Community plugins "
-                    "should accept 'PluginInfo' (the OWTF plugin dict).".format(node.lineno)
+            positional = args.posonlyargs + args.args
+            required_positional = len(positional) - len(args.defaults)
+            required_keyword_only = sum(default is None for default in args.kw_defaults)
+            accepts_one_argument = required_positional <= 1 and (positional or args.vararg)
+            if not accepts_one_argument or required_keyword_only:
+                violations.append(
+                    "Line {}: function 'run' must be callable with exactly one positional argument "
+                    "(the OWTF PluginInfo dict)".format(node.lineno)
                 )
 
     if not has_description:
@@ -210,8 +214,8 @@ class _SecurityVisitor(ast.NodeVisitor):
         func = node.func
         qualified = self._resolve(func)
 
-        if isinstance(func, ast.Name) and func.id in BLOCKED_BUILTINS:
-            self.violations.append("Line {}: blocked built-in call '{}()'".format(node.lineno, func.id))
+        if qualified in BLOCKED_BUILTINS:
+            self.violations.append("Line {}: blocked built-in call '{}()'".format(node.lineno, qualified))
 
         if qualified in BLOCKED_ATTR_CALLS:
             self.violations.append("Line {}: blocked call '{}()'".format(node.lineno, qualified))
@@ -234,25 +238,33 @@ class _SecurityVisitor(ast.NodeVisitor):
                     "Line {}: subprocess called with {} (use a list of args or shell=False)".format(node.lineno, detail)
                 )
 
-        if isinstance(func, ast.Name) and func.id == "open":
+        if qualified == "open":
             self._check_open_mode(node)
 
         self.generic_visit(node)
 
     def _check_open_mode(self, node):
+        mode_node = node.args[1] if len(node.args) >= 2 else None
         for kw in node.keywords:
-            if kw.arg == "mode" and isinstance(kw.value, ast.Constant) and kw.value.value in WRITE_MODES:
-                self.violations.append(
-                    "Line {}: open() called with write/append mode '{}' (read-only access permitted)".format(
-                        node.lineno, kw.value.value
-                    )
-                )
-        if len(node.args) >= 2 and isinstance(node.args[1], ast.Constant) and node.args[1].value in WRITE_MODES:
-            self.violations.append(
-                "Line {}: open() called with write/append mode '{}' (read-only access permitted)".format(
-                    node.lineno, node.args[1].value
-                )
+            if kw.arg == "mode":
+                mode_node = kw.value
+
+        # Omitting mode is the literal read-only default. Once a mode is
+        # supplied, only a known literal read mode is safe to accept.
+        if mode_node is None:
+            return
+        if isinstance(mode_node, ast.Constant) and mode_node.value in READ_ONLY_MODES:
+            return
+
+        if isinstance(mode_node, ast.Constant):
+            detail = repr(mode_node.value)
+        else:
+            detail = "a dynamic value"
+        self.violations.append(
+            "Line {}: open() called with {} mode (only literal read-only modes are permitted)".format(
+                node.lineno, detail
             )
+        )
 
     def visit_AsyncFunctionDef(self, node):
         self.violations.append("Line {}: async functions are not permitted in community plugins".format(node.lineno))
@@ -293,16 +305,16 @@ class PluginValidator:
     @staticmethod
     def validate_file(path):
         try:
-            with open(path, "r", encoding="utf-8", errors="replace") as fh:
+            with open(path, "r", encoding="utf-8") as fh:
                 source = fh.read()
-        except OSError as exc:
+        except (OSError, UnicodeError) as exc:
             return ValidationResult(passed=False, violations=["Cannot read file: {}".format(exc)])
         return PluginValidator.validate_source(source, filename=path)
 
     @staticmethod
     def validate_bytes(data, filename="<upload>"):
         try:
-            source = data.decode("utf-8", errors="replace")
-        except Exception as exc:
+            source = data.decode("utf-8")
+        except (AttributeError, UnicodeError) as exc:
             return ValidationResult(passed=False, violations=["Cannot decode plugin bytes: {}".format(exc)])
         return PluginValidator.validate_source(source, filename=filename)

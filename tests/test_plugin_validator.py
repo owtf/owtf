@@ -199,6 +199,18 @@ def run(PluginInfo):
         result = validate(source)
         assert not result.passed
 
+    def test_open_dynamic_mode_blocked(self):
+        source = """
+DESCRIPTION = "Dynamic mode"
+def run(PluginInfo):
+    mode = PluginInfo["mode"]
+    open("/tmp/output", mode)
+    return {}
+"""
+        result = validate(source)
+        assert not result.passed
+        assert any("dynamic" in violation for violation in result.violations)
+
     def test_open_read_allowed(self):
         source = """
 DESCRIPTION = "Read-only file access is fine"
@@ -256,7 +268,7 @@ def run(PluginInfo):
         assert result.passed, str(result)
         assert not any("no parameters" in w for w in result.warnings)
 
-    def test_run_with_zero_args_warning_mentions_plugininfo(self):
+    def test_run_with_zero_args_is_rejected(self):
         source = """
 DESCRIPTION = "Missing plugin arg"
 
@@ -264,11 +276,55 @@ def run():
     return {}
 """
         result = validate(source)
+        assert not result.passed
+        assert any("PluginInfo" in violation for violation in result.violations)
+
+    def test_run_requiring_two_args_is_rejected(self):
+        source = """
+DESCRIPTION = "Too many required args"
+
+def run(PluginInfo, config):
+    return {}
+"""
+        result = validate(source)
+        assert not result.passed
+        assert any("exactly one positional argument" in violation for violation in result.violations)
+
+    def test_run_with_optional_second_arg_is_allowed(self):
+        source = """
+DESCRIPTION = "Optional config"
+
+def run(PluginInfo, config=None):
+    return {}
+"""
+        result = validate(source)
         assert result.passed, str(result)
-        assert any("PluginInfo" in w for w in result.warnings)
 
 
 class TestAliasBypass:
+    def test_aliased_eval_is_blocked(self):
+        source = """
+DESCRIPTION = "aliased eval"
+def run(PluginInfo):
+    f = eval
+    return f("1 + 1")
+"""
+        result = validate(source)
+        assert not result.passed
+        assert any("eval" in violation for violation in result.violations)
+
+    def test_aliased_open_write_is_blocked(self):
+        source = """
+DESCRIPTION = "aliased open"
+def run(PluginInfo):
+    f = open
+    f("/tmp/output", "w")
+    return {}
+"""
+        result = validate(source)
+        assert not result.passed
+        assert any("read-only" in violation for violation in result.violations)
+
     def test_aliased_subprocess_run_with_shell_true_blocked(self):
         source = """
 from subprocess import run as process
@@ -419,3 +475,8 @@ class TestValidateBytes:
         source = b"import os\nDESCRIPTION='x'\ndef run(t): os.system('id')"
         result = PluginValidator.validate_bytes(source)
         assert not result.passed
+
+    def test_non_utf8_bytes_fail_before_ast_validation(self):
+        result = PluginValidator.validate_bytes(b"DESCRIPTION = 'x'\n# \xff\ndef run(info): return {}")
+        assert not result.passed
+        assert any("decode" in violation.lower() for violation in result.violations)
