@@ -3,11 +3,12 @@ owtf.models.user
 ~~~~~~~~~~~~~~~~
 
 """
-from sqlalchemy import Column, Integer, Unicode, Boolean
+
+from sqlalchemy import Boolean, Column, Integer, Unicode
+from sqlalchemy.orm import relationship
+
 from owtf.db.model_base import Model
 from owtf.models.email_confirmation import EmailConfirmation
-from sqlalchemy.orm import relationship
-import uuid
 
 
 class User(Model):
@@ -21,13 +22,6 @@ class User(Model):
     otp_secret_key = Column(Unicode(255), nullable=False, unique=True)  # used to generate unique otp
     email_confirmations = relationship(EmailConfirmation, cascade="delete")
     user_login_tokens = relationship("UserLoginToken", cascade="delete")
-
-    @classmethod
-    def find(cls, session, name):
-        """Find a user by name.
-        Returns None if not found.
-        """
-        return session.query(cls).filter_by(name=name).all()
 
     @classmethod
     def find_by_email(cls, session, email):
@@ -58,6 +52,8 @@ class User(Model):
     @classmethod
     def activate_user(cls, session, user_id):
         db_obj = session.query(cls).filter_by(id=user_id).first()
+        if db_obj is None:
+            return
         db_obj.is_active = True
         session.commit()
 
@@ -71,5 +67,7 @@ class User(Model):
     @classmethod
     def change_password(cls, session, email, password):
         db_obj = session.query(cls).filter_by(email=email).first()
+        if db_obj is None:
+            return
         db_obj.password = password
         session.commit()
