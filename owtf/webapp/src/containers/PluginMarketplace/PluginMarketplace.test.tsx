@@ -15,7 +15,7 @@ const basePlugin = {
   approval_status: "approved",
   tags: [],
   version: "1.0.0",
-  category: null,
+  category: null
 };
 
 const baseProps: any = {
@@ -26,15 +26,10 @@ const baseProps: any = {
   uploadLoading: false,
   uploadError: null,
   uploadSuccess: null,
-  runLoading: false,
-  runError: null,
-  runResult: null,
   onLoad: jest.fn(),
   onUpload: jest.fn(),
-  onRun: jest.fn(),
   onClearUpload: jest.fn(),
-  onClearRun: jest.fn(),
-  onSetFilter: jest.fn(),
+  onSetFilter: jest.fn()
 };
 
 beforeEach(() => {
@@ -44,7 +39,7 @@ beforeEach(() => {
   (global as any).localStorage = {
     getItem: () => "",
     setItem: () => {},
-    removeItem: () => {},
+    removeItem: () => {}
   };
 });
 
@@ -52,7 +47,7 @@ describe("PluginMarketplace", () => {
   it("shows Browse, Upload and My Plugins tabs to a non-admin", () => {
     const wrapper = shallow(<PluginMarketplace {...baseProps} />);
     const tabButtons = wrapper.find(".marketplacePage__tabs button");
-    const labels = tabButtons.map((b) => b.props().children);
+    const labels = tabButtons.map(b => b.props().children);
     expect(labels).toContain("Browse");
     expect(labels).toContain("Upload");
     expect(labels).toContain("My Plugins");
@@ -64,23 +59,16 @@ describe("PluginMarketplace", () => {
     wrapper.setState({ isAdmin: true });
     const labels = wrapper
       .find(".marketplacePage__tabs button")
-      .map((b) => b.props().children);
+      .map(b => b.props().children);
     expect(labels).toContain("Pending Review");
   });
 
-  it("hides the Run on Target button from non-admin browsers", () => {
-    const wrapper = shallow(<PluginMarketplace {...baseProps} />);
-    const card = wrapper.instance().renderPluginCard(basePlugin, "browse");
-    const cardWrapper = shallow(<div>{card}</div>);
-    expect(cardWrapper.find("button").filterWhere((b) => b.text() === "Run on Target").length).toBe(0);
-  });
-
-  it("shows the Run on Target button to admin browsers", () => {
+  it("does not expose a direct execution control in the marketplace", () => {
     const wrapper = shallow(<PluginMarketplace {...baseProps} />);
     wrapper.setState({ isAdmin: true });
-    const card = wrapper.instance().renderPluginCard(basePlugin, "browse");
-    const cardWrapper = shallow(<div>{card}</div>);
-    expect(cardWrapper.find("button").filterWhere((b) => b.text() === "Run on Target").length).toBe(1);
+    expect(
+      wrapper.find("button").filterWhere(b => b.text() === "Run on Target")
+    ).toHaveLength(0);
   });
 
   it("renders View Source, Approve, and Reject on pending cards", () => {
@@ -89,7 +77,7 @@ describe("PluginMarketplace", () => {
     const pending = { ...basePlugin, approval_status: "pending" };
     const card = wrapper.instance().renderPluginCard(pending, "pending");
     const cardWrapper = shallow(<div>{card}</div>);
-    const labels = cardWrapper.find("button").map((b) => b.text());
+    const labels = cardWrapper.find("button").map(b => b.text());
     expect(labels).toContain("View Source");
     expect(labels).toContain("Approve");
     expect(labels).toContain("Reject");
@@ -100,12 +88,14 @@ describe("PluginMarketplace", () => {
     const rejected = {
       ...basePlugin,
       approval_status: "rejected",
-      rejection_reason: "uses shell=True",
+      rejection_reason: "uses shell=True"
     };
     const card = wrapper.instance().renderPluginCard(rejected, "mine");
     const cardWrapper = shallow(<div>{card}</div>);
     expect(cardWrapper.find(".pluginCard__rejectionReason").length).toBe(1);
-    expect(cardWrapper.find(".pluginCard__rejectionReason").text()).toContain("uses shell=True");
+    expect(cardWrapper.find(".pluginCard__rejectionReason").text()).toContain(
+      "uses shell=True"
+    );
   });
 
   it("opening the reject modal sets rejectModalPlugin state", () => {
@@ -118,14 +108,18 @@ describe("PluginMarketplace", () => {
 
   it("switching to My Plugins triggers loadMinePlugins", () => {
     const wrapper = shallow(<PluginMarketplace {...baseProps} />);
-    const spy = jest.spyOn(wrapper.instance() as any, "loadMinePlugins").mockImplementation(() => {});
+    const spy = jest
+      .spyOn(wrapper.instance() as any, "loadMinePlugins")
+      .mockImplementation(() => {});
     wrapper.instance().handleTabChange("mine");
     expect(spy).toHaveBeenCalled();
   });
 
   it("switching to Pending Review triggers loadPendingPlugins", () => {
     const wrapper = shallow(<PluginMarketplace {...baseProps} />);
-    const spy = jest.spyOn(wrapper.instance() as any, "loadPendingPlugins").mockImplementation(() => {});
+    const spy = jest
+      .spyOn(wrapper.instance() as any, "loadPendingPlugins")
+      .mockImplementation(() => {});
     wrapper.instance().handleTabChange("pending");
     expect(spy).toHaveBeenCalled();
   });
@@ -141,18 +135,25 @@ describe("PluginMarketplace", () => {
       Promise.resolve({
         ok: false,
         status: 403,
-        json: () => Promise.resolve({ status: "fail", message: "Admin required" }),
+        json: () =>
+          Promise.resolve({ status: "fail", message: "Admin required" })
       })
     );
-    const successSpy = jest.spyOn(toaster, "success").mockImplementation(() => undefined as any);
-    const dangerSpy = jest.spyOn(toaster, "danger").mockImplementation(() => undefined as any);
+    const successSpy = jest
+      .spyOn(toaster, "success")
+      .mockImplementation(() => undefined as any);
+    const dangerSpy = jest
+      .spyOn(toaster, "danger")
+      .mockImplementation(() => undefined as any);
 
     const wrapper = shallow(<PluginMarketplace {...baseProps} />);
-    const loadSpy = jest.spyOn(wrapper.instance() as any, "loadPendingPlugins").mockImplementation(() => {});
+    const loadSpy = jest
+      .spyOn(wrapper.instance() as any, "loadPendingPlugins")
+      .mockImplementation(() => {});
 
     wrapper.instance().approvePlugin(42);
     // Let the fetch promise chain resolve.
-    await new Promise((r) => setImmediate(r));
+    await new Promise(r => setImmediate(r));
 
     expect(successSpy).not.toHaveBeenCalled();
     expect(dangerSpy).toHaveBeenCalledWith("Failed to approve plugin.");
@@ -167,18 +168,26 @@ describe("PluginMarketplace", () => {
       Promise.resolve({
         ok: false,
         status: 500,
-        json: () => Promise.resolve({ status: "fail", message: "server exploded" }),
+        json: () =>
+          Promise.resolve({ status: "fail", message: "server exploded" })
       })
     );
-    const successSpy = jest.spyOn(toaster, "success").mockImplementation(() => undefined as any);
-    const dangerSpy = jest.spyOn(toaster, "danger").mockImplementation(() => undefined as any);
+    const successSpy = jest
+      .spyOn(toaster, "success")
+      .mockImplementation(() => undefined as any);
+    const dangerSpy = jest
+      .spyOn(toaster, "danger")
+      .mockImplementation(() => undefined as any);
 
     const wrapper = shallow(<PluginMarketplace {...baseProps} />);
     // Prime the modal state so we can also verify it stays open on failure.
-    wrapper.setState({ rejectModalPlugin: basePlugin, rejectReason: "shell=True" });
+    wrapper.setState({
+      rejectModalPlugin: basePlugin,
+      rejectReason: "shell=True"
+    });
 
     wrapper.instance().rejectPlugin(basePlugin.id, "shell=True");
-    await new Promise((r) => setImmediate(r));
+    await new Promise(r => setImmediate(r));
 
     expect(successSpy).not.toHaveBeenCalled();
     expect(dangerSpy).toHaveBeenCalledWith("Failed to reject plugin.");

@@ -8,80 +8,59 @@ import {
   UPLOAD_COMMUNITY_PLUGIN,
   UPLOAD_COMMUNITY_PLUGIN_SUCCESS,
   UPLOAD_COMMUNITY_PLUGIN_ERROR,
-  RUN_COMMUNITY_PLUGIN,
-  RUN_COMMUNITY_PLUGIN_SUCCESS,
-  RUN_COMMUNITY_PLUGIN_ERROR,
   CLEAR_UPLOAD_STATE,
-  CLEAR_RUN_STATE,
-  SET_FILTER,
+  SET_FILTER
 } from "./constants";
 import { PluginListParams } from "./api";
 
 export const loadCommunityPlugins = (params: PluginListParams = {}) => ({
   type: LOAD_COMMUNITY_PLUGINS,
-  params,
+  params
 });
 
 export const loadCommunityPluginsSuccess = (data: any) => ({
   type: LOAD_COMMUNITY_PLUGINS_SUCCESS,
-  data,
+  data
 });
 
 export const loadCommunityPluginsError = (error: string) => ({
   type: LOAD_COMMUNITY_PLUGINS_ERROR,
-  error,
+  error
 });
 
 export const loadCommunityPluginDetail = (id: number) => ({
   type: LOAD_COMMUNITY_PLUGIN_DETAIL,
-  id,
+  id
 });
 
 export const loadCommunityPluginDetailSuccess = (plugin: any) => ({
   type: LOAD_COMMUNITY_PLUGIN_DETAIL_SUCCESS,
-  plugin,
+  plugin
 });
 
 export const loadCommunityPluginDetailError = (error: string) => ({
   type: LOAD_COMMUNITY_PLUGIN_DETAIL_ERROR,
-  error,
+  error
 });
 
 export const uploadCommunityPlugin = (formData: FormData) => ({
   type: UPLOAD_COMMUNITY_PLUGIN,
-  formData,
+  formData
 });
 
 export const uploadCommunityPluginSuccess = (plugin: any) => ({
   type: UPLOAD_COMMUNITY_PLUGIN_SUCCESS,
-  plugin,
+  plugin
 });
 
 export const uploadCommunityPluginError = (error: any) => ({
   type: UPLOAD_COMMUNITY_PLUGIN_ERROR,
-  error,
-});
-
-export const runCommunityPlugin = (id: number, targetUrl: string) => ({
-  type: RUN_COMMUNITY_PLUGIN,
-  id,
-  targetUrl,
-});
-
-export const runCommunityPluginSuccess = (result: any) => ({
-  type: RUN_COMMUNITY_PLUGIN_SUCCESS,
-  result,
-});
-
-export const runCommunityPluginError = (error: string) => ({
-  type: RUN_COMMUNITY_PLUGIN_ERROR,
-  error,
+  error
 });
 
 export const clearUploadState = () => ({ type: CLEAR_UPLOAD_STATE });
-export const clearRunState = () => ({ type: CLEAR_RUN_STATE });
 
 export const setFilter = (filter: Partial<PluginListParams>) => ({
   type: SET_FILTER,
-  filter,
+  filter
 });

@@ -85,7 +85,9 @@ const commonConfig = {
           {
             loader: "image-webpack-loader",
             options: {
-              disable: true,
+              progressive: true,
+              optimizationLevel: 7,
+              interlaced: false,
             },
           },
         ],

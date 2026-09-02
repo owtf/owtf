@@ -13,12 +13,12 @@ There are exactly two roles.
   unexpired JWT. Regular users can upload plugins, browse the approved
   catalogue, see their own uploads (including rejection reasons), and
   run their own scans. They cannot see other users' uploads, cannot
-  see any plugin's source code, and cannot approve, reject, delete,
-  test-run, or read the audit log of any plugin.
+  see any plugin's source code, and cannot approve, reject, delete, or
+  read the review history of any plugin.
 - **Admin.** A user with `users.is_admin = TRUE` in the database, or
   whose email appears in the `OWTF_ADMIN_EMAILS` env var at server
-  start. Admins can review source, approve, reject, delete, test-run,
-  and read the audit log. Admins are the trust boundary for the whole
+  start. Admins can review source, approve, reject, delete, and read
+  the review history. Admins are the trust boundary for the whole
   marketplace: an approved plugin runs with the same permissions as a
   built-in OWTF plugin.
 
@@ -47,7 +47,6 @@ credential leak waiting to happen.
 | `GET  /api/v1/community-plugins/me/`                  | user     | Current user's `{id, name, email, is_admin}`.      |
 | `GET  /api/v1/community-plugins/<id>/source/`         | admin    | Reads file server-side; response never carries `file_path`. |
 | `DELETE /api/v1/community-plugins/<id>/delete/`       | admin    | Removes the DB row and the file on disk.           |
-| `POST /api/v1/community-plugins/<id>/test-run/`       | admin    | Rate-limited, non-persistent, admin-only smoke test. |
 | `POST /api/v1/community-plugins/<id>/approve/`        | admin    | Records reviewer id + timestamp.                   |
 | `POST /api/v1/community-plugins/<id>/reject/`         | admin    | Body: `{"reason": "..."}`. Records reviewer id.    |
 | `GET  /api/v1/community-plugins/<id>/review-history/` | admin    | Upload and review timeline built from the plugin row's own timestamps. Not an append-only audit log. |
@@ -62,7 +61,7 @@ Three serializers, one audience each:
 - `to_owner_dict`: the uploader's own view. `to_dict` +
   `rejection_reason` + `user_id`.
 - `to_admin_dict`: admin-only. `to_owner_dict` + reviewer id +
-  reviewed timestamp + `execution_timeout` + `memory_limit`. Source
+  reviewed timestamp + `execution_timeout`. Source
   code is still not in this dict; admins fetch it through the source
   endpoint, which reads the file server-side.
 
@@ -106,15 +105,6 @@ approval. Approval is the trust decision, and admins are expected to
 read the code, not just click a button. Any additional runtime
 sandboxing (containers, resource limits enforced by the OS) is
 explicitly out of scope for this PR and belongs to a follow-up.
-
-## Test-run isolation
-
-`POST /<id>/test-run/` is admin-only, rate-limited to 3 calls per 60s
-per admin, and does not persist output through the scan pipeline. It
-uses the standard plugin runner so its behaviour matches production,
-but the output is returned inline and thrown away. This is
-deliberately not exposed to regular users: running an unreviewed
-plugin bypasses the "admin reviews source before approval" guarantee.
 
 ## Upgrade behaviour
 

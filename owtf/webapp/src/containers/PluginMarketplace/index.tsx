@@ -13,18 +13,13 @@ import {
   makeSelectFilter,
   makeSelectUploadLoading,
   makeSelectUploadError,
-  makeSelectUploadSuccess,
-  makeSelectRunLoading,
-  makeSelectRunError,
-  makeSelectRunResult,
+  makeSelectUploadSuccess
 } from "./selectors";
 import {
   loadCommunityPlugins,
   uploadCommunityPlugin,
-  runCommunityPlugin,
   clearUploadState,
-  clearRunState,
-  setFilter,
+  setFilter
 } from "./actions";
 import "./style.scss";
 
@@ -67,15 +62,9 @@ interface PropsType {
   uploadLoading: boolean;
   uploadError: any;
   uploadSuccess: any;
-  runLoading: boolean;
-  runError: string | null;
-  runResult: any;
-  isAdmin?: boolean;
   onLoad: (params?: any) => void;
   onUpload: (formData: FormData) => void;
-  onRun: (id: number, targetUrl: string) => void;
   onClearUpload: () => void;
-  onClearRun: () => void;
   onSetFilter: (f: any) => void;
 }
 
@@ -84,8 +73,6 @@ interface StateType {
   search: string;
   filterGroup: string;
   filterType: string;
-  runPlugin: Plugin | null;
-  targetUrl: string;
   uploadName: string;
   uploadDescription: string;
   uploadGroup: string;
@@ -118,8 +105,6 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
       search: "",
       filterGroup: "",
       filterType: "",
-      runPlugin: null,
-      targetUrl: "https://",
       uploadName: "",
       uploadDescription: "",
       uploadGroup: "web",
@@ -138,16 +123,13 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
       sourceModalPlugin: null,
       sourceCode: null,
       sourceLoading: false,
-      isAdmin: false,
+      isAdmin: false
     };
 
     this.handleTabChange = this.handleTabChange.bind(this);
     this.handleSearch = this.handleSearch.bind(this);
     this.handleGroupFilter = this.handleGroupFilter.bind(this);
     this.handleTypeFilter = this.handleTypeFilter.bind(this);
-    this.handleRunRequest = this.handleRunRequest.bind(this);
-    this.handleRunClose = this.handleRunClose.bind(this);
-    this.handleRunSubmit = this.handleRunSubmit.bind(this);
     this.handleUploadSubmit = this.handleUploadSubmit.bind(this);
     this.handleFileDrop = this.handleFileDrop.bind(this);
     this.handleFileSelect = this.handleFileSelect.bind(this);
@@ -165,12 +147,13 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
   }
 
   fetchCurrentUser() {
-    const token = localStorage.getItem("token") || sessionStorage.getItem("token") || "";
+    const token =
+      localStorage.getItem("token") || sessionStorage.getItem("token") || "";
     fetch("/api/v1/community-plugins/me/", {
-      headers: { Authorization: "Bearer " + token },
+      headers: { Authorization: "Bearer " + token }
     })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
+      .then(r => (r.ok ? r.json() : null))
+      .then(data => {
         if (data?.data?.is_admin) {
           this.setState({ isAdmin: true });
         }
@@ -184,12 +167,12 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
     if (prevProps.error !== this.props.error && this.props.error) {
       toaster.danger("Failed to load plugins: " + this.props.error);
     }
-    if (prevProps.uploadSuccess !== this.props.uploadSuccess && this.props.uploadSuccess) {
+    if (
+      prevProps.uploadSuccess !== this.props.uploadSuccess &&
+      this.props.uploadSuccess
+    ) {
       toaster.success("Plugin submitted for review.");
       this.resetUploadForm();
-    }
-    if (prevProps.runResult !== this.props.runResult && this.props.runResult) {
-      toaster.success("Plugin completed in " + this.props.runResult.elapsed_seconds + "s");
     }
   }
 
@@ -209,38 +192,47 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
   handleGroupFilter(e: React.ChangeEvent<HTMLSelectElement>) {
     const g = e.target.value;
     this.setState({ filterGroup: g });
-    this.props.onLoad({ status: "approved", group: g || undefined, type: this.state.filterType || undefined, q: this.state.search });
+    this.props.onLoad({
+      status: "approved",
+      group: g || undefined,
+      type: this.state.filterType || undefined,
+      q: this.state.search
+    });
   }
 
   handleTypeFilter(e: React.ChangeEvent<HTMLSelectElement>) {
     const t = e.target.value;
     this.setState({ filterType: t });
-    this.props.onLoad({ status: "approved", group: this.state.filterGroup || undefined, type: t || undefined, q: this.state.search });
+    this.props.onLoad({
+      status: "approved",
+      group: this.state.filterGroup || undefined,
+      type: t || undefined,
+      q: this.state.search
+    });
   }
 
   handleSearchSubmit() {
-    this.props.onLoad({ status: "approved", group: this.state.filterGroup || undefined, type: this.state.filterType || undefined, q: this.state.search });
-  }
-
-  handleRunRequest(plugin: Plugin) {
-    this.props.onClearRun();
-    this.setState({ runPlugin: plugin, targetUrl: "https://" });
-  }
-
-  handleRunClose() {
-    this.setState({ runPlugin: null });
-    this.props.onClearRun();
-  }
-
-  handleRunSubmit() {
-    const { runPlugin, targetUrl } = this.state;
-    if (!runPlugin || !targetUrl.startsWith("http")) return;
-    this.props.onRun(runPlugin.id, targetUrl);
+    this.props.onLoad({
+      status: "approved",
+      group: this.state.filterGroup || undefined,
+      type: this.state.filterType || undefined,
+      q: this.state.search
+    });
   }
 
   handleUploadSubmit() {
-    const { uploadName, uploadDescription, uploadGroup, uploadType, uploadAuthor, uploadVersion, uploadTags, uploadFile } = this.state;
-    if (!uploadFile || !uploadName || !uploadDescription || !uploadAuthor) return;
+    const {
+      uploadName,
+      uploadDescription,
+      uploadGroup,
+      uploadType,
+      uploadAuthor,
+      uploadVersion,
+      uploadTags,
+      uploadFile
+    } = this.state;
+    if (!uploadFile || !uploadName || !uploadDescription || !uploadAuthor)
+      return;
     const fd = new FormData();
     fd.append("name", uploadName);
     fd.append("description", uploadDescription);
@@ -269,7 +261,9 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
   approvePlugin(id: number) {
     fetch(`/api/v1/community-plugins/${id}/approve/`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token") || ""}`
+      }
     })
       .then(parseJsonIfOk)
       .then(() => {
@@ -284,9 +278,9 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
       method: "POST",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({ reason }),
+      body: JSON.stringify({ reason })
     })
       .then(parseJsonIfOk)
       .then(() => {
@@ -300,11 +294,16 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
   loadPendingPlugins() {
     this.setState({ pendingLoading: true });
     fetch("/api/v1/community-plugins/?status=pending", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token") || ""}`
+      }
     })
       .then(parseJsonIfOk)
-      .then((data) => {
-        this.setState({ pendingPlugins: data?.data?.plugins || [], pendingLoading: false });
+      .then(data => {
+        this.setState({
+          pendingPlugins: data?.data?.plugins || [],
+          pendingLoading: false
+        });
       })
       .catch(() => this.setState({ pendingLoading: false }));
   }
@@ -312,23 +311,37 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
   loadMinePlugins() {
     this.setState({ mineLoading: true });
     fetch("/api/v1/community-plugins/mine/", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token") || ""}`
+      }
     })
       .then(parseJsonIfOk)
-      .then((data) => {
-        this.setState({ minePlugins: data?.data?.plugins || [], mineLoading: false });
+      .then(data => {
+        this.setState({
+          minePlugins: data?.data?.plugins || [],
+          mineLoading: false
+        });
       })
       .catch(() => this.setState({ mineLoading: false }));
   }
 
   viewSource(plugin: Plugin) {
-    this.setState({ sourceModalPlugin: plugin, sourceCode: null, sourceLoading: true });
+    this.setState({
+      sourceModalPlugin: plugin,
+      sourceCode: null,
+      sourceLoading: true
+    });
     fetch(`/api/v1/community-plugins/${plugin.id}/source/`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token") || ""}`
+      }
     })
       .then(parseJsonIfOk)
-      .then((data) => {
-        this.setState({ sourceCode: data?.data?.source_code || "", sourceLoading: false });
+      .then(data => {
+        this.setState({
+          sourceCode: data?.data?.source_code || "",
+          sourceLoading: false
+        });
       })
       .catch(() => {
         this.setState({ sourceLoading: false });
@@ -357,7 +370,7 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
       uploadAuthor: "",
       uploadVersion: "1.0.0",
       uploadTags: "",
-      uploadFile: null,
+      uploadFile: null
     });
   }
 
@@ -368,10 +381,15 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
   }
 
   renderPluginCard(plugin: Plugin, mode: CardMode = "browse") {
-    const { isAdmin } = this.state;
     return (
       <div key={plugin.id} className="pluginCard">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start"
+          }}
+        >
           <div>
             <span className="pluginCard__title">{plugin.name}</span>
             <span className="pluginCard__version">v{plugin.version}</span>
@@ -384,29 +402,23 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
         <div className="pluginCard__badges">
           <span className="typeBadge">{plugin.group}</span>
           <span className="typeBadge">{plugin.type}</span>
-          {plugin.tags && plugin.tags.slice(0, 3).map((t) => (
-            <span key={t} className="typeBadge">{t}</span>
-          ))}
+          {plugin.tags &&
+            plugin.tags.slice(0, 3).map(t => (
+              <span key={t} className="typeBadge">
+                {t}
+              </span>
+            ))}
         </div>
 
         <div className="pluginCard__meta">by {plugin.author}</div>
 
-        {mode === "mine" && plugin.approval_status === "rejected" && plugin.rejection_reason && (
-          <div className="pluginCard__rejectionReason">
-            <strong>Rejection reason:</strong> {plugin.rejection_reason}
-          </div>
-        )}
-
-        {mode === "browse" && isAdmin && plugin.approval_status === "approved" && (
-          <div className="pluginCard__actions">
-            <button
-              className="btn btn-sm btn-primary"
-              onClick={() => this.handleRunRequest(plugin)}
-            >
-              Run on Target
-            </button>
-          </div>
-        )}
+        {mode === "mine" &&
+          plugin.approval_status === "rejected" &&
+          plugin.rejection_reason && (
+            <div className="pluginCard__rejectionReason">
+              <strong>Rejection reason:</strong> {plugin.rejection_reason}
+            </div>
+          )}
 
         {mode === "pending" && (
           <div className="pluginCard__actions">
@@ -446,18 +458,29 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
             placeholder="Search plugins"
             value={search}
             onChange={this.handleSearch}
-            onKeyDown={(e) => e.key === "Enter" && this.handleSearchSubmit()}
+            onKeyDown={e => e.key === "Enter" && this.handleSearchSubmit()}
             style={{ flex: "1 1 200px" }}
           />
           <select value={filterGroup} onChange={this.handleGroupFilter}>
             <option value="">All Groups</option>
-            {GROUPS.map((g) => <option key={g} value={g}>{g}</option>)}
+            {GROUPS.map(g => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
           </select>
           <select value={filterType} onChange={this.handleTypeFilter}>
             <option value="">All Types</option>
-            {PLUGIN_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+            {PLUGIN_TYPES.map(t => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
           </select>
-          <button className="btn btn-primary" onClick={() => this.handleSearchSubmit()}>
+          <button
+            className="btn btn-primary"
+            onClick={() => this.handleSearchSubmit()}
+          >
             Search
           </button>
         </div>
@@ -475,7 +498,7 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
         )}
 
         <div className="marketplacePage__grid">
-          {plugins.map((p) => this.renderPluginCard(p))}
+          {plugins.map(p => this.renderPluginCard(p))}
         </div>
       </div>
     );
@@ -483,37 +506,88 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
 
   renderUploadTab() {
     const { uploadLoading, uploadError } = this.props;
-    const { uploadName, uploadDescription, uploadGroup, uploadType, uploadAuthor, uploadVersion, uploadTags, uploadFile, dragOver } = this.state;
-    const disabled = uploadLoading || !uploadFile || !uploadName || !uploadDescription || !uploadAuthor;
+    const {
+      uploadName,
+      uploadDescription,
+      uploadGroup,
+      uploadType,
+      uploadAuthor,
+      uploadVersion,
+      uploadTags,
+      uploadFile,
+      dragOver
+    } = this.state;
+    const disabled =
+      uploadLoading ||
+      !uploadFile ||
+      !uploadName ||
+      !uploadDescription ||
+      !uploadAuthor;
 
     return (
       <div className="uploadForm">
         <div className="uploadForm__field">
-          <label>Plugin Name <span className="required">*</span></label>
-          <input type="text" value={uploadName} onChange={(e) => this.setState({ uploadName: e.target.value })} />
+          <label>
+            Plugin Name <span className="required">*</span>
+          </label>
+          <input
+            type="text"
+            value={uploadName}
+            onChange={e => this.setState({ uploadName: e.target.value })}
+          />
         </div>
 
         <div className="uploadForm__field">
-          <label>Author <span className="required">*</span></label>
-          <input type="text" value={uploadAuthor} onChange={(e) => this.setState({ uploadAuthor: e.target.value })} />
+          <label>
+            Author <span className="required">*</span>
+          </label>
+          <input
+            type="text"
+            value={uploadAuthor}
+            onChange={e => this.setState({ uploadAuthor: e.target.value })}
+          />
         </div>
 
         <div className="uploadForm__field">
-          <label>Description <span className="required">*</span></label>
-          <textarea rows={3} value={uploadDescription} onChange={(e) => this.setState({ uploadDescription: e.target.value })} />
+          <label>
+            Description <span className="required">*</span>
+          </label>
+          <textarea
+            rows={3}
+            value={uploadDescription}
+            onChange={e => this.setState({ uploadDescription: e.target.value })}
+          />
         </div>
 
         <div className="uploadForm__row">
           <div className="uploadForm__field">
-            <label>Group <span className="required">*</span></label>
-            <select value={uploadGroup} onChange={(e) => this.setState({ uploadGroup: e.target.value })}>
-              {GROUPS.map((g) => <option key={g} value={g}>{g}</option>)}
+            <label>
+              Group <span className="required">*</span>
+            </label>
+            <select
+              value={uploadGroup}
+              onChange={e => this.setState({ uploadGroup: e.target.value })}
+            >
+              {GROUPS.map(g => (
+                <option key={g} value={g}>
+                  {g}
+                </option>
+              ))}
             </select>
           </div>
           <div className="uploadForm__field">
-            <label>Type <span className="required">*</span></label>
-            <select value={uploadType} onChange={(e) => this.setState({ uploadType: e.target.value })}>
-              {PLUGIN_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+            <label>
+              Type <span className="required">*</span>
+            </label>
+            <select
+              value={uploadType}
+              onChange={e => this.setState({ uploadType: e.target.value })}
+            >
+              {PLUGIN_TYPES.map(t => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -521,22 +595,39 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
         <div className="uploadForm__row">
           <div className="uploadForm__field">
             <label>Version</label>
-            <input type="text" value={uploadVersion} onChange={(e) => this.setState({ uploadVersion: e.target.value })} />
+            <input
+              type="text"
+              value={uploadVersion}
+              onChange={e => this.setState({ uploadVersion: e.target.value })}
+            />
           </div>
           <div className="uploadForm__field">
             <label>Tags (comma-separated)</label>
-            <input type="text" value={uploadTags} onChange={(e) => this.setState({ uploadTags: e.target.value })} />
+            <input
+              type="text"
+              value={uploadTags}
+              onChange={e => this.setState({ uploadTags: e.target.value })}
+            />
           </div>
         </div>
 
         <div className="uploadForm__field">
-          <label>Plugin File (.py) <span className="required">*</span></label>
+          <label>
+            Plugin File (.py) <span className="required">*</span>
+          </label>
           <div
-            className={`uploadForm__dropzone ${dragOver ? "uploadForm__dropzone--active" : ""}`}
+            className={`uploadForm__dropzone ${
+              dragOver ? "uploadForm__dropzone--active" : ""
+            }`}
             onDrop={this.handleFileDrop}
-            onDragOver={(e) => { e.preventDefault(); this.setState({ dragOver: true }); }}
+            onDragOver={e => {
+              e.preventDefault();
+              this.setState({ dragOver: true });
+            }}
             onDragLeave={() => this.setState({ dragOver: false })}
-            onClick={() => this.fileInputRef.current && this.fileInputRef.current.click()}
+            onClick={() =>
+              this.fileInputRef.current && this.fileInputRef.current.click()
+            }
           >
             {uploadFile ? (
               <span className="uploadForm__dropzone__filename">
@@ -560,13 +651,21 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
             {uploadError.errors && uploadError.errors.length > 0 && (
               <div>
                 <strong>Errors:</strong>
-                <ul>{uploadError.errors.map((e: string, i: number) => <li key={i}>{e}</li>)}</ul>
+                <ul>
+                  {uploadError.errors.map((e: string, i: number) => (
+                    <li key={i}>{e}</li>
+                  ))}
+                </ul>
               </div>
             )}
             {uploadError.violations && uploadError.violations.length > 0 && (
               <div>
                 <strong>Security violations:</strong>
-                <ul>{uploadError.violations.map((v: string, i: number) => <li key={i}>{v}</li>)}</ul>
+                <ul>
+                  {uploadError.violations.map((v: string, i: number) => (
+                    <li key={i}>{v}</li>
+                  ))}
+                </ul>
               </div>
             )}
             {typeof uploadError === "string" && <span>{uploadError}</span>}
@@ -584,14 +683,22 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
         <div className="guidelinesBox">
           <strong>Plugin requirements</strong>
           <ul>
-            <li>Define a module-level <code>DESCRIPTION</code> string.</li>
             <li>
-              Implement a <code>run(PluginInfo)</code> function returning a dict.
-              Read the target URL as <code>PluginInfo["target_url"]</code>. This
-              is the same signature built-in OWTF plugins use.
+              Define a module-level <code>DESCRIPTION</code> string.
             </li>
-            <li>Use <code>subprocess.run([...], shell=False)</code> for external tools.</li>
-            <li>No <code>eval</code>, <code>exec</code>, <code>os.system</code>, or raw socket access.</li>
+            <li>
+              Implement a <code>run(PluginInfo)</code> function returning a
+              dict. Read the target URL as <code>PluginInfo["target_url"]</code>
+              . This is the same signature built-in OWTF plugins use.
+            </li>
+            <li>
+              Use <code>subprocess.run([...], shell=False)</code> for external
+              tools.
+            </li>
+            <li>
+              No <code>eval</code>, <code>exec</code>, <code>os.system</code>,
+              or raw socket access.
+            </li>
             <li>Max file size: 512 KB.</li>
           </ul>
         </div>
@@ -620,11 +727,18 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
 
     return (
       <div>
-        <p style={{ fontSize: "1.4rem", color: "#6c757d", marginBottom: "1.5rem" }}>
-          {pendingPlugins.length} plugin{pendingPlugins.length !== 1 ? "s" : ""} pending review
+        <p
+          style={{
+            fontSize: "1.4rem",
+            color: "#6c757d",
+            marginBottom: "1.5rem"
+          }}
+        >
+          {pendingPlugins.length} plugin{pendingPlugins.length !== 1 ? "s" : ""}{" "}
+          pending review
         </p>
         <div className="marketplacePage__grid">
-          {pendingPlugins.map((p) => (
+          {pendingPlugins.map(p => (
             <div key={p.id}>{this.renderPluginCard(p, "pending")}</div>
           ))}
         </div>
@@ -653,11 +767,18 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
 
     return (
       <div>
-        <p style={{ fontSize: "1.4rem", color: "#6c757d", marginBottom: "1.5rem" }}>
-          {minePlugins.length} plugin{minePlugins.length !== 1 ? "s" : ""} uploaded by you
+        <p
+          style={{
+            fontSize: "1.4rem",
+            color: "#6c757d",
+            marginBottom: "1.5rem"
+          }}
+        >
+          {minePlugins.length} plugin{minePlugins.length !== 1 ? "s" : ""}{" "}
+          uploaded by you
         </p>
         <div className="marketplacePage__grid">
-          {minePlugins.map((p) => (
+          {minePlugins.map(p => (
             <div key={p.id}>{this.renderPluginCard(p, "mine")}</div>
           ))}
         </div>
@@ -672,7 +793,7 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
     return (
       <div
         className="runModal"
-        onClick={(e) => e.target === e.currentTarget && this.closeRejectModal()}
+        onClick={e => e.target === e.currentTarget && this.closeRejectModal()}
       >
         <div className="runModal__dialog">
           <h4>Reject: {rejectModalPlugin.name}</h4>
@@ -681,18 +802,23 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
             <textarea
               rows={4}
               value={rejectReason}
-              onChange={(e) => this.setState({ rejectReason: e.target.value })}
+              onChange={e => this.setState({ rejectReason: e.target.value })}
               placeholder="Provide a reason for rejection..."
             />
           </div>
           <div className="runModal__actions">
             <button
               className="btn btn-danger"
-              onClick={() => this.rejectPlugin(rejectModalPlugin.id, rejectReason)}
+              onClick={() =>
+                this.rejectPlugin(rejectModalPlugin.id, rejectReason)
+              }
             >
               Confirm Reject
             </button>
-            <button className="btn btn-outline-secondary" onClick={this.closeRejectModal}>
+            <button
+              className="btn btn-outline-secondary"
+              onClick={this.closeRejectModal}
+            >
               Cancel
             </button>
           </div>
@@ -708,7 +834,7 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
     return (
       <div
         className="runModal"
-        onClick={(e) => e.target === e.currentTarget && this.closeSourceModal()}
+        onClick={e => e.target === e.currentTarget && this.closeSourceModal()}
       >
         <div className="runModal__dialog">
           <h4>Source: {sourceModalPlugin.name}</h4>
@@ -722,59 +848,10 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
             </pre>
           )}
           <div className="runModal__actions">
-            <button className="btn btn-outline-secondary" onClick={this.closeSourceModal}>
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  renderRunModal() {
-    const { runLoading, runError, runResult } = this.props;
-    const { runPlugin, targetUrl } = this.state;
-    if (!runPlugin) return null;
-
-    return (
-      <div className="runModal" onClick={(e) => e.target === e.currentTarget && this.handleRunClose()}>
-        <div className="runModal__dialog">
-          <h4>Run: {runPlugin.name}</h4>
-
-          <div className="uploadForm__field">
-            <label>Target URL</label>
-            <input
-              type="text"
-              value={targetUrl}
-              onChange={(e) => this.setState({ targetUrl: e.target.value })}
-              placeholder="https://example.com"
-            />
-          </div>
-
-          {runError && (
-            <div className="runModal__error">{runError}</div>
-          )}
-
-          {runResult && (
-            <div className="runModal__result">
-              <strong style={{ fontSize: "1.3rem" }}>
-                Completed in {runResult.elapsed_seconds}s
-              </strong>
-              <pre>{JSON.stringify(runResult.output, null, 2)}</pre>
-            </div>
-          )}
-
-          <div className="runModal__actions">
-            {!runResult && (
-              <button
-                className="btn btn-primary"
-                onClick={this.handleRunSubmit}
-                disabled={runLoading || !targetUrl.startsWith("http")}
-              >
-                {runLoading ? <Spinner size={16} /> : "Run Plugin"}
-              </button>
-            )}
-            <button className="btn btn-outline-secondary" onClick={this.handleRunClose}>
+            <button
+              className="btn btn-outline-secondary"
+              onClick={this.closeSourceModal}
+            >
               Close
             </button>
           </div>
@@ -799,21 +876,27 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
           <div className="marketplacePage__tabs">
             <button
               type="button"
-              className={`btn btn-lg ${activeTab === "browse" ? "btn-primary" : "btn-outline-secondary"}`}
+              className={`btn btn-lg ${
+                activeTab === "browse" ? "btn-primary" : "btn-outline-secondary"
+              }`}
               onClick={() => this.handleTabChange("browse")}
             >
               Browse
             </button>
             <button
               type="button"
-              className={`btn btn-lg ${activeTab === "upload" ? "btn-primary" : "btn-outline-secondary"}`}
+              className={`btn btn-lg ${
+                activeTab === "upload" ? "btn-primary" : "btn-outline-secondary"
+              }`}
               onClick={() => this.handleTabChange("upload")}
             >
               Upload
             </button>
             <button
               type="button"
-              className={`btn btn-lg ${activeTab === "mine" ? "btn-primary" : "btn-outline-secondary"}`}
+              className={`btn btn-lg ${
+                activeTab === "mine" ? "btn-primary" : "btn-outline-secondary"
+              }`}
               onClick={() => this.handleTabChange("mine")}
             >
               My Plugins
@@ -821,7 +904,11 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
             {isAdmin && (
               <button
                 type="button"
-                className={`btn btn-lg ${activeTab === "pending" ? "btn-primary" : "btn-outline-secondary"}`}
+                className={`btn btn-lg ${
+                  activeTab === "pending"
+                    ? "btn-primary"
+                    : "btn-outline-secondary"
+                }`}
                 onClick={() => this.handleTabChange("pending")}
               >
                 Pending Review
@@ -837,7 +924,6 @@ export class PluginMarketplace extends React.Component<PropsType, StateType> {
           </div>
         </div>
 
-        {this.renderRunModal()}
         {this.renderRejectModal()}
         {this.renderSourceModal()}
       </div>
@@ -852,19 +938,14 @@ const mapStateToProps = createStructuredSelector({
   filter: makeSelectFilter,
   uploadLoading: makeSelectUploadLoading,
   uploadError: makeSelectUploadError,
-  uploadSuccess: makeSelectUploadSuccess,
-  runLoading: makeSelectRunLoading,
-  runError: makeSelectRunError,
-  runResult: makeSelectRunResult,
+  uploadSuccess: makeSelectUploadSuccess
 });
 
 const mapDispatchToProps = (dispatch: any) => ({
   onLoad: (params?: any) => dispatch(loadCommunityPlugins(params)),
   onUpload: (formData: FormData) => dispatch(uploadCommunityPlugin(formData)),
-  onRun: (id: number, targetUrl: string) => dispatch(runCommunityPlugin(id, targetUrl)),
   onClearUpload: () => dispatch(clearUploadState()),
-  onClearRun: () => dispatch(clearRunState()),
-  onSetFilter: (f: any) => dispatch(setFilter(f)),
+  onSetFilter: (f: any) => dispatch(setFilter(f))
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(PluginMarketplace);
