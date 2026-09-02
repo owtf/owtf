@@ -67,7 +67,7 @@ class WorkerManager(object):
         if int(avail / 1024 / 1024) > MIN_RAM_NEEDED:
             work = get_work_for_target(self.session, self.targets_in_use())
         else:
-            logging.warn("Not enough memory to execute a plugin")
+            logging.warning("Not enough memory to execute a plugin")
         return work
 
     def spawn_workers(self):
@@ -239,14 +239,14 @@ class WorkerManager(object):
         gone, alive = psutil.wait_procs(
             children, timeout=TIMEOUT, callback=on_terminate
         )
-        if not alive:
-            # send SIGKILL
+        if alive:
+            # send SIGKILL to processes that survived SIGTERM
             for pid in alive:
                 logging.debug("Process %d survived SIGTERM; trying SIGKILL", pid)
                 pid.kill()
         gone, alive = psutil.wait_procs(alive, timeout=TIMEOUT, callback=on_terminate)
-        if not alive:
-            # give up
+        if alive:
+            # give up on processes that survived SIGKILL
             for pid in alive:
                 logging.debug("Process %d survived SIGKILL; giving up", pid)
 
