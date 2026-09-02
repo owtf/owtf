@@ -193,16 +193,16 @@ class BaseShell(object):
                 if not line:
                     break
                 logging.info(
-                    line.decode("utf-8").strip()
+                    line.decode("utf-8", errors="replace").strip()
                 )  # Show progress on the screen too!
                 output += line.decode(
-                    "utf-8"
+                    "utf-8", errors="replace"
                 )  # Save as much output as possible before a tool crashes! :)
         except KeyboardInterrupt:
             os.killpg(proc.pid, signal.SIGINT)
             out, err = proc.communicate()
-            logging.warn(out.decode("utf-8"))
-            output += out.decode("utf-8")
+            logging.warning(out.decode("utf-8", errors="replace"))
+            output += out.decode("utf-8", errors="replace")
             try:
                 os.killpg(
                     os.getpgid(proc.pid), signal.SIGTERM
