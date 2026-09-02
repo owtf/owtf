@@ -6,12 +6,12 @@ The module is in charge of running all plugins taking into account the
 chosen settings.
 """
 import copy
-from collections import defaultdict
 import hashlib
 import importlib.util
 import logging
 import os
 import re
+from collections import defaultdict
 
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -23,7 +23,7 @@ from owtf.managers.poutput import save_partial_output, save_plugin_output
 from owtf.managers.target import target_manager
 from owtf.managers.transaction import num_transactions
 from owtf.net.scanner import Scanner
-from owtf.plugin.harness import execute_with_timeout, TimeoutResult, ErrorResult
+from owtf.plugin.harness import ErrorResult, TimeoutResult, execute_with_timeout
 from owtf.settings import AUX_OUTPUT_PATH, PLUGINS_DIR
 from owtf.utils.error import abort_framework, user_abort
 from owtf.utils.file import FileOperations, get_output_dir_target
@@ -507,8 +507,8 @@ class PluginRunner(object):
         finally:
             plugin["status"] = status_msg
             plugin["end"] = self.timer.get_end_date_time("Plugin")
-            # Only rank if output is actual data (not TimeoutResult/ErrorResult)
-            if isinstance(output, dict):
+            # Rank any real output — everything except the two harness
+            if output is not None and not isinstance(output, (TimeoutResult, ErrorResult)):
                 plugin["owtf_rank"] = self.rank_plugin(output, self.get_plugin_output_dir(plugin))
             else:
                 plugin["owtf_rank"] = None

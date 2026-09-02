@@ -35,7 +35,7 @@ class InteractiveShell(BaseShell):
         :rtype: `bool`
         """
         if not self.connection:
-            logging.warn("ERROR - Communication channel closed - %s", abort_message)
+            logging.warning("ERROR - Communication channel closed - %s", abort_message)
             return False
         return True
 
@@ -53,7 +53,7 @@ class InteractiveShell(BaseShell):
         try:
             output = recv_some(self.connection, time)
         except DisconnectException:
-            logging.warn("ERROR: read - The Communication channel is down!")
+            logging.warning("ERROR: read - The Communication channel is down!")
             return output  # End of communication channel
         logging.info(output)  # Show progress on screen
         return output
@@ -97,7 +97,7 @@ class InteractiveShell(BaseShell):
             self.finish_cmd(self.session, cmd_info, cancelled, plugin_info)
         except DisconnectException:
             cancelled = True
-            logging.warn("ERROR: Run - The Communication Channel is down!")
+            logging.warning("ERROR: Run - The Communication Channel is down!")
             self.finish_cmd(self.session, cmd_info, cancelled, plugin_info)
         except KeyboardInterrupt:
             cancelled = True
