@@ -11,12 +11,13 @@ import tornado.options
 import tornado.web
 from tornado.routing import RuleRouter, Rule, PathMatches, AnyMatches
 from tornado.web import Application
-
+from tornado.ioloop import PeriodicCallback, IOLoop
 from owtf.api.routes import API_v1_HANDLERS, UI_HANDLERS
 from owtf.api.utils import VersionMatches
 from owtf.lib.owtf_process import OWTFProcess
 from owtf.settings import DEBUG, SERVER_ADDR, TEMPLATES, STATIC_ROOT, SERVER_PORT, SERVER_LOG, APP_SECRET
 from owtf.utils.app import Application
+from owtf.managers.worker import worker_manager
 
 __all__ = ["start_server"]
 
@@ -54,6 +55,14 @@ class APIServer(OWTFProcess):
                 args=["dummy_arg", "--log_file_prefix={}".format(SERVER_LOG), "--logging=info"]
             )
             self.server.start(0)
+            def safe_manage_workers():
+                try:
+                    worker_manager.manage_workers()
+                except Exception as e:
+                    logging.error(f"Error in worker_manager.manage_workers: {e}")
+
+            callback = PeriodicCallback(safe_manage_workers, 1000)
+            callback.start()
             tornado.ioloop.IOLoop.instance().start()
         except KeyboardInterrupt:
             pass

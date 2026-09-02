@@ -7,6 +7,7 @@ import logging
 import multiprocessing
 import signal
 from time import strftime
+from datetime import datetime
 
 try:
     import queue
@@ -132,7 +133,7 @@ class WorkerManager(object):
                     # Assign target, plugin from tuple work and empty the tuple
                     self.workers[k]["work"] = ()
                     self.workers[k]["busy"] = False  # Worker is IDLE
-                    self.workers[k]["start_time"] = "NA"
+                    self.workers[k]["start_time"] = None
                 else:
                     logging.info(
                         "Worker with name %s and pid %d seems dead",
@@ -152,7 +153,7 @@ class WorkerManager(object):
                     self.workers[k]["worker"].input_q.put(work_to_assign)
                     self.workers[k]["work"] = work_to_assign
                     self.workers[k]["busy"] = True
-                    self.workers[k]["start_time"] = strftime("%Y/%m/%d %H:%M:%S")
+                    self.workers[k]["start_time"] = datetime.utcnow().isoformat() + "Z"
                 if not self.keep_working:
                     if not self.is_any_worker_busy():
                         logging.info("All jobs have been done. Exiting.")
