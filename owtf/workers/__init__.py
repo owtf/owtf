@@ -1,2 +1,0 @@
-class BaseWorker(object):
-    pass

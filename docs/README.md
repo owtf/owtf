@@ -1,17 +1,15 @@
-# How to write user docs
+# OWTF documentation
 
-Install the documentation dependencies (including the site theme) with pip:
+The maintained design and operator documentation is intentionally small:
 
-    ```
-    pip install -r docs/docs-requirements.txt
-    ```
+- `architecture/owtf-next.rst` defines the control-plane boundaries, plugin
+  contract, task lifecycle, phase gates, and resource constraints.
+- `architecture/legacy-plugin-inventory.csv` records the legacy technique
+  codes and metadata used to decide which plugins to reimplement.
+- `usage/owtf-next-cli.rst` documents the current CLI surface.
+- `usage/access-model.rst` documents the deliberate absence of application
+  authentication.
 
-After editing the documentation, generate html using
-
-    ```
-    make html
-    ```
-
-Once you are satisfied with the changes, please push to the repo :)
-
-PS: It is strictly advised to fix all errors and warnings before pushing.
+Go package documentation lives beside the code and is available with `go doc`.
+Update package comments and exported-symbol comments in the same change as the
+behavior they describe.

@@ -1,64 +1,52 @@
 # Contributing to OWTF
 
-Thank you for considering a contribution to the OWASP Offensive Web Testing Framework (OWTF)! Whether you found a bug, want to
-add a feature, or improve our documentation, every contribution makes OWTF better for the community.
-
-## How to get involved
-
-- **Ask questions** – Use [GitHub Discussions](https://github.com/owtf/owtf/discussions) or join the OWASP Slack workspace and
-  head to `#project-owtf`.
-- **Report issues** – Search the [issue tracker](https://github.com/owtf/owtf/issues) before opening a new ticket. Provide as
-  much detail as possible (steps to reproduce, expected behaviour, environment details, and logs where relevant).
-- **Contribute code or documentation** – Pick an open issue or propose a new improvement, then submit a pull request.
-
-Please make sure you read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
+OWTF accepts focused changes that improve its use as an authorized security
+testing harness. Discuss large changes in a GitHub issue or the OWASP Slack
+`#project-owtf` channel before implementation.
 
 ## Development workflow
 
-1. **Fork and clone** the repository, then create a feature branch:
+1. Install Go 1.24 or newer.
+2. Create a focused branch from the current development branch.
+3. Make the smallest coherent implementation and documentation change.
+4. Run the complete local gate:
+
    ```bash
-   git clone https://github.com/<your-username>/owtf
-   cd owtf
-   git checkout -b feature/my-change
-   ```
-2. **Set up your environment** using the instructions in the [README](README.md). The `requirements/dev.txt` file contains
-   development dependencies.
-3. **Run the tests and linters** before submitting your changes:
-   ```bash
-   make startdb
    make lint
-   pytest
+   make test-next
+   make test-next-api
    ```
-   You can run specific test modules using `pytest tests/<path>::<TestClass>`.
-4. **Keep commits focused**. Write clear commit messages in the present tense (e.g. `Fix crash in plugin loader`).
-5. **Submit a pull request** to the `develop` branch. Describe what changed, why it matters, and include any testing steps.
 
-## Style guidelines
+5. Submit a pull request with the behavior changed, verification performed, and
+   any compatibility impact.
 
-- Follow [PEP 8](https://peps.python.org/pep-0008/) for Python code unless the existing module uses a different convention.
-- Use [ruff](https://docs.astral.sh/ruff/) for both linting and formatting (`make lint-py` / `make format-py`) on the maintained runtime module set.
-- Run static type checks with `make typecheck-py` (mypy targeted modules).
-- Type hints are encouraged for new modules and functions.
-- Update or add documentation and tests relevant to your change. New features should include at least one automated test where
-  feasible.
+The smoke flow is intentionally native and resource bounded. Do not require
+Docker for unit or end-to-end development checks.
+
+## Design rules
+
+- Keep sessions, targets, plugin codes, worklist, workers, transactions, and
+  reports as the operator-facing OWTF vocabulary.
+- Keep orchestration in the Go control plane and durable state in SQLite.
+- Run plugin commands as argument arrays. Do not interpolate target values into
+  shell source.
+- Declare plugin requirements and artifacts in `plugin.yaml`.
+- Treat missing tools, malformed output, cancellation, and timeouts as explicit
+  task states.
+- Keep stdout and stderr as retained task events.
+- Do not add application accounts, passwords, tokens, or a user database.
+- Add package and exported-symbol documentation that explains ownership and
+  invariants rather than restating names.
+- Include tests that exercise the real storage, worklist, runner, and evidence
+  path when behavior crosses those boundaries.
 
 ## Pull request checklist
 
-Before requesting a review, double-check that:
+- [ ] Formatting, static analysis, unit tests, and the curl/CLI smoke flow pass.
+- [ ] New behavior has focused tests and operator-facing documentation.
+- [ ] Plugin changes retain established OWTF technique codes where applicable.
+- [ ] Error and cancellation states are visible rather than silently ignored.
+- [ ] No secrets, credentials, or output artifacts are committed.
 
-- [ ] Tests, linting, and type checks pass locally.
-- [ ] New or updated documentation is included when needed.
-- [ ] Any user-facing changes are described in the pull request summary.
-- [ ] You have added yourself to `AUTHORS.md` if you are a new contributor.
-
-## Reporting security issues
-
-Please do **not** open a public issue if you find a security vulnerability. Instead, follow the steps outlined in our
-[Security Policy](SECURITY.md).
-
-## Recognition
-
-We are grateful to everyone who contributes to OWTF. Significant contributions are highlighted in the project's
-[hall of fame](https://github.com/OWASP/OWTF/blob/master/hall_of-fame.md).
-
-Thank you for helping us build a stronger, more secure web!
+Report security issues through the process in [SECURITY.md](SECURITY.md), not a
+public issue.

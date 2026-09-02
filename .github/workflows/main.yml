@@ -2,251 +2,38 @@ name: OWTF CI
 
 on:
   push:
-    branches:
-      - develop
+    branches: [develop, owtf-next]
   pull_request:
-    branches:
-      - develop
+    branches: [develop, owtf-next]
 
 concurrency:
   group: owtf-ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  backend-tests:
-    name: Backend Tests (py${{ matrix.python-version }})
+  test:
+    name: Go tests and flow checks
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.11", "3.12"]
-    services:
-      db:
-        image: postgres:16
-        env:
-          POSTGRES_USER: owtf_db_user
-          POSTGRES_PASSWORD: jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=
-          POSTGRES_DB: owtf_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U owtf_db_user -d owtf_db"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    timeout-minutes: 15
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          python-version: ${{ matrix.python-version }}
-          cache: pip
-          cache-dependency-path: |
-            requirements/base.txt
-            requirements/test.txt
-            pyproject.toml
+          go-version: "1.24.x"
+          cache: true
+      - name: Check formatting and static analysis
+        run: make lint
+      - name: Run unit and integration tests
+        run: make test-next
+      - name: Run API and CLI smoke flow
+        run: make test-next-api
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libffi-dev \
-            libgnutls28-dev \
-            libyaml-dev \
-            libcurl4-openssl-dev \
-            libssl-dev \
-            postgresql-client
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install -r requirements/base.txt
-          pip install -r requirements/test.txt
-          OWTF_SKIP_POST_INSTALL=1 pip install -e . --no-deps
-
-      - name: Prepare test fixtures
-        run: |
-          mkdir -p ~/.owtf/conf/profiles/plugin_web/
-          mkdir -p ~/.owtf/conf/profiles/plugin_net/
-          mkdir -p ~/.owtf/conf/profiles/plugin_aux/
-          cp -f ./tests/fixtures/profiles/plugin_web/groups.cfg ~/.owtf/conf/profiles/plugin_web/groups.cfg
-          cp -f ./tests/fixtures/profiles/plugin_net/groups.cfg ~/.owtf/conf/profiles/plugin_net/groups.cfg
-          cp -f ./tests/fixtures/profiles/plugin_aux/groups.cfg ~/.owtf/conf/profiles/plugin_aux/groups.cfg
-          git config --global user.email "ci@owtf.org"
-          git config --global user.name "OWTF CI"
-
-      - name: Run backend tests
-        env:
-          POSTGRES_HOST: 127.0.0.1
-          POSTGRES_PORT: 5432
-          POSTGRES_USER: owtf_db_user
-          POSTGRES_PASSWORD: jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=
-          POSTGRES_DB: owtf_db
-        run: |
-          set -euo pipefail
-
-          run_backend_test() {
-            echo "Running: $*"
-            timeout --signal=TERM --kill-after=30s 20m "$@"
-          }
-
-          run_backend_test python -m unittest tests.functional.cli.test_empty_run
-          run_backend_test python -m unittest tests.functional.cli.test_list_plugins
-          run_backend_test python -m unittest tests.functional.cli.test_nowebui
-          # Web functional tests are temporarily excluded from required CI
-          # because OWTF does not exit cleanly in web-mode test runs yet.
-
-  frontend-tests:
-    name: Frontend Tests (Node 20)
+  container:
+    name: Build container
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: yarn
-          cache-dependency-path: owtf/webapp/yarn.lock
-
-      - name: Install frontend dependencies
-        working-directory: owtf/webapp
-        env:
-          NODE_OPTIONS: --openssl-legacy-provider
-        run: |
-          yarn install --frozen-lockfile
-          # Enzyme + Jest 24 are incompatible with newer Cheerio releases that use node:* imports.
-          npm install --no-save --legacy-peer-deps cheerio@1.0.0-rc.12
-
-      - name: Run frontend tests
-        working-directory: owtf/webapp
-        env:
-          CI: "true"
-          NODE_OPTIONS: --openssl-legacy-provider
-        run: yarn test --runInBand --watch=false
-
-  docker-build:
-    name: Docker Build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Detect Dockerfile changes
-        id: docker_changes
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            docker:
-              - 'docker/Dockerfile.backend'
-              - 'docker/Dockerfile.frontend'
-
-      - name: Set up Docker Buildx
-        if: steps.docker_changes.outputs.docker == 'true'
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build backend image
-        if: steps.docker_changes.outputs.docker == 'true'
-        run: |
-          docker build \
-            --pull \
-            --file docker/Dockerfile.backend \
-            --target final_install \
-            --tag owtf-backend:ci \
-            .
-
-      - name: Build frontend image
-        if: steps.docker_changes.outputs.docker == 'true'
-        run: |
-          docker build \
-            --pull \
-            --file docker/Dockerfile.frontend \
-            --tag owtf-frontend:ci \
-            .
-
-      - name: Skip Docker builds (no Dockerfile changes)
-        if: steps.docker_changes.outputs.docker != 'true'
-        run: echo "No Dockerfile changes detected; skipping Docker image builds."
-
-  docs:
-    name: Docs Build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: |
-            requirements/docs.txt
-            docs/docs-requirements.txt
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libffi-dev \
-            libgnutls28-dev \
-            libyaml-dev \
-            libcurl4-openssl-dev \
-            libssl-dev
-
-      - name: Build docs
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements/docs.txt
-          pip install -r docs/docs-requirements.txt
-          sphinx-build -b html docs/ docs/_build/html
-
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: |
-            requirements/base.txt
-            requirements/dev.txt
-            requirements/test.txt
-            pyproject.toml
-
-      - name: Run Python lint checks
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements/base.txt
-          pip install -r requirements/dev.txt
-          ruff check owtf/config.py owtf/lib/exceptions.py owtf/managers/config.py owtf/managers/target.py owtf/requester/base.py owtf/transactions/base.py owtf/transactions/main.py owtf/utils/http.py
-          ruff format --check owtf/config.py owtf/lib/exceptions.py owtf/managers/config.py owtf/managers/target.py owtf/requester/base.py owtf/transactions/base.py owtf/transactions/main.py owtf/utils/http.py
-          mypy --follow-imports=skip --disable-error-code=import-untyped owtf/config.py owtf/lib/exceptions.py owtf/managers/config.py owtf/managers/target.py owtf/requester/base.py owtf/transactions/base.py owtf/transactions/main.py owtf/utils/http.py
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: yarn
-          cache-dependency-path: owtf/webapp/yarn.lock
-
-      - name: Run frontend lint (if configured)
-        working-directory: owtf/webapp
-        env:
-          NODE_OPTIONS: --openssl-legacy-provider
-        run: |
-          yarn install --frozen-lockfile
-          if node -e "const scripts = require('./package.json').scripts || {}; process.exit(scripts.lint ? 0 : 1)"; then
-            yarn run lint
-          else
-            echo "No frontend lint script configured; skipping."
-          fi
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build the Go and SQLite image
+        run: docker build --file docker/Dockerfile.backend --tag owtf-next:ci .
