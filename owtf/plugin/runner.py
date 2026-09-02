@@ -12,8 +12,6 @@ import importlib.util
 import logging
 import os
 import re
-import signal
-import threading
 from collections import defaultdict
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -26,6 +24,7 @@ from owtf.managers.poutput import save_partial_output, save_plugin_output
 from owtf.managers.target import target_manager
 from owtf.managers.transaction import num_transactions
 from owtf.net.scanner import Scanner
+from owtf.plugin.harness import ErrorResult, TimeoutResult, execute_with_timeout
 from owtf.settings import AUX_OUTPUT_PATH, PLUGINS_DIR
 from owtf.utils.error import abort_framework, user_abort
 from owtf.utils.file import FileOperations, get_output_dir_target
@@ -51,25 +50,6 @@ except Exception as e:  # pragma: no cover - depends on optional runtime stack
         pass
 
     _PTP_IMPORT_ERROR = e
-
-
-class CommunityPluginTimeout(Exception):
-    """Raised when a community plugin exceeds its execution_timeout."""
-
-
-def _run_with_alarm(fn, arg, timeout):
-    """Call fn(arg) under a SIGALRM watchdog. Main-thread only."""
-
-    def _handler(signum, frame):
-        raise CommunityPluginTimeout("community plugin exceeded {}s".format(timeout))
-
-    prev_handler = signal.signal(signal.SIGALRM, _handler)
-    signal.alarm(timeout)
-    try:
-        return fn(arg)
-    finally:
-        signal.alarm(0)
-        signal.signal(signal.SIGALRM, prev_handler)
 
 
 INTRO_BANNER_GENERAL = """
@@ -388,16 +368,15 @@ class PluginRunner(object):
             return self._run_community_plugin(plugin)
         plugin_path = self.get_plugin_full_path(plugin_dir, plugin)
         path, name = os.path.split(plugin_path)
-        plugin_output = self.get_module("", name, path + "/").run(plugin)
+        module = self.get_module("", name, path + "/")
+        plugin_output = execute_with_timeout(module.run, plugin)
         return plugin_output
 
     def _run_community_plugin(self, plugin):
         """Load an approved community plugin from disk and call run(plugin).
 
-        Enforces ``plugin['execution_timeout']`` via SIGALRM when the runner
-        is on the main thread (the test-run request path). From a worker
-        thread SIGALRM is unavailable, so the timeout is not enforced and
-        the caller sees a warning instead of a silent skip.
+        Community plugins use the same timeout, retry, and result objects as
+        built-in plugins so process_plugin can record failures consistently.
         """
         file_path = plugin["file_path"]
         path, name = os.path.split(file_path)
@@ -408,16 +387,9 @@ class PluginRunner(object):
             target_url = plugin.get("target_url")
         logging.info("Running community plugin %r against %s", plugin.get("name"), target_url)
         module = self.get_module("", name, path + "/")
-        timeout = int(plugin.get("execution_timeout") or 0)
-        if timeout > 0 and threading.current_thread() is threading.main_thread():
-            return _run_with_alarm(module.run, plugin, timeout)
-        if timeout > 0:
-            logging.warning(
-                "Community plugin %r execution_timeout=%ss is not enforced from a worker thread",
-                plugin.get("name"),
-                timeout,
-            )
-        return module.run(plugin)
+        configured_timeout = plugin.get("execution_timeout")
+        timeout = int(configured_timeout) if configured_timeout else None
+        return execute_with_timeout(module.run, plugin, timeout=timeout)
 
     @staticmethod
     def rank_plugin(output, pathname):
@@ -517,8 +489,18 @@ class PluginRunner(object):
         abort_reason = ""
         try:
             output = self.run_plugin(plugin_dir, plugin)
-            status_msg = "Successful"
-            status["SomeSuccessful"] = True
+            # Check for distinct outcomes from harness
+            if isinstance(output, TimeoutResult):
+                status_msg = "Timeout"
+                abort_reason = output.message
+                status["SomeTimeout"] = True
+            elif isinstance(output, ErrorResult):
+                status_msg = "Error"
+                abort_reason = output.message
+                status["SomeError"] = True
+            else:
+                status_msg = "Successful"
+                status["SomeSuccessful"] = True
         except KeyboardInterrupt:
             # Just explain why crashed.
             status_msg = "Aborted"
@@ -547,7 +529,11 @@ class PluginRunner(object):
         finally:
             plugin["status"] = status_msg
             plugin["end"] = self.timer.get_end_date_time("Plugin")
-            plugin["owtf_rank"] = self.rank_plugin(output, self.get_plugin_output_dir(plugin))
+            # Rank any real output — everything except the two harness
+            if output is not None and not isinstance(output, (TimeoutResult, ErrorResult)):
+                plugin["owtf_rank"] = self.rank_plugin(output, self.get_plugin_output_dir(plugin))
+            else:
+                plugin["owtf_rank"] = None
             try:
                 if status_msg == "Successful":
                     save_plugin_output(session=session, plugin=plugin, output=output)
