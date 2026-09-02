@@ -62,8 +62,8 @@ def _signal_process(pid, psignal=signal.SIGINT):
     for pid in children:
         pid.send_signal(psignal)
     gone, alive = psutil.wait_procs(children, timeout=TIMEOUT)
-    if not alive:
-        # send SIGKILL
+    if alive:
+        # send SIGKILL to the processes that survived the first signal
         for pid in alive:
             logging.debug("Process %d survived SIGTERM; trying SIGKILL", pid)
             pid.kill()

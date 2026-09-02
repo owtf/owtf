@@ -65,8 +65,10 @@ class InterceptorManager:
         """
         if position is None:
             self.request_interceptors.append(interceptor)
+            self.response_interceptors.append(interceptor)
         else:
             self.request_interceptors.insert(position, interceptor)
+            self.response_interceptors.insert(position, interceptor)
 
         # Sort by priority
         self.request_interceptors.sort(key=lambda x: x.priority)
@@ -76,18 +78,26 @@ class InterceptorManager:
 
     def remove_interceptor(self, interceptor_id: str):
         """
-        Remove an interceptor by ID.
+        Remove an interceptor by ID from both the request and response chains.
 
         :param interceptor_id: ID of the interceptor to remove
         """
         # Find by name (using as ID for simplicity)
+        removed = None
         for i, interceptor in enumerate(self.request_interceptors):
             if interceptor.name == interceptor_id:
                 removed = self.request_interceptors.pop(i)
-                logger.info(f"Removed interceptor '{removed.name}'")
-                return
+                break
 
-        logger.warning(f"Interceptor with ID '{interceptor_id}' not found")
+        for i, interceptor in enumerate(self.response_interceptors):
+            if interceptor.name == interceptor_id:
+                self.response_interceptors.pop(i)
+                break
+
+        if removed:
+            logger.info(f"Removed interceptor '{removed.name}'")
+        else:
+            logger.warning(f"Interceptor with ID '{interceptor_id}' not found")
 
     def get_interceptor(self, interceptor_id: str) -> Optional[BaseInterceptor]:
         """
