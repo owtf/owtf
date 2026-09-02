@@ -3,9 +3,8 @@ owtf.managers.community_plugin
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Database-level operations for community-uploaded plugins: upload,
-validate, store, list, approve, reject, delete, and test-run. Approved
-plugins run through the normal plugin runner; admin review of the
-source is the trust boundary.
+validate, store, list, approve, reject, and delete. Admin review of
+the source is the trust boundary.
 """
 
 import datetime
@@ -194,6 +193,7 @@ def list_community_plugins(
         group=group,
         plugin_type=plugin_type,
         min_rating=min_rating,
+        is_public=None if as_admin else True,
         query=query,
         limit=limit,
         offset=offset,
@@ -217,6 +217,8 @@ def get_community_plugin(session, plugin_id, as_admin=False):
     """Return a plugin dict, or None if not found. Public view by default."""
     plugin = session.query(UserPlugin).get(plugin_id)
     if plugin is None:
+        return None
+    if not as_admin and (plugin.approval_status != APPROVAL_APPROVED or not plugin.is_public):
         return None
     return plugin.to_admin_dict() if as_admin else plugin.to_dict()
 

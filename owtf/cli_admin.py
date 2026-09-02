@@ -70,7 +70,7 @@ def _cmd_list(_args):
 
         print()
         if ADMIN_EMAILS:
-            print("OWTF_ADMIN_EMAILS allow-list (auto-promoted on login):")
+            print("OWTF_ADMIN_EMAILS allow-list (auto-promoted at registration only):")
             for email in ADMIN_EMAILS:
                 print("  {}".format(email))
         else:

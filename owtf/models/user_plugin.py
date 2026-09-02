@@ -113,6 +113,7 @@ class UserPlugin(Model):
         plugin_type=None,
         min_rating=None,
         status=None,
+        is_public=None,
         query=None,
         limit=50,
         offset=0,
@@ -120,6 +121,8 @@ class UserPlugin(Model):
         q = session.query(cls)
         if status:
             q = q.filter(cls.approval_status == status)
+        if is_public is not None:
+            q = q.filter(cls.is_public.is_(is_public))
         if category:
             q = q.filter(cls.category == category)
         if group:

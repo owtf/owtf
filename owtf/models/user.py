@@ -3,12 +3,11 @@ owtf.models.user
 ~~~~~~~~~~~~~~~~
 
 """
-
-from sqlalchemy import Boolean, Column, Integer, Unicode
-from sqlalchemy.orm import relationship
-
+from sqlalchemy import Column, Integer, Unicode, Boolean
 from owtf.db.model_base import Model
 from owtf.models.email_confirmation import EmailConfirmation
+from sqlalchemy.orm import relationship
+import uuid
 
 
 class User(Model):

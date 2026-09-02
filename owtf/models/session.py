@@ -28,8 +28,8 @@ class Session(Model):
 
     @classmethod
     def get_active(cls, session):
-        session_id = session.query(Session.id).filter_by(active=True).first()
-        return session_id
+        row = session.query(Session.id).filter_by(active=True).first()
+        return row[0] if row else None
 
     @classmethod
     def set_by_id(cls, session, session_id):

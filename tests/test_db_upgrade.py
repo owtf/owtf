@@ -1,6 +1,10 @@
-"""Tests for the startup schema upgrader (in-memory SQLite)."""
+"""Tests for the startup schema upgrader."""
 
+import os
+
+import pytest
 from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.exc import OperationalError
 
 # Importing these models registers them on the shared metadata so
 # create_all(tables=[...]) can resolve their foreign keys without
@@ -8,9 +12,21 @@ from sqlalchemy import create_engine, inspect, text
 import owtf.models.email_confirmation  # noqa: F401
 import owtf.models.user  # noqa: F401
 import owtf.models.user_login_token  # noqa: F401
+from owtf.db import upgrade as upgrade_module
 from owtf.db.upgrade import run_startup_upgrades
 from owtf.models.user import User
 from owtf.models.user_plugin import UserPlugin
+
+POSTGRES_URL = os.environ.get("TEST_POSTGRES_URL")
+
+
+@pytest.fixture(autouse=True)
+def _reset_upgrade_guard():
+    # The upgrader runs at most once per process. Reset the guard so
+    # each test starts from a clean state.
+    upgrade_module._UPGRADES_APPLIED = False
+    yield
+    upgrade_module._UPGRADES_APPLIED = False
 
 
 def _column_names(engine, table):
@@ -152,3 +168,241 @@ def test_users_upgrade_is_idempotent():
 
     cols = _column_names(engine, "users")
     assert "is_admin" in cols
+
+
+def test_run_startup_upgrades_is_a_no_op_after_first_call():
+    """The module-level guard blocks a second inspection pass in the same process."""
+    engine = create_engine("sqlite:///:memory:")
+    UserPlugin.metadata.create_all(engine, tables=[User.__table__, UserPlugin.__table__])
+
+    run_startup_upgrades(engine)
+    assert upgrade_module._UPGRADES_APPLIED is True
+
+    # Second call should skip: point the inspector at a broken engine to
+    # prove the code path never runs.
+    run_startup_upgrades("not-an-engine")
+
+
+def test_guard_stays_unset_when_upgrade_fails(monkeypatch):
+    """A DDL failure must leave the guard False so the next start retries."""
+    engine = create_engine("sqlite:///:memory:")
+    UserPlugin.metadata.create_all(engine, tables=[User.__table__, UserPlugin.__table__])
+
+    # Force a real (non-duplicate-column) DBAPI failure on every ALTER.
+    def _boom(engine_arg, table_name, upgrades):
+        raise OperationalError("ALTER TABLE ...", {}, Exception("disk full"))
+
+    monkeypatch.setattr(upgrade_module, "_add_missing_columns", _boom)
+
+    with pytest.raises(OperationalError):
+        run_startup_upgrades(engine)
+
+    assert upgrade_module._UPGRADES_APPLIED is False, (
+        "guard must stay False after a failed upgrade so the next start retries"
+    )
+
+
+def test_non_duplicate_ddl_error_is_raised():
+    """Only duplicate-column races are swallowed; every other error stops startup."""
+    engine = create_engine("sqlite:///:memory:")
+
+    # Create user_plugins with a broken column definition so the first
+    # ALTER hits a genuine SQL error rather than a duplicate-column race.
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                """
+                CREATE TABLE user_plugins (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name VARCHAR(128) NOT NULL
+                )
+                """
+            )
+        )
+
+    # Point the upgrader at a bogus DDL fragment. SQLite raises
+    # OperationalError("near ...: syntax error"), which is not a
+    # duplicate-column race and must propagate.
+    monkeypatch_upgrades = [("garbage_col", "NOT A REAL TYPE ((")]
+    original = upgrade_module._USER_PLUGIN_COLUMN_UPGRADES
+    upgrade_module._USER_PLUGIN_COLUMN_UPGRADES = monkeypatch_upgrades
+    try:
+        with pytest.raises(OperationalError):
+            run_startup_upgrades(engine)
+    finally:
+        upgrade_module._USER_PLUGIN_COLUMN_UPGRADES = original
+
+    assert upgrade_module._UPGRADES_APPLIED is False
+
+
+def test_duplicate_column_race_is_swallowed_and_other_columns_added():
+    """A duplicate-column error on one ALTER must not stop the rest of the batch."""
+    engine = create_engine("sqlite:///:memory:")
+
+    # Legacy table plus rejection_reason already added by a hypothetical
+    # sibling worker. The upgrader will hit "duplicate column" on
+    # rejection_reason and must continue with the remaining columns.
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                """
+                CREATE TABLE user_plugins (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name VARCHAR(128) NOT NULL,
+                    rejection_reason TEXT
+                )
+                """
+            )
+        )
+
+    # Rebuild _existing_columns behaviour to omit rejection_reason so
+    # the upgrader tries to add it again, triggering the race path.
+    original_existing = upgrade_module._existing_columns
+
+    def _pretend_rejection_reason_missing(engine_arg, table_name):
+        cols = original_existing(engine_arg, table_name)
+        cols.discard("rejection_reason")
+        return cols
+
+    upgrade_module._existing_columns = _pretend_rejection_reason_missing
+    try:
+        run_startup_upgrades(engine)
+    finally:
+        upgrade_module._existing_columns = original_existing
+
+    cols = _column_names(engine, "user_plugins")
+    # The rest of the batch still landed.
+    for expected in (
+        "reviewed_by_user_id",
+        "reviewed_at",
+        "execution_timeout",
+        "memory_limit",
+        "is_public",
+        "version",
+        "tags",
+        "category",
+    ):
+        assert expected in cols
+    # Guard is set because the run succeeded end to end.
+    assert upgrade_module._UPGRADES_APPLIED is True
+
+
+# ---------------------------------------------------------------------------
+# PostgreSQL coverage. Skipped unless TEST_POSTGRES_URL is set, e.g.
+# TEST_POSTGRES_URL=postgresql+psycopg2://user:pass@localhost:5432/owtf_test
+# ---------------------------------------------------------------------------
+
+
+postgres_only = pytest.mark.skipif(
+    not POSTGRES_URL,
+    reason="TEST_POSTGRES_URL not set; requires a running PostgreSQL instance",
+)
+
+
+def _drop_test_tables(engine):
+    with engine.begin() as conn:
+        conn.execute(text("DROP TABLE IF EXISTS user_plugins CASCADE"))
+        conn.execute(text("DROP TABLE IF EXISTS users CASCADE"))
+
+
+@postgres_only
+def test_postgres_upgrade_adds_missing_columns():
+    """End-to-end upgrade on a pre-review-trail user_plugins table in PostgreSQL."""
+    engine = create_engine(POSTGRES_URL)
+    _drop_test_tables(engine)
+    try:
+        with engine.begin() as conn:
+            conn.execute(
+                text(
+                    """
+                    CREATE TABLE user_plugins (
+                        id SERIAL PRIMARY KEY,
+                        name VARCHAR(128) NOT NULL,
+                        description TEXT NOT NULL,
+                        "group" VARCHAR(32) NOT NULL,
+                        type VARCHAR(32) NOT NULL,
+                        author VARCHAR(128) NOT NULL,
+                        file_path VARCHAR(512) NOT NULL,
+                        rating FLOAT NOT NULL DEFAULT 0.0,
+                        approval_status VARCHAR(16) NOT NULL DEFAULT 'pending',
+                        user_id INTEGER,
+                        created_at TIMESTAMP NOT NULL,
+                        updated_at TIMESTAMP NOT NULL
+                    )
+                    """
+                )
+            )
+
+        run_startup_upgrades(engine)
+
+        cols = _column_names(engine, "user_plugins")
+        for expected in (
+            "rejection_reason",
+            "reviewed_by_user_id",
+            "reviewed_at",
+            "execution_timeout",
+            "memory_limit",
+            "is_public",
+            "version",
+            "tags",
+            "category",
+        ):
+            assert expected in cols
+    finally:
+        _drop_test_tables(engine)
+
+
+@postgres_only
+def test_postgres_partial_upgrade_recovers_after_duplicate_column_error():
+    """
+    Simulate the race described in _add_missing_columns: one column has
+    already been added by a parallel worker. PostgreSQL aborts a whole
+    transaction after the first DDL error, so if the loop shared a single
+    txn every later ALTER would silently fail. Per-column transactions
+    must let the remaining ALTERs succeed.
+    """
+    engine = create_engine(POSTGRES_URL)
+    _drop_test_tables(engine)
+    try:
+        with engine.begin() as conn:
+            conn.execute(
+                text(
+                    """
+                    CREATE TABLE user_plugins (
+                        id SERIAL PRIMARY KEY,
+                        name VARCHAR(128) NOT NULL,
+                        description TEXT NOT NULL,
+                        "group" VARCHAR(32) NOT NULL,
+                        type VARCHAR(32) NOT NULL,
+                        author VARCHAR(128) NOT NULL,
+                        file_path VARCHAR(512) NOT NULL,
+                        rating FLOAT NOT NULL DEFAULT 0.0,
+                        approval_status VARCHAR(16) NOT NULL DEFAULT 'pending',
+                        user_id INTEGER,
+                        created_at TIMESTAMP NOT NULL,
+                        updated_at TIMESTAMP NOT NULL,
+                        rejection_reason TEXT
+                    )
+                    """
+                )
+            )
+
+        # rejection_reason already exists; the upgrader will hit a
+        # duplicate-column error on that ALTER but must still add every
+        # other missing column.
+        run_startup_upgrades(engine)
+
+        cols = _column_names(engine, "user_plugins")
+        for expected in (
+            "reviewed_by_user_id",
+            "reviewed_at",
+            "execution_timeout",
+            "memory_limit",
+            "is_public",
+            "version",
+            "tags",
+            "category",
+        ):
+            assert expected in cols, "expected column {} to be present after upgrade".format(expected)
+    finally:
+        _drop_test_tables(engine)
