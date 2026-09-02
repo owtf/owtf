@@ -1,14 +1,11 @@
-"""Tests for the @jwtauth and @admin_required decorators.
+"""Tests for the @jwtauth and @admin_required decorators."""
 
-Key invariant: on auth failure, the wrapped handler body must NOT run.
-Writing a 401 alone is not enough; Tornado keeps executing unless we
-raise tornado.web.Finish.
-"""
-
+import json
+from unittest import mock
 from unittest.mock import MagicMock
 
 import jwt
-import pytest
+import tornado.testing
 import tornado.web
 
 # Register user models before importing the auth module (which pulls in
@@ -55,9 +52,9 @@ def test_missing_authorization_header_blocks_handler():
     Decorated = jwtauth(Handler)
     h = Decorated(headers={})
 
-    with pytest.raises(tornado.web.Finish):
-        h._execute([])
+    result = h._execute([])
 
+    assert result is None
     assert Handler.did_real_work is False
     assert h.status == 401
     assert h.written["success"] is False
@@ -68,8 +65,7 @@ def test_malformed_authorization_header_blocks_handler():
     Decorated = jwtauth(Handler)
     h = Decorated(headers={"Authorization": "NotBearer abc"})
 
-    with pytest.raises(tornado.web.Finish):
-        h._execute([])
+    h._execute([])
 
     assert Handler.did_real_work is False
     assert h.status == 401
@@ -81,8 +77,7 @@ def test_single_word_authorization_header_blocks_handler():
     Decorated = jwtauth(Handler)
     h = Decorated(headers={"Authorization": "Bearer"})
 
-    with pytest.raises(tornado.web.Finish):
-        h._execute([])
+    h._execute([])
 
     assert Handler.did_real_work is False
     assert h.status == 401
@@ -93,8 +88,7 @@ def test_invalid_jwt_blocks_handler():
     Decorated = jwtauth(Handler)
     h = Decorated(headers={"Authorization": "Bearer not.a.real.jwt"})
 
-    with pytest.raises(tornado.web.Finish):
-        h._execute([])
+    h._execute([])
 
     assert Handler.did_real_work is False
     assert h.status == 401
@@ -117,8 +111,7 @@ def test_valid_jwt_but_no_session_row_blocks_handler(monkeypatch):
 
     h = Decorated(headers={"Authorization": f"Bearer {token}"})
 
-    with pytest.raises(tornado.web.Finish):
-        h._execute([])
+    h._execute([])
 
     assert Handler.did_real_work is False
     assert h.status == 401
@@ -164,8 +157,7 @@ def test_admin_required_rejects_non_admin(monkeypatch):
 
     h = Decorated(headers={"Authorization": f"Bearer {token}"})
 
-    with pytest.raises(tornado.web.Finish):
-        h._execute([])
+    h._execute([])
 
     assert Handler.did_real_work is False
     assert h.status == 403
@@ -202,8 +194,78 @@ def test_admin_required_blocks_unauthenticated():
     Decorated = admin_required(Handler)
     h = Decorated(headers={})
 
-    with pytest.raises(tornado.web.Finish):
-        h._execute([])
+    h._execute([])
 
     assert Handler.did_real_work is False
     assert h.status == 401
+
+
+class TestAuthDecoratorHTTP(tornado.testing.AsyncHTTPTestCase):
+    def runTest(self):
+        pass
+
+    def get_app(self):
+        self.calls = []
+        calls = self.calls
+
+        @jwtauth
+        class ProtectedHandler(tornado.web.RequestHandler):
+            def get(self):
+                calls.append("protected")
+                self.write({"ok": True})
+
+        @admin_required
+        class AdminHandler(tornado.web.RequestHandler):
+            def get(self):
+                calls.append("admin")
+                self.write({"ok": True})
+
+        return tornado.web.Application(
+            [
+                (r"/protected", ProtectedHandler),
+                (r"/admin", AdminHandler),
+            ]
+        )
+
+    def _token(self):
+        return jwt.encode({"user_id": 42}, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+
+    def _valid_login_patch(self):
+        return mock.patch.object(
+            jwtauth_module.UserLoginToken,
+            "find_by_userid_and_token",
+            return_value=MagicMock(id=1),
+        )
+
+    def test_missing_auth_returns_json_401_without_running_handler(self):
+        response = self.fetch("/protected")
+
+        assert response.code == 401
+        assert json.loads(response.body)["success"] is False
+        assert self.calls == []
+
+    def test_non_admin_returns_json_403_without_running_handler(self):
+        token = self._token()
+        with (
+            mock.patch.object(jwtauth_module, "Session", return_value=MagicMock()),
+            self._valid_login_patch(),
+            mock.patch("owtf.models.user.User.find_by_id", return_value=MagicMock(is_admin=False)),
+        ):
+            response = self.fetch("/admin", headers={"Authorization": "Bearer {}".format(token)})
+
+        assert response.code == 403
+        assert json.loads(response.body)["message"] == "Admin privileges required"
+        assert self.calls == []
+
+    def test_admin_request_runs_handler(self):
+        token = self._token()
+        with (
+            mock.patch.object(jwtauth_module, "Session", return_value=MagicMock()),
+            self._valid_login_patch(),
+            mock.patch("owtf.models.user.User.find_by_id", return_value=MagicMock(is_admin=True)),
+        ):
+            response = self.fetch("/admin", headers={"Authorization": "Bearer {}".format(token)})
+
+        assert response.code == 200
+        assert json.loads(response.body)["ok"] is True
+        assert self.calls == ["admin"]
