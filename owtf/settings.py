@@ -246,3 +246,7 @@ WORKER_MAX_PROCESSES = globals().get("WORKER_MAX_PROCESSES", 8)
 WORKER_HIGH_WATER = globals().get("WORKER_HIGH_WATER", 50)
 WORKER_LOW_WATER = globals().get("WORKER_LOW_WATER", 10)
 WORKER_BATCH_SIZE = globals().get("WORKER_BATCH_SIZE", 5)
+
+# Plugin execution constants
+PLUGIN_TIMEOUT = 300  # 5 minutes
+PLUGIN_MAX_RETRIES = 2  # Max retries on plugin failure
