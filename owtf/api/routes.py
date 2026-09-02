@@ -3,6 +3,7 @@ owtf.api.routes
 ~~~~~~~~~~~~~~~
 
 """
+
 import tornado.web
 
 from owtf.api.handlers.api_token import ApiTokenGenerateHandler
@@ -17,6 +18,18 @@ from owtf.api.handlers.auth import (
     RegisterHandler,
 )
 from owtf.api.handlers.base import FileRedirectHandler
+from owtf.api.handlers.community_plugin import (
+    CommunityPluginApproveHandler,
+    CommunityPluginDeleteHandler,
+    CommunityPluginDetailHandler,
+    CommunityPluginListHandler,
+    CommunityPluginMeHandler,
+    CommunityPluginMineHandler,
+    CommunityPluginRejectHandler,
+    CommunityPluginReviewHistoryHandler,
+    CommunityPluginSourceHandler,
+    CommunityPluginUploadHandler,
+)
 from owtf.api.handlers.config import ConfigurationHandler
 from owtf.api.handlers.health import HealthCheckHandler
 from owtf.api.handlers.index import IndexHandler
@@ -226,6 +239,57 @@ API_v1_HANDLERS = [
     tornado.web.url(r"/api/v1/repeater/send", RepeaterRequestHandler, name="repeater_send_api_url"),
     tornado.web.url(r"/api/v1/proxy/ca-cert/?$", CertificateDownloadHandler, name="ca_cert_api_url"),
     tornado.web.url(r"/api/v1/proxy/live-interceptor/?$", LiveInterceptorHandler, name="live_interceptor_api_url"),
+    # Community Plugin Marketplace
+    tornado.web.url(
+        r"/api/v1/community-plugins/upload/?$",
+        CommunityPluginUploadHandler,
+        name="community_plugin_upload_url",
+    ),
+    tornado.web.url(
+        r"/api/v1/community-plugins/([0-9]+)/approve/?$",
+        CommunityPluginApproveHandler,
+        name="community_plugin_approve_url",
+    ),
+    tornado.web.url(
+        r"/api/v1/community-plugins/([0-9]+)/reject/?$",
+        CommunityPluginRejectHandler,
+        name="community_plugin_reject_url",
+    ),
+    tornado.web.url(
+        r"/api/v1/community-plugins/([0-9]+)/review-history/?$",
+        CommunityPluginReviewHistoryHandler,
+        name="community_plugin_review_history_url",
+    ),
+    tornado.web.url(
+        r"/api/v1/community-plugins/me/?$",
+        CommunityPluginMeHandler,
+        name="community_plugin_me_url",
+    ),
+    tornado.web.url(
+        r"/api/v1/community-plugins/mine/?$",
+        CommunityPluginMineHandler,
+        name="community_plugin_mine_url",
+    ),
+    tornado.web.url(
+        r"/api/v1/community-plugins/([0-9]+)/source/?$",
+        CommunityPluginSourceHandler,
+        name="community_plugin_source_url",
+    ),
+    tornado.web.url(
+        r"/api/v1/community-plugins/([0-9]+)/delete/?$",
+        CommunityPluginDeleteHandler,
+        name="community_plugin_delete_url",
+    ),
+    tornado.web.url(
+        r"/api/v1/community-plugins/([0-9]+)/?$",
+        CommunityPluginDetailHandler,
+        name="community_plugin_detail_url",
+    ),
+    tornado.web.url(
+        r"/api/v1/community-plugins/?$",
+        CommunityPluginListHandler,
+        name="community_plugin_list_url",
+    ),
 ]
 
 UI_HANDLERS = [
