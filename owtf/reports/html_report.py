@@ -4,6 +4,7 @@ owtf.reports.html_report
 
 HTML report generation with CVSS severity grouping and plugin metrics.
 """
+
 import logging
 from datetime import datetime
 
@@ -29,11 +30,8 @@ class HTMLReportGenerator:
         """
         summary = self.metrics.get_summary(session=session) if self.metrics else {}
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        total_successful = sum(m['successful'] for m in summary.values())
-        total_failed = sum(
-            m['aborted'] + m['unreachable'] + m['failed'] + m['timeouts']
-            for m in summary.values()
-        )
+        total_successful = sum(m["successful"] for m in summary.values())
+        total_failed = sum(m["aborted"] + m["unreachable"] + m["failed"] + m["timeouts"] for m in summary.values())
         html = f"""<!DOCTYPE html>
 <html>
 <head>
@@ -66,7 +64,7 @@ class HTMLReportGenerator:
         <h2>Execution Summary</h2>
         <div>
             <div class="metric-box">
-                <strong>Total Plugins Run:</strong> {sum(m['total_runs'] for m in summary.values())}
+                <strong>Total Plugins Run:</strong> {sum(m["total_runs"] for m in summary.values())}
             </div>
             <div class="metric-box">
                 <strong>Successful:</strong> <span class="success">{total_successful}</span>
@@ -110,7 +108,7 @@ class HTMLReportGenerator:
 </html>"""
 
         if output_file:
-            with open(output_file, 'w') as f:
+            with open(output_file, "w") as f:
                 f.write(html)
             logger.info("Report saved to: %s", output_file)
 
@@ -119,18 +117,18 @@ class HTMLReportGenerator:
     def _generate_plugin_rows(self, summary):
         """Generate table rows for plugins."""
         rows = []
-        for code in sorted(summary.keys()):
-            m = summary[code]
-            success_class = "success" if m['success_rate'] >= 80 else "warning" if m['success_rate'] >= 50 else "error"
+        for plugin_key in sorted(summary.keys()):
+            m = summary[plugin_key]
+            success_class = "success" if m["success_rate"] >= 80 else "warning" if m["success_rate"] >= 50 else "error"
             rows.append(f"""
                 <tr>
-                    <td>{code}</td>
-                    <td>{m['group']}</td>
-                    <td>{m['type']}</td>
-                    <td>{m['total_runs']}</td>
-                    <td><span class="{success_class}">{m['success_rate']:.1f}%</span></td>
-                    <td>{m['avg_runtime']:.2f}s</td>
-                    <td>{m['error_count']}</td>
+                    <td>{m["code"]}</td>
+                    <td>{m["group"]}</td>
+                    <td>{m["type"]}</td>
+                    <td>{m["total_runs"]}</td>
+                    <td><span class="{success_class}">{m["success_rate"]:.1f}%</span></td>
+                    <td>{m["avg_runtime"]:.2f}s</td>
+                    <td>{m["error_count"]}</td>
                 </tr>
             """)
         return "".join(rows)
@@ -139,23 +137,23 @@ class HTMLReportGenerator:
         """Calculate average success rate."""
         if not summary:
             return 0
-        rates = [m['success_rate'] for m in summary.values()]
+        rates = [m["success_rate"] for m in summary.values()]
         return sum(rates) / len(rates)
 
     def _total_runtime(self, summary):
         """Calculate total runtime."""
-        return sum(m['avg_runtime'] * m['total_runs'] for m in summary.values())
+        return sum(m["avg_runtime"] * m["total_runs"] for m in summary.values())
 
     def _fastest_plugin(self, summary):
         """Find fastest plugin."""
         if not summary:
             return "N/A"
-        fastest = min(summary.items(), key=lambda x: x[1]['min_runtime'])
+        fastest = min(summary.items(), key=lambda x: x[1]["min_runtime"])
         return f"{fastest[0]} ({fastest[1]['min_runtime']:.2f}s)"
 
     def _slowest_plugin(self, summary):
         """Find slowest plugin."""
         if not summary:
             return "N/A"
-        slowest = max(summary.items(), key=lambda x: x[1]['max_runtime'])
+        slowest = max(summary.items(), key=lambda x: x[1]["max_runtime"])
         return f"{slowest[0]} ({slowest[1]['max_runtime']:.2f}s)"

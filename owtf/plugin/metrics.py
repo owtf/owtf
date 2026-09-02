@@ -15,11 +15,12 @@ class PluginMetrics:
     """Collect per-plugin execution metrics and optionally persist each event."""
 
     def __init__(self):
-        self.metrics = {}  # plugin_code -> metrics dict
+        self.metrics = {}  # plugin_key -> metrics dict
 
     @staticmethod
-    def _new_metric(plugin_group, plugin_type):
+    def _new_metric(plugin_code, plugin_group, plugin_type):
         return {
+            "code": plugin_code,
             "group": plugin_group,
             "type": plugin_type,
             "runs": 0,
@@ -35,11 +36,21 @@ class PluginMetrics:
         }
 
     @staticmethod
-    def _add_execution(metrics, plugin_code, plugin_group, plugin_type, status, start_time, end_time, error=None):
-        if plugin_code not in metrics:
-            metrics[plugin_code] = PluginMetrics._new_metric(plugin_group, plugin_type)
+    def _add_execution(
+        metrics,
+        plugin_key,
+        plugin_code,
+        plugin_group,
+        plugin_type,
+        status,
+        start_time,
+        end_time,
+        error=None,
+    ):
+        if plugin_key not in metrics:
+            metrics[plugin_key] = PluginMetrics._new_metric(plugin_code, plugin_group, plugin_type)
 
-        metric = metrics[plugin_code]
+        metric = metrics[plugin_key]
         metric["runs"] += 1
         if status == "Successful":
             metric["successful"] += 1
@@ -71,6 +82,7 @@ class PluginMetrics:
         end_time,
         error=None,
         session=None,
+        plugin_key=None,
     ):
         """Record one execution, persisting it when a worker session is supplied.
 
@@ -78,8 +90,10 @@ class PluginMetrics:
         row.  This makes concurrent worker writes independent and lets reporting
         aggregate every execution after workers have exited.
         """
+        plugin_key = plugin_key or f"{plugin_type}@{plugin_code}"
         self._add_execution(
             self.metrics,
+            plugin_key,
             plugin_code,
             plugin_group,
             plugin_type,
@@ -94,6 +108,7 @@ class PluginMetrics:
 
             session.add(
                 PluginExecution(
+                    plugin_key=plugin_key,
                     plugin_code=plugin_code,
                     plugin_group=plugin_group,
                     plugin_type=plugin_type,
@@ -115,6 +130,7 @@ class PluginMetrics:
         for row in rows:
             cls._add_execution(
                 metrics,
+                row.plugin_key,
                 row.plugin_code,
                 row.plugin_group,
                 row.plugin_type,
@@ -128,8 +144,9 @@ class PluginMetrics:
     @staticmethod
     def _summary_from_metrics(metrics):
         summary = {}
-        for code, metric in metrics.items():
-            summary[code] = {
+        for plugin_key, metric in metrics.items():
+            summary[plugin_key] = {
+                "code": metric["code"],
                 "group": metric["group"],
                 "type": metric["type"],
                 "total_runs": metric["runs"],

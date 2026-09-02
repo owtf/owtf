@@ -6,7 +6,7 @@ owtf.models.plugin_output
 import datetime
 import json
 
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, UniqueConstraint
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from owtf.db.model_base import Model

@@ -6,8 +6,7 @@ Performance benchmarking for GSoC 2026 Phases 1-4.
 
 Compares execution metrics before and after GSoC improvements.
 """
-import json
-import time
+
 from datetime import datetime
 
 
@@ -39,8 +38,8 @@ class BenchmarkReport:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         summary = metrics.get_summary() if metrics else {}
-        total_runs = sum(m['total_runs'] for m in summary.values())
-        avg_success = sum(m['successful'] for m in summary.values()) / total_runs if total_runs > 0 else 0
+        total_runs = sum(m["total_runs"] for m in summary.values())
+        avg_success = sum(m["successful"] for m in summary.values()) / total_runs if total_runs > 0 else 0
 
         html = f"""<!DOCTYPE html>
 <html>
@@ -72,38 +71,38 @@ class BenchmarkReport:
         <div class="column baseline">
             <h2>Before (Baseline)</h2>
             <div class="metric">
-                <strong>Scheduler:</strong> {self.baseline['scheduler']}
+                <strong>Scheduler:</strong> {self.baseline["scheduler"]}
             </div>
             <div class="metric">
-                <strong>Workers:</strong> {self.baseline['workers']}
+                <strong>Workers:</strong> {self.baseline["workers"]}
             </div>
             <div class="metric">
-                <strong>Harness:</strong> {self.baseline['harness']}
+                <strong>Harness:</strong> {self.baseline["harness"]}
             </div>
             <div class="metric">
-                <strong>Deduplication:</strong> {self.baseline['deduplication']}
+                <strong>Deduplication:</strong> {self.baseline["deduplication"]}
             </div>
             <div class="metric">
-                <strong>Metrics:</strong> {self.baseline['metrics']}
+                <strong>Metrics:</strong> {self.baseline["metrics"]}
             </div>
         </div>
 
         <div class="column improved">
             <h2>After (GSoC 2026)</h2>
             <div class="metric">
-                <strong>Scheduler:</strong> {self.improved['scheduler']}
+                <strong>Scheduler:</strong> {self.improved["scheduler"]}
             </div>
             <div class="metric">
-                <strong>Workers:</strong> {self.improved['workers']}
+                <strong>Workers:</strong> {self.improved["workers"]}
             </div>
             <div class="metric">
-                <strong>Harness:</strong> {self.improved['harness']}
+                <strong>Harness:</strong> {self.improved["harness"]}
             </div>
             <div class="metric">
-                <strong>Deduplication:</strong> {self.improved['deduplication']}
+                <strong>Deduplication:</strong> {self.improved["deduplication"]}
             </div>
             <div class="metric">
-                <strong>Metrics:</strong> {self.improved['metrics']}
+                <strong>Metrics:</strong> {self.improved["metrics"]}
             </div>
         </div>
     </div>
@@ -128,7 +127,7 @@ class BenchmarkReport:
                 </tr>
                 <tr>
                     <td>Total Execution Time</td>
-                    <td>{sum(m['avg_runtime'] * m['total_runs'] for m in summary.values()):.2f}s</td>
+                    <td>{sum(m["avg_runtime"] * m["total_runs"] for m in summary.values()):.2f}s</td>
                 </tr>
                 <tr>
                     <td>Duplicate Outputs Prevented</td>

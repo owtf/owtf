@@ -17,6 +17,7 @@ class PluginExecution(Model):
     __tablename__ = "plugin_executions"
 
     id = Column(Integer, primary_key=True)
+    plugin_key = Column(String, nullable=False, index=True)
     plugin_code = Column(String, nullable=False, index=True)
     plugin_group = Column(String, nullable=False)
     plugin_type = Column(String, nullable=False)

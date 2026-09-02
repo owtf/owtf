@@ -53,6 +53,7 @@ def test_process_plugin_records_metrics_before_saving_output(tmp_path):
 
     assert result == output
     metrics.record_execution.assert_called_once_with(
+        plugin_key="active@OWTF-TEST-001",
         plugin_code="OWTF-TEST-001",
         plugin_group="web",
         plugin_type="active",
