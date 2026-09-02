@@ -3,42 +3,41 @@ owtf.api.handlers.auth
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-from sqlalchemy.sql.functions import user
-from owtf.models.user_login_token import UserLoginToken
-from owtf.api.handlers.base import APIRequestHandler
-from owtf.lib.exceptions import APIError
-from owtf.models.user import User
-from datetime import datetime, timedelta
-import bcrypt
-import json
-import jwt
+
+import logging
 import re
+import smtplib
+from datetime import datetime, timedelta
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from uuid import uuid4
+
+import bcrypt
+import jwt
+import pyotp
+from bs4 import BeautifulSoup
+
+from owtf.api.handlers.base import APIRequestHandler
+from owtf.api.handlers.jwtauth import jwtauth
+from owtf.lib.exceptions import APIError
+from owtf.models.email_confirmation import EmailConfirmation
+from owtf.models.user import User
+from owtf.models.user_login_token import UserLoginToken
 from owtf.settings import (
-    JWT_SECRET_KEY,
+    EMAIL_FROM,
+    FRONTEND_SERVER_PORT,
     JWT_ALGORITHM,
     JWT_EXP_DELTA_SECONDS,
-    is_password_valid_regex,
-    is_email_valid_regex,
-    EMAIL_FROM,
+    JWT_SECRET_KEY,
+    SERVER_ADDR,
     SMTP_HOST,
     SMTP_LOGIN,
     SMTP_PASS,
     SMTP_PORT,
-    SERVER_ADDR,
-    SERVER_PORT,
-    FRONTEND_SERVER_PORT,
+    is_email_valid_regex,
+    is_password_valid_regex,
 )
-from owtf.db.session import Session
-from uuid import uuid4
-from owtf.models.email_confirmation import EmailConfirmation
-from email.mime.text import MIMEText
-import smtplib
-from email.mime.multipart import MIMEMultipart
-import logging
-from bs4 import BeautifulSoup
 from owtf.utils.logger import OWTFLogger
-from owtf.api.handlers.jwtauth import jwtauth
-import pyotp
 
 
 class LogInHandler(APIRequestHandler):
@@ -73,7 +72,8 @@ class LogInHandler(APIRequestHandler):
             {
                 "status": "success",
                 "message": {
-                    "jwt-token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjozNSwiZXhwIjoxNjIzMjUyMjQwfQ.FjTpJySn3wprlaS26dC9LGBOMrtHJeJsTDJnyCKNmBk"
+                    "jwt-token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjozNSwiZXhwIjo
+                    xNjIzMjUyMjQwfQ.FjTpJySn3wprlaS26dC9LGBOMrtHJeJsTDJnyCKNmBk"
                 }
             }
 
@@ -339,7 +339,7 @@ class AccountActivationGenerateHandler(APIRequestHandler):
             Welcome """
             + user_obj.name
             + ", <br/><br/>"
-            """ 
+            """
             Click here """
             + "http://{}:{}".format(SERVER_ADDR, str(FRONTEND_SERVER_PORT))
             + "/email-verify/"
@@ -447,7 +447,7 @@ class OtpGenerateHandler(APIRequestHandler):
                 Welcome """
                 + user_obj.name
                 + ", <br/><br/>"
-                """ 
+                """
                 Your OTP for changing password is: """
                 + OTP
                 + " (OTP will expire in 5 mins)"
@@ -549,6 +549,9 @@ class PasswordChangeHandler(APIRequestHandler):
         user_obj = User.find_by_email(self.session, email_or_username)
         if user_obj is None:
             user_obj = User.find_by_name(self.session, email_or_username)
+        if not password:
+            self.success({"status": "fail", "message": "Missing password value"})
+            return
         match_password = re.search(is_password_valid_regex, password)
         if not match_password:
             err = {"status": "fail", "message": "Choose a strong password"}
