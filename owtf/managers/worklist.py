@@ -3,6 +3,7 @@ owtf.managers.worklist
 ~~~~~~~~~~~~~~~~~~~~~~
 The DB stores worklist
 """
+
 import logging
 
 from sqlalchemy.sql import not_
@@ -32,9 +33,7 @@ def load_works(session, target_urls, options):
     """
     for target_url in target_urls:
         if target_url:
-            target = get_target_config_dicts(
-                session=session, filter_data={"target_url": target_url}
-            )
+            target = get_target_config_dicts(session=session, filter_data={"target_url": target_url})
             group = options["plugin_group"]
             if options["only_plugins"] is None:
                 # If the plugin group option is the default one (not specified by the user).
@@ -82,9 +81,7 @@ def worklist_generate_query(session, criteria=None, for_stats=False):
         if criteria.get("target_url", None):
             if isinstance(criteria.get("target_url"), list):
                 criteria["target_url"] = criteria["target_url"][0]
-            query = query.filter(
-                Target.target_url.like("%%{!s}%%".format(criteria["target_url"]))
-            )
+            query = query.filter(Target.target_url.like("%%{!s}%%".format(criteria["target_url"])))
         if criteria.get("type", None):
             if isinstance(criteria.get("type"), list):
                 criteria["type"] = criteria["type"][0]
@@ -92,9 +89,7 @@ def worklist_generate_query(session, criteria=None, for_stats=False):
         if criteria.get("group", None):
             if isinstance(criteria.get("group"), list):
                 criteria["group"] = criteria["group"][0]
-            query = query.filter(
-                Plugin.group.like("%%{!s}%%".format(criteria["group"]))
-            )
+            query = query.filter(Plugin.group.like("%%{!s}%%".format(criteria["group"])))
         if criteria.get("name", None):
             if isinstance(criteria.get("name"), list):
                 criteria["name"] = criteria["name"][0]
@@ -115,9 +110,7 @@ def worklist_generate_query(session, criteria=None, for_stats=False):
                     criteria["limit"] = criteria["limit"][0]
                 query = query.limit(int(criteria["limit"]))
     except ValueError:
-        raise exceptions.InvalidParameterType(
-            "Invalid parameter type for transaction db"
-        )
+        raise exceptions.InvalidParameterType("Invalid parameter type for transaction db")
     return query
 
 
@@ -177,6 +170,95 @@ def get_work_for_target(session, in_use_target_list):
         return (work_dict["target"], work_dict["plugin"])
 
 
+def get_pending_count(session):
+    """Get count of pending work items in the worklist.
+
+    :return: Number of pending work items
+    :rtype: `int`
+    """
+    return get_count(session.query(Work).filter(Work.active.is_(True)))
+
+
+def delete_work(session, work_id):
+    """Delete a completed work item.
+
+    :param work_id: Primary key of the Work row to delete
+    :type work_id: `int`
+    :return: None
+    :rtype: None
+    """
+    work_obj = session.query(Work).get(work_id)
+    if work_obj is not None:
+        session.delete(work_obj)
+        session.commit()
+
+
+def requeue_work(session, work_id):
+    """Requeue a work item that was claimed but never completed —
+    typically because the worker holding it died mid-task.
+
+    :param work_id: Primary key of the Work row to requeue
+    :type work_id: `int`
+    :return: None
+    :rtype: None
+    """
+    work_obj = session.query(Work).get(work_id)
+    if work_obj is not None:
+        work_obj.active = True
+        session.commit()
+
+
+def get_work_batch(session, in_use_target_list, ready_worker_count, batch_size=None):
+    """Get a batch of work items ordered by priority.
+
+    Only as many rows are claimed as there are workers confirmed ready to
+    run them this same cycle (see WorkerManager.manage_workers), so a
+    claimed row is never left stranded waiting for a worker that won't
+    take it until later.
+
+    :param in_use_target_list: Target list currently in use
+    :type in_use_target_list: `list`
+    :param ready_worker_count: Number of workers confirmed ready to take
+        new work this cycle
+    :type ready_worker_count: `int`
+    :param batch_size: Max number of work items to fetch
+    :type batch_size: `int`
+    :return: List of (work_id, target, plugin) tuples
+    :rtype: `list`
+    """
+    if batch_size is None:
+        from owtf.settings import WORKER_BATCH_SIZE
+
+        batch_size = WORKER_BATCH_SIZE
+
+    if not isinstance(batch_size, int) or batch_size <= 0:
+        from owtf.lib.exceptions import InvalidParameterType
+
+        raise InvalidParameterType("batch_size must be a positive integer")
+
+    fetch_count = min(ready_worker_count, batch_size)
+    if fetch_count <= 0:
+        return []
+
+    query = (
+        session.query(Work)
+        .join(Plugin, Work.plugin_key == Plugin.key)
+        .filter(Work.active.is_(True))
+        .order_by(plugin_priority_expr(Plugin).desc(), Work.id.asc())
+    )
+    if in_use_target_list:
+        query = query.filter(not_(Work.target_id.in_(in_use_target_list)))
+
+    work_objs = query.limit(fetch_count).all()
+    results = []
+    for work_obj in work_objs:
+        work_dict = _derive_work_dict(work_obj)
+        work_obj.active = False  # Soft claim; caller deletes on completion or requeues on failure
+        results.append((work_dict["id"], work_dict["target"], work_dict["plugin"]))
+    session.commit()
+    return results
+
+
 def get_all_work(session, criteria=None):
     """Get all work dicts based on criteria
 
@@ -200,9 +282,7 @@ def get_work(session, work_id):
     """
     work = session.query(Work).get(work_id)
     if work is None:
-        raise exceptions.InvalidWorkReference(
-            "No work with id {!s}".format(str(work_id))
-        )
+        raise exceptions.InvalidWorkReference("No work with id {!s}".format(str(work_id)))
     return _derive_work_dict(work)
 
 
@@ -229,9 +309,7 @@ def group_sort_order(plugin_list):
         "external": 4,
     }
     # reverse = True so that descending order is maintained
-    sorted_plugin_list = sorted(
-        plugin_list, key=lambda k: priority[k["type"]], reverse=True
-    )
+    sorted_plugin_list = sorted(plugin_list, key=lambda k: priority[k["type"]], reverse=True)
     return sorted_plugin_list
 
 
@@ -255,22 +333,10 @@ def add_work(session, target_list, plugin_list, force_overwrite=False):
     for target in target_list:
         for plugin in sorted_plugin_list:
             # Check if it already in worklist
-            if (
-                get_count(
-                    session.query(Work).filter_by(
-                        target_id=target["id"], plugin_key=plugin["key"]
-                    )
-                )
-                == 0
-            ):
+            if get_count(session.query(Work).filter_by(target_id=target["id"], plugin_key=plugin["key"])) == 0:
                 # Check if it is already run ;) before adding
-                is_run = plugin_already_run(
-                    session=session, plugin_info=plugin, target_id=target["id"]
-                )
-                if (
-                    (force_overwrite is True)
-                    or (force_overwrite is False and is_run is False)
-                ):
+                is_run = plugin_already_run(session=session, plugin_info=plugin, target_id=target["id"])
+                if (force_overwrite is True) or (force_overwrite is False and is_run is False):
                     # If force overwrite is true then plugin output has
                     # to be deleted first
                     if force_overwrite is True:
@@ -297,9 +363,7 @@ def remove_work(session, work_id):
     """
     work_obj = session.query(Work).get(work_id)
     if work_obj is None:
-        raise exceptions.InvalidWorkReference(
-            "No work with id {!s}".format(str(work_id))
-        )
+        raise exceptions.InvalidWorkReference("No work with id {!s}".format(str(work_id)))
     session.delete(work_obj)
     session.commit()
 
@@ -328,9 +392,7 @@ def patch_work(session, work_id, active=True):
     """
     work_obj = session.query(Work).get(work_id)
     if work_obj is None:
-        raise exceptions.InvalidWorkReference(
-            "No work with id {!s}".format(str(work_id))
-        )
+        raise exceptions.InvalidWorkReference("No work with id {!s}".format(str(work_id)))
     if active != work_obj.active:
         work_obj.active = active
         session.merge(work_obj)
