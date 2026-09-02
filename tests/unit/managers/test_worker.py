@@ -8,10 +8,15 @@ from sqlalchemy.orm import sessionmaker
 
 from owtf.db.model_base import Model
 from owtf.lib.exceptions import InvalidParameterType
+from owtf.models.command import Command  # noqa: F401 - register Target relationship
+from owtf.models.grep_output import GrepOutput  # noqa: F401 - register Transaction relationship
 from owtf.models.plugin import Plugin
+from owtf.models.plugin_output import PluginOutput  # noqa: F401 - register Plugin relationship
 from owtf.models.session import Session  # noqa: F401 - register association-table foreign keys
 from owtf.models.target import Target
 from owtf.models.test_group import TestGroup as _TestGroup
+from owtf.models.transaction import Transaction  # noqa: F401 - register Target relationship
+from owtf.models.url import Url  # noqa: F401 - register Target relationship
 from owtf.models.work import Work
 from owtf.settings import WORKER_BATCH_SIZE, WORKER_HIGH_WATER, WORKER_LOW_WATER, WORKER_MAX_PROCESSES
 
