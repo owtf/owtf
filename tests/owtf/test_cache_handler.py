@@ -176,24 +176,12 @@ class TestBinaryResponseCharacterization(CacheHandlerTestBase):
             base64.b64decode(data["response_body"], validate=True)
 
 
-class TestLockTimeoutCharacterization(CacheHandlerTestBase):
-    """CHARACTERIZATION (documents a bug, does not endorse it).
-
-    On a cache miss, load() acquires a FileLock and catches
-    `FileLockTimeoutException` on timeout -- but that name is undefined anywhere
-    in the codebase (FileLock.acquire() actually raises FileLock.FileLockException).
-    So a lock timeout raises NameError instead of being handled.
-
-    When the exception-handling fix lands, this should flip to assert load()
-    returns None gracefully.
-    """
-
-    def test_lock_timeout_currently_raises_nameerror(self):
+class TestLockTimeout(CacheHandlerTestBase):
+    def test_lock_timeout_returns_cache_miss(self):
         handler = self._handler(make_request())
         handler.calculate_hash()  # so file_path is set; file does not exist -> cache miss
         with patch.object(FileLock, "acquire", side_effect=FileLock.FileLockException("timeout")):
-            with self.assertRaises(NameError):
-                handler.load()
+            self.assertIsNone(handler.load())
 
 
 if __name__ == "__main__":
