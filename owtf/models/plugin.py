@@ -123,12 +123,15 @@ class Plugin(Model):
         :return: Corresponding plugin codes as a list
         :rtype: `list`
         """
-        checklist = ["OWTF-", "PTES-"]
+        is_single_code = isinstance(codes, str)
+        values = [codes] if is_single_code else list(codes)
         query = session.query(Plugin.code)
-        for count, name in enumerate(codes):
-            if all(check not in name for check in checklist):
-                code = query.filter(Plugin.name == name).first()
-                codes[count] = str(code[0])
-        return codes
+        for count, value in enumerate(values):
+            if query.filter(Plugin.code == value).first() is not None:
+                continue
+            code = query.filter(Plugin.name == value).first()
+            if code is not None:
+                values[count] = code[0]
+        return values[0] if is_single_code else values
 
     __table_args__ = (UniqueConstraint("type", "code"),)

@@ -266,7 +266,12 @@ def test_run_community_plugin(session, plugin_id, target_url):
 
 def _plugin_key(up):
     """Deterministic key used to mirror a community plugin into the plugins table."""
-    return "{}@community_{}".format(up.type, up.id)
+    return "{}@{}".format(up.type, _plugin_code(up))
+
+
+def _plugin_code(up):
+    """Stable code used by plugin selection, outputs, and reports."""
+    return "COMMUNITY-{}".format(up.id)
 
 
 def _sync_to_plugins_table(session, up):
@@ -277,15 +282,27 @@ def _sync_to_plugins_table(session, up):
     dispatch work without special cases.
     """
     from owtf.models.plugin import Plugin
+    from owtf.models.test_group import TestGroup
 
     key = _plugin_key(up)
+    code = _plugin_code(up)
+    test_group = session.query(TestGroup).get(code)
+    if test_group is None:
+        test_group = TestGroup(code=code)
+        session.add(test_group)
+    test_group.group = up.group
+    test_group.descrip = up.description
+    test_group.hint = "Community plugin"
+    test_group.url = ""
+    test_group.priority = 0
+
     row = session.query(Plugin).filter_by(key=key).first()
     if row is None:
         row = Plugin(key=key)
         session.add(row)
     row.title = up.name.replace("_", " ").title()
     row.name = up.name
-    row.code = None  # no test_groups link; plugin_gen_query uses an outer join
+    row.code = code
     row.group = up.group
     row.type = up.type
     row.descrip = up.description
@@ -301,10 +318,20 @@ def _sync_to_plugins_table(session, up):
 
 def _unsync_from_plugins_table(session, up):
     from owtf.models.plugin import Plugin
+    from owtf.models.plugin_output import PluginOutput
+    from owtf.models.test_group import TestGroup
 
     row = session.query(Plugin).filter_by(key=_plugin_key(up)).first()
     if row is not None:
         session.delete(row)
+        session.flush()
+
+    code = _plugin_code(up)
+    has_outputs = session.query(PluginOutput.id).filter_by(plugin_code=code).first() is not None
+    if not has_outputs:
+        test_group = session.query(TestGroup).get(code)
+        if test_group is not None:
+            session.delete(test_group)
 
 
 def approve_community_plugin(session, plugin_id, reviewer_id=None):

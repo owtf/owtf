@@ -198,10 +198,9 @@ def get_types_for_plugin_group(session, plugin_group):
 def plugin_gen_query(session, criteria):
     """Generate a SQLAlchemy query based on the filter criteria.
 
-    Uses an outer join to TestGroup so community plugins (which have
-    no test_groups link) still appear in results. Built-in plugins
-    retain their TestGroup-based ordering; community plugins order
-    after them.
+    Uses an outer join to keep legacy plugin rows visible if their test-group
+    metadata is missing. Approved community plugins receive a synthetic test
+    group when they are mirrored into this table.
     """
     query = session.query(Plugin).outerjoin(TestGroup, Plugin.code == TestGroup.code)
     if criteria.get("type", None):
@@ -235,8 +234,7 @@ def get_all_plugin_dicts(session, criteria=None):
     standard query alongside built-in ones. They carry
     ``source="community"`` and an absolute ``file_path``.
     """
-    if criteria is None:
-        criteria = {}
+    criteria = dict(criteria or {})
     if "code" in criteria:
         criteria["code"] = Plugin.name_to_code(session, criteria["code"])
     return [obj.to_dict() for obj in plugin_gen_query(session, criteria).all()]

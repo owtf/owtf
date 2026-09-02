@@ -37,13 +37,18 @@ import owtf.models.user_login_token  # noqa: F401
 import owtf.models.work  # noqa: F401
 from owtf.db.model_base import Model
 from owtf.managers.community_plugin import (
+    _plugin_code,
     _plugin_key,
     approve_community_plugin,
     delete_community_plugin,
     reject_community_plugin,
 )
 from owtf.managers.plugin import get_all_plugin_dicts, plugin_gen_query
+from owtf.managers.poutput import poutput_gen_query
 from owtf.models.plugin import Plugin
+from owtf.models.plugin_output import PluginOutput
+from owtf.models.target import Target
+from owtf.models.test_group import TestGroup as GroupModel
 from owtf.models.user_plugin import APPROVAL_APPROVED, APPROVAL_PENDING, UserPlugin
 from owtf.models.work import Work
 
@@ -95,7 +100,12 @@ class TestApproveSyncsToPluginsTable:
         assert row.group == up.group
         assert row.type == up.type
         assert row.name == up.name
-        assert row.code is None
+        assert row.code == _plugin_code(up)
+        assert row.key == "passive@COMMUNITY-{}".format(up.id)
+
+        test_group = session.query(GroupModel).get(row.code)
+        assert test_group is not None
+        assert test_group.descrip == up.description
 
     def test_re_approve_updates_existing_row(self, session, tmp_path):
         up = _make_user_plugin(session, tmp_path, status=APPROVAL_APPROVED)
@@ -111,6 +121,7 @@ class TestApproveSyncsToPluginsTable:
 
         reject_community_plugin(session, up.id, "no thanks")
         assert session.query(Plugin).filter_by(key=_plugin_key(up)).count() == 0
+        assert session.query(GroupModel).get(_plugin_code(up)) is None
 
     def test_reject_without_prior_approval_is_a_noop_on_plugins(self, session, tmp_path):
         up = _make_user_plugin(session, tmp_path)
@@ -122,10 +133,11 @@ class TestApproveSyncsToPluginsTable:
         approve_community_plugin(session, up.id)
         delete_community_plugin(session, up.id)
         assert session.query(Plugin).filter_by(key=_plugin_key(up)).count() == 0
+        assert session.query(GroupModel).get(_plugin_code(up)) is None
 
 
 class TestPluginGenQuerySeesApprovedCommunityPlugins:
-    def test_outer_join_returns_community_plugin_without_test_group(self, session, tmp_path):
+    def test_query_returns_community_plugin_with_test_group(self, session, tmp_path):
         up = _make_user_plugin(session, tmp_path)
         approve_community_plugin(session, up.id)
 
@@ -145,6 +157,16 @@ class TestPluginGenQuerySeesApprovedCommunityPlugins:
         entry = next(d for d in dicts if d.get("key") == _plugin_key(up))
         assert entry["source"] == "community"
         assert entry["file_path"] == up.file_path
+
+    def test_selects_by_name_or_stable_code(self, session, tmp_path):
+        up = _make_user_plugin(session, tmp_path)
+        approve_community_plugin(session, up.id)
+
+        by_name = get_all_plugin_dicts(session, {"code": up.name})
+        by_code = get_all_plugin_dicts(session, {"code": [_plugin_code(up)]})
+
+        assert [plugin["key"] for plugin in by_name] == [_plugin_key(up)]
+        assert [plugin["key"] for plugin in by_code] == [_plugin_key(up)]
 
 
 class TestWorklistEndToEnd:
@@ -167,6 +189,51 @@ class TestWorklistEndToEnd:
         assert got.plugin is not None
         assert got.plugin.source == "community"
         assert got.plugin.file_path == up.file_path
+
+
+@pytest.mark.usefixtures("_stub_scoped_session")
+class TestExecutionAndReportEndToEnd:
+    def test_approved_plugin_executes_and_is_available_to_reports(self, session, tmp_path):
+        from owtf.managers.target import target_manager
+        from owtf.plugin.runner import PluginRunner
+
+        up = _make_user_plugin(session, tmp_path, name="reportable_plugin")
+        approve_community_plugin(session, up.id)
+        plugin = get_all_plugin_dicts(session, {"code": up.name})[0]
+
+        target = Target(target_url="https://example.com", host_ip="127.0.0.1", port_number="443")
+        session.add(target)
+        session.commit()
+        session.refresh(target)
+
+        runner = PluginRunner()
+        runner.plugin_group = "web"
+        runner.only_plugins_list = [_plugin_code(up)]
+        runner.except_plugins_list = []
+        runner.force_overwrite = False
+        runner.simulation = False
+        target_manager.target_id = target.id
+        target_manager.target_config = {"target_url": target.target_url}
+        target_manager.path_config = {"partial_url_output_path": str(tmp_path / "partial")}
+
+        with (
+            patch.object(runner, "rank_plugin", return_value=-1),
+            patch("owtf.plugin.runner.get_output_dir_target", return_value=str(tmp_path)),
+        ):
+            output = runner.process_plugin(session, None, plugin)
+
+        assert output == [{"ok": True}]
+        saved = session.query(PluginOutput).filter_by(plugin_key=_plugin_key(up)).one()
+        assert saved.plugin_code == _plugin_code(up)
+        assert saved.to_dict(inc_output=True)["output"] == output
+
+        report_rows = poutput_gen_query(
+            session,
+            {"plugin_code": _plugin_code(up)},
+            target.id,
+        ).all()
+        assert [row.id for row in report_rows] == [saved.id]
+        assert GroupModel.get_by_code(session, _plugin_code(up))["descrip"] == up.description
 
 
 @pytest.mark.usefixtures("_stub_scoped_session")
