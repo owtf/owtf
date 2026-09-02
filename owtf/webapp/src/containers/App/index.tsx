@@ -27,6 +27,7 @@ import Report from "../../containers/Report/Loadable";
 import EmailSendPage from "../../containers/EmailVerification/Loadable";
 import EmailVerificationPage from "../../containers/EmailVerification/emailVerification";
 import NewPasswordPage from "../../containers/NewPasswordPage/Loadable";
+import PluginMarketplace from "../../containers/PluginMarketplace/Loadable";
 import LogoutPage from "../../containers/LoginPage/logout";
 import { connect } from "react-redux";
 import { loginAutoCheck } from "../LoginPage/actions";
@@ -74,6 +75,7 @@ export class App extends React.Component<propsType> {
       { linkTo: "/proxy", text: "Proxy" },
       { linkTo: "/settings", text: "Settings" },
       { linkTo: "/transactions", text: "Transactions" },
+      { linkTo: "/marketplace", text: "Plugin Marketplace" },
       { linkTo: "/help", text: "Help" }
     ];
     if (this.props.isAuthenticated) {
@@ -128,6 +130,11 @@ export class App extends React.Component<propsType> {
             <PrivateRoute
               path="/transactions"
               component={TransactionsPage}
+              authenticated={this.props.isAuthenticated}
+            />
+            <PrivateRoute
+              path="/marketplace"
+              component={PluginMarketplace}
               authenticated={this.props.isAuthenticated}
             />
             <PrivateRoute

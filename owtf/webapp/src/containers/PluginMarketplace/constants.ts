@@ -1,0 +1,19 @@
+export const LOAD_COMMUNITY_PLUGINS = "owtf/PluginMarketplace/LOAD_COMMUNITY_PLUGINS";
+export const LOAD_COMMUNITY_PLUGINS_SUCCESS = "owtf/PluginMarketplace/LOAD_COMMUNITY_PLUGINS_SUCCESS";
+export const LOAD_COMMUNITY_PLUGINS_ERROR = "owtf/PluginMarketplace/LOAD_COMMUNITY_PLUGINS_ERROR";
+
+export const LOAD_COMMUNITY_PLUGIN_DETAIL = "owtf/PluginMarketplace/LOAD_COMMUNITY_PLUGIN_DETAIL";
+export const LOAD_COMMUNITY_PLUGIN_DETAIL_SUCCESS = "owtf/PluginMarketplace/LOAD_COMMUNITY_PLUGIN_DETAIL_SUCCESS";
+export const LOAD_COMMUNITY_PLUGIN_DETAIL_ERROR = "owtf/PluginMarketplace/LOAD_COMMUNITY_PLUGIN_DETAIL_ERROR";
+
+export const UPLOAD_COMMUNITY_PLUGIN = "owtf/PluginMarketplace/UPLOAD_COMMUNITY_PLUGIN";
+export const UPLOAD_COMMUNITY_PLUGIN_SUCCESS = "owtf/PluginMarketplace/UPLOAD_COMMUNITY_PLUGIN_SUCCESS";
+export const UPLOAD_COMMUNITY_PLUGIN_ERROR = "owtf/PluginMarketplace/UPLOAD_COMMUNITY_PLUGIN_ERROR";
+
+export const RUN_COMMUNITY_PLUGIN = "owtf/PluginMarketplace/RUN_COMMUNITY_PLUGIN";
+export const RUN_COMMUNITY_PLUGIN_SUCCESS = "owtf/PluginMarketplace/RUN_COMMUNITY_PLUGIN_SUCCESS";
+export const RUN_COMMUNITY_PLUGIN_ERROR = "owtf/PluginMarketplace/RUN_COMMUNITY_PLUGIN_ERROR";
+
+export const CLEAR_UPLOAD_STATE = "owtf/PluginMarketplace/CLEAR_UPLOAD_STATE";
+export const CLEAR_RUN_STATE = "owtf/PluginMarketplace/CLEAR_RUN_STATE";
+export const SET_FILTER = "owtf/PluginMarketplace/SET_FILTER";

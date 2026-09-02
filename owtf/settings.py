@@ -4,6 +4,7 @@ owtf.settings
 
 It contains all the owtf global configs.
 """
+
 import os
 import re
 
@@ -12,7 +13,6 @@ try:
 except NameError:
     FileNotFoundError = IOError
 
-import yaml
 
 HOME_DIR = os.path.expanduser("~")
 OWTF_CONF = os.path.join(HOME_DIR, ".owtf")
@@ -68,6 +68,21 @@ WEB_TEST_GROUPS = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_web", "gro
 NET_TEST_GROUPS = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_net", "groups.cfg")
 AUX_TEST_GROUPS = os.path.join(OWTF_CONF, "conf", "profiles", "plugin_aux", "groups.cfg")
 PLUGINS_DIR = os.path.join(ROOT_DIR, "plugins")
+
+# Community Plugin Marketplace
+COMMUNITY_PLUGINS_DIR = os.path.join(OWTF_CONF, "plugins", "community")
+COMMUNITY_PLUGIN_DEFAULT_TIMEOUT = 300  # seconds per plugin run
+COMMUNITY_PLUGIN_MEMORY_LIMIT = 256 * 1024 * 1024  # 256 MB in bytes
+# Bounds on the execution_timeout and memory_limit values an uploader
+# can send with a plugin. Anything outside these ranges is rejected by
+# the upload handler with a 400 so a single upload cannot ask for a
+# 24 hour run or many GB of RAM and take the scanner host with it.
+COMMUNITY_PLUGIN_MIN_TIMEOUT = 10  # seconds
+COMMUNITY_PLUGIN_MAX_TIMEOUT = 900  # 15 minutes
+COMMUNITY_PLUGIN_MIN_MEMORY = 32 * 1024 * 1024  # 32 MB
+COMMUNITY_PLUGIN_MAX_MEMORY = 1024 * 1024 * 1024  # 1 GB
+PLUGIN_UPLOAD_MAX_SIZE = 512 * 1024  # 512 KB in bytes
+PLUGIN_ALLOWED_EXTENSIONS = [".py"]
 
 # Output Settings
 OUTPUT_PATH = "owtf_review"
@@ -140,15 +155,15 @@ PROXY_LOG = "/tmp/owtf/proxy.log"
 
 # Define regex patterns
 REGEXP_FILE_URL = (
-    "^[^\?]+\.(xml|exe|pdf|cs|log|inc|dat|bak|conf|cnf|old|zip|7z|rar|tar|gz|bz2|txt|xls|xlsx|doc|docx|ppt|pptx)$"
+    r"^[^\?]+\.(xml|exe|pdf|cs|log|inc|dat|bak|conf|cnf|old|zip|7z|rar|tar|gz|bz2|txt|xls|xlsx|doc|docx|ppt|pptx)$"
 )
 # Potentially small files will be retrieved for analysis
-REGEXP_SMALL_FILE_URL = "^[^\?]+\.(xml|cs|inc|dat|bak|conf|cnf|old|txt)$"
-REGEXP_IMAGE_URL = "^[^\?]+\.(jpg|jpeg|png|gif|bmp)$"
-REGEXP_VALID_URL = "^[^\?]+\.(shtml|shtm|stm)$"
+REGEXP_SMALL_FILE_URL = r"^[^\?]+\.(xml|cs|inc|dat|bak|conf|cnf|old|txt)$"
+REGEXP_IMAGE_URL = r"^[^\?]+\.(jpg|jpeg|png|gif|bmp)$"
+REGEXP_VALID_URL = r"^[^\?]+\.(shtml|shtm|stm)$"
 REGEXP_SSI_URL = "^(http|ftp)[^ ]+$"
-REGEXP_PASSWORD = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!#%*?&]{8,20}$"
-REGEXP_EMAIL = "^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[-]?\w+[.]\w{2,3}$"
+REGEXP_PASSWORD = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!#%*?&]{8,20}$"
+REGEXP_EMAIL = r"^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[-]?\w+[.]\w{2,3}$"
 
 # Compile regular expressions once at the beginning for speed purposes:
 is_file_regex = re.compile(REGEXP_FILE_URL, re.IGNORECASE)
@@ -214,3 +229,32 @@ JWT_OPTIONS = {
     "verify_iat": True,
     "verify_aud": False,
 }
+
+# ---------------------------------------------------------------------------
+# Community Plugin Marketplace — admin allow-list
+# ---------------------------------------------------------------------------
+# Emails in this list are treated as platform admins. When such a user
+# registers (or already exists), is_admin is set to True automatically, so
+# they can access the admin tabs and endpoints without a manual DB update.
+#
+# There is NO default value. Operators must set OWTF_ADMIN_EMAILS
+# explicitly (comma-separated). An earlier version of this file shipped
+# with "admin@owtf.org" pre-populated as a review convenience — that was
+# removed because a hard-coded email in a production release is a
+# credential leak waiting to happen. Admins can also be managed with
+# ``owtf-admin promote <email>`` / ``owtf-admin demote <email>``.
+import logging as _admin_logging  # noqa: E402
+import os as _os  # noqa: E402
+
+ADMIN_EMAILS = [e.strip().lower() for e in _os.environ.get("OWTF_ADMIN_EMAILS", "").split(",") if e.strip()]
+
+if not ADMIN_EMAILS:
+    # Loud warning at import time so operators notice the marketplace
+    # has no admin path configured. Not fatal: a dev running OWTF for
+    # the first time on a fresh DB may deliberately want zero admins
+    # until they seed one via the CLI.
+    _admin_logging.getLogger(__name__).warning(
+        "OWTF_ADMIN_EMAILS is empty. No user will be auto-promoted to admin. "
+        "Set the env var to a comma-separated list, or run "
+        "'owtf-admin promote <email>' after registering your account."
+    )
