@@ -3,12 +3,13 @@ networks:
   backend: {}
 services:
   owtf-backend:
+    platform: linux/amd64
     container_name: owtf-backend
     restart: always
     build:
       context: ..
       dockerfile: docker/Dockerfile.backend
-    command: ["/usr/bin/wait-for-it.sh", "db:5432", "--", "owtf"]
+    command: ["/usr/bin/wait-for-it.sh", "db:5432", "--", "/home/owtf/bin/owtf"]
     environment:
       - DOCKER=1
       - POSTGRES_USER=owtf_db_user
@@ -22,10 +23,12 @@ services:
       - owtf-frontend
       - db
     volumes:
+      - ~/.owtf:/home/owtf/.owtf
       - ..:/home/owtf/owtf
     networks:
       - backend
   owtf-frontend:
+    platform: linux/amd64
     container_name: owtf-frontend
     restart: always
     build:
@@ -38,6 +41,7 @@ services:
     networks:
       - backend
   db:
+    platform: linux/amd64
     image: postgres:alpine
     ports:
       - 5432:5432

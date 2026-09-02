@@ -10,6 +10,7 @@ The PRIMARY AUTHORS are:
 And here is an incomplete list of contributors who have submitted patches,
 reported bugs, provided ideas, helped answer questions, and generally made
 OWASP OWTF much better:
+ * Abhay Bansal @abhaybansal16
  * Adi Mutu @an_animal / @am06
  * Alessandro Fanio Gonzalez @alessandrofg
  * Alexandra Sandulescu
