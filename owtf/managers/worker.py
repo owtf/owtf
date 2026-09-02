@@ -3,21 +3,18 @@ owtf.managers.worker
 ~~~~~~~~~~~~~~~~~~~~
 Manage workers and assign work to them.
 """
+
 import logging
 import multiprocessing
+import queue
 import signal
 from time import strftime
-
-try:
-    import queue
-except ImportError:
-    import Queue as queue
 
 import psutil
 
 from owtf.db.session import get_scoped_session
 from owtf.lib.exceptions import InvalidWorkerReference
-from owtf.managers.worklist import get_pending_count, get_work_batch, get_work_for_target
+from owtf.managers.worklist import delete_work, get_pending_count, get_work_batch, get_work_for_target, requeue_work
 from owtf.settings import (
     MIN_RAM_NEEDED,
     PROCESS_PER_CORE,
@@ -38,7 +35,6 @@ TIMEOUT = 3
 
 
 class WorkerManager(object):
-
     def __init__(self):
         # Complicated stuff to keep everything Pythonic and from blowing up
         def handle_signal(sender, **kwargs):
@@ -74,7 +70,7 @@ class WorkerManager(object):
         if int(avail / 1024 / 1024) > MIN_RAM_NEEDED:
             work = get_work_for_target(self.session, self.targets_in_use())
         else:
-            logging.warn("Not enough memory to execute a plugin")
+            logging.warning("Not enough memory to execute a plugin")
         return work
 
     def spawn_workers(self):
@@ -103,7 +99,7 @@ class WorkerManager(object):
             output_q=multiprocessing.Queue(),
             index=index,
         )
-        worker_dict = {"worker": w, "work": (), "busy": False, "paused": False}
+        worker_dict = {"worker": w, "work": (), "work_id": None, "busy": False, "paused": False}
 
         if index is not None:
             logging.debug("Replacing worker at index %d", index)
@@ -122,6 +118,48 @@ class WorkerManager(object):
                 continue
         return target_ids
 
+    @staticmethod
+    def _read_worker_result(worker):
+        """Return the latest terminal event currently queued by a worker."""
+        terminal_result = None
+        while True:
+            try:
+                result = worker["worker"].output_q.get_nowait()
+            except queue.Empty:
+                break
+
+            if result in ("done", "failed"):
+                terminal_result = result
+            elif result == "Started":
+                continue
+            else:
+                logging.warning("Unknown worker result: %r", result)
+                terminal_result = "failed"
+
+        return terminal_result
+
+    @staticmethod
+    def _clear_worker_assignment(worker):
+        worker["work"] = ()
+        worker["work_id"] = None
+        worker["busy"] = False
+        worker["start_time"] = "NA"
+
+    def _resolve_worker_work(self, worker, result=None, interrupted=False):
+        """Finish completed attempts or reactivate interrupted work."""
+        work_id = worker.get("work_id")
+        if work_id is None:
+            return
+
+        if result in ("done", "failed"):
+            delete_work(self.session, work_id)
+        elif interrupted:
+            requeue_work(self.session, work_id)
+        else:
+            return
+
+        self._clear_worker_assignment(worker)
+
     def manage_workers(self):
         """This function manages workers, it polls on each queue of worker
         checks if it has done his work and then gives it new work
@@ -130,77 +168,107 @@ class WorkerManager(object):
         :return: None
         :rtype: None
         """
-        # Fetch work batch at the start
-        idle_count = sum(1 for worker in self.workers if not worker["busy"])
-        work_batch = get_work_batch(self.session, self.targets_in_use(), idle_count, WORKER_BATCH_SIZE)
-        batch_index = 0
-        # Check pending work and scale workers accordingly
+        # --- Pass 1: resolve workers from the previous cycle ---
+        for k, worker in enumerate(self.workers):
+            if worker.get("drain"):
+                continue  # handled in Pass 2
+
+            result = self._read_worker_result(worker)
+
+            if not check_pid(worker["worker"].pid):
+                logging.info(
+                    "Worker with name %s and pid %d seems dead",
+                    worker["worker"].name,
+                    worker["worker"].pid,
+                )
+                self._resolve_worker_work(
+                    worker,
+                    result=result,
+                    interrupted=True,
+                )
+                self.spawn_worker(index=k)
+                continue
+
+            if result in ("done", "failed"):
+                self._resolve_worker_work(worker, result=result)
+
+        # --- Pass 2: remove workers already flagged to drain ---
+        still_active = []
+        for worker in self.workers:
+            if worker.get("drain"):
+                try:
+                    _signal_process(worker["worker"].pid, signal.SIGTERM)
+                    worker["worker"].poison_q.put("DIE")
+                except Exception as e:
+                    logging.warning("Failed to signal draining worker: %s", str(e))
+
+                worker["worker"].join(timeout=5)
+                if worker["worker"].is_alive():
+                    logging.error("Worker %s did not terminate after SIGTERM; forcing kill", worker["worker"].name)
+                    worker["worker"].terminate()
+                    worker["worker"].join()
+
+                result = self._read_worker_result(worker)
+                self._resolve_worker_work(
+                    worker,
+                    result=result,
+                    interrupted=result != "done",
+                )
+                continue
+
+            still_active.append(worker)
+        self.workers = still_active
+
+        # --- Pass 3: scale, then fetch exactly as much work as can be assigned ---
         pending_count = get_pending_count(self.session)
         current_worker_count = len(self.workers)
         max_allowed_workers = self.get_allowed_process_count()
 
-        # Scale UP if pending work exceeds HIGH_WATER
         if pending_count > WORKER_HIGH_WATER and current_worker_count < max_allowed_workers:
-            logging.info(
-                "Pending work (%d) exceeds HIGH_WATER (%d), spawning worker",
-                pending_count,
-                WORKER_HIGH_WATER
-            )
+            logging.info("Pending work (%d) exceeds HIGH_WATER (%d), spawning worker", pending_count, WORKER_HIGH_WATER)
             self.spawn_worker()
-
-        # Scale DOWN if pending work drops below LOW_WATER
         elif pending_count < WORKER_LOW_WATER and current_worker_count > 1:
-            for k in range(len(self.workers)):
-                if not self.workers[k]["busy"]:
-                    logging.info("Pending work (%d) below LOW_WATER (%d), draining worker %s",
-                                  pending_count,
-                                  WORKER_LOW_WATER,
-                                  self.workers[k]["worker"].name
-                                  )
-                    self.workers[k]["drain"] = True
+            for worker in self.workers:
+                if not worker["busy"]:
+                    logging.info(
+                        "Pending work (%d) below LOW_WATER (%d), draining worker %s",
+                        pending_count,
+                        WORKER_LOW_WATER,
+                        worker["worker"].name,
+                    )
+                    worker["drain"] = True
                     break
-        for k in range(0, len(self.workers)):
-            if self.workers[k].get("drain"):
-                continue  # Skip draining workers
-            if (
-                not self.workers[k]["worker"].output_q.empty()
-                or not check_pid(self.workers[k]["worker"].pid)
-            ):
-                if check_pid(self.workers[k]["worker"].pid):
-                    # Assign target, plugin from tuple work and empty the tuple
-                    self.workers[k]["work"] = ()
-                    self.workers[k]["busy"] = False  # Worker is IDLE
-                    self.workers[k]["start_time"] = "NA"
-                else:
-                    logging.info(
-                        "Worker with name %s and pid %d seems dead",
-                        self.workers[k]["worker"].name,
-                        self.workers[k]["worker"].pid,
-                    )
-                    self.spawn_worker(index=k)
-                work_to_assign = None
-                if batch_index < len(work_batch):
-                    work_to_assign = work_batch[batch_index]
-                    batch_index += 1
-                if work_to_assign:
-                    logging.info(
-                        "Work assigned to %s with pid %d",
-                        self.workers[k]["worker"].name,
-                        self.workers[k]["worker"].pid,
-                    )
-                    try:
-                        trash_can = self.workers[k]["worker"].output_q.get_nowait()
-                    except queue.Empty:
-                        pass
-                    # Assign work ,set target to used,and process to busy
-                    self.workers[k]["worker"].input_q.put(work_to_assign)
-                    self.workers[k]["work"] = work_to_assign
-                    self.workers[k]["busy"] = True
-                    self.workers[k]["start_time"] = strftime("%Y/%m/%d %H:%M:%S")
-                if not self.keep_working:
-                    if not self.is_any_worker_busy():
-                        logging.info("All jobs have been done. Exiting.")
-                        workers_finish.send(self)
+
+        ready_workers = [w for w in self.workers if not w["busy"] and not w.get("drain")]
+        work_batch = get_work_batch(self.session, self.targets_in_use(), len(ready_workers), WORKER_BATCH_SIZE)
+
+        for worker, (work_id, target, plugin) in zip(ready_workers, work_batch):
+            work_to_assign = (target, plugin)
+            logging.info(
+                "Work assigned to %s with pid %d",
+                worker["worker"].name,
+                worker["worker"].pid,
+            )
+            # Track ownership before enqueueing so an immediate worker exit
+            # can be requeued on the next manager cycle.
+            worker["work"] = work_to_assign
+            worker["work_id"] = work_id
+            worker["busy"] = True
+            worker["start_time"] = strftime("%Y/%m/%d %H:%M:%S")
+            try:
+                worker["worker"].input_q.put(work_to_assign)
+            except Exception:
+                logging.exception(
+                    "Unable to assign work_id %s to worker %s",
+                    work_id,
+                    worker["worker"].name,
+                )
+                requeue_work(self.session, work_id)
+                self._clear_worker_assignment(worker)
+
+        if not self.keep_working and not self.is_any_worker_busy():
+            logging.info("All jobs have been done. Exiting.")
+            workers_finish.send(self)
 
     def is_any_worker_busy(self):
         """If a worker is still busy, return True. Return False otherwise.
@@ -229,9 +297,9 @@ class WorkerManager(object):
             if item["busy"]:
                 if item["paused"]:
                     _signal_process(item["worker"].pid, signal.SIGCONT)
-                trash = item["worker"].output_q.get()
-                item["busy"] = False
-                item["work"] = ()
+                result = item["worker"].output_q.get()
+                self._resolve_worker_work(item, result=result)
+
             item["worker"].poison_q.put("DIE")
 
     def join_workers(self):
@@ -262,7 +330,7 @@ class WorkerManager(object):
         # killing of workers
         self.worklist = []  # It is a list
         for item in self.workers:
-            work = item["worker"].poison_q.put("DIE")
+            item["worker"].poison_q.put("DIE")
             _signal_process(item["worker"].pid, signal.SIGINT)
 
     @staticmethod
@@ -278,18 +346,14 @@ class WorkerManager(object):
         """
 
         def on_terminate(proc):
-            logging.debug(
-                "Process %s terminated with exit code %d", proc, proc.returncode
-            )
+            logging.debug("Process %s terminated with exit code %d", proc, proc.returncode)
 
         parent = psutil.Process(parent_pid)
         children = parent.children(recursive=True)
         for child in children:
             child.send_signal(psignal)
 
-        gone, alive = psutil.wait_procs(
-            children, timeout=TIMEOUT, callback=on_terminate
-        )
+        gone, alive = psutil.wait_procs(children, timeout=TIMEOUT, callback=on_terminate)
         if not alive:
             # send SIGKILL
             for pid in alive:
@@ -319,9 +383,7 @@ class WorkerManager(object):
                 temp_dict["id"] = pseudo_index
                 return temp_dict
             except IndexError:
-                raise InvalidWorkerReference(
-                    "No worker process with id: {!s}".format(pseudo_index)
-                )
+                raise InvalidWorkerReference("No worker process with id: {!s}".format(pseudo_index))
         else:
             worker_temp_list = []
             for i, obj in enumerate(self.workers):
@@ -357,9 +419,7 @@ class WorkerManager(object):
         try:
             return self.workers[pseudo_index - 1]
         except IndexError:
-            raise InvalidWorkerReference(
-                "No worker process with id: {!s}".format(pseudo_index)
-            )
+            raise InvalidWorkerReference("No worker process with id: {!s}".format(pseudo_index))
 
     def create_worker(self):
         """Create new worker
@@ -382,9 +442,7 @@ class WorkerManager(object):
             _signal_process(worker_dict["worker"].pid, signal.SIGINT)
             del self.workers[pseudo_index - 1]
         else:
-            raise InvalidWorkerReference(
-                "Worker with id {!s} is busy".format(pseudo_index)
-            )
+            raise InvalidWorkerReference("Worker with id {!s} is busy".format(pseudo_index))
 
     def pause_worker(self, pseudo_index):
         """Pause worker by sending SIGSTOP after verifying the process is running
