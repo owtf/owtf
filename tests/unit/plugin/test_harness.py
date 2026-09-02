@@ -3,6 +3,7 @@ tests.unit.plugin.test_harness
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Unit tests for plugin execution harness with timeout support.
 """
+
 import signal
 import time
 
@@ -11,6 +12,7 @@ from owtf.plugin.harness import ErrorResult, TimeoutResult, execute_with_timeout
 
 def test_successful_execution_returns_output():
     """Successful plugin execution should return actual output."""
+
     def mock_plugin_func(plugin):
         return {"status": "success", "output": "test data"}
 
@@ -24,6 +26,7 @@ def test_successful_execution_returns_output():
 
 def test_timeout_returns_timeout_result():
     """Plugin execution that times out should return TimeoutResult."""
+
     def slow_plugin_func(plugin):
         time.sleep(10)  # Sleep longer than timeout
         return {"status": "success"}
@@ -38,6 +41,7 @@ def test_timeout_returns_timeout_result():
 
 def test_exception_returns_error_result():
     """Plugin execution that raises exception should return ErrorResult."""
+
     def error_plugin_func(plugin):
         raise ValueError("Plugin failed")
 
@@ -50,6 +54,7 @@ def test_exception_returns_error_result():
 
 def test_plugin_attribute_error_returns_error_result():
     """Plugin's own AttributeError should return ErrorResult, not retry."""
+
     def plugin_with_attr_error(plugin):
         # Plugin raises its own AttributeError
         obj = None
@@ -64,6 +69,7 @@ def test_plugin_attribute_error_returns_error_result():
 
 def test_sigalrm_handler_restored():
     """Previous SIGALRM handler should be restored after execution."""
+
     def custom_handler(signum, frame):
         pass
 
@@ -86,6 +92,7 @@ def test_sigalrm_handler_restored():
 
 def test_uses_default_timeout_from_settings():
     """Should use PLUGIN_TIMEOUT from settings if not specified."""
+
     def quick_plugin(plugin):
         return {"status": "success"}
 
@@ -122,6 +129,7 @@ def test_no_retry_on_timeout():
     def slow_plugin_func(plugin):
         attempt_count[0] += 1
         import time
+
         time.sleep(10)
 
     plugin = {"code": "TEST-008"}
@@ -133,6 +141,7 @@ def test_no_retry_on_timeout():
 
 def test_exhausts_retries_and_returns_error():
     """Plugin should return ErrorResult after exhausting all retries."""
+
     def always_failing_plugin(plugin):
         raise RuntimeError("Persistent failure")
 
@@ -141,6 +150,7 @@ def test_exhausts_retries_and_returns_error():
 
     assert isinstance(result, ErrorResult)
     assert "Persistent failure" in result.message
+
 
 def test_plugin_abort_exception_bubbles_up():
     """PluginAbortException should bubble up, not be caught or retried."""
