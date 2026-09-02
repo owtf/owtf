@@ -4,6 +4,7 @@ Usage
     .. toctree::
        :maxdepth: 2
 
+       usage/owtf-next-cli.rst
        usage/starting.rst
        usage/access-model.rst
        usage/sessions.rst

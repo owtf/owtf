@@ -140,3 +140,6 @@ debian/.debhelper/
 **/.run/
 **.venv*
 **/.tmp-ts/
+
+# OWTF Next local state
+.owtf-next/

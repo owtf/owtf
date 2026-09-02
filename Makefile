@@ -12,6 +12,11 @@ LOCAL_BOOTSTRAP_PY := $(shell if command -v python3.11 >/dev/null 2>&1; then ech
 .PHONY: venv setup bootstrap web docs lint typecheck-py format-py clean bump build release local-up local-down local-status local-stop-app local-clean-ports local-ensure-venv
 LOCAL_PORTS := 3000 8008 8009 8010
 
+.PHONY: test-next test-next-api clean-next-cache
+OWTF_GO_PATH ?= /tmp/owtf-go
+OWTF_GO_CACHE ?= /tmp/owtf-go-cache
+OWTF_GO_ENV := GOPATH=$(OWTF_GO_PATH) GOMODCACHE=$(OWTF_GO_PATH)/pkg/mod GOCACHE=$(OWTF_GO_CACHE) GOMAXPROCS=2
+
 check-compose:
 ifeq ($(strip $(DOCKER_COMPOSE_CMD)),)
 	$(error Docker Compose not found. Install Docker Compose plugin (`docker compose`) or docker-compose)
@@ -148,6 +153,18 @@ lint-js:
 lint: lint-py lint-js
 
 ### TEST
+
+test-next:
+	@echo "--> Testing the OWTF Next control plane"
+	@env $(OWTF_GO_ENV) go test -p=1 ./...
+
+test-next-api:
+	@echo "--> Exercising the OWTF Next API with curl"
+	@OWTF_SMOKE_GOPATH=$(OWTF_GO_PATH) OWTF_SMOKE_GOMODCACHE=$(OWTF_GO_PATH)/pkg/mod ./scripts/owtf-next-smoke.sh
+
+clean-next-cache:
+	@echo "--> Pruning the OWTF Next build cache"
+	@env GOCACHE=$(OWTF_GO_CACHE) go clean -cache
 
 test-py: clean-py
 	@echo "--> Running Python tests (see test.log for output)."

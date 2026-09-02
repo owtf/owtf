@@ -17,6 +17,7 @@ Contents:
    install.rst
    modules.rst
    config.rst
+   architecture/owtf-next.rst
    usage.rst
    troubleshooting.rst
    help.rst
