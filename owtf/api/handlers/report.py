@@ -8,16 +8,40 @@ from collections import defaultdict
 from time import gmtime, strftime
 
 from owtf.api.handlers.base import APIRequestHandler
-from owtf.constants import RANKS, MAPPINGS, SUPPORTED_MAPPINGS
+from owtf.api.handlers.jwtauth import jwtauth
+from owtf.constants import MAPPINGS, RANKS, SUPPORTED_MAPPINGS
 from owtf.lib import exceptions
 from owtf.lib.exceptions import APIError
 from owtf.managers.poutput import get_all_poutputs
 from owtf.managers.target import get_target_config_by_id
 from owtf.models.test_group import TestGroup
-from owtf.api.handlers.jwtauth import jwtauth
+
+__all__ = ["ReportExportHandler", "MetricsReportHandler"]
 
 
-__all__ = ["ReportExportHandler"]
+@jwtauth
+class MetricsReportHandler(APIRequestHandler):
+    """Return metrics aggregated from all persisted worker executions."""
+
+    SUPPORTED_METHODS = ["GET"]
+
+    def get(self):
+        from owtf.plugin.metrics import get_metrics
+        from owtf.reports.html_report import HTMLReportGenerator
+
+        metrics = get_metrics()
+        if self.get_argument("format", "json").lower() == "html":
+            self.set_header("Content-Type", "text/html; charset=utf-8")
+            self.write(HTMLReportGenerator(metrics).generate(session=self.session))
+            self.finish()
+            return
+
+        self.success(
+            {
+                "metrics": metrics.get_summary(session=self.session),
+                "dashboard": metrics.get_dashboard(session=self.session),
+            }
+        )
 
 
 @jwtauth
