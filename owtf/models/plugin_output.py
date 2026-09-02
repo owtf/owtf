@@ -34,6 +34,7 @@ class PluginOutput(Model):
     user_rank = Column(Integer, nullable=True, default=-1)
     owtf_rank = Column(Integer, nullable=True, default=-1)
     output_path = Column(String, nullable=True)
+    fingerprint = Column(String, nullable=True, unique=True, index=True)
 
     @hybrid_property
     def run_time(self):
