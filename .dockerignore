@@ -2,10 +2,7 @@
 .github/
 .docker-data/
 .owtf-next/
-**/node_modules/
-**/.tmp-ts/
 build/
 deploy/
 docs/
 infra/
-owtf/

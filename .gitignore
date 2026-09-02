@@ -4,14 +4,6 @@
 build/
 coverage.out
 
-# Legacy frontend dependencies and generated output
-owtf/webapp/node_modules/
-owtf/webapp/build/
-owtf/webapp/coverage/
-owtf/webapp/stats.json
-owtf/webapp/yarn-error.log
-**/.tmp-ts/
-
 # Editors and operating systems
 .DS_Store
 .idea/
