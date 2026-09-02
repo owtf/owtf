@@ -18,7 +18,10 @@ def test_manage_workers_two_cycles_no_stranded_work_and_drain_removal():
     from owtf.models.test_group import TestGroup
     from owtf.models.work import Work
 
-    with mock.patch("owtf.db.session.get_db_engine", return_value=mock.MagicMock()):
+    with (
+        mock.patch("owtf.db.session.get_scoped_session", return_value=mock.MagicMock()),
+        mock.patch("owtf.workers.local.LocalWorker.start"),
+    ):
         from owtf.managers.worker import WorkerManager
 
     engine = create_engine("sqlite:///:memory:")
@@ -60,24 +63,30 @@ def test_manage_workers_two_cycles_no_stranded_work_and_drain_removal():
             self._alive = False
 
     try:
-        # --- Seed: one plugin, two targets (Work has a unique
-        # constraint on target_id+plugin_key, so two distinct targets
-        # are needed for two Work rows on the same plugin) ---
+        # --- Seed: one plugin and three targets (Work has a unique
+        # constraint on target_id+plugin_key). ---
         tg = TestGroup(code="OWTF-TEST-001", group="web", descrip="d", url="http://x", priority=1)
         plugin = Plugin(
-            key="active@OWTF-TEST-001", title="t", name="n",
-            code="OWTF-TEST-001", group="web", type="active", file="f.py"
+            key="active@OWTF-TEST-001",
+            title="t",
+            name="n",
+            code="OWTF-TEST-001",
+            group="web",
+            type="active",
+            file="f.py",
         )
         target1 = Target(target_url="http://example1.com")
         target2 = Target(target_url="http://example2.com")
-        session.add_all([tg, plugin, target1, target2])
+        target3 = Target(target_url="http://example3.com")
+        session.add_all([tg, plugin, target1, target2, target3])
         session.commit()
 
         work1 = Work(target_id=target1.id, plugin_key=plugin.key, active=True)
         work2 = Work(target_id=target2.id, plugin_key=plugin.key, active=True)
-        session.add_all([work1, work2])
+        work3 = Work(target_id=target3.id, plugin_key=plugin.key, active=True)
+        session.add_all([work1, work2, work3])
         session.commit()
-        work1_id, work2_id = work1.id, work2.id
+        work1_id, work2_id, work3_id = work1.id, work2.id, work3.id
 
         # --- 4 idle fake workers, no real OS processes involved ---
         manager = WorkerManager.__new__(WorkerManager)
@@ -86,20 +95,23 @@ def test_manage_workers_two_cycles_no_stranded_work_and_drain_removal():
         manager.workers = [
             {
                 "worker": FakeWorkerProcess(pid=1001 + i, name=f"worker-{i}"),
-                "work": (), "work_id": None, "busy": False, "paused": False
+                "work": (),
+                "work_id": None,
+                "busy": False,
+                "paused": False,
             }
             for i in range(4)
         ]
 
-        with mock.patch("owtf.managers.worker.WORKER_LOW_WATER", 3), \
-                mock.patch("owtf.managers.worker.check_pid", return_value=True), \
-                mock.patch("owtf.managers.worker._signal_process"):
-
-
+        with (
+            mock.patch("owtf.managers.worker.WORKER_LOW_WATER", 4),
+            mock.patch("owtf.managers.worker.check_pid", return_value=True),
+            mock.patch("owtf.managers.worker._signal_process"),
+        ):
             # ---- Cycle 1 ----
             manager.manage_workers()
 
-            # pending_count(2) < WORKER_LOW_WATER should have flagged
+            # pending_count(3) < WORKER_LOW_WATER should have flagged
             # exactly one idle worker to drain as part of normal Pass 3
             drained = [w for w in manager.workers if w.get("drain")]
             assert len(drained) == 1, "expected exactly one worker flagged to drain"
@@ -108,19 +120,20 @@ def test_manage_workers_two_cycles_no_stranded_work_and_drain_removal():
 
             # Only workers confirmed ready this cycle should hold claimed work
             assigned = [w for w in manager.workers if w["work_id"] is not None]
-            assert len(assigned) == 2, "should claim exactly as many rows as could be assigned"
+            assert len(assigned) == 3, "should claim exactly as many rows as could be assigned"
             assigned_ids = {w["work_id"] for w in assigned}
-            assert assigned_ids == {work1_id, work2_id}
+            assert assigned_ids == {work1_id, work2_id, work3_id}
 
-            # Both rows are soft-claimed (still exist, just inactive) — not lost
-            assert session.query(Work).count() == 2
+            # All rows are soft-claimed (still exist, just inactive) — not lost
+            assert session.query(Work).count() == 3
             assert session.query(Work).filter(Work.active.is_(True)).count() == 0
 
-            # Simulate: the worker holding work1 finishes; the one
-            # holding work2 is still running; the drained worker is
-            # untouched between cycles (matches real timing).
+            # Simulate one successful attempt, one permanent plugin failure,
+            # and one attempt that is still running.
             completed_worker = next(w for w in assigned if w["work_id"] == work1_id)
+            failed_worker = next(w for w in assigned if w["work_id"] == work2_id)
             completed_worker["worker"].output_q.put("done")
+            failed_worker["worker"].output_q.put("failed")
 
             # ---- Cycle 2 ----
             manager.manage_workers()
@@ -128,11 +141,15 @@ def test_manage_workers_two_cycles_no_stranded_work_and_drain_removal():
         # The completed row must be genuinely deleted, not just inactive
         assert session.query(Work).get(work1_id) is None, "completed work must be deleted, not stranded"
 
+        # A plugin failure completes the attempt too. Requeueing it would run a
+        # permanently broken plugin forever.
+        assert session.query(Work).get(work2_id) is None, "failed work must not be requeued forever"
+
         # The still-in-progress row must remain tracked, not stranded either
-        still_in_progress = session.query(Work).get(work2_id)
+        still_in_progress = session.query(Work).get(work3_id)
         assert still_in_progress is not None
         assert still_in_progress.active is False
-        holder = next((w for w in manager.workers if w["work_id"] == work2_id), None)
+        holder = next((w for w in manager.workers if w["work_id"] == work3_id), None)
         assert holder is not None, "in-progress work must still be held by a tracked worker"
 
         # The drained worker must be gone from self.workers and joined
@@ -152,6 +169,7 @@ def test_manage_workers_two_cycles_no_stranded_work_and_drain_removal():
 
         # pending_count must reflect reality, not a phantom non-zero count
         from owtf.managers.worklist import get_pending_count
+
         assert get_pending_count(session) == 0
     finally:
         session.close()

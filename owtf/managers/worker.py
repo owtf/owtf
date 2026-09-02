@@ -3,15 +3,12 @@ owtf.managers.worker
 ~~~~~~~~~~~~~~~~~~~~
 Manage workers and assign work to them.
 """
+
 import logging
 import multiprocessing
+import queue
 import signal
 from time import strftime
-
-try:
-    import queue
-except ImportError:
-    import Queue as queue
 
 import psutil
 
@@ -38,7 +35,6 @@ TIMEOUT = 3
 
 
 class WorkerManager(object):
-
     def __init__(self):
         # Complicated stuff to keep everything Pythonic and from blowing up
         def handle_signal(sender, **kwargs):
@@ -74,7 +70,7 @@ class WorkerManager(object):
         if int(avail / 1024 / 1024) > MIN_RAM_NEEDED:
             work = get_work_for_target(self.session, self.targets_in_use())
         else:
-            logging.warn("Not enough memory to execute a plugin")
+            logging.warning("Not enough memory to execute a plugin")
         return work
 
     def spawn_workers(self):
@@ -150,20 +146,19 @@ class WorkerManager(object):
         worker["start_time"] = "NA"
 
     def _resolve_worker_work(self, worker, result=None, interrupted=False):
-        """Delete successful work or reactivate failed/interrupted work."""
+        """Finish completed attempts or reactivate interrupted work."""
         work_id = worker.get("work_id")
         if work_id is None:
             return
 
-        if result == "done":
+        if result in ("done", "failed"):
             delete_work(self.session, work_id)
-        elif result == "failed" or interrupted:
+        elif interrupted:
             requeue_work(self.session, work_id)
         else:
             return
 
         self._clear_worker_assignment(worker)
-
 
     def manage_workers(self):
         """This function manages workers, it polls on each queue of worker
@@ -209,10 +204,7 @@ class WorkerManager(object):
 
                 worker["worker"].join(timeout=5)
                 if worker["worker"].is_alive():
-                    logging.error(
-                        "Worker %s did not terminate after SIGTERM; forcing kill",
-                        worker["worker"].name
-                    )
+                    logging.error("Worker %s did not terminate after SIGTERM; forcing kill", worker["worker"].name)
                     worker["worker"].terminate()
                     worker["worker"].join()
 
@@ -233,11 +225,7 @@ class WorkerManager(object):
         max_allowed_workers = self.get_allowed_process_count()
 
         if pending_count > WORKER_HIGH_WATER and current_worker_count < max_allowed_workers:
-            logging.info(
-                "Pending work (%d) exceeds HIGH_WATER (%d), spawning worker",
-                pending_count,
-                WORKER_HIGH_WATER
-            )
+            logging.info("Pending work (%d) exceeds HIGH_WATER (%d), spawning worker", pending_count, WORKER_HIGH_WATER)
             self.spawn_worker()
         elif pending_count < WORKER_LOW_WATER and current_worker_count > 1:
             for worker in self.workers:
@@ -246,7 +234,7 @@ class WorkerManager(object):
                         "Pending work (%d) below LOW_WATER (%d), draining worker %s",
                         pending_count,
                         WORKER_LOW_WATER,
-                        worker["worker"].name
+                        worker["worker"].name,
                     )
                     worker["drain"] = True
                     break
@@ -277,7 +265,6 @@ class WorkerManager(object):
                 )
                 requeue_work(self.session, work_id)
                 self._clear_worker_assignment(worker)
-
 
         if not self.keep_working and not self.is_any_worker_busy():
             logging.info("All jobs have been done. Exiting.")
@@ -311,12 +298,7 @@ class WorkerManager(object):
                 if item["paused"]:
                     _signal_process(item["worker"].pid, signal.SIGCONT)
                 result = item["worker"].output_q.get()
-                if item.get("work_id") is not None:
-                    if result == "done":
-                        delete_work(self.session, item["work_id"])
-                    else:
-                        requeue_work(self.session, item["work_id"])
-                self._clear_worker_assignment(item)
+                self._resolve_worker_work(item, result=result)
 
             item["worker"].poison_q.put("DIE")
 
@@ -348,7 +330,7 @@ class WorkerManager(object):
         # killing of workers
         self.worklist = []  # It is a list
         for item in self.workers:
-            work = item["worker"].poison_q.put("DIE")
+            item["worker"].poison_q.put("DIE")
             _signal_process(item["worker"].pid, signal.SIGINT)
 
     @staticmethod
@@ -364,18 +346,14 @@ class WorkerManager(object):
         """
 
         def on_terminate(proc):
-            logging.debug(
-                "Process %s terminated with exit code %d", proc, proc.returncode
-            )
+            logging.debug("Process %s terminated with exit code %d", proc, proc.returncode)
 
         parent = psutil.Process(parent_pid)
         children = parent.children(recursive=True)
         for child in children:
             child.send_signal(psignal)
 
-        gone, alive = psutil.wait_procs(
-            children, timeout=TIMEOUT, callback=on_terminate
-        )
+        gone, alive = psutil.wait_procs(children, timeout=TIMEOUT, callback=on_terminate)
         if not alive:
             # send SIGKILL
             for pid in alive:
@@ -405,9 +383,7 @@ class WorkerManager(object):
                 temp_dict["id"] = pseudo_index
                 return temp_dict
             except IndexError:
-                raise InvalidWorkerReference(
-                    "No worker process with id: {!s}".format(pseudo_index)
-                )
+                raise InvalidWorkerReference("No worker process with id: {!s}".format(pseudo_index))
         else:
             worker_temp_list = []
             for i, obj in enumerate(self.workers):
@@ -443,9 +419,7 @@ class WorkerManager(object):
         try:
             return self.workers[pseudo_index - 1]
         except IndexError:
-            raise InvalidWorkerReference(
-                "No worker process with id: {!s}".format(pseudo_index)
-            )
+            raise InvalidWorkerReference("No worker process with id: {!s}".format(pseudo_index))
 
     def create_worker(self):
         """Create new worker
@@ -468,9 +442,7 @@ class WorkerManager(object):
             _signal_process(worker_dict["worker"].pid, signal.SIGINT)
             del self.workers[pseudo_index - 1]
         else:
-            raise InvalidWorkerReference(
-                "Worker with id {!s} is busy".format(pseudo_index)
-            )
+            raise InvalidWorkerReference("Worker with id {!s} is busy".format(pseudo_index))
 
     def pause_worker(self, pseudo_index):
         """Pause worker by sending SIGSTOP after verifying the process is running
