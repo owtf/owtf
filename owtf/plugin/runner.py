@@ -513,6 +513,7 @@ class PluginRunner(object):
             end_time = plugin.get("end")
             error = abort_reason if abort_reason else None
             get_metrics().record_execution(
+                plugin_key=plugin["key"],
                 plugin_code=plugin["code"],
                 plugin_group=plugin["group"],
                 plugin_type=plugin["type"],
@@ -522,12 +523,12 @@ class PluginRunner(object):
                 error=error,
                 session=session,
             )
-            # Only rank if output is actual data (not TimeoutResult/ErrorResult)
-            if isinstance(output, dict):
+            # Rank any real output, including the list shape used by most
+            # plugins, but never timeout/error result objects.
+            if output is not None and not isinstance(output, (TimeoutResult, ErrorResult)):
                 plugin["owtf_rank"] = self.rank_plugin(output, self.get_plugin_output_dir(plugin))
             else:
                 plugin["owtf_rank"] = None
-            plugin["owtf_rank"] = self.rank_plugin(output, self.get_plugin_output_dir(plugin))
             try:
                 if status_msg == "Successful":
                     save_plugin_output(session=session, plugin=plugin, output=output)
