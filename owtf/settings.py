@@ -225,7 +225,6 @@ JWT_OPTIONS = {
     "verify_iat": True,
     "verify_aud": False,
 }
-
 # Community Plugin Marketplace: seed admins from OWTF_ADMIN_EMAILS
 # (comma-separated). Emails on this list are promoted to admin at
 # registration. Ongoing admin management is done with the owtf-admin CLI.
@@ -239,3 +238,8 @@ if not ADMIN_EMAILS:
         "Set the env var to a comma-separated list, or run "
         "'owtf-admin promote <email>' after registering your account."
     )
+# Worker scaling constants (Phase 2)
+WORKER_MAX_PROCESSES = globals().get("WORKER_MAX_PROCESSES", 8)
+WORKER_HIGH_WATER = globals().get("WORKER_HIGH_WATER", 50)
+WORKER_LOW_WATER = globals().get("WORKER_LOW_WATER", 10)
+WORKER_BATCH_SIZE = globals().get("WORKER_BATCH_SIZE", 5)
