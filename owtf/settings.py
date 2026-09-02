@@ -72,14 +72,11 @@ PLUGINS_DIR = os.path.join(ROOT_DIR, "plugins")
 # Community Plugin Marketplace
 COMMUNITY_PLUGINS_DIR = os.path.join(OWTF_CONF, "plugins", "community")
 COMMUNITY_PLUGIN_DEFAULT_TIMEOUT = 300  # seconds per plugin run
-COMMUNITY_PLUGIN_MEMORY_LIMIT = 256 * 1024 * 1024  # 256 MB in bytes
-# Bounds on uploader-supplied execution_timeout / memory_limit values.
-# Anything outside these ranges is rejected with a 400 so a single
-# upload cannot ask for a 24-hour run or many GB of RAM.
+# Bounds on uploader-supplied execution_timeout. Anything outside this
+# range is rejected with a 400 so a single upload cannot ask for a
+# 24-hour run.
 COMMUNITY_PLUGIN_MIN_TIMEOUT = 10  # seconds
 COMMUNITY_PLUGIN_MAX_TIMEOUT = 900  # 15 minutes
-COMMUNITY_PLUGIN_MIN_MEMORY = 32 * 1024 * 1024  # 32 MB
-COMMUNITY_PLUGIN_MAX_MEMORY = 1024 * 1024 * 1024  # 1 GB
 PLUGIN_UPLOAD_MAX_SIZE = 512 * 1024  # 512 KB
 PLUGIN_ALLOWED_EXTENSIONS = [".py"]
 

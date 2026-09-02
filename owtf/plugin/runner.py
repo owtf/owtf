@@ -52,6 +52,7 @@ except Exception as e:  # pragma: no cover - depends on optional runtime stack
 
     _PTP_IMPORT_ERROR = e
 
+
 INTRO_BANNER_GENERAL = """
 Short Intro:
 Current Plugin Groups:
@@ -353,9 +354,9 @@ class PluginRunner(object):
         return "{0}/{1}/{2}".format(plugin_dir, plugin["type"], plugin["file"])  # Path to run the plugin
 
     def run_plugin(self, plugin_dir, plugin, save_output=True):
-        """Run a specific plugin
+        """Run a plugin. Community plugins dispatch to _run_community_plugin.
 
-        :param plugin_dir: path of plugin directory
+        :param plugin_dir: path of plugin directory (built-in plugins only)
         :type plugin_dir: `str`
         :param plugin: Plugin dict
         :type plugin: `dict`
@@ -364,11 +365,32 @@ class PluginRunner(object):
         :return: Plugin output
         :rtype: `dict`
         """
+        if plugin.get("source") == "community":
+            return self._run_community_plugin(plugin)
         plugin_path = self.get_plugin_full_path(plugin_dir, plugin)
         path, name = os.path.split(plugin_path)
         module = self.get_module("", name, path + "/")
         plugin_output = execute_with_timeout(module.run, plugin)
         return plugin_output
+
+    def _run_community_plugin(self, plugin):
+        """Load an approved community plugin from disk and call run(plugin).
+
+        Community plugins use the same timeout, retry, and result objects as
+        built-in plugins so process_plugin can record failures consistently.
+        """
+        file_path = plugin["file_path"]
+        path, name = os.path.split(file_path)
+        try:
+            target_url = plugin.get("target_url") or target_manager.get_target_url()
+        except Exception:
+            # target_manager may not be configured yet on a test-run path.
+            target_url = plugin.get("target_url")
+        logging.info("Running community plugin %r against %s", plugin.get("name"), target_url)
+        module = self.get_module("", name, path + "/")
+        configured_timeout = plugin.get("execution_timeout")
+        timeout = int(configured_timeout) if configured_timeout else None
+        return execute_with_timeout(module.run, plugin, timeout=timeout)
 
     @staticmethod
     def rank_plugin(output, pathname):

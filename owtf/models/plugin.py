@@ -3,13 +3,15 @@ owtf.models.plugin
 ~~~~~~~~~~~~~~~~~~
 
 """
-from sqlalchemy import Column, String, ForeignKey, UniqueConstraint, or_
+
+from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint, or_
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 
 from owtf.db.model_base import Model
+from owtf.models import test_group  # noqa: F401  register TestGroup so Plugin.code FK resolves
 from owtf.utils.timer import timer
-from owtf.models import test_group
+
 
 class Plugin(Model):
     __tablename__ = "plugins"
@@ -23,6 +25,15 @@ class Plugin(Model):
     descrip = Column(String, nullable=True)
     file = Column(String)
     attr = Column(String, nullable=True)
+    # None for built-in plugins, "community" for uploads from the marketplace.
+    source = Column(String(32), nullable=True)
+    # Absolute path on disk. Set only when source="community"; built-in
+    # plugins are located from group/type/file under PLUGINS_DIR.
+    file_path = Column(String(512), nullable=True)
+    # Seconds. Set only when source="community"; built-in plugins leave
+    # it NULL. Plugin.to_dict() surfaces this so _derive_work_dict
+    # carries the timeout unchanged into the runner.
+    execution_timeout = Column(Integer, nullable=True)
     works = relationship("Work", backref="plugin", cascade="delete")
     outputs = relationship("PluginOutput", backref="plugin")
 
@@ -112,12 +123,15 @@ class Plugin(Model):
         :return: Corresponding plugin codes as a list
         :rtype: `list`
         """
-        checklist = ["OWTF-", "PTES-"]
+        is_single_code = isinstance(codes, str)
+        values = [codes] if is_single_code else list(codes)
         query = session.query(Plugin.code)
-        for count, name in enumerate(codes):
-            if all(check not in name for check in checklist):
-                code = query.filter(Plugin.name == name).first()
-                codes[count] = str(code[0])
-        return codes
+        for count, value in enumerate(values):
+            if query.filter(Plugin.code == value).first() is not None:
+                continue
+            code = query.filter(Plugin.name == value).first()
+            if code is not None:
+                values[count] = code[0]
+        return values[0] if is_single_code else values
 
     __table_args__ = (UniqueConstraint("type", "code"),)

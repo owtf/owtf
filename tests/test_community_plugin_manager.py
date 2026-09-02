@@ -6,10 +6,25 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-# Register sibling models so user_plugins -> users foreign keys resolve.
+# Register every model so create_all can build a self-consistent schema:
+# approve now mirrors community plugins into the plugins table (which has
+# relationships to Work and PluginOutput), so those siblings must be loaded.
+import owtf.models.api_token  # noqa: F401
+import owtf.models.command  # noqa: F401
+import owtf.models.config  # noqa: F401
 import owtf.models.email_confirmation  # noqa: F401
+import owtf.models.error  # noqa: F401
+import owtf.models.grep_output  # noqa: F401
+import owtf.models.plugin_output  # noqa: F401
+import owtf.models.resource  # noqa: F401
+import owtf.models.session  # noqa: F401
+import owtf.models.target  # noqa: F401
+import owtf.models.test_group  # noqa: F401
+import owtf.models.transaction  # noqa: F401
+import owtf.models.url  # noqa: F401
 import owtf.models.user  # noqa: F401
 import owtf.models.user_login_token  # noqa: F401
+import owtf.models.work  # noqa: F401
 from owtf.db.model_base import Model
 from owtf.managers.community_plugin import (
     _sanitise_filename,
@@ -50,18 +65,13 @@ BAD_PLUGIN_SOURCE = textwrap.dedent(
 
 @pytest.fixture()
 def session(tmp_path, monkeypatch):
-    """Provide a fresh in-memory SQLite session and redirect COMMUNITY_PLUGINS_DIR.
-
-    Explicit tables= keeps the fixture stable when other test modules
-    (e.g. plugin_manager_integration) register plugin_output / work on
-    the shared metadata. Without the whitelist, create_all would try
-    to create those unrelated tables and fail on their FK targets.
-    """
+    """In-memory SQLite session with the full OWTF schema and a redirected
+    COMMUNITY_PLUGINS_DIR. Approve syncs into the plugins table, so we
+    need the full schema (worklist, plugin_output, etc.) available."""
     monkeypatch.setattr("owtf.managers.community_plugin.COMMUNITY_PLUGINS_DIR", str(tmp_path))
-    from owtf.models.user import User
 
     engine = create_engine("sqlite:///:memory:")
-    Model.metadata.create_all(engine, tables=[User.__table__, UserPlugin.__table__])
+    Model.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     s = Session()
     yield s

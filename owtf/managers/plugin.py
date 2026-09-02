@@ -3,6 +3,7 @@ owtf.managers.plugin
 ~~~~~~~~~~~~~~~~~~~~
 This module manages the plugins and their dependencies
 """
+
 import hashlib
 import importlib.util
 import json
@@ -55,11 +56,7 @@ def get_test_groups_config(file_path):
         try:
             code, priority, descrip, hint, url = line.strip().split(" | ")
         except ValueError:
-            abort_framework(
-                "Problem in Test Groups file: '{!s}' -> Cannot parse line: {!s}".format(
-                    file_path, line
-                )
-            )
+            abort_framework("Problem in Test Groups file: '{!s}' -> Cannot parse line: {!s}".format(file_path, line))
         if len(descrip) < 2:
             descrip = hint
         if len(hint) < 2:
@@ -130,13 +127,7 @@ def load_plugins(session):
     # 'PLUGIN_DIR'.
     plugins = []
     for root, _, files in os.walk(PLUGINS_DIR):
-        plugins.extend(
-            [
-                os.path.join(root, filename)
-                for filename in files
-                if filename.endswith("py")
-            ]
-        )
+        plugins.extend([os.path.join(root, filename) for filename in files if filename.endswith("py")])
     plugins = sorted(plugins)
     # Retrieve the information of the plugin.
     for plugin_path in plugins:
@@ -199,21 +190,19 @@ def get_types_for_plugin_group(session, plugin_group):
     :return: List of available plugin types
     :rtype: `list`
     """
-    plugin_types = session.query(Plugin.type).filter_by(
-        group=plugin_group
-    ).distinct().all()
+    plugin_types = session.query(Plugin.type).filter_by(group=plugin_group).distinct().all()
     plugin_types = [i[0] for i in plugin_types]
     return plugin_types
 
 
 def plugin_gen_query(session, criteria):
-    """Generate a SQLAlchemy query based on the filter criteria
-    :param criteria: Filter criteria
-    :type criteria: `dict`
-    :return:
-    :rtype:
+    """Generate a SQLAlchemy query based on the filter criteria.
+
+    Uses an outer join to keep legacy plugin rows visible if their test-group
+    metadata is missing. Approved community plugins receive a synthetic test
+    group when they are mirrored into this table.
     """
-    query = session.query(Plugin).join(TestGroup)
+    query = session.query(Plugin).outerjoin(TestGroup, Plugin.code == TestGroup.code)
     if criteria.get("type", None):
         if isinstance(criteria["type"], str):
             query = query.filter(Plugin.type == criteria["type"])
@@ -234,27 +223,21 @@ def plugin_gen_query(session, criteria):
             query = query.filter(Plugin.name == criteria["name"])
         if isinstance(criteria["name"], list):
             query = query.filter(Plugin.name.in_(criteria["name"]))
-    return query.order_by(TestGroup.priority.desc())
+    return query.order_by(TestGroup.priority.desc().nullslast())
 
 
 def get_all_plugin_dicts(session, criteria=None):
-    """Get plugin dicts based on filter criteria
+    """Get plugin dicts based on filter criteria.
 
-    :param criteria: Filter criteria
-    :type criteria: `dict`
-    :return: List of plugin dicts
-    :rtype: `list`
+    Community plugins are persisted into the plugins table on approval
+    (see owtf.managers.community_plugin), so they come back through the
+    standard query alongside built-in ones. They carry
+    ``source="community"`` and an absolute ``file_path``.
     """
-    if criteria is None:
-        criteria = {}
+    criteria = dict(criteria or {})
     if "code" in criteria:
         criteria["code"] = Plugin.name_to_code(session, criteria["code"])
-    query = plugin_gen_query(session, criteria)
-    plugin_obj_list = query.all()
-    plugin_dicts = []
-    for obj in plugin_obj_list:
-        plugin_dicts.append(obj.to_dict())
-    return plugin_dicts
+    return [obj.to_dict() for obj in plugin_gen_query(session, criteria).all()]
 
 
 def get_plugins_by_type(session, plugin_type):

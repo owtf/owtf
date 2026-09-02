@@ -27,10 +27,7 @@ from owtf.managers.community_plugin import (
 from owtf.models.user_plugin import APPROVAL_APPROVED, UserPlugin
 from owtf.settings import (
     COMMUNITY_PLUGIN_DEFAULT_TIMEOUT,
-    COMMUNITY_PLUGIN_MAX_MEMORY,
     COMMUNITY_PLUGIN_MAX_TIMEOUT,
-    COMMUNITY_PLUGIN_MEMORY_LIMIT,
-    COMMUNITY_PLUGIN_MIN_MEMORY,
     COMMUNITY_PLUGIN_MIN_TIMEOUT,
 )
 
@@ -74,15 +71,6 @@ class CommunityPluginUploadHandler(APIRequestHandler):
                 COMMUNITY_PLUGIN_MAX_TIMEOUT,
                 "seconds",
             )
-            memory_limit = _parse_bounded_int(
-                "memory_limit",
-                _first_arg(self, "memory_limit", ""),
-                COMMUNITY_PLUGIN_MEMORY_LIMIT,
-                COMMUNITY_PLUGIN_MIN_MEMORY,
-                COMMUNITY_PLUGIN_MAX_MEMORY,
-                "bytes",
-            )
-
             files = self.request.files.get("plugin_file")
             if not files:
                 raise APIError(400, "No plugin_file provided in the upload")
@@ -101,7 +89,6 @@ class CommunityPluginUploadHandler(APIRequestHandler):
                 version=_first_arg(self, "version", "1.0.0"),
                 tags=_first_arg(self, "tags") or None,
                 execution_timeout=execution_timeout,
-                memory_limit=memory_limit,
                 is_public=_first_arg(self, "is_public", "true").lower() not in ("false", "0", "no"),
                 user_id=self.get_current_user_id(),
             )
