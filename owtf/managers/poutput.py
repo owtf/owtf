@@ -3,8 +3,12 @@ owtf.managers.poutput
 ~~~~~~~~~~~~~~~~~~~~~
 Manage plugin output.
 """
+
 import json
+import logging
 import os
+
+from sqlalchemy.exc import IntegrityError
 
 from owtf.db.session import get_count
 from owtf.lib.exceptions import InvalidParameterType
@@ -13,9 +17,7 @@ from owtf.managers.target import target_manager, target_required
 from owtf.models.plugin_output import PluginOutput
 from owtf.models.target import Target
 from owtf.models.work import Work
-from owtf.settings import DATE_TIME_FORMAT
 from owtf.utils.file import FileOperations, get_output_dir_target
-from owtf.utils.timer import timer
 
 
 def plugin_output_exists(session, plugin_key, target_id):
@@ -28,11 +30,7 @@ def plugin_output_exists(session, plugin_key, target_id):
     :return: True if count > 0
     :rtype: `bool`
     """
-    count = get_count(
-        session.query(PluginOutput).filter_by(
-            target_id=target_id, plugin_key=plugin_key
-        )
-    )
+    count = get_count(session.query(PluginOutput).filter_by(target_id=target_id, plugin_key=plugin_key))
     return count > 0
 
 
@@ -75,23 +73,17 @@ def poutput_gen_query(session, filter_data, target_id, for_delete=False):
         if isinstance(filter_data.get("plugin_type"), str):
             query = query.filter_by(plugin_type=filter_data["plugin_type"])
         if isinstance(filter_data.get("plugin_type"), list):
-            query = query.filter(
-                PluginOutput.plugin_type.in_(filter_data["plugin_type"])
-            )
+            query = query.filter(PluginOutput.plugin_type.in_(filter_data["plugin_type"]))
     if filter_data.get("plugin_group", None):
         if isinstance(filter_data.get("plugin_group"), str):
             query = query.filter_by(plugin_group=filter_data["plugin_group"])
         if isinstance(filter_data.get("plugin_group"), list):
-            query = query.filter(
-                PluginOutput.plugin_group.in_(filter_data["plugin_group"])
-            )
+            query = query.filter(PluginOutput.plugin_group.in_(filter_data["plugin_group"]))
     if filter_data.get("plugin_code", None):
         if isinstance(filter_data.get("plugin_code"), str):
             query = query.filter_by(plugin_code=filter_data["plugin_code"])
         if isinstance(filter_data.get("plugin_code"), list):
-            query = query.filter(
-                PluginOutput.plugin_code.in_(filter_data["plugin_code"])
-            )
+            query = query.filter(PluginOutput.plugin_code.in_(filter_data["plugin_code"]))
 
     if filter_data.get("status", None):
         if isinstance(filter_data.get("status"), str):
@@ -158,39 +150,17 @@ def get_unique_dicts(session, target_id=None):
     """
     unique_data = {
         "plugin_type": [
-            i[0]
-            for i in session.query(PluginOutput.plugin_type)
-            .filter_by(target_id=target_id)
-            .distinct()
-            .all()
+            i[0] for i in session.query(PluginOutput.plugin_type).filter_by(target_id=target_id).distinct().all()
         ],
         "plugin_group": [
-            i[0]
-            for i in session.query(PluginOutput.plugin_group)
-            .filter_by(target_id=target_id)
-            .distinct()
-            .all()
+            i[0] for i in session.query(PluginOutput.plugin_group).filter_by(target_id=target_id).distinct().all()
         ],
-        "status": [
-            i[0]
-            for i in session.query(PluginOutput.status)
-            .filter_by(target_id=target_id)
-            .distinct()
-            .all()
-        ],
+        "status": [i[0] for i in session.query(PluginOutput.status).filter_by(target_id=target_id).distinct().all()],
         "user_rank": [
-            i[0]
-            for i in session.query(PluginOutput.user_rank)
-            .filter_by(target_id=target_id)
-            .distinct()
-            .all()
+            i[0] for i in session.query(PluginOutput.user_rank).filter_by(target_id=target_id).distinct().all()
         ],
         "owtf_rank": [
-            i[0]
-            for i in session.query(PluginOutput.owtf_rank)
-            .filter_by(target_id=target_id)
-            .distinct()
-            .all()
+            i[0] for i in session.query(PluginOutput.owtf_rank).filter_by(target_id=target_id).distinct().all()
         ],
     }
     return unique_data
@@ -225,9 +195,7 @@ def delete_all_poutput(session, filter_data, target_id=None):
 
 
 @target_required
-def update_poutput(
-    session, plugin_group, plugin_type, plugin_code, patch_data, target_id=None
-):
+def update_poutput(session, plugin_group, plugin_type, plugin_code, patch_data, target_id=None):
     """Update output in DB
 
     :param plugin_group: Plugin group
@@ -304,29 +272,56 @@ def save_plugin_output(session, plugin, output, target_id=None):
     :return: None
     :rtype: None
     """
+    from owtf.plugin.normalizer import OutputDeduplicator
     from owtf.plugin.runner import runner
 
-    session.merge(
-        PluginOutput(
-            plugin_key=plugin["key"],
-            plugin_code=plugin["code"],
-            plugin_group=plugin["group"],
-            plugin_type=plugin["type"],
-            output=json.dumps(output),
-            start_time=plugin["start"],
-            end_time=plugin["end"],
-            status=plugin["status"],
-            target_id=target_id,
-            # Save path only if path exists i.e if some files were to be stored it will be there
-            output_path=(
-                plugin["output_path"]
-                if os.path.exists(runner.get_plugin_output_dir(plugin))
-                else None
-            ),
-            owtf_rank=plugin["owtf_rank"],
+    output_json = json.dumps(output, sort_keys=True, separators=(",", ":"))
+
+    # Check for duplicate before saving
+    if OutputDeduplicator.is_duplicate(session, plugin["key"], target_id, output_json):
+        logging.info(
+            "Skipping duplicate output for plugin %s on target %d",
+            plugin["key"],
+            target_id,
         )
-    )
-    session.commit()
+        return
+
+    # Compute fingerprint for this output
+    fingerprint = OutputDeduplicator.compute_fingerprint(plugin["key"], target_id, output_json)
+
+    try:
+        session.merge(
+            PluginOutput(
+                plugin_key=plugin["key"],
+                plugin_code=plugin["code"],
+                plugin_group=plugin["group"],
+                plugin_type=plugin["type"],
+                output=output_json,
+                start_time=plugin["start"],
+                end_time=plugin["end"],
+                status=plugin["status"],
+                target_id=target_id,
+                fingerprint=fingerprint,
+                # Save path only if path exists i.e if some files were to be stored it will be there
+                output_path=(plugin["output_path"] if os.path.exists(runner.get_plugin_output_dir(plugin)) else None),
+                owtf_rank=plugin["owtf_rank"],
+            )
+        )
+        session.commit()
+    except IntegrityError:
+        # Another worker can insert the same fingerprint after our lookup but
+        # before this commit. Roll back the failed transaction, then suppress
+        # only that exact duplicate; every unrelated constraint failure must
+        # still reach the caller.
+        session.rollback()
+        if session.query(PluginOutput.id).filter_by(fingerprint=fingerprint).first() is not None:
+            logging.info(
+                "Skipping concurrently saved duplicate output for plugin %s on target %d",
+                plugin["key"],
+                target_id,
+            )
+            return
+        raise
 
 
 @target_required
@@ -359,11 +354,7 @@ def save_partial_output(session, plugin, output, message, target_id=None):
             status=plugin["status"],
             target_id=target_id,
             # Save path only if path exists i.e if some files were to be stored it will be there
-            output_path=(
-                plugin["output_path"]
-                if os.path.exists(runner.get_plugin_output_dir(plugin))
-                else None
-            ),
+            output_path=(plugin["output_path"] if os.path.exists(runner.get_plugin_output_dir(plugin)) else None),
             owtf_rank=plugin["owtf_rank"],
         )
     )
@@ -389,9 +380,7 @@ def get_severity_freq(session, session_id=None):
     ]
 
     targets = []
-    target_objs = (
-        session.query(Target.id).filter(Target.sessions.any(id=session_id)).all()
-    )
+    target_objs = session.query(Target.id).filter(Target.sessions.any(id=session_id)).all()
     for target_obj in target_objs:
         targets.append(target_obj.id)
 
