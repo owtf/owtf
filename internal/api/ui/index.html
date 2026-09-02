@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>OWTF Next</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="OWTF Next home">
+        <span class="brand-mark">O</span>
+        <span>OWTF</span>
+        <span class="edition">NEXT</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a data-nav="targets" href="/">Targets</a>
+        <a data-nav="work" href="/work">Worklist</a>
+        <a data-nav="workers" href="/workers">Workers</a>
+        <a data-nav="transactions" href="/transactions">Transactions</a>
+      </nav>
+      <div class="engine"><span></span>Local engine</div>
+    </header>
+
+    <main id="app" aria-live="polite">
+      <div class="loading">Loading OWTF…</div>
+    </main>
+    <div id="toast" role="status"></div>
+    <script src="/assets/app.js" defer></script>
+  </body>
+</html>

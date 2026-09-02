@@ -1,0 +1,41 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-IG-004-semi-passive
+  version: 0.1.0
+  title: HTTP fingerprint capture
+  description: Uses curl to preserve response headers and body for fingerprint review.
+
+spec:
+  techniques:
+    - OWTF-IG-004
+  variant: semi-passive
+  targetKinds:
+    - url
+  requirements:
+    commands:
+      - curl
+  runtime:
+    type: command
+    command:
+      executable: curl
+      args:
+        - --silent
+        - --show-error
+        - --max-time
+        - "20"
+        - --proto
+        - =http,https
+        - --dump-header
+        - "{{artifact:response-headers}}"
+        - --output
+        - "{{artifact:response-body}}"
+        - "{{target}}"
+      artifacts:
+        - name: response-headers
+          mediaType: text/plain
+          required: true
+        - name: response-body
+          mediaType: application/octet-stream
+          required: true

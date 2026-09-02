@@ -1,0 +1,18 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-WSP-001-active
+  version: 0.1.0
+  title: Visit URL
+  description: Fetches a target URL and records the response as evidence.
+
+spec:
+  techniques:
+    - OWTF-WSP-001
+  variant: active
+  targetKinds:
+    - url
+  runtime:
+    type: builtin
+    builtin: http-collector
