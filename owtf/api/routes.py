@@ -56,7 +56,7 @@ from owtf.api.handlers.proxy import (
     ProxyStatsHandler,
     RepeaterRequestHandler,
 )
-from owtf.api.handlers.report import ReportExportHandler
+from owtf.api.handlers.report import MetricsReportHandler, ReportExportHandler
 from owtf.api.handlers.session import OWTFSessionHandler
 from owtf.api.handlers.targets import (
     TargetConfigHandler,
@@ -143,6 +143,11 @@ API_v1_HANDLERS = [
         r"/api/v1/targets/([0-9]+)/export/?$",
         ReportExportHandler,
         name="report_export_api_url",
+    ),
+    tornado.web.url(
+        r"/api/v1/metrics/report/?$",
+        MetricsReportHandler,
+        name="metrics_report_api_url",
     ),
     # The following one url is dummy and actually processed in file server
     tornado.web.url(

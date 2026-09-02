@@ -25,6 +25,7 @@ from owtf.managers.target import target_manager
 from owtf.managers.transaction import num_transactions
 from owtf.net.scanner import Scanner
 from owtf.plugin.harness import ErrorResult, TimeoutResult, execute_with_timeout
+from owtf.plugin.metrics import get_metrics
 from owtf.settings import AUX_OUTPUT_PATH, PLUGINS_DIR
 from owtf.utils.error import abort_framework, user_abort
 from owtf.utils.file import FileOperations, get_output_dir_target
@@ -529,7 +530,23 @@ class PluginRunner(object):
         finally:
             plugin["status"] = status_msg
             plugin["end"] = self.timer.get_end_date_time("Plugin")
-            # Rank any real output — everything except the two harness
+            # Record metrics for Phase 4
+            start_time = plugin.get("start")
+            end_time = plugin.get("end")
+            error = abort_reason if abort_reason else None
+            get_metrics().record_execution(
+                plugin_key=plugin["key"],
+                plugin_code=plugin["code"],
+                plugin_group=plugin["group"],
+                plugin_type=plugin["type"],
+                status=status_msg,
+                start_time=start_time,
+                end_time=end_time,
+                error=error,
+                session=session,
+            )
+            # Rank any real output, including the list shape used by most
+            # plugins, but never timeout/error result objects.
             if output is not None and not isinstance(output, (TimeoutResult, ErrorResult)):
                 plugin["owtf_rank"] = self.rank_plugin(output, self.get_plugin_output_dir(plugin))
             else:

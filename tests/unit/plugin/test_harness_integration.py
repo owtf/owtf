@@ -3,6 +3,7 @@ tests.unit.plugin.test_harness_integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Integration tests for plugin execution through PluginRunner with timeout support.
 """
+
 import unittest
 from unittest.mock import MagicMock, Mock
 
@@ -18,12 +19,7 @@ class TestHarnessIntegration(unittest.TestCase):
         mock_plugin_module = MagicMock()
         mock_plugin_module.run = Mock(return_value={"status": "success", "output": "plugin result"})
 
-        plugin = {
-            "code": "OWTF-WVS-001",
-            "group": "web",
-            "type": "active",
-            "key": "active@OWTF-WVS-001"
-        }
+        plugin = {"code": "OWTF-WVS-001", "group": "web", "type": "active", "key": "active@OWTF-WVS-001"}
 
         # Execute through harness as PluginRunner.run_plugin would
         result = execute_with_timeout(mock_plugin_module.run, plugin, timeout=10)
@@ -46,6 +42,7 @@ class TestHarnessIntegration(unittest.TestCase):
 
         # Should return ErrorResult on exception after retries exhausted
         from owtf.plugin.harness import ErrorResult
+
         self.assertIsInstance(result, ErrorResult)
         self.assertTrue(result.message)
         self.assertEqual(mock_plugin_module.run.call_count, max_retries + 1)

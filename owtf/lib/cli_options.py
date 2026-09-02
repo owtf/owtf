@@ -211,5 +211,12 @@ def parse_options(cli_options, valid_groups, valid_types):
     parser.add_argument(
         "--nowebui", dest="nowebui", default=False, action="store_true", help="Run OWTF without its Web UI."
     )
+    parser.add_argument(
+        "--metrics-report",
+        dest="metrics_report",
+        metavar="PATH",
+        default=None,
+        help="Write an HTML report aggregated from persisted plugin executions and exit",
+    )
     parser.add_argument("targets", nargs="*", help="List of targets")
     return parser.parse_args(cli_options)

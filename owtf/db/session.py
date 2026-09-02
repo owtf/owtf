@@ -5,16 +5,18 @@ owtf.db.session
 This file handles all the database transactions.
 """
 import functools
-import sys
 import logging
+import sys
 
 from sqlalchemy import create_engine, exc, func
 from sqlalchemy.orm import Session as _Session
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
+from owtf.db.migrations import upgrade_add_fingerprint_column
 from owtf.db.model_base import Model
-from owtf.settings import DATABASE_IP, DATABASE_NAME, DATABASE_PASS, DATABASE_USER, DATABASE_PORT
+from owtf.models import plugin_execution  # noqa: F401 - register model before metadata creation
+from owtf.settings import DATABASE_IP, DATABASE_NAME, DATABASE_PASS, DATABASE_PORT, DATABASE_USER
 
 DB_URI = "postgresql+psycopg2://{}:{}@{}:{}/{}".format(
     DATABASE_USER, DATABASE_PASS, DATABASE_IP, DATABASE_PORT, DATABASE_NAME
@@ -51,6 +53,7 @@ def get_db_engine():
     try:
         engine = create_engine(DB_URI, poolclass=NullPool)
         Model.metadata.create_all(engine)
+        upgrade_add_fingerprint_column(engine)
         return engine
     except exc.OperationalError as e:
         logging.error("Could not create engine - Exception occured\n%s", str(e))

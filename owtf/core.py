@@ -6,11 +6,11 @@ This is the command-line front-end in charge of processing arguments and call th
 """
 from __future__ import print_function
 
-from copy import deepcopy
 import logging
 import os
 import signal
 import sys
+from copy import deepcopy
 
 from tornado.ioloop import IOLoop, PeriodicCallback
 
@@ -51,7 +51,7 @@ from owtf.settings import (
 from owtf.transactions.main import start_transaction_logger
 from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs
 from owtf.utils.process import _signal_process
-from owtf.utils.signals import workers_finish, owtf_start
+from owtf.utils.signals import owtf_start, workers_finish
 
 __all__ = ["finish", "main"]
 
@@ -207,7 +207,7 @@ def process_options(user_args):
 
         scope = arg.targets or []  # Arguments at the end are the URL target(s)
         num_targets = len(scope)
-        if plugin_group != "auxiliary" and num_targets == 0 and not arg.list_plugins:
+        if plugin_group != "auxiliary" and num_targets == 0 and not arg.list_plugins and not arg.metrics_report:
             if arg.nowebui:
                 finish()
         elif num_targets == 1:  # Check if this is a file
@@ -252,6 +252,7 @@ def process_options(user_args):
             "proxy_mode": arg.proxy_mode,
             "tor_mode": arg.tor_mode,
             "nowebui": arg.nowebui,
+            "metrics_report": arg.metrics_report,
             "args": args,
         }
     return {}
@@ -267,6 +268,13 @@ def initialise_framework(options):
     """
     logging.info("Loading framework please wait..")
     # No processing required, just list available modules.
+    if options.get("metrics_report"):
+        from owtf.plugin.metrics import get_metrics
+        from owtf.reports.html_report import HTMLReportGenerator
+
+        HTMLReportGenerator(get_metrics()).generate(output_file=options["metrics_report"], session=db)
+        logging.info("Metrics report written to %s", options["metrics_report"])
+        return False
     if options["list_plugins"]:
         show_plugin_list(db, options["list_plugins"])
         finish()
@@ -284,7 +292,7 @@ def poll_workers():
     try:
         callback.start()
         IOLoop.instance().start()
-    except SystemExit as e:
+    except SystemExit:
         callback.stop()
 
 
