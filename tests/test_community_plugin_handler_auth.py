@@ -254,6 +254,7 @@ def _fake_plugin(plugin_id, owner_id, status, name="p"):
     p.id = plugin_id
     p.user_id = owner_id
     p.approval_status = status
+    p.is_public = True
     p.to_dict.return_value = {"id": plugin_id, "name": name, "view": "public"}
     p.to_owner_dict.return_value = {
         "id": plugin_id,
@@ -307,6 +308,20 @@ def test_detail_non_admin_can_read_approved(monkeypatch):
     plugin.to_dict.assert_called_once()
     plugin.to_owner_dict.assert_not_called()
     plugin.to_admin_dict.assert_not_called()
+
+
+def test_detail_non_admin_cannot_read_private_approved_plugin(monkeypatch):
+    from owtf.lib.exceptions import APIError
+
+    plugin = _fake_plugin(plugin_id=12, owner_id=1, status=APPROVAL_APPROVED)
+    plugin.is_public = False
+    handler = _make_detail_handler(monkeypatch, caller_user_id=42, is_admin=False, plugin=plugin)
+
+    with pytest.raises(APIError) as exc:
+        handler.get(12)
+
+    assert exc.value.status_code == 404
+    plugin.to_dict.assert_not_called()
 
 
 def test_detail_owner_sees_their_own_rejected_plugin(monkeypatch):

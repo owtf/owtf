@@ -1,4 +1,3 @@
-/Users/viyatb/.zlogin:9: nice(5) failed: operation not permitted
 """Tests for the community plugin AST validator."""
 
 from owtf.plugin.validator import PluginValidator
@@ -481,4 +480,3 @@ class TestValidateBytes:
         result = PluginValidator.validate_bytes(b"DESCRIPTION = 'x'\n# \xff\ndef run(info): return {}")
         assert not result.passed
         assert any("decode" in violation.lower() for violation in result.violations)
-

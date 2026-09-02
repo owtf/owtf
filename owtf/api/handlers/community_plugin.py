@@ -206,9 +206,9 @@ class CommunityPluginDetailHandler(APIRequestHandler):
 
         current_user_id = getattr(current_user, "id", None) if current_user is not None else None
         is_owner = current_user_id is not None and plugin.user_id == current_user_id
-        is_approved = plugin.approval_status == APPROVAL_APPROVED
+        is_publicly_visible = plugin.approval_status == APPROVAL_APPROVED and plugin.is_public
 
-        if not is_admin and not is_owner and not is_approved:
+        if not is_admin and not is_owner and not is_publicly_visible:
             raise APIError(404, "Plugin not found")
 
         if is_admin:

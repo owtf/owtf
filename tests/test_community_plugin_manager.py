@@ -234,6 +234,22 @@ class TestFailedUploadIsClean:
         assert session.query(UserPlugin).count() == 0
         assert self._count_plugin_files(tmp_path) == 0
 
+    def test_invalid_utf8_leaves_no_row_or_file(self, session, tmp_path):
+        result = upload_community_plugin(
+            session=session,
+            name="Invalid UTF8",
+            description="Bad encoding",
+            group="web",
+            plugin_type="passive",
+            author="user",
+            file_body=b'DESCRIPTION = "test"\n# \xff\ndef run(info): return {}',
+            original_filename="invalid.py",
+        )
+        assert not result["success"]
+        assert any("decode" in violation.lower() for violation in result["violations"])
+        assert session.query(UserPlugin).count() == 0
+        assert self._count_plugin_files(tmp_path) == 0
+
     def test_bad_metadata_leaves_no_row_or_file(self, session, tmp_path):
         result = upload_community_plugin(
             session=session,
@@ -271,7 +287,7 @@ class TestFailedUploadIsClean:
 
 
 class TestListGetPlugin:
-    def _upload(self, session, name="Plugin A"):
+    def _upload(self, session, name="Plugin A", is_public=True):
         result = upload_community_plugin(
             session=session,
             name=name,
@@ -281,6 +297,7 @@ class TestListGetPlugin:
             author="author",
             file_body=GOOD_PLUGIN_SOURCE,
             original_filename="p.py",
+            is_public=is_public,
         )
         return result["plugin"]["id"]
 
@@ -296,6 +313,16 @@ class TestListGetPlugin:
         assert data["total"] == 1
         assert data["plugins"][0]["id"] == pid
 
+    def test_private_approved_plugin_is_hidden_from_public_list(self, session):
+        private_id = self._upload(session, name="Private Plugin", is_public=False)
+        approve_community_plugin(session, private_id)
+
+        public_data = list_community_plugins(session, status="approved")
+        admin_data = list_community_plugins(session, status="approved", as_admin=True)
+
+        assert public_data["total"] == 0
+        assert [plugin["id"] for plugin in admin_data["plugins"]] == [private_id]
+
     def test_pending_not_in_approved_list(self, session):
         self._upload(session)
         data = list_community_plugins(session, status="approved")
@@ -303,9 +330,17 @@ class TestListGetPlugin:
 
     def test_get_plugin_by_id(self, session):
         pid = self._upload(session)
+        approve_community_plugin(session, pid)
         plugin = get_community_plugin(session, pid)
         assert plugin is not None
         assert plugin["id"] == pid
+
+    def test_get_private_plugin_requires_admin_view(self, session):
+        pid = self._upload(session, is_public=False)
+        approve_community_plugin(session, pid)
+
+        assert get_community_plugin(session, pid) is None
+        assert get_community_plugin(session, pid, as_admin=True)["id"] == pid
 
     def test_get_nonexistent_plugin_returns_none(self, session):
         assert get_community_plugin(session, 99999) is None
@@ -397,6 +432,7 @@ class TestSerializersNeverLeakFilePath:
 
     def test_public_dict_has_no_file_path(self, session):
         pid = _upload(session, name="Pub")
+        approve_community_plugin(session, pid)
         d = get_community_plugin(session, pid)
         assert "file_path" not in d
 

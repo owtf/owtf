@@ -1,4 +1,3 @@
-/Users/viyatb/.zlogin:9: nice(5) failed: operation not permitted
 """
 owtf.plugin.validator
 ~~~~~~~~~~~~~~~~~~~~~
@@ -319,4 +318,3 @@ class PluginValidator:
         except (AttributeError, UnicodeError) as exc:
             return ValidationResult(passed=False, violations=["Cannot decode plugin bytes: {}".format(exc)])
         return PluginValidator.validate_source(source, filename=filename)
-
