@@ -11,6 +11,7 @@ from owtf.db.session import get_count
 from owtf.lib import exceptions
 from owtf.managers.plugin import get_all_plugin_dicts
 from owtf.managers.poutput import delete_all_poutput, plugin_already_run
+from owtf.managers.scheduler import plugin_priority_expr
 from owtf.managers.target import get_target_config_dict, get_target_config_dicts
 from owtf.models.plugin import Plugin
 from owtf.models.target import Target
@@ -160,12 +161,16 @@ def get_work_for_target(session, in_use_target_list):
     :return: A tuple of target, plugin work
     :rtype: `tuple`
     """
-    query = session.query(Work).filter_by(active=True).order_by(Work.id)
-    if len(in_use_target_list) > 0:
+    query = (
+        session.query(Work)
+        .join(Plugin, Work.plugin_key == Plugin.key)
+        .filter(Work.active.is_(True))
+        .order_by(plugin_priority_expr(Plugin).desc(), Work.id.asc())
+    )
+    if in_use_target_list:
         query = query.filter(not_(Work.target_id.in_(in_use_target_list)))
     work_obj = query.first()
     if work_obj:
-        # First get the worker dict and then delete
         work_dict = _derive_work_dict(work_obj)
         session.delete(work_obj)
         session.commit()
@@ -274,7 +279,10 @@ def add_work(session, target_list, plugin_list, force_overwrite=False):
                             filter_data={"plugin_key": plugin["key"]},
                             target_id=target["id"],
                         )
-                    work_model = Work(target_id=target["id"], plugin_key=plugin["key"])
+                    work_model = Work(
+                        target_id=target["id"],
+                        plugin_key=plugin["key"],
+                    )
                     session.add(work_model)
     session.commit()
 

@@ -259,7 +259,7 @@ def paths_exist(path_list):
     valid = True
     for path in path_list:
         if path and not os.path.exists(path):
-            logging.log("WARNING: The path %s does not exist!", path)
+            logging.warning("WARNING: The path %s does not exist!", path)
             valid = False
     return valid
 
