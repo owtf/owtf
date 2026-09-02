@@ -394,24 +394,26 @@ class TestRunnerDispatchOnPluginDict:
 
 @pytest.mark.usefixtures("_stub_scoped_session")
 class TestCommunityPluginTimeoutEnforcement:
-    def test_alarm_kills_a_slow_plugin_on_the_main_thread(self, tmp_path):
-        """A community plugin that ignores its execution_timeout must be
-        interrupted by the SIGALRM watchdog when the runner is called
-        from the main thread (the test-run request path)."""
-        from owtf.plugin.runner import CommunityPluginTimeout, PluginRunner
+    def test_runner_passes_community_timeout_to_standard_harness(self, tmp_path):
+        from owtf.plugin.harness import TimeoutResult
+        from owtf.plugin.runner import PluginRunner
 
-        slow = tmp_path / "slow.py"
-        slow.write_text(
-            "import time\nDESCRIPTION='slow'\ndef run(PluginInfo):\n    time.sleep(5)\n    return [{'never': True}]\n"
-        )
+        plugin_file = tmp_path / "slow.py"
+        plugin_file.write_text("DESCRIPTION='slow'\ndef run(PluginInfo):\n    return []\n")
         r = PluginRunner()
-        with pytest.raises(CommunityPluginTimeout):
-            r._run_community_plugin(
-                {
-                    "name": "slow",
-                    "file_path": str(slow),
-                    "type": "passive",
-                    "group": "web",
-                    "execution_timeout": 1,
-                }
-            )
+        plugin = {
+            "name": "slow",
+            "file_path": str(plugin_file),
+            "type": "passive",
+            "group": "web",
+            "execution_timeout": 12,
+        }
+
+        with patch("owtf.plugin.runner.execute_with_timeout", return_value=TimeoutResult(12)) as execute:
+            result = r._run_community_plugin(plugin)
+
+        assert isinstance(result, TimeoutResult)
+        execute.assert_called_once()
+        args, kwargs = execute.call_args
+        assert args[1] is plugin
+        assert kwargs == {"timeout": 12}
