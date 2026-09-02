@@ -4,10 +4,9 @@ owtf.db.session
 
 This file handles all the database transactions.
 """
-
 import functools
-import logging
 import sys
+import logging
 
 from sqlalchemy import create_engine, exc, func
 from sqlalchemy.orm import Session as _Session
@@ -15,7 +14,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
 from owtf.db.model_base import Model
-from owtf.settings import DATABASE_IP, DATABASE_NAME, DATABASE_PASS, DATABASE_PORT, DATABASE_USER
+from owtf.settings import DATABASE_IP, DATABASE_NAME, DATABASE_PASS, DATABASE_USER, DATABASE_PORT
 
 DB_URI = "postgresql+psycopg2://{}:{}@{}:{}/{}".format(
     DATABASE_USER, DATABASE_PASS, DATABASE_IP, DATABASE_PORT, DATABASE_NAME
@@ -64,10 +63,10 @@ def get_scoped_session():
 
 
 class Session(_Session):
-    """Custom session meant to utilize add on the model.
-    This Session overrides the add/add_all methods to prevent them
-    from being used. This is to for using the add methods on the
-    models themselves where overriding is available.
+    """ Custom session meant to utilize add on the model.
+        This Session overrides the add/add_all methods to prevent them
+        from being used. This is to for using the add methods on the
+        models themselves where overriding is available.
     """
 
     _add = _Session.add

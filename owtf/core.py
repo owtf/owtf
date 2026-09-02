@@ -4,14 +4,13 @@ owtf.core
 
 This is the command-line front-end in charge of processing arguments and call the framework.
 """
-
 from __future__ import print_function
 
+from copy import deepcopy
 import logging
 import os
 import signal
 import sys
-from copy import deepcopy
 
 from tornado.ioloop import IOLoop, PeriodicCallback
 
@@ -32,6 +31,7 @@ from owtf.managers.session import _ensure_default_session
 from owtf.managers.target import load_targets
 from owtf.managers.worklist import load_works
 from owtf.models.plugin import Plugin
+from owtf.models.user_plugin import UserPlugin  # noqa: F401 - register the table before create_all
 from owtf.plugin.runner import show_plugin_list
 from owtf.proxy.main import start_proxy
 from owtf.settings import (
@@ -51,7 +51,7 @@ from owtf.settings import (
 from owtf.transactions.main import start_transaction_logger
 from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs
 from owtf.utils.process import _signal_process
-from owtf.utils.signals import owtf_start, workers_finish
+from owtf.utils.signals import workers_finish, owtf_start
 
 __all__ = ["finish", "main"]
 
@@ -59,8 +59,8 @@ __all__ = ["finish", "main"]
 owtf_pid = None
 
 # Get a global DB connection instance
-from owtf.db.session import get_scoped_session  # noqa: E402
-from owtf.db.upgrade import run_startup_upgrades  # noqa: E402
+from owtf.db.session import get_scoped_session
+from owtf.db.upgrade import run_startup_upgrades
 
 db = get_scoped_session()
 
@@ -79,12 +79,14 @@ def print_banner():
             @owtfp
         http://owtf.org
         Version: {0}
-        \033[0m""".format(__version__)
+        \033[0m""".format(
+            __version__
+        )
     )
 
 
 def get_plugins_from_arg(arg):
-    """Returns a list of requested plugins and plugin groups
+    """ Returns a list of requested plugins and plugin groups
 
     :param arg: Comma separated list of plugins
     :type arg: `str`
@@ -94,12 +96,16 @@ def get_plugins_from_arg(arg):
     plugins = arg.split(",")
     plugin_groups = Plugin.get_groups_for_plugins(db, plugins)
     if len(plugin_groups) > 1:
-        usage("The plugins specified belong to several plugin groups: '%s'")
+        usage(
+            "The plugins specified belong to several plugin groups: '%s'".format(
+                str(plugin_groups)
+            )
+        )
     return [plugins, plugin_groups]
 
 
 def process_options(user_args):
-    """The main argument processing function
+    """ The main argument processing function
 
     :param user_args: User supplied arguments
     :type user_args: `dict`
@@ -159,12 +165,16 @@ def process_options(user_args):
                     outbound_proxy_port = "9050"  # default TOR port
                 else:
                     outbound_proxy_port = arg.tor_mode[1]
-                arg.outbound_proxy = "socks://{0}:{1}".format(outbound_proxy_ip, outbound_proxy_port)
+                arg.outbound_proxy = "socks://{0}:{1}".format(
+                    outbound_proxy_ip, outbound_proxy_port
+                )
 
         if arg.outbound_proxy:
             arg.outbound_proxy = arg.outbound_proxy.split("://")
             if len(arg.outbound_proxy) == 2:
-                arg.outbound_proxy = arg.outbound_proxy + arg.outbound_proxy.pop().split(":")
+                arg.outbound_proxy = arg.outbound_proxy + arg.outbound_proxy.pop().split(
+                    ":"
+                )
                 if arg.outbound_proxy[0] not in ["socks", "http"]:
                     usage("Invalid argument for outbound proxy")
             else:
@@ -274,7 +284,7 @@ def poll_workers():
     try:
         callback.start()
         IOLoop.instance().start()
-    except SystemExit:
+    except SystemExit as e:
         callback.stop()
 
 
@@ -299,7 +309,7 @@ def finish(sender=None, **kwargs):
 
 
 def main():
-    """The main wrapper which loads everything
+    """ The main wrapper which loads everything
 
     :return:
     :rtype: None
@@ -316,9 +326,13 @@ def main():
     run_startup_upgrades(db.get_bind())
     try:
         _ensure_default_session(db)
-        load_framework_config(DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, root_dir, owtf_pid)
+        load_framework_config(
+            DEFAULT_FRAMEWORK_CONFIG, FALLBACK_FRAMEWORK_CONFIG, root_dir, owtf_pid
+        )
         load_general_config(db, DEFAULT_GENERAL_PROFILE, FALLBACK_GENERAL_PROFILE)
-        load_resources_from_file(db, DEFAULT_RESOURCES_PROFILE, FALLBACK_RESOURCES_PROFILE)
+        load_resources_from_file(
+            db, DEFAULT_RESOURCES_PROFILE, FALLBACK_RESOURCES_PROFILE
+        )
         load_test_groups(db, WEB_TEST_GROUPS, FALLBACK_WEB_TEST_GROUPS, "web")
         load_test_groups(db, NET_TEST_GROUPS, FALLBACK_NET_TEST_GROUPS, "net")
         load_test_groups(db, AUX_TEST_GROUPS, FALLBACK_AUX_TEST_GROUPS, "aux")
