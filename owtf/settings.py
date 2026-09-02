@@ -214,3 +214,9 @@ JWT_OPTIONS = {
     "verify_iat": True,
     "verify_aud": False,
 }
+
+# Worker scaling constants (Phase 2)
+WORKER_MAX_PROCESSES = globals().get("WORKER_MAX_PROCESSES", 8)
+WORKER_HIGH_WATER = globals().get("WORKER_HIGH_WATER", 50)
+WORKER_LOW_WATER = globals().get("WORKER_LOW_WATER", 10)
+WORKER_BATCH_SIZE = globals().get("WORKER_BATCH_SIZE", 5)

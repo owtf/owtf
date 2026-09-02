@@ -57,5 +57,6 @@ class LocalWorker(OWTFProcess, BaseWorker):
                     message="Exception occurred while running plugin: {}, {}".format(str(e), str(ex)),
                     trace=trace,
                 )
+                self.output_q.put("failed")
         logging.debug("Worker (%d): Exiting...", self.pid)
         sys.exit(0)
