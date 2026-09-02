@@ -26,6 +26,7 @@ Repository = "https://github.com/owtf/owtf"
 
 [project.scripts]
 owtf = "owtf.core:main"
+owtf-admin = "owtf.cli_admin:main"
 
 [tool.setuptools]
 include-package-data = true
