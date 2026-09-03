@@ -94,6 +94,9 @@ The replacement is not ready to supersede the old application until it can:
    provenance, then export them without requiring the server.
 8. Cancel work, recover interrupted work after restart, and leave no task in an
    ambiguous state.
+9. Account for every legacy plugin variant with a runnable maintained plugin or
+   an explicit unsupported reason, while preserving its OWTF code, group, and
+   type.
 
 Plugin execution
 ----------------
@@ -111,14 +114,41 @@ command plugins are trusted code with the same operating-system access as OWTF.
 Container plugins are the isolation boundary for third-party tools. They use a
 read-only filesystem, dropped capabilities, no-new-privileges, bounded memory,
 CPU, and process counts, and forced removal after success, failure, timeout, or
-cancellation. Network access remains disabled until the per-task OWTF capture
-proxy is the container's only egress path.
+cancellation. Container network access remains disabled by default. Networked
+container execution is deferred and is not part of the current delivery plan.
 
 Missing required executables make a plugin unavailable before a run starts. An
 unavailable plugin selected directly fails before a run is created. During a
 plugin-group launch, unavailable or incompatible plugins remain visible as
 blocked worklist entries with the exact reason. Plugins do not open SQLite or
 call internal Go packages.
+
+Configuration
+-------------
+
+The legacy ``settings.py`` module is not a parity target. It mixed process
+startup, database credentials, authentication, UI ports, proxy behavior, tool
+paths, plugin inputs, and analysis rules in executable Python. The replacement
+uses typed configuration and rejects unknown fields.
+
+Process settings such as listen addresses, data paths, worker count, and proxy
+limits belong to one versioned OWTF configuration file. Command flags override
+environment variables, which override that file, which overrides compiled
+defaults. Settings that require restart are reported as such; they are not
+pretended to hot-reload.
+
+Plugin requirements, commands, external references, HTTP probes, and analysis
+rules belong to the corresponding ``plugin.yaml``. Per-run values are validated
+against the plugin's declared inputs and copied into the immutable task launch
+record. Plugin order and named launch selections remain OWTF profiles rather
+than becoming global settings.
+
+The feature-parity phase must add ``owtf config show`` and ``owtf config
+validate`` before adding configuration writes. A later configuration API may
+expose the same typed, non-secret values for the UI. Secrets are supplied by
+environment or private files, are redacted from output, and are never stored in
+SQLite. Legacy database, account, JWT, SMTP, Sentry, and separate UI-server
+settings are removed rather than carried forward.
 
 Delivery phases and gates
 -------------------------
@@ -151,15 +181,23 @@ Phase 4: capture proxy
   imports; broken object lifecycles from the retired Tornado implementation are
   not preserved.
 
-Phase 5: captured plugin execution
-  Give each container task a private network and a task-owned OWTF proxy as its
-  only egress path. Import its HAR into the task and target before completion,
-  and destroy the plugin container, proxy, and network together on every exit
-  path.
+Phase 5: feature parity
+  Compare the replacement against the legacy OWTF operator workflows before
+  adding AI or the product UI. Close gaps in target intake, plugin discovery and
+  ordering, individual and group launches, worklist, workers, logs,
+  cancellation, proxy, transactions, reports, exports, configuration, and help.
+  Account for every legacy plugin variant while preserving ``<code>-<type>``
+  IDs. Prefer shared declarative implementations for external resources,
+  transaction grep, and HTTP probes; use command or container runtimes only
+  where a maintained tool is required. The gate is a reviewed feature matrix,
+  a checked plugin inventory in which every variant is runnable or has a
+  specific unsupported reason, and CLI/API outcome tests for each retained
+  workflow.
 
-Phase 6: AI assistance
-  Add optional evidence search and AI summaries that cite stored observations
-  and artifacts. Human-reviewed findings remain authoritative.
+Phase 6: AI design
+  Define operator workflows, trust boundaries, evidence provenance, threat
+  model, model boundaries, and evaluation criteria before selecting features or
+  architecture. No AI capability ships merely to satisfy this phase name.
 
 Phase 7: operator UI
   Build the final React and TypeScript interface with Tailwind and shadcn
@@ -172,6 +210,10 @@ Phase 8: legacy retirement
   Deprecate a legacy feature only after its replacement passes a documented
   outcome test. Unsupported and unreliable plugins remain available in the old
   release; they are not copied into the new runtime by default.
+
+Feature parity means observable OWTF outcomes, not implementation parity. The
+removed account system, Python runtime, and unsupported installation paths are
+explicit non-goals and do not return through the parity work.
 
 Implemented gates
 -----------------
@@ -200,10 +242,11 @@ responses with cookie-key filtering, and supports authenticated HTTP, HTTPS,
 and SOCKS5 upstream proxies. Basic and Digest target authentication is scoped
   to configured hosts and loaded from a private file. Priority-ordered static
   request and response interceptors provide bounded URL, header, body, and delay
-  actions. A separate loopback control listener provides transaction history,
+  actions. A separate loopback proxy API listener provides transaction history,
   filters, statistics, clearing, CA download, and request replay through the
-  same proxy path. WebSocket frame artifacts and live interceptors remain
-  before the phase gate.
+  same proxy path. WebSocket traffic is forwarded unchanged and captured as a
+  bounded, binary-safe frame transcript. Live interceptors remain before the
+  phase gate.
 
 API regression gate
 -------------------
