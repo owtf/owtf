@@ -109,6 +109,17 @@ type TaskExecution struct {
 	PluginSnapshot string `json:"-"`
 }
 
+// TaskAttempt records one execution of a durable worklist task.
+type TaskAttempt struct {
+	ID            string     `json:"id"`
+	TaskID        string     `json:"task_id"`
+	AttemptNumber int        `json:"attempt_number"`
+	Status        string     `json:"status"`
+	StartedAt     time.Time  `json:"started_at"`
+	EndedAt       *time.Time `json:"ended_at,omitempty"`
+	Error         string     `json:"error,omitempty"`
+}
+
 // TaskEvent is one ordered lifecycle, stdout, or stderr record for a task.
 type TaskEvent struct {
 	ID        int64     `json:"id"`
@@ -199,6 +210,7 @@ type ReportSummary struct {
 	Targets      int `json:"targets"`
 	Runs         int `json:"runs"`
 	Tasks        int `json:"tasks"`
+	Attempts     int `json:"attempts"`
 	Queued       int `json:"queued"`
 	Blocked      int `json:"blocked"`
 	Running      int `json:"running"`
@@ -215,6 +227,7 @@ type ReportSummary struct {
 type TargetReport struct {
 	Target       Target        `json:"target"`
 	Tasks        []Task        `json:"tasks"`
+	Attempts     []TaskAttempt `json:"attempts"`
 	Events       []TaskEvent   `json:"events"`
 	Artifacts    []Artifact    `json:"artifacts"`
 	Transactions []Transaction `json:"transactions"`
@@ -230,6 +243,7 @@ type SessionReport struct {
 	Targets      []Target      `json:"targets"`
 	Runs         []Run         `json:"runs"`
 	Tasks        []Task        `json:"tasks"`
+	Attempts     []TaskAttempt `json:"attempts"`
 	Events       []TaskEvent   `json:"events"`
 	Artifacts    []Artifact    `json:"artifacts"`
 	Transactions []Transaction `json:"transactions"`

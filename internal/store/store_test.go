@@ -406,6 +406,88 @@ func TestBlockedPluginRemainsVisibleInWorklistAndRun(t *testing.T) {
 	}
 }
 
+func TestRetryTaskPreservesAttemptHistory(t *testing.T) {
+	database, err := Open(filepath.Join(t.TempDir(), "owtf.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	ctx := context.Background()
+	session, _ := database.CreateSession(ctx, "Retry")
+	normalized, _ := target.Normalize("https://example.test")
+	added, _ := database.AddTargets(ctx, session.ID, []target.Normalized{normalized})
+	run, tasks, err := database.CreateRun(ctx, session.ID, "", []TaskSpec{{
+		TargetID: added.Created[0].ID, PluginID: "OWTF-TEST-001-active", PluginVersion: "0.1.0", PluginSnapshot: "{}",
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	first, err := database.StartTask(ctx, tasks[0].ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := database.FailTask(ctx, first, errors.New("first attempt failed")); err != nil {
+		t.Fatal(err)
+	}
+	retried, err := database.RetryTask(ctx, tasks[0].ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if retried.Status != model.TaskQueued || retried.Error != "" || retried.StartedAt != nil || retried.EndedAt != nil {
+		t.Fatalf("unexpected retried task: %+v", retried)
+	}
+	retriedRun, err := database.GetRun(ctx, run.ID)
+	if err != nil || retriedRun.Status != model.RunQueued || retriedRun.FinishedAt != nil {
+		t.Fatalf("unexpected retried run: run=%+v err=%v", retriedRun, err)
+	}
+	if _, err := database.RetryTask(ctx, tasks[0].ID); !errors.Is(err, ErrConflict) {
+		t.Fatalf("queued task retry error = %v, want conflict", err)
+	}
+	second, err := database.StartTask(ctx, tasks[0].ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if second.AttemptNumber != 2 || second.AttemptID == first.AttemptID {
+		t.Fatalf("unexpected second attempt: %+v", second)
+	}
+	if err := database.CompleteTask(ctx, second, nil, nil, nil, nil); err != nil {
+		t.Fatal(err)
+	}
+	attempts, err := database.ListTaskAttempts(ctx, tasks[0].ID)
+	if err != nil || len(attempts) != 2 || attempts[0].Status != model.TaskFailed || attempts[1].Status != model.TaskSucceeded {
+		t.Fatalf("unexpected attempt history: attempts=%+v err=%v", attempts, err)
+	}
+	if _, err := database.RetryTask(ctx, tasks[0].ID); !errors.Is(err, ErrConflict) {
+		t.Fatalf("successful task retry error = %v, want conflict", err)
+	}
+	events, err := database.ListTaskEvents(ctx, tasks[0].ID)
+	if err != nil || len(events) != 1 || events[0].Message != "task queued for retry" {
+		t.Fatalf("unexpected retry events: events=%+v err=%v", events, err)
+	}
+
+	activeRun, activeTasks, err := database.CreateRun(ctx, session.ID, "", []TaskSpec{
+		{TargetID: added.Created[0].ID, PluginID: "OWTF-TEST-001-active", PluginVersion: "0.1.0", PluginSnapshot: "{}"},
+		{TargetID: added.Created[0].ID, PluginID: "OWTF-TEST-002-active", PluginVersion: "0.1.0", PluginSnapshot: "{}"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	activeAttempt, err := database.StartTask(ctx, activeTasks[0].ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := database.FailTask(ctx, activeAttempt, errors.New("failed beside queued work")); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := database.RetryTask(ctx, activeTasks[0].ID); err != nil {
+		t.Fatal(err)
+	}
+	stillActive, err := database.GetRun(ctx, activeRun.ID)
+	if err != nil || stillActive.Status != model.RunRunning || stillActive.FinishedAt != nil {
+		t.Fatalf("retry changed active run state: run=%+v err=%v", stillActive, err)
+	}
+}
+
 func plugin(id string) model.Plugin {
 	return model.Plugin{
 		ID: id, Version: "0.1.0", Title: id, Group: "web", Type: "active",

@@ -116,7 +116,7 @@ func TestImportBrowseAndDeleteHARTransactions(t *testing.T) {
 		t.Fatalf("imported target report is incomplete: %+v", report)
 	}
 	sessionReport := requestJSON[model.SessionReport](t, server.Client(), http.MethodGet, server.URL+"/api/v2/sessions/"+session.ID+"/report", nil, http.StatusOK)
-	if sessionReport.Summary.Tasks != 0 || sessionReport.Summary.Transactions != 1 || sessionReport.Summary.Artifacts != 3 {
+	if sessionReport.Summary.Tasks != 0 || sessionReport.Summary.Attempts != 0 || sessionReport.Summary.Transactions != 1 || sessionReport.Summary.Artifacts != 3 {
 		t.Fatalf("imported session report is incorrect: %+v", sessionReport.Summary)
 	}
 	deleteRequest, _ := http.NewRequest(http.MethodDelete,
@@ -303,7 +303,7 @@ func TestTargetScanPersistsReportAndSupportsDeletion(t *testing.T) {
 		t.Fatalf("run was not finalized: %+v", storedRun)
 	}
 	sessionReport := requestJSON[model.SessionReport](t, server.Client(), http.MethodGet, server.URL+"/api/v2/sessions/"+session.ID+"/report", nil, http.StatusOK)
-	if sessionReport.Summary.Targets != 1 || sessionReport.Summary.Runs != 1 || sessionReport.Summary.Tasks != 1 ||
+	if sessionReport.Summary.Targets != 1 || sessionReport.Summary.Runs != 1 || sessionReport.Summary.Tasks != 1 || sessionReport.Summary.Attempts != 1 ||
 		sessionReport.Summary.Succeeded != 1 || sessionReport.Summary.Transactions != 1 ||
 		sessionReport.Summary.Artifacts != 1 || sessionReport.Summary.Observations != 1 {
 		t.Fatalf("unexpected session report summary: %+v", sessionReport.Summary)
@@ -519,6 +519,95 @@ func TestRunRejectsUnsupportedTargetKindBeforeCreatingTasks(t *testing.T) {
 	}
 }
 
+func TestTaskRetryAPIExposesAttemptHistory(t *testing.T) {
+	targetServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer targetServer.Close()
+	tempDir := t.TempDir()
+	database, err := store.Open(filepath.Join(tempDir, "owtf.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	artifacts, err := artifact.New(filepath.Join(tempDir, "artifacts"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	catalog, err := plugin.Load(fstest.MapFS{"collector/plugin.yaml": &fstest.MapFile{Data: []byte(manifest)}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	catalog.RegisterBuiltin("http-collector", plugin.HTTPCollector(targetServer.Client()))
+	entry, _ := catalog.Get("OWTF-WSP-001-active")
+	if err := database.ReplacePlugins(context.Background(), []model.Plugin{entry.Plugin()}); err != nil {
+		t.Fatal(err)
+	}
+	snapshot, err := entry.Snapshot(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx := context.Background()
+	session, _ := database.CreateSession(ctx, "Retry API")
+	normalized, _ := targetvalue.Normalize(targetServer.URL)
+	added, _ := database.AddTargets(ctx, session.ID, []targetvalue.Normalized{normalized})
+	_, tasks, err := database.CreateRun(ctx, session.ID, "", []store.TaskSpec{{
+		TargetID: added.Created[0].ID, PluginID: entry.Manifest.Metadata.ID,
+		PluginVersion: entry.Manifest.Metadata.Version, PluginSnapshot: snapshot,
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	execution, err := database.StartTask(ctx, tasks[0].ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := database.FailTask(ctx, execution, errors.New("scanner failed")); err != nil {
+		t.Fatal(err)
+	}
+	taskRunner := runner.New(database, artifacts, catalog, 1, time.Second)
+	runnerContext, cancel := context.WithCancel(context.Background())
+	if err := taskRunner.Start(runnerContext); err != nil {
+		cancel()
+		t.Fatal(err)
+	}
+	server := httptest.NewServer(api.New(api.Config{
+		Store: database, Artifacts: artifacts, Plugins: catalog, Runner: taskRunner,
+	}))
+	defer func() {
+		server.Close()
+		cancel()
+		taskRunner.Stop()
+	}()
+
+	retried := requestJSON[model.Task](t, server.Client(), http.MethodPost,
+		server.URL+"/api/v2/tasks/"+tasks[0].ID+"/retry", map[string]any{}, http.StatusAccepted)
+	if retried.Status != model.TaskQueued || retried.Inputs["request_label"] != "default" {
+		t.Fatalf("unexpected retried task: %+v", retried)
+	}
+	deadline := time.Now().Add(time.Second)
+	for {
+		item, getErr := database.GetTask(ctx, tasks[0].ID)
+		if getErr == nil && item.Status == model.TaskSucceeded {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("retried task did not succeed: task=%+v err=%v", item, getErr)
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	attempts := requestJSON[[]model.TaskAttempt](t, server.Client(), http.MethodGet,
+		server.URL+"/api/v2/tasks/"+tasks[0].ID+"/attempts", nil, http.StatusOK)
+	if len(attempts) != 2 || attempts[0].AttemptNumber != 1 || attempts[0].Status != model.TaskFailed ||
+		attempts[0].Error != "scanner failed" || attempts[1].AttemptNumber != 2 || attempts[1].Status != model.TaskSucceeded {
+		t.Fatalf("unexpected attempt history: %+v", attempts)
+	}
+	requestJSON[map[string]string](t, server.Client(), http.MethodPost,
+		server.URL+"/api/v2/tasks/"+tasks[0].ID+"/retry", map[string]any{}, http.StatusConflict)
+	requestJSON[map[string]string](t, server.Client(), http.MethodGet,
+		server.URL+"/api/v2/tasks/missing/attempts", nil, http.StatusNotFound)
+}
+
 func TestTargetLifecycleAPI(t *testing.T) {
 	server, database, taskRunner, cancel := newTestServer(t)
 	defer func() {
@@ -605,6 +694,9 @@ func assertReport(t *testing.T, report model.TargetReport) {
 	}
 	if len(report.Artifacts) != 1 || len(report.Observations) != 1 {
 		t.Fatalf("missing evidence: artifacts=%d observations=%d", len(report.Artifacts), len(report.Observations))
+	}
+	if len(report.Attempts) != 1 || report.Attempts[0].Status != model.TaskSucceeded {
+		t.Fatalf("unexpected attempts: %+v", report.Attempts)
 	}
 	if len(report.Events) < 3 {
 		t.Fatalf("expected lifecycle and plugin logs, got %d events", len(report.Events))

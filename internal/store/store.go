@@ -1282,6 +1282,47 @@ WHERE task_id=? AND status=?`, model.TaskCancelled, formatTime(now), taskPK, mod
 	return s.GetTask(ctx, taskID)
 }
 
+// RetryTask returns failed or cancelled work to the queue without changing its
+// target, plugin version, or resolved inputs. Existing attempts remain intact.
+func (s *Store) RetryTask(ctx context.Context, taskID string) (model.Task, error) {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return model.Task{}, err
+	}
+	defer tx.Rollback()
+	var taskPK, runPK int64
+	var status string
+	if err := tx.QueryRowContext(ctx, `SELECT id, run_id, status FROM tasks WHERE public_id=?`, taskID).
+		Scan(&taskPK, &runPK, &status); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return model.Task{}, ErrNotFound
+		}
+		return model.Task{}, err
+	}
+	if status != model.TaskFailed && status != model.TaskCancelled {
+		return model.Task{}, fmt.Errorf("%w: task is %s", ErrConflict, status)
+	}
+	now := time.Now().UTC()
+	if _, err := tx.ExecContext(ctx, `
+UPDATE tasks SET status=?, error='', started_at=NULL, ended_at=NULL WHERE id=?`, model.TaskQueued, taskPK); err != nil {
+		return model.Task{}, err
+	}
+	if _, err := tx.ExecContext(ctx, `
+UPDATE runs SET status=CASE WHEN status IN (?, ?, ?, ?) THEN ? ELSE status END, finished_at=NULL WHERE id=?`,
+		model.RunSucceeded, model.RunFailed, model.RunCancelled, model.RunBlocked, model.RunQueued, runPK); err != nil {
+		return model.Task{}, err
+	}
+	if _, err := tx.ExecContext(ctx, `
+INSERT INTO task_events(task_id, stream, message, created_at) VALUES(?, 'lifecycle', 'task queued for retry', ?)`,
+		taskPK, formatTime(now)); err != nil {
+		return model.Task{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return model.Task{}, err
+	}
+	return s.GetTask(ctx, taskID)
+}
+
 func scanTask(row rowScanner) (model.Task, error) {
 	var item model.Task
 	var snapshot, created string
@@ -1316,6 +1357,35 @@ func taskInputs(snapshot string) (map[string]any, error) {
 	return stored.Inputs, nil
 }
 
+// ListTaskAttempts returns execution attempts in the order they started.
+func (s *Store) ListTaskAttempts(ctx context.Context, taskID string) ([]model.TaskAttempt, error) {
+	rows, err := s.db.QueryContext(ctx, `
+SELECT a.public_id, t.public_id, a.attempt_number, a.status, a.started_at, a.ended_at, a.error
+FROM attempts a JOIN tasks t ON t.id=a.task_id
+WHERE t.public_id=? ORDER BY a.attempt_number`, taskID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return scanTaskAttempts(rows)
+}
+
+func scanTaskAttempts(rows *sql.Rows) ([]model.TaskAttempt, error) {
+	attempts := make([]model.TaskAttempt, 0)
+	for rows.Next() {
+		var attempt model.TaskAttempt
+		var started string
+		var ended sql.NullString
+		if err := rows.Scan(&attempt.ID, &attempt.TaskID, &attempt.AttemptNumber, &attempt.Status, &started, &ended, &attempt.Error); err != nil {
+			return nil, err
+		}
+		attempt.StartedAt = parseTime(started)
+		attempt.EndedAt = parseNullTime(ended)
+		attempts = append(attempts, attempt)
+	}
+	return attempts, rows.Err()
+}
+
 // ListTaskEvents returns task output in insertion order.
 func (s *Store) ListTaskEvents(ctx context.Context, taskID string) ([]model.TaskEvent, error) {
 	rows, err := s.db.QueryContext(ctx, `
@@ -1348,6 +1418,7 @@ func (s *Store) GetTargetReport(ctx context.Context, targetID string) (model.Tar
 	report := model.TargetReport{
 		Target:       target,
 		Tasks:        []model.Task{},
+		Attempts:     []model.TaskAttempt{},
 		Events:       []model.TaskEvent{},
 		Artifacts:    []model.Artifact{},
 		Transactions: []model.Transaction{},
@@ -1359,6 +1430,11 @@ func (s *Store) GetTargetReport(ctx context.Context, targetID string) (model.Tar
 		return model.TargetReport{}, err
 	}
 	for _, task := range report.Tasks {
+		attempts, attemptErr := s.ListTaskAttempts(ctx, task.ID)
+		if attemptErr != nil {
+			return model.TargetReport{}, attemptErr
+		}
+		report.Attempts = append(report.Attempts, attempts...)
 		events, eventErr := s.ListTaskEvents(ctx, task.ID)
 		if eventErr != nil {
 			return model.TargetReport{}, eventErr
@@ -1392,6 +1468,7 @@ func (s *Store) GetSessionReport(ctx context.Context, sessionID string) (model.S
 		Targets:      []model.Target{},
 		Runs:         []model.Run{},
 		Tasks:        []model.Task{},
+		Attempts:     []model.TaskAttempt{},
 		Events:       []model.TaskEvent{},
 		Artifacts:    []model.Artifact{},
 		Transactions: []model.Transaction{},
@@ -1405,6 +1482,9 @@ func (s *Store) GetSessionReport(ctx context.Context, sessionID string) (model.S
 		return model.SessionReport{}, err
 	}
 	if report.Tasks, err = s.ListTasks(ctx, sessionID, ""); err != nil {
+		return model.SessionReport{}, err
+	}
+	if report.Attempts, err = s.listSessionAttempts(ctx, sessionID); err != nil {
 		return model.SessionReport{}, err
 	}
 	if report.Events, err = s.listSessionEvents(ctx, sessionID); err != nil {
@@ -1429,6 +1509,7 @@ func (s *Store) GetSessionReport(ctx context.Context, sessionID string) (model.S
 func summarizeReport(report model.SessionReport) model.ReportSummary {
 	summary := model.ReportSummary{
 		Targets: len(report.Targets), Runs: len(report.Runs), Tasks: len(report.Tasks),
+		Attempts:     len(report.Attempts),
 		Transactions: len(report.Transactions), Artifacts: len(report.Artifacts),
 		Observations: len(report.Observations), Findings: len(report.Findings),
 	}
@@ -1449,6 +1530,18 @@ func summarizeReport(report model.SessionReport) model.ReportSummary {
 		}
 	}
 	return summary
+}
+
+func (s *Store) listSessionAttempts(ctx context.Context, sessionID string) ([]model.TaskAttempt, error) {
+	rows, err := s.db.QueryContext(ctx, `
+SELECT a.public_id, t.public_id, a.attempt_number, a.status, a.started_at, a.ended_at, a.error
+FROM attempts a JOIN tasks t ON t.id=a.task_id JOIN runs r ON r.id=t.run_id
+JOIN sessions s ON s.id=r.session_id WHERE s.public_id=? ORDER BY a.id`, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return scanTaskAttempts(rows)
 }
 
 func (s *Store) listSessionEvents(ctx context.Context, sessionID string) ([]model.TaskEvent, error) {

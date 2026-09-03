@@ -565,7 +565,7 @@ func (a *app) workers(ctx context.Context, args []string) error {
 
 func (a *app) tasks(ctx context.Context, args []string) error {
 	if len(args) == 0 {
-		return errors.New("tasks requires show, logs, or cancel")
+		return errors.New("tasks requires show, attempts, logs, cancel, or retry")
 	}
 	id, err := oneArg("tasks "+args[0], args[1:])
 	if err != nil {
@@ -575,10 +575,14 @@ func (a *app) tasks(ctx context.Context, args []string) error {
 	switch args[0] {
 	case "show":
 		return a.proxyJSON(ctx, http.MethodGet, path, nil)
+	case "attempts":
+		return a.proxyJSON(ctx, http.MethodGet, path+"/attempts", nil)
 	case "logs":
 		return a.proxyJSON(ctx, http.MethodGet, path+"/events", nil)
 	case "cancel":
 		return a.proxyJSON(ctx, http.MethodPost, path+"/cancel", map[string]any{})
+	case "retry":
+		return a.proxyJSON(ctx, http.MethodPost, path+"/retry", map[string]any{})
 	default:
 		return fmt.Errorf("unknown tasks command %q", args[0])
 	}
@@ -908,7 +912,7 @@ Usage:
   owtf [--url URL] scan [--session ID] (--plugin ID | --group GROUP [--type TYPE] [--profile NAME]) [--input PLUGIN_ID.NAME=VALUE] TARGET...
   owtf [--url URL] worklist [--session ID] [--status STATUS]
   owtf [--url URL] workers
-  owtf [--url URL] tasks show|logs|cancel ID
+  owtf [--url URL] tasks show|attempts|logs|cancel|retry ID
   owtf [--url URL] transactions list (--session ID | --target ID)
   owtf [--url URL] transactions search (--session ID | --target ID) [--search TEXT] [--method METHOD] [--status CODE] [--limit N] [--offset N]
   owtf [--url URL] transactions show|delete --target TARGET_ID TRANSACTION_ID

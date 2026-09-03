@@ -23,6 +23,7 @@ type Runner struct {
 	workers   int
 	timeout   time.Duration
 	queue     chan string
+	runCtx    context.Context
 	cancel    context.CancelFunc
 	wg        sync.WaitGroup
 	mu        sync.RWMutex
@@ -51,27 +52,43 @@ func New(database *store.Store, artifacts *artifact.Store, catalog *plugin.Catal
 // Start launches workers and requeues tasks interrupted by an earlier process.
 func (r *Runner) Start(parent context.Context) error {
 	ctx, cancel := context.WithCancel(parent)
+	r.mu.Lock()
+	if r.runCtx != nil {
+		r.mu.Unlock()
+		cancel()
+		return errors.New("runner is already started")
+	}
+	r.runCtx = ctx
 	r.cancel = cancel
+	r.mu.Unlock()
 	for index := 0; index < r.workers; index++ {
 		r.wg.Add(1)
 		go r.worker(ctx, index)
 	}
 	recovered, err := r.store.RecoverTasks(ctx)
 	if err != nil {
-		cancel()
-		r.wg.Wait()
+		r.Stop()
 		return fmt.Errorf("recover tasks: %w", err)
 	}
-	return r.Submit(ctx, recovered)
+	if err := r.Submit(recovered); err != nil {
+		r.Stop()
+		return fmt.Errorf("submit recovered tasks: %w", err)
+	}
+	return nil
 }
 
 // Stop cancels active work and waits for every worker to exit.
 func (r *Runner) Stop() {
-	if r.cancel != nil {
-		r.cancel()
+	r.mu.RLock()
+	cancel := r.cancel
+	r.mu.RUnlock()
+	if cancel != nil {
+		cancel()
 	}
 	r.wg.Wait()
 	r.mu.Lock()
+	r.runCtx = nil
+	r.cancel = nil
 	for index := range r.state {
 		r.state[index].Status = "stopped"
 	}
@@ -96,8 +113,27 @@ func (r *Runner) Cancel(ctx context.Context, taskID string) (model.Task, error) 
 	return r.store.CancelTask(ctx, taskID)
 }
 
-// Submit places durable task IDs on the bounded in-memory dispatch queue.
-func (r *Runner) Submit(ctx context.Context, taskIDs []string) error {
+// Retry requeues failed or cancelled work with the original task snapshot.
+func (r *Runner) Retry(ctx context.Context, taskID string) (model.Task, error) {
+	task, err := r.store.RetryTask(ctx, taskID)
+	if err != nil {
+		return model.Task{}, err
+	}
+	if err := r.Submit([]string{taskID}); err != nil {
+		return model.Task{}, err
+	}
+	return task, nil
+}
+
+// Submit places durable task IDs on the bounded in-memory dispatch queue. The
+// runner lifecycle, rather than an API request, owns pending dispatch.
+func (r *Runner) Submit(taskIDs []string) error {
+	r.mu.RLock()
+	ctx := r.runCtx
+	r.mu.RUnlock()
+	if ctx == nil {
+		return errors.New("runner is not started")
+	}
 	for _, taskID := range taskIDs {
 		select {
 		case r.queue <- taskID:

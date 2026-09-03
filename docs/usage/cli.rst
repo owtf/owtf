@@ -152,14 +152,21 @@ executor state::
   owtf worklist --session ses_ID
   owtf workers
   owtf tasks show tsk_ID
+  owtf tasks attempts tsk_ID
   owtf tasks logs tsk_ID
   owtf tasks cancel tsk_ID
+  owtf tasks retry tsk_ID
+
+Only failed and cancelled tasks can be retried. Retry preserves the original
+target, plugin version, and resolved inputs while adding a numbered attempt.
+Use ``tasks attempts`` to distinguish failures and timing across executions;
+``tasks logs`` keeps every event linked to its attempt ID.
 
 Evidence and reports
 --------------------
 
-Target reports retain tasks, logs, observations, findings, transactions, and
-artifact metadata::
+Target reports retain tasks, attempts, logs, observations, findings,
+transactions, and artifact metadata::
 
   owtf targets report tgt_ID
   owtf sessions report ses_ID

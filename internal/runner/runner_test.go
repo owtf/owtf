@@ -3,6 +3,7 @@ package runner_test
 import (
 	"context"
 	"path/filepath"
+	"sync/atomic"
 	"testing"
 	"testing/fstest"
 	"time"
@@ -30,7 +31,7 @@ spec:
     builtin: blocking
 `
 
-func TestCancelStopsTaskAndReleasesWorker(t *testing.T) {
+func TestCancelStopsTaskAndRetryStartsNewAttempt(t *testing.T) {
 	database, err := store.Open(filepath.Join(t.TempDir(), "owtf.db"))
 	if err != nil {
 		t.Fatal(err)
@@ -45,7 +46,11 @@ func TestCancelStopsTaskAndReleasesWorker(t *testing.T) {
 		t.Fatal(err)
 	}
 	started := make(chan struct{}, 1)
+	var calls atomic.Int32
 	catalog.RegisterBuiltin("blocking", func(ctx context.Context, _ plugin.Request) (plugin.Result, error) {
+		if calls.Add(1) > 1 {
+			return plugin.Result{}, nil
+		}
 		started <- struct{}{}
 		<-ctx.Done()
 		return plugin.Result{}, ctx.Err()
@@ -79,7 +84,7 @@ func TestCancelStopsTaskAndReleasesWorker(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer taskRunner.Stop()
-	if err := taskRunner.Submit(ctx, []string{tasks[0].ID}); err != nil {
+	if err := taskRunner.Submit([]string{tasks[0].ID}); err != nil {
 		t.Fatal(err)
 	}
 	select {
@@ -109,6 +114,21 @@ func TestCancelStopsTaskAndReleasesWorker(t *testing.T) {
 	}
 	if len(events) < 2 || events[len(events)-1].Message != "task cancelled" {
 		t.Fatalf("cancellation event missing: %+v", events)
+	}
+	if _, err := taskRunner.Retry(context.Background(), tasks[0].ID); err != nil {
+		t.Fatal(err)
+	}
+	want(t, time.Second, func() bool {
+		task, err := database.GetTask(context.Background(), tasks[0].ID)
+		return err == nil && task.Status == model.TaskSucceeded
+	}, "retried task did not succeed")
+	attempts, err := database.ListTaskAttempts(context.Background(), tasks[0].ID)
+	if err != nil || len(attempts) != 2 || attempts[0].Status != model.TaskCancelled || attempts[1].Status != model.TaskSucceeded {
+		t.Fatalf("unexpected retry attempts: attempts=%+v err=%v", attempts, err)
+	}
+	worker := taskRunner.Workers()[0]
+	if worker.Status != "idle" || worker.Cancelled != 1 || worker.Completed != 1 {
+		t.Fatalf("unexpected worker state after retry: %+v", worker)
 	}
 }
 
