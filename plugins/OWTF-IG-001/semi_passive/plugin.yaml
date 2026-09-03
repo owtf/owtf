@@ -1,0 +1,27 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-IG-001-semi_passive
+  version: 0.1.0
+  title: Spiders, Robots, and Crawlers
+  description: Fetches robots.txt and retains concrete paths for later testing.
+
+spec:
+  techniques:
+    - code: OWTF-IG-001
+      title: Spiders, Robots, and Crawlers
+      hint: What content does the site disclose to crawlers?
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/01-Information_Gathering/01-Conduct_Search_Engine_Discovery_Reconnaissance_for_Information_Leakage
+  group: web
+  type: semi_passive
+  targetKinds: [url]
+  runtime:
+    type: http
+    http:
+      probes:
+        - name: robots-response
+          method: GET
+          path: /robots.txt
+          discover: robots

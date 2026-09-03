@@ -30,6 +30,8 @@ const (
 	maxGrepPattern        = 4096
 	maxGrepMatches        = 1000
 	defaultGrepMatches    = 100
+	maxHTTPProbes         = 16
+	maxHTTPPath           = 2048
 )
 
 // TechniqueSpec preserves the OWTF test-group metadata referenced by a plugin.
@@ -107,6 +109,7 @@ type Manifest struct {
 			Container *ContainerSpec `yaml:"container,omitempty" json:"container,omitempty"`
 			External  *ExternalSpec  `yaml:"external,omitempty" json:"external,omitempty"`
 			Grep      *GrepSpec      `yaml:"grep,omitempty" json:"grep,omitempty"`
+			HTTP      *HTTPSpec      `yaml:"http,omitempty" json:"http,omitempty"`
 		} `yaml:"runtime" json:"runtime"`
 	} `yaml:"spec" json:"spec"`
 }
@@ -146,6 +149,19 @@ type GrepRule struct {
 	Title   string `yaml:"title" json:"title"`
 	Source  string `yaml:"source" json:"source"`
 	Pattern string `yaml:"pattern" json:"pattern"`
+}
+
+// HTTPSpec declares bounded, read-only requests made without an external tool.
+type HTTPSpec struct {
+	Probes []HTTPProbe `yaml:"probes" json:"probes"`
+}
+
+// HTTPProbe is one request to the target URL or a same-origin absolute path.
+type HTTPProbe struct {
+	Name     string `yaml:"name" json:"name"`
+	Method   string `yaml:"method" json:"method"`
+	Path     string `yaml:"path,omitempty" json:"path,omitempty"`
+	Discover string `yaml:"discover,omitempty" json:"discover,omitempty"`
 }
 
 // CommandArtifact declares a file a command plugin may emit in its assigned
@@ -277,6 +293,10 @@ func Load(fsys fs.FS) (*Catalog, error) {
 			entry.Availability = "ready"
 			entry.Reason = ""
 			entry.Executor = GrepExecutor(manifest)
+		case "http":
+			entry.Availability = "ready"
+			entry.Reason = ""
+			entry.Executor = HTTPExecutor(manifest, nil)
 		}
 		catalog.entries[manifest.Metadata.ID] = entry
 		return nil
@@ -319,6 +339,15 @@ func normalizeManifest(manifest *Manifest) {
 			grep.Rules[index].Pattern = strings.TrimSpace(grep.Rules[index].Pattern)
 		}
 	}
+	if httpSpec := manifest.Spec.Runtime.HTTP; httpSpec != nil {
+		for index := range httpSpec.Probes {
+			probe := &httpSpec.Probes[index]
+			probe.Name = strings.TrimSpace(probe.Name)
+			probe.Method = strings.ToUpper(strings.TrimSpace(probe.Method))
+			probe.Path = strings.TrimSpace(probe.Path)
+			probe.Discover = strings.TrimSpace(probe.Discover)
+		}
+	}
 }
 
 func validateManifest(manifest Manifest) error {
@@ -359,25 +388,25 @@ func validateManifest(manifest Manifest) error {
 	}
 	switch manifest.Spec.Runtime.Type {
 	case "builtin":
-		if manifest.Spec.Runtime.Builtin == "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.Container != nil || manifest.Spec.Runtime.External != nil || manifest.Spec.Runtime.Grep != nil {
+		if manifest.Spec.Runtime.Builtin == "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.Container != nil || manifest.Spec.Runtime.External != nil || manifest.Spec.Runtime.Grep != nil || manifest.Spec.Runtime.HTTP != nil {
 			return fmt.Errorf("builtin runtime requires only a builtin name")
 		}
 	case "command":
-		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Container != nil || manifest.Spec.Runtime.External != nil || manifest.Spec.Runtime.Grep != nil {
+		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Container != nil || manifest.Spec.Runtime.External != nil || manifest.Spec.Runtime.Grep != nil || manifest.Spec.Runtime.HTTP != nil {
 			return fmt.Errorf("command runtime requires only a command")
 		}
 		if err := validateCommand(manifest.Spec.Runtime.Command, inputNames); err != nil {
 			return err
 		}
 	case "container":
-		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.External != nil || manifest.Spec.Runtime.Grep != nil {
+		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.External != nil || manifest.Spec.Runtime.Grep != nil || manifest.Spec.Runtime.HTTP != nil {
 			return fmt.Errorf("container runtime requires only a container")
 		}
 		if err := validateContainer(manifest.Spec.Runtime.Container, inputNames); err != nil {
 			return err
 		}
 	case "external":
-		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.Container != nil || manifest.Spec.Runtime.Grep != nil {
+		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.Container != nil || manifest.Spec.Runtime.Grep != nil || manifest.Spec.Runtime.HTTP != nil {
 			return fmt.Errorf("external runtime requires only external guidance")
 		}
 		if len(manifest.Spec.Requirements.Commands) != 0 {
@@ -387,13 +416,26 @@ func validateManifest(manifest Manifest) error {
 			return err
 		}
 	case "grep":
-		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.Container != nil || manifest.Spec.Runtime.External != nil {
+		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.Container != nil || manifest.Spec.Runtime.External != nil || manifest.Spec.Runtime.HTTP != nil {
 			return fmt.Errorf("grep runtime requires only grep rules")
 		}
 		if len(manifest.Spec.Requirements.Commands) != 0 {
 			return fmt.Errorf("grep runtime cannot require commands")
 		}
 		if err := validateGrep(manifest.Spec.Runtime.Grep); err != nil {
+			return err
+		}
+	case "http":
+		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.Container != nil || manifest.Spec.Runtime.External != nil || manifest.Spec.Runtime.Grep != nil {
+			return fmt.Errorf("http runtime requires only HTTP probes")
+		}
+		if len(manifest.Spec.Requirements.Commands) != 0 {
+			return fmt.Errorf("http runtime cannot require commands")
+		}
+		if len(manifest.Spec.TargetKinds) != 1 || manifest.Spec.TargetKinds[0] != "url" {
+			return fmt.Errorf("http runtime requires targetKinds: [url]")
+		}
+		if err := validateHTTP(manifest.Spec.Runtime.HTTP); err != nil {
 			return err
 		}
 	default:
@@ -525,6 +567,40 @@ func validateGrep(grep *GrepSpec) error {
 		}
 		if _, err := regexp.Compile(rule.Pattern); err != nil {
 			return fmt.Errorf("grep rule %q pattern: %w", rule.ID, err)
+		}
+	}
+	return nil
+}
+
+func validateHTTP(spec *HTTPSpec) error {
+	if spec == nil || len(spec.Probes) == 0 || len(spec.Probes) > maxHTTPProbes {
+		return fmt.Errorf("http runtime requires 1 to %d probes", maxHTTPProbes)
+	}
+	seen := make(map[string]bool, len(spec.Probes))
+	for _, probe := range spec.Probes {
+		if !validArtifactName(probe.Name) || seen[probe.Name] {
+			return fmt.Errorf("invalid or duplicate HTTP probe name %q", probe.Name)
+		}
+		seen[probe.Name] = true
+		switch probe.Method {
+		case "GET", "HEAD", "OPTIONS":
+		default:
+			return fmt.Errorf("HTTP probe %q method must be GET, HEAD, or OPTIONS", probe.Name)
+		}
+		if len(probe.Path) > maxHTTPPath {
+			return fmt.Errorf("HTTP probe %q path exceeds %d bytes", probe.Name, maxHTTPPath)
+		}
+		if probe.Path != "" {
+			reference, err := url.Parse(probe.Path)
+			if err != nil || reference.IsAbs() || reference.Host != "" || reference.User != nil || reference.Fragment != "" || !strings.HasPrefix(reference.Path, "/") {
+				return fmt.Errorf("HTTP probe %q path must be a same-origin absolute path", probe.Name)
+			}
+		}
+		if probe.Discover != "" && probe.Discover != "robots" {
+			return fmt.Errorf("HTTP probe %q has unsupported discovery parser %q", probe.Name, probe.Discover)
+		}
+		if probe.Discover == "robots" && probe.Method != "GET" {
+			return fmt.Errorf("HTTP probe %q robots discovery requires GET", probe.Name)
 		}
 	}
 	return nil

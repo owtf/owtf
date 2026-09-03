@@ -7,5 +7,7 @@ metadata:
 
 spec:
   plugins:
+    - OWTF-IG-001-semi_passive
     - OWTF-IG-004-semi_passive
+    - OWTF-CM-008-semi_passive
     - OWTF-WSP-001-active

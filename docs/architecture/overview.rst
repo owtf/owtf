@@ -132,6 +132,14 @@ than a database handle. It loads only requested bodies, refuses more than
 10,000 transactions or an individual body over 8 MiB, and records matched
 transaction IDs instead of copying evidence into plugin output.
 
+An ``http`` plugin declares up to 16 read-only ``GET``, ``HEAD``, or ``OPTIONS``
+probes. A probe addresses the target URL or a same-origin absolute path, follows
+redirects only on the target host, and retains bounded response bodies,
+transactions, and factual observations. The optional ``robots`` discovery
+parser retains concrete ``Allow``, ``Disallow``, and ``Sitemap`` URLs while
+discarding wildcard paths. More invasive methods remain explicit active
+command or container plugins rather than being hidden inside this runtime.
+
 Launch input is non-secret because its resolved value is intentionally retained
 on every task and included in reports. Defaults are resolved once when the task
 is created. Unknown, missing, incorrectly typed, and out-of-bounds values fail

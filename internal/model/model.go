@@ -24,6 +24,7 @@ const (
 
 	ObservationKindExternalReferences = "external.references"
 	ObservationKindGrepMatches        = "grep.matches"
+	ObservationKindHTTPResponse       = "http.response"
 
 	PluginOutputRankUnranked      = "unranked"
 	PluginOutputRankPassing       = "passing"

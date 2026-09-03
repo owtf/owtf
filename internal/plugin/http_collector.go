@@ -4,14 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 )
-
-const maxCapturedBody = 1 << 20
 
 // HTTPCollector returns the baseline HTTP evidence collector. Redirects remain
 // on the original host and response bodies are retained with a bounded size.
@@ -29,15 +25,7 @@ func HTTPCollector(client *http.Client) Executor {
 		}
 
 		collectorClient := *client
-		collectorClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-			if !strings.EqualFold(req.URL.Host, targetURL.Host) {
-				return http.ErrUseLastResponse
-			}
-			if len(via) >= 10 {
-				return fmt.Errorf("stopped after 10 redirects")
-			}
-			return nil
-		}
+		collectorClient.CheckRedirect = sameHostRedirects(targetURL)
 
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, targetURL.String(), nil)
 		if err != nil {
@@ -51,13 +39,11 @@ func HTTPCollector(client *http.Client) Executor {
 			return Result{}, fmt.Errorf("fetch target: %w", err)
 		}
 		defer response.Body.Close()
-		body, err := io.ReadAll(io.LimitReader(response.Body, maxCapturedBody+1))
+		body, truncated, err := readHTTPBody(response.Body)
 		if err != nil {
 			return Result{}, fmt.Errorf("read response: %w", err)
 		}
-		truncated := len(body) > maxCapturedBody
 		if truncated {
-			body = body[:maxCapturedBody]
 			request.Log("system", "response body truncated at 1 MiB")
 		}
 

@@ -1,0 +1,25 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-CM-008-semi_passive
+  version: 0.1.0
+  title: HTTP Methods and XST
+  description: Uses OPTIONS to retain the methods advertised by the target.
+
+spec:
+  techniques:
+    - code: OWTF-CM-008
+      title: HTTP Methods and XST
+      hint: Which HTTP methods does the target advertise?
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods
+  group: web
+  type: semi_passive
+  targetKinds: [url]
+  runtime:
+    type: http
+    http:
+      probes:
+        - name: options-response
+          method: OPTIONS
