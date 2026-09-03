@@ -110,6 +110,34 @@ func TestEveryLegacyPluginHasAReviewedDecision(t *testing.T) {
 	}
 }
 
+func TestCanonicalWebPluginRuntimesAreCommands(t *testing.T) {
+	catalog, err := Load(os.DirFS("../../plugins"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	executables := map[string]string{
+		"OWTF-CL-002-active":       "gobuster",
+		"OWTF-CM-001-active":       "testssl.sh",
+		"OWTF-CM-003-active":       "wafw00f",
+		"OWTF-CM-006-active":       "gobuster",
+		"OWTF-IG-002-semi_passive": "metagoofil",
+		"OWTF-IG-004-active":       "whatweb",
+		"OWTF-IG-005-active":       "gobuster",
+		"OWTF-ST-001-active":       "nuclei",
+		"OWTF-WVS-003-active":      "wapiti",
+	}
+	for id, executable := range executables {
+		entry, ok := catalog.Get(id)
+		if !ok {
+			t.Fatalf("canonical plugin %q is missing", id)
+		}
+		command := entry.Manifest.Spec.Runtime.Command
+		if entry.Manifest.Spec.Runtime.Type != "command" || command == nil || command.Executable != executable {
+			t.Errorf("plugin %q must use the %q command runtime", id, executable)
+		}
+	}
+}
+
 func readCSV(t *testing.T, path string, fields int) [][]string {
 	t.Helper()
 	file, err := os.Open(path)

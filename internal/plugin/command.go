@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -85,6 +86,12 @@ func expandArguments(arguments []string, target string, artifacts map[string]str
 		switch {
 		case argument == "{{target}}":
 			result = append(result, target)
+		case argument == "{{target.host}}":
+			host, err := targetHost(target)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, host)
 		case strings.HasPrefix(argument, "{{artifact:") && strings.HasSuffix(argument, "}}"):
 			name := strings.TrimSuffix(strings.TrimPrefix(argument, "{{artifact:"), "}}")
 			path, ok := artifacts[name]
@@ -108,6 +115,14 @@ func expandArguments(arguments []string, target string, artifacts map[string]str
 		}
 	}
 	return result, nil
+}
+
+func targetHost(target string) (string, error) {
+	parsed, err := url.Parse(target)
+	if err != nil || parsed.Scheme == "" || parsed.Hostname() == "" {
+		return "", fmt.Errorf("target %q is not an absolute URL", target)
+	}
+	return parsed.Hostname(), nil
 }
 
 func commandEnvironment(request Request, workDir string) []string {

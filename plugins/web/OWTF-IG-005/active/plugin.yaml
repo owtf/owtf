@@ -3,22 +3,65 @@ kind: Plugin
 
 metadata:
   id: OWTF-IG-005-active
-  version: 0.1.0
+  version: 1.0.0
   title: "Application Discovery"
-  description: "Declares the retained Application Discovery technique while its runtime is completed."
+  description: "Runs bounded Gobuster virtual-host discovery with an operator-supplied wordlist."
 
 spec:
   techniques:
     - code: OWTF-IG-005
       title: "Application Discovery"
-      hint: "Review Application Discovery and retain concrete evidence."
+      hint: "Identify additional applications hosted below the target domain."
       priority: 99
       reference: https://owasp.org/www-project-web-security-testing-guide/stable/
   group: web
   type: active
   targetKinds: [url]
+  inputs:
+    - name: wordlist
+      type: string
+      description: "Path to an operator-reviewed virtual-host wordlist."
+      required: true
+    - name: threads
+      type: integer
+      description: "Maximum concurrent requests."
+      default: 10
+      minimum: 1
+      maximum: 50
+    - name: delay
+      type: string
+      description: "Delay applied by each worker between requests."
+      default: 100ms
+      choices: [0s, 100ms, 500ms, 1s]
+    - name: request_timeout
+      type: string
+      description: "Timeout for each HTTP request."
+      default: 10s
+      choices: [5s, 10s, 30s]
   requirements:
-    commands: [ffuf]
+    commands: [gobuster]
   runtime:
-    type: unavailable
-    reason: "Runtime migration pending. Retain bounded application discovery with one maintained enumerator and an explicit wordlist input."
+    type: command
+    command:
+      executable: gobuster
+      args:
+        - vhost
+        - --url
+        - "{{target}}"
+        - --wordlist
+        - "{{input:wordlist}}"
+        - --append-domain
+        - --threads
+        - "{{input:threads}}"
+        - --delay
+        - "{{input:delay}}"
+        - --timeout
+        - "{{input:request_timeout}}"
+        - --no-progress
+        - --quiet
+        - --no-color
+        - --output
+        - "{{artifact:vhosts.txt}}"
+      artifacts:
+        - name: vhosts.txt
+          mediaType: text/plain

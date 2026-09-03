@@ -148,6 +148,20 @@ This plugin requires ``nmap``. If the executable is absent, ``plugin list``
 keeps the plugin visible with ``missing_requirements`` and OWTF rejects an
 individual launch before creating work.
 
+Wordlist-based plugins require an explicit local path. The value is passed as
+one process argument and never interpreted as shell source::
+
+  owtf runs create \
+    --session ses_ID \
+    --target tgt_ID \
+    --plugin OWTF-CM-006-active \
+    --input OWTF-CM-006-active.wordlist=/opt/wordlists/content.txt \
+    --input OWTF-CM-006-active.threads=5
+
+The same input model is used by ``OWTF-IG-005-active`` for virtual-host names
+and ``OWTF-CL-002-active`` for GCS bucket names. Review the wordlist and target
+authorization before launch; OWTF does not retry failed active commands.
+
 Launch an OWTF plugin group by group and type. Omit ``--type`` (or use
 ``--type all``) for every type in the group. ``--type quiet`` retains the old
 OWTF meaning of ``passive`` plus ``semi_passive``::

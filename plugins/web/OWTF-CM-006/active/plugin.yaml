@@ -3,22 +3,65 @@ kind: Plugin
 
 metadata:
   id: OWTF-CM-006-active
-  version: 0.1.0
+  version: 1.0.0
   title: "Old Backup and Unreferenced Files"
-  description: "Declares the retained Old Backup and Unreferenced Files technique while its runtime is completed."
+  description: "Runs bounded Gobuster file discovery with an operator-supplied wordlist."
 
 spec:
   techniques:
     - code: OWTF-CM-006
       title: "Old Backup and Unreferenced Files"
-      hint: "Review Old Backup and Unreferenced Files and retain concrete evidence."
+      hint: "Look for unlinked resources and backup variants of discovered files."
       priority: 99
       reference: https://owasp.org/www-project-web-security-testing-guide/stable/
   group: web
   type: active
   targetKinds: [url]
+  inputs:
+    - name: wordlist
+      type: string
+      description: "Path to an operator-reviewed file discovery wordlist."
+      required: true
+    - name: threads
+      type: integer
+      description: "Maximum concurrent requests."
+      default: 10
+      minimum: 1
+      maximum: 50
+    - name: delay
+      type: string
+      description: "Delay applied by each worker between requests."
+      default: 100ms
+      choices: [0s, 100ms, 500ms, 1s]
+    - name: request_timeout
+      type: string
+      description: "Timeout for each HTTP request."
+      default: 10s
+      choices: [5s, 10s, 30s]
   requirements:
-    commands: [ffuf]
+    commands: [gobuster]
   runtime:
-    type: unavailable
-    reason: "Runtime migration pending. Retain backup and unreferenced-file discovery with a maintained enumerator and an explicit bounded wordlist."
+    type: command
+    command:
+      executable: gobuster
+      args:
+        - dir
+        - --url
+        - "{{target}}"
+        - --wordlist
+        - "{{input:wordlist}}"
+        - --threads
+        - "{{input:threads}}"
+        - --delay
+        - "{{input:delay}}"
+        - --timeout
+        - "{{input:request_timeout}}"
+        - --discover-backup
+        - --no-progress
+        - --quiet
+        - --no-color
+        - --output
+        - "{{artifact:gobuster.txt}}"
+      artifacts:
+        - name: gobuster.txt
+          mediaType: text/plain

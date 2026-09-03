@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 	"syscall"
@@ -30,6 +31,21 @@ func TestCommandArgumentsDoNotInvokeAShell(t *testing.T) {
 	}
 	if len(args) != 5 || args[1] != target || args[3] != userAgent {
 		t.Fatalf("dynamic values were not preserved as whole arguments: %#v", args)
+	}
+}
+
+func TestCommandArgumentsResolveTargetHost(t *testing.T) {
+	spec := &CommandSpec{Args: []string{"-d", "{{target.host}}"}}
+	args, err := commandArgs(spec, "https://user:pass@www.example.com:8443/path", t.TempDir(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(args, []string{"-d", "www.example.com"}) {
+		t.Fatalf("unexpected arguments: %#v", args)
+	}
+
+	if _, err := commandArgs(spec, "not-a-url", t.TempDir(), nil); err == nil {
+		t.Fatal("expected a relative target to be rejected")
 	}
 }
 

@@ -54,12 +54,10 @@ example, ``OWTF-WVS-002-active`` is visible but unavailable when ``nikto`` is
 not installed. OWTF invokes available commands directly with validated argument
 arrays, never through a shell, and retains only declared bounded artifacts.
 
-Every reviewed replacement has a YAML manifest. A retained technique whose
-runtime has not been implemented uses ``runtime.type: unavailable`` with a
-concrete reason and any already-selected command requirements. These entries
-remain visible in the catalog but are excluded from group launches until their
-runtime is replaced; rejected and safety-deferred legacy plugins have no
-manifest.
+Every reviewed replacement has a runnable YAML contract. No shipped manifest
+uses the temporary ``runtime.type: unavailable`` development state. Optional
+commands remain visible as ``missing_requirements`` when their executable is
+not installed; rejected and safety-deferred legacy plugins have no manifest.
 
 Named ordering profiles are separate versioned files::
 
@@ -170,6 +168,18 @@ input placeholders must occupy a complete argument. They are never interpolated
 into shell source. This prevents OWTF from turning target or operator text into
 shell syntax, but it does not sandbox the executable. Host command plugins are
 trusted code with the same operating-system access as OWTF.
+
+``{{target}}`` passes the normalized target unchanged. ``{{target.host}}``
+parses a URL target and passes only its hostname, which is required by tools
+such as Metagoofil. ``{{artifact:name}}`` resolves inside the task-owned
+temporary directory, and ``{{input:name}}`` resolves a validated, snapshotted
+operator input. Partial placeholders and undeclared names are rejected when the
+catalog loads.
+
+The retained optional web commands are Testssl.sh, WAFW00F, Gobuster,
+Metagoofil, WhatWeb, Nuclei, Nikto, and Wapiti. OWTF does not install or update
+them. Their manifests set conservative concurrency, request, or scan limits
+where the tool supports them, and retain fixed-name artifacts for reporting.
 
 Container plugins are the isolation boundary for third-party tools. They use a
 read-only filesystem, dropped capabilities, no-new-privileges, bounded memory,

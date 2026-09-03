@@ -3,20 +3,63 @@ kind: Plugin
 
 metadata:
   id: OWTF-CL-002-active
-  version: 0.1.0
+  version: 1.0.0
   title: "Testing for Open GCP buckets"
-  description: "Declares the retained Testing for Open GCP buckets technique while its runtime is completed."
+  description: "Runs bounded Gobuster GCS discovery with an operator-supplied bucket wordlist."
 
 spec:
   techniques:
     - code: OWTF-CL-002
       title: "Testing for Open GCP buckets"
-      hint: "Review Testing for Open GCP buckets and retain concrete evidence."
+      hint: "Identify publicly readable Google Cloud Storage buckets related to the target."
       priority: 99
       reference: https://owasp.org/www-project-web-security-testing-guide/stable/
   group: web
   type: active
   targetKinds: [url]
+  inputs:
+    - name: wordlist
+      type: string
+      description: "Path to an operator-reviewed bucket-name wordlist."
+      required: true
+    - name: threads
+      type: integer
+      description: "Maximum concurrent requests."
+      default: 5
+      minimum: 1
+      maximum: 20
+    - name: delay
+      type: string
+      description: "Delay applied by each worker between requests."
+      default: 100ms
+      choices: [0s, 100ms, 500ms, 1s]
+    - name: max_files
+      type: integer
+      description: "Maximum object names retained from each public bucket."
+      default: 5
+      minimum: 0
+      maximum: 20
+  requirements:
+    commands: [gobuster]
   runtime:
-    type: unavailable
-    reason: "Runtime migration pending. Retain public GCP bucket discovery only with bounded candidate inputs and structured evidence."
+    type: command
+    command:
+      executable: gobuster
+      args:
+        - gcs
+        - --wordlist
+        - "{{input:wordlist}}"
+        - --threads
+        - "{{input:threads}}"
+        - --delay
+        - "{{input:delay}}"
+        - --max-files
+        - "{{input:max_files}}"
+        - --no-progress
+        - --quiet
+        - --no-color
+        - --output
+        - "{{artifact:gcs-buckets.txt}}"
+      artifacts:
+        - name: gcs-buckets.txt
+          mediaType: text/plain

@@ -3,22 +3,62 @@ kind: Plugin
 
 metadata:
   id: OWTF-ST-001-active
-  version: 0.1.0
+  version: 1.0.0
   title: "Subdomain Takeover"
-  description: "Declares the retained Subdomain Takeover technique while its runtime is completed."
+  description: "Runs Nuclei takeover templates and retains machine-readable matches."
 
 spec:
   techniques:
     - code: OWTF-ST-001
       title: "Subdomain Takeover"
-      hint: "Review Subdomain Takeover and retain concrete evidence."
+      hint: "Check whether dangling service records can be claimed."
       priority: 99
       reference: https://owasp.org/www-project-web-security-testing-guide/stable/
   group: web
   type: active
   targetKinds: [url]
+  inputs:
+    - name: rate_limit
+      type: integer
+      description: "Maximum requests per second."
+      default: 10
+      minimum: 1
+      maximum: 150
+    - name: concurrency
+      type: integer
+      description: "Maximum templates evaluated concurrently."
+      default: 5
+      minimum: 1
+      maximum: 25
+    - name: request_timeout_seconds
+      type: integer
+      description: "Timeout for each request."
+      default: 10
+      minimum: 1
+      maximum: 60
   requirements:
     commands: [nuclei]
   runtime:
-    type: unavailable
-    reason: "Runtime migration pending. Retain subdomain-takeover checks with a maintained detector and machine-readable evidence instead of the abandoned wrapper."
+    type: command
+    command:
+      executable: nuclei
+      args:
+        - -u
+        - "{{target}}"
+        - -tags
+        - takeover
+        - -rate-limit
+        - "{{input:rate_limit}}"
+        - -concurrency
+        - "{{input:concurrency}}"
+        - -timeout
+        - "{{input:request_timeout_seconds}}"
+        - -silent
+        - -no-color
+        - -disable-update-check
+        - -omit-raw
+        - -jsonl-export
+        - "{{artifact:nuclei.jsonl}}"
+      artifacts:
+        - name: nuclei.jsonl
+          mediaType: application/x-ndjson

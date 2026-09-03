@@ -3,20 +3,43 @@ kind: Plugin
 
 metadata:
   id: OWTF-CM-003-active
-  version: 0.1.0
+  version: 1.0.0
   title: "Infrastructure Configuration Management"
-  description: "Declares the retained Infrastructure Configuration Management technique while its runtime is completed."
+  description: "Runs WAFW00F and retains its infrastructure fingerprint evidence."
 
 spec:
   techniques:
     - code: OWTF-CM-003
       title: "Infrastructure Configuration Management"
-      hint: "Review Infrastructure Configuration Management and retain concrete evidence."
+      hint: "Identify reverse proxies and web application firewalls that affect testing."
       priority: 99
       reference: https://owasp.org/www-project-web-security-testing-guide/stable/
   group: web
   type: active
   targetKinds: [url]
+  inputs:
+    - name: request_timeout_seconds
+      type: integer
+      description: "Timeout for each HTTP request."
+      default: 10
+      minimum: 1
+      maximum: 120
+  requirements:
+    commands: [wafw00f]
   runtime:
-    type: unavailable
-    reason: "Runtime migration pending. Retain infrastructure configuration probing with maintained tools and structured artifacts instead of the legacy mixed command list."
+    type: command
+    command:
+      executable: wafw00f
+      args:
+        - --no-colors
+        - --format
+        - json
+        - --output
+        - "{{artifact:wafw00f.json}}"
+        - --timeout
+        - "{{input:request_timeout_seconds}}"
+        - "{{target}}"
+      artifacts:
+        - name: wafw00f.json
+          mediaType: application/json
+          required: true

@@ -3,9 +3,9 @@ kind: Plugin
 
 metadata:
   id: OWTF-IG-004-active
-  version: 0.1.0
+  version: 1.0.0
   title: "Web Application Fingerprint"
-  description: "Declares the retained Web Application Fingerprint technique while its runtime is completed."
+  description: "Runs WhatWeb and retains its structured technology fingerprint."
 
 spec:
   techniques:
@@ -17,8 +17,36 @@ spec:
   group: web
   type: active
   targetKinds: [url]
+  inputs:
+    - name: aggression
+      type: string
+      description: "WhatWeb aggression level; level 4 sends the most requests."
+      default: "4"
+      choices: ["1", "3", "4"]
+    - name: threads
+      type: integer
+      description: "Maximum concurrent WhatWeb requests."
+      default: 4
+      minimum: 1
+      maximum: 20
   requirements:
     commands: [whatweb]
   runtime:
-    type: unavailable
-    reason: "Runtime migration pending. Retain active technology fingerprinting with a maintained fingerprint engine and structured evidence."
+    type: command
+    command:
+      executable: whatweb
+      args:
+        - --color
+        - never
+        - --quiet
+        - --aggression
+        - "{{input:aggression}}"
+        - --max-threads
+        - "{{input:threads}}"
+        - --log-json
+        - "{{artifact:whatweb.json}}"
+        - "{{target}}"
+      artifacts:
+        - name: whatweb.json
+          mediaType: application/json
+          required: true

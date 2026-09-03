@@ -3,9 +3,9 @@ kind: Plugin
 
 metadata:
   id: OWTF-IG-002-semi_passive
-  version: 0.1.0
+  version: 1.0.0
   title: "Search engine discovery reconnaissance"
-  description: "Declares the retained Search engine discovery reconnaissance technique while its runtime is completed."
+  description: "Runs bounded Metagoofil searches and retains discovered document links without downloading files."
 
 spec:
   techniques:
@@ -17,6 +17,50 @@ spec:
   group: web
   type: semi_passive
   targetKinds: [url]
+  inputs:
+    - name: file_types
+      type: string
+      description: "Bounded set of document extensions to search."
+      default: pdf,doc,docx,xls,xlsx,ppt,pptx
+      choices: [pdf, "pdf,doc,docx", "pdf,doc,docx,xls,xlsx,ppt,pptx"]
+    - name: max_results
+      type: integer
+      description: "Maximum search results considered per file type."
+      default: 20
+      minimum: 1
+      maximum: 100
+    - name: delay_seconds
+      type: integer
+      description: "Delay between search requests to reduce provider load."
+      default: 30
+      minimum: 5
+      maximum: 300
+    - name: request_timeout_seconds
+      type: integer
+      description: "Timeout while checking each discovered link."
+      default: 15
+      minimum: 1
+      maximum: 60
+  requirements:
+    commands: [metagoofil]
   runtime:
-    type: unavailable
-    reason: "Runtime migration pending. Retain metadata inspection with a maintained parser and bounded downloaded artifacts, not the legacy command template."
+    type: command
+    command:
+      executable: metagoofil
+      args:
+        - -d
+        - "{{target.host}}"
+        - -e
+        - "{{input:delay_seconds}}"
+        - -f
+        - "{{artifact:document-links.txt}}"
+        - -i
+        - "{{input:request_timeout_seconds}}"
+        - -l
+        - "{{input:max_results}}"
+        - -t
+        - "{{input:file_types}}"
+      artifacts:
+        - name: document-links.txt
+          mediaType: text/plain
+          required: true

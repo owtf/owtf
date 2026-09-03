@@ -3,22 +3,77 @@ kind: Plugin
 
 metadata:
   id: OWTF-WVS-003-active
-  version: 0.1.0
+  version: 1.0.0
   title: "Wapiti Unauthenticated"
-  description: "Declares the retained Wapiti Unauthenticated technique while its runtime is completed."
+  description: "Runs a bounded unauthenticated Wapiti scan and retains its JSON report."
 
 spec:
   techniques:
     - code: OWTF-WVS-003
       title: "Wapiti Unauthenticated"
-      hint: "Review Wapiti Unauthenticated and retain concrete evidence."
+      hint: "Review unauthenticated crawler and attack-module evidence."
       priority: 99
       reference: https://owasp.org/www-project-web-security-testing-guide/stable/
   group: web
   type: active
   targetKinds: [url]
+  inputs:
+    - name: scope
+      type: string
+      description: "Wapiti crawl scope relative to the target URL."
+      default: folder
+      choices: [url, page, folder, subdomain, domain]
+    - name: max_scan_time_seconds
+      type: integer
+      description: "Maximum total scan time."
+      default: 300
+      minimum: 10
+      maximum: 7200
+    - name: max_attack_time_seconds
+      type: integer
+      description: "Maximum time allowed for each attack module."
+      default: 60
+      minimum: 5
+      maximum: 600
+    - name: max_files_per_directory
+      type: integer
+      description: "Maximum pages explored in each directory."
+      default: 100
+      minimum: 1
+      maximum: 1000
+    - name: request_timeout_seconds
+      type: integer
+      description: "Timeout for each HTTP request."
+      default: 10
+      minimum: 1
+      maximum: 120
   requirements:
     commands: [wapiti]
   runtime:
-    type: unavailable
-    reason: "Runtime migration pending. Retain Wapiti as an optional shell-free command integration with bounded execution and report artifacts."
+    type: command
+    command:
+      executable: wapiti
+      args:
+        - -u
+        - "{{target}}"
+        - --scope
+        - "{{input:scope}}"
+        - --max-scan-time
+        - "{{input:max_scan_time_seconds}}"
+        - --max-attack-time
+        - "{{input:max_attack_time_seconds}}"
+        - --max-files-per-dir
+        - "{{input:max_files_per_directory}}"
+        - --timeout
+        - "{{input:request_timeout_seconds}}"
+        - --format
+        - json
+        - --output
+        - "{{artifact:wapiti.json}}"
+        - --no-bugreport
+        - --verbose
+        - "0"
+      artifacts:
+        - name: wapiti.json
+          mediaType: application/json
+          required: true

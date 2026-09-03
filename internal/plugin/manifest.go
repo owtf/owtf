@@ -499,7 +499,7 @@ func validateCommand(command *CommandSpec, inputs map[string]bool) error {
 		if !strings.Contains(arg, "{{") {
 			continue
 		}
-		if arg == "{{target}}" {
+		if arg == "{{target}}" || arg == "{{target.host}}" {
 			continue
 		}
 		if strings.HasPrefix(arg, "{{artifact:") && strings.HasSuffix(arg, "}}") && artifacts[strings.TrimSuffix(strings.TrimPrefix(arg, "{{artifact:"), "}}")] {

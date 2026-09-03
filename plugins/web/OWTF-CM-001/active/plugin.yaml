@@ -3,9 +3,9 @@ kind: Plugin
 
 metadata:
   id: OWTF-CM-001-active
-  version: 0.1.0
+  version: 1.0.0
   title: "Testing for SSL-TLS"
-  description: "Declares the retained Testing for SSL-TLS technique while its runtime is completed."
+  description: "Runs testssl.sh and retains its machine-readable TLS assessment."
 
 spec:
   techniques:
@@ -20,5 +20,17 @@ spec:
   requirements:
     commands: [testssl.sh]
   runtime:
-    type: unavailable
-    reason: "Runtime migration pending. Retain active TLS configuration analysis through a maintained scanner with machine-readable output."
+    type: command
+    command:
+      executable: testssl.sh
+      args:
+        - --quiet
+        - --color
+        - "0"
+        - --jsonfile
+        - "{{artifact:testssl.json}}"
+        - "{{target}}"
+      artifacts:
+        - name: testssl.json
+          mediaType: application/json
+          required: true
