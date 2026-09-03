@@ -10,7 +10,8 @@ metadata:
 spec:
   techniques:
     - OWTF-WSP-001
-  variant: active
+  group: web
+  type: active
   targetKinds:
     - url
   runtime:

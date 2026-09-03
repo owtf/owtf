@@ -31,6 +31,8 @@ type TaskSpec struct {
 	PluginID       string
 	PluginVersion  string
 	PluginSnapshot string
+	Status         string
+	Error          string
 }
 
 // Store is a serialized SQLite connection for OWTF state.
@@ -97,7 +99,8 @@ CREATE TABLE IF NOT EXISTS plugins (
     version TEXT NOT NULL,
     title TEXT NOT NULL,
     description TEXT NOT NULL,
-    variant TEXT NOT NULL,
+    plugin_group TEXT NOT NULL,
+    plugin_type TEXT NOT NULL,
     techniques_json TEXT NOT NULL,
     runtime_type TEXT NOT NULL,
     availability TEXT NOT NULL,
@@ -198,8 +201,49 @@ CREATE TABLE IF NOT EXISTS findings (
 	if _, err := s.db.ExecContext(ctx, schema); err != nil {
 		return fmt.Errorf("migrate database: %w", err)
 	}
+	if err := s.migratePluginColumns(ctx); err != nil {
+		return err
+	}
 	if _, err := s.db.ExecContext(ctx, `DELETE FROM runs WHERE NOT EXISTS (SELECT 1 FROM tasks WHERE tasks.run_id=runs.id)`); err != nil {
 		return fmt.Errorf("prune empty runs: %w", err)
+	}
+	return nil
+}
+
+// migratePluginColumns upgrades databases created before OWTF restored the
+// established plugin group and type names.
+func (s *Store) migratePluginColumns(ctx context.Context) error {
+	rows, err := s.db.QueryContext(ctx, `PRAGMA table_info(plugins)`)
+	if err != nil {
+		return fmt.Errorf("inspect plugin schema: %w", err)
+	}
+	columns := make(map[string]bool)
+	for rows.Next() {
+		var index, notNull, primaryKey int
+		var name, columnType string
+		var defaultValue any
+		if err := rows.Scan(&index, &name, &columnType, &notNull, &defaultValue, &primaryKey); err != nil {
+			rows.Close()
+			return fmt.Errorf("inspect plugin column: %w", err)
+		}
+		columns[name] = true
+	}
+	if err := rows.Close(); err != nil {
+		return err
+	}
+	if columns["variant"] && !columns["plugin_type"] {
+		if _, err := s.db.ExecContext(ctx, `ALTER TABLE plugins RENAME COLUMN variant TO plugin_type`); err != nil {
+			return fmt.Errorf("rename plugin type column: %w", err)
+		}
+		columns["plugin_type"] = true
+	}
+	if !columns["plugin_type"] {
+		return errors.New("plugins table is missing plugin_type")
+	}
+	if !columns["plugin_group"] {
+		if _, err := s.db.ExecContext(ctx, `ALTER TABLE plugins ADD COLUMN plugin_group TEXT NOT NULL DEFAULT 'web'`); err != nil {
+			return fmt.Errorf("add plugin group column: %w", err)
+		}
 	}
 	return nil
 }
@@ -374,8 +418,8 @@ func (s *Store) ReplacePlugins(ctx context.Context, plugins []model.Plugin) erro
 		techniquesJSON, _ := json.Marshal(item.Techniques)
 		updated := time.Now().UTC()
 		_, err = tx.ExecContext(ctx, `
-INSERT INTO plugins(id, version, title, description, variant, techniques_json, runtime_type, availability, reason, updated_at)
-VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, item.ID, item.Version, item.Title, item.Description, item.Variant,
+INSERT INTO plugins(id, version, title, description, plugin_group, plugin_type, techniques_json, runtime_type, availability, reason, updated_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, item.ID, item.Version, item.Title, item.Description, item.Group, item.Type,
 			string(techniquesJSON), item.RuntimeType, item.Availability, item.Reason, formatTime(updated))
 		if err != nil {
 			return err
@@ -392,7 +436,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, item.ID, item.Version, item.Title, item.D
 // ListPlugins returns the current indexed catalog ordered by plugin ID.
 func (s *Store) ListPlugins(ctx context.Context) ([]model.Plugin, error) {
 	rows, err := s.db.QueryContext(ctx, `
-SELECT id, version, title, description, variant, techniques_json, runtime_type, availability, reason, updated_at
+SELECT id, version, title, description, plugin_group, plugin_type, techniques_json, runtime_type, availability, reason, updated_at
 FROM plugins ORDER BY id`)
 	if err != nil {
 		return nil, err
@@ -402,7 +446,7 @@ FROM plugins ORDER BY id`)
 	for rows.Next() {
 		var item model.Plugin
 		var techniquesJSON, updated string
-		if err := rows.Scan(&item.ID, &item.Version, &item.Title, &item.Description, &item.Variant,
+		if err := rows.Scan(&item.ID, &item.Version, &item.Title, &item.Description, &item.Group, &item.Type,
 			&techniquesJSON, &item.RuntimeType, &item.Availability, &item.Reason, &updated); err != nil {
 			return nil, err
 		}
@@ -418,6 +462,22 @@ func (s *Store) CreateRun(ctx context.Context, sessionID string, specs []TaskSpe
 	if len(specs) == 0 {
 		return model.Run{}, nil, fmt.Errorf("at least one task is required")
 	}
+	hasQueued := false
+	for index := range specs {
+		if specs[index].Status == "" {
+			specs[index].Status = model.TaskQueued
+		}
+		switch specs[index].Status {
+		case model.TaskQueued:
+			hasQueued = true
+		case model.TaskBlocked:
+			if strings.TrimSpace(specs[index].Error) == "" {
+				return model.Run{}, nil, errors.New("blocked task requires an error")
+			}
+		default:
+			return model.Run{}, nil, fmt.Errorf("invalid initial task status %q", specs[index].Status)
+		}
+	}
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return model.Run{}, nil, err
@@ -432,8 +492,12 @@ func (s *Store) CreateRun(ctx context.Context, sessionID string, specs []TaskSpe
 	}
 	now := time.Now().UTC()
 	run := model.Run{ID: newID("run"), SessionID: sessionID, Status: model.RunQueued, CreatedAt: now}
-	result, err := tx.ExecContext(ctx, `INSERT INTO runs(public_id, session_id, status, created_at) VALUES(?, ?, ?, ?)`,
-		run.ID, sessionPK, run.Status, formatTime(run.CreatedAt))
+	if !hasQueued {
+		run.Status = model.RunBlocked
+		run.FinishedAt = &now
+	}
+	result, err := tx.ExecContext(ctx, `INSERT INTO runs(public_id, session_id, status, created_at, finished_at) VALUES(?, ?, ?, ?, ?)`,
+		run.ID, sessionPK, run.Status, formatTime(run.CreatedAt), nullableTime(run.FinishedAt))
 	if err != nil {
 		return model.Run{}, nil, err
 	}
@@ -449,14 +513,24 @@ func (s *Store) CreateRun(ctx context.Context, sessionID string, specs []TaskSpe
 		}
 		task := model.Task{
 			ID: newID("tsk"), RunID: run.ID, TargetID: spec.TargetID, PluginID: spec.PluginID,
-			Status: model.TaskQueued, CreatedAt: now,
+			Status: spec.Status, Error: spec.Error, CreatedAt: now,
+		}
+		if task.Status == model.TaskBlocked {
+			task.EndedAt = &now
 		}
 		_, err := tx.ExecContext(ctx, `
-INSERT INTO tasks(public_id, run_id, target_id, plugin_id, plugin_version, plugin_snapshot, status, created_at)
-VALUES(?, ?, ?, ?, ?, ?, ?, ?)`, task.ID, runPK, targetPK, spec.PluginID, spec.PluginVersion,
-			spec.PluginSnapshot, task.Status, formatTime(task.CreatedAt))
+INSERT INTO tasks(public_id, run_id, target_id, plugin_id, plugin_version, plugin_snapshot, status, error, created_at, ended_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, task.ID, runPK, targetPK, spec.PluginID, spec.PluginVersion,
+			spec.PluginSnapshot, task.Status, task.Error, formatTime(task.CreatedAt), nullableTime(task.EndedAt))
 		if err != nil {
 			return model.Run{}, nil, err
+		}
+		if task.Status == model.TaskBlocked {
+			if _, err := tx.ExecContext(ctx, `
+INSERT INTO task_events(task_id, stream, message, created_at)
+VALUES((SELECT id FROM tasks WHERE public_id=?), 'lifecycle', ?, ?)`, task.ID, "task blocked: "+task.Error, formatTime(now)); err != nil {
+				return model.Run{}, nil, err
+			}
 		}
 		tasks = append(tasks, task)
 	}
@@ -715,12 +789,13 @@ WHERE t.public_id=? AND a.public_id=?`, execution.ID, execution.AttemptID).
 }
 
 func refreshRunStatus(ctx context.Context, tx *sql.Tx, runPK int64, now time.Time) error {
-	var pending, failed, cancelled int
+	var pending, failed, cancelled, blocked int
 	if err := tx.QueryRowContext(ctx, `
 SELECT SUM(CASE WHEN status IN ('queued','running') THEN 1 ELSE 0 END),
        SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END),
-       SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END)
-FROM tasks WHERE run_id = ?`, runPK).Scan(&pending, &failed, &cancelled); err != nil {
+       SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END),
+       SUM(CASE WHEN status = 'blocked' THEN 1 ELSE 0 END)
+FROM tasks WHERE run_id = ?`, runPK).Scan(&pending, &failed, &cancelled, &blocked); err != nil {
 		return err
 	}
 	if pending != 0 {
@@ -731,6 +806,8 @@ FROM tasks WHERE run_id = ?`, runPK).Scan(&pending, &failed, &cancelled); err !=
 		status = model.RunFailed
 	} else if cancelled > 0 {
 		status = model.RunCancelled
+	} else if blocked > 0 {
+		status = model.RunBlocked
 	}
 	_, err := tx.ExecContext(ctx, `UPDATE runs SET status=?, finished_at=? WHERE id=?`, status, formatTime(now), runPK)
 	return err
@@ -1254,4 +1331,11 @@ func parseNullTime(value sql.NullString) *time.Time {
 	}
 	parsed := parseTime(value.String)
 	return &parsed
+}
+
+func nullableTime(value *time.Time) any {
+	if value == nil {
+		return nil
+	}
+	return formatTime(*value)
 }

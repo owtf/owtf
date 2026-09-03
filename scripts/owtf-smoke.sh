@@ -99,7 +99,8 @@ metadata:
   title: Smoke cancellation fixture
 spec:
   techniques: [OWTF-SMOKE-001]
-  variant: active
+  group: auxiliary
+  type: active
   targetKinds: [url]
   requirements:
     commands: [sleep]
@@ -118,7 +119,8 @@ metadata:
   title: Missing requirement fixture
 spec:
   techniques: [OWTF-SMOKE-002]
-  variant: active
+  group: auxiliary
+  type: active
   targetKinds: [url]
   requirements:
     commands: [owtf-command-that-does-not-exist]
@@ -205,8 +207,11 @@ request GET /api/v2/plugins 200
 assert_json 'length == 4' 'plugin catalog is incomplete'
 assert_json '[.[] | select(.availability == "ready")] | length == 3' 'ready plugin count is incorrect'
 assert_json '[.[] | select(.id == "OWTF-SMOKE-002-active" and .availability == "missing_requirements" and (.reason | contains("owtf-command-that-does-not-exist")))] | length == 1' 'missing requirement is not visible'
+assert_json '[.[] | select(.group == "web" and (.type == "active" or .type == "semi_passive"))] | length == 2' 'OWTF plugin group and type metadata is incorrect'
 cli_json plugins list
 jq -e 'length == 4' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin catalog is incomplete'
+cli_json plugins list --group web --type active
+jq -e 'length == 1 and .[0].id == "OWTF-WSP-001-active"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin group/type filter is incorrect'
 
 UNSUPPORTED_RUN=$(jq -nc --arg session "${SESSION_ID}" --arg target "${HOST_TARGET_ID}" '{session_id:$session,target_ids:[$target],plugin_ids:["OWTF-WSP-001-active"]}')
 request POST /api/v2/runs 400 "${UNSUPPORTED_RUN}"
@@ -218,7 +223,7 @@ request GET "/api/v2/tasks?session_id=${SESSION_ID}" 200
 assert_json 'length == 0' 'preflight failures created tasks'
 
 printf '%s\n' 'Checking grouped execution, workers, logs, reports, and evidence...'
-GROUP_RUN=$(jq -nc --arg session "${SESSION_ID}" --arg target "${URL_TARGET_ID}" '{session_id:$session,target_ids:[$target],plugin_ids:["OWTF-IG-004-semi-passive","OWTF-WSP-001-active"]}')
+GROUP_RUN=$(jq -nc --arg session "${SESSION_ID}" --arg target "${URL_TARGET_ID}" '{session_id:$session,target_ids:[$target],plugin_group:"web",plugin_types:["semi_passive","active"]}')
 request POST /api/v2/runs 202 "${GROUP_RUN}"
 assert_json '.tasks | length == 2' 'grouped run did not create two tasks'
 GROUP_RUN_ID=$(jq -r '.run.id' "${RESPONSE_FILE}")
@@ -284,7 +289,7 @@ CLI_ARTIFACT_FILE="${TMP_DIR}/cli-artifact"
 OWTF_URL="${BASE_URL}" "${TMP_DIR}/owtf" artifacts get --output "${CLI_ARTIFACT_FILE}" "${ARTIFACT_IDS[0]}"
 [[ -s "${CLI_ARTIFACT_FILE}" ]] || fail 'CLI artifact download is empty'
 
-cli_json runs create --session "${SESSION_ID}" --target "${URL_TARGET_ID}" --plugin OWTF-WSP-001-active
+cli_json runs create --session "${SESSION_ID}" --target "${URL_TARGET_ID}" --group web --type active
 CLI_RUN_TASK_ID=$(jq -r '.tasks[0].id' "${CLI_RESPONSE_FILE}")
 wait_for_task_status "${CLI_RUN_TASK_ID}" succeeded
 cli_json scan --session "${SESSION_ID}" --plugin OWTF-WSP-001-active "${BASE_URL}/debug/health"

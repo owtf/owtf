@@ -49,16 +49,22 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		case "GET /api/v2/targets/tgt_1/report":
 			writeTestJSON(t, w, map[string]any{"target": testTarget(), "tasks": []any{}})
 		case "GET /api/v2/plugins":
+			if group := r.URL.Query().Get("group"); group != "" && (group != "web" || r.URL.Query().Get("type") != "active") {
+				t.Fatalf("unexpected plugin query: %s", r.URL.RawQuery)
+			}
 			writeTestJSON(t, w, []map[string]string{{"id": "OWTF-WSP-001-active"}})
 		case "POST /api/v2/runs":
 			var input struct {
-				SessionID string   `json:"session_id"`
-				TargetIDs []string `json:"target_ids"`
-				PluginIDs []string `json:"plugin_ids"`
+				SessionID   string   `json:"session_id"`
+				TargetIDs   []string `json:"target_ids"`
+				PluginIDs   []string `json:"plugin_ids"`
+				PluginGroup string   `json:"plugin_group"`
+				PluginTypes []string `json:"plugin_types"`
 			}
 			decodeTestJSON(t, r, &input)
-			if input.SessionID != "ses_1" || len(input.TargetIDs) != 1 || input.TargetIDs[0] != "tgt_1" ||
-				len(input.PluginIDs) != 1 || input.PluginIDs[0] != "OWTF-WSP-001-active" {
+			explicit := len(input.PluginIDs) == 1 && input.PluginIDs[0] == "OWTF-WSP-001-active" && input.PluginGroup == ""
+			grouped := len(input.PluginIDs) == 0 && input.PluginGroup == "web" && len(input.PluginTypes) == 1 && input.PluginTypes[0] == "active"
+			if input.SessionID != "ses_1" || len(input.TargetIDs) != 1 || input.TargetIDs[0] != "tgt_1" || (!explicit && !grouped) {
 				t.Fatalf("unexpected run request: %+v", input)
 			}
 			w.WriteHeader(http.StatusAccepted)
@@ -109,10 +115,12 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		{"targets", "report", "tgt_1"},
 		{"targets", "delete", "tgt_1"},
 		{"plugins", "list"},
+		{"plugins", "list", "--group", "web", "--type", "active"},
 		{"runs", "list", "--session", "ses_1"},
 		{"runs", "show", "run_1"},
 		{"runs", "create", "--session", "ses_1", "--target", "tgt_1", "--plugin", "OWTF-WSP-001-active"},
-		{"scan", "--session", "ses_1", "--plugin", "OWTF-WSP-001-active", "https://example.test/"},
+		{"runs", "create", "--session", "ses_1", "--target", "tgt_1", "--group", "web", "--type", "active"},
+		{"scan", "--session", "ses_1", "--group", "web", "--type", "active", "https://example.test/"},
 		{"worklist", "--session", "ses_1", "--status", "queued"},
 		{"workers"},
 		{"tasks", "show", "tsk_1"},

@@ -1,4 +1,4 @@
-code,scope,variant,name,description,resource_keys,reference,legacy_path
+code,group,type,name,description,resource_keys,reference,legacy_path
 "OWTF-ABrF-001","auxiliary","bruteforce","Password Bruteforce","Password Bruteforce Testing plugin","","","owtf/plugins/auxiliary/bruteforce/Password_Bruteforce@OWTF-ABrF-001.py"
 "OWTF-ADoS-001","auxiliary","dos","Direct DoS Launcher","Denial of Service (DoS) Launcher -i.e. for IDS/DoS testing-","DoS_ + args[CATEGORY]","","owtf/plugins/auxiliary/dos/Direct_DoS_Launcher@OWTF-ADoS-001.py"
 "OWTF-AExP-001","auxiliary","exploit","Exploit Launcher","Launches all Exploits for a category(ies) -i.e. for IDS testing-","","","owtf/plugins/auxiliary/exploit/Exploit_Launcher@OWTF-AExP-001.py"
@@ -138,9 +138,9 @@ code,scope,variant,name,description,resource_keys,reference,legacy_path
 "OWTF-CM-001","web","passive","Testing for SSL-TLS","Third party resources","PassiveSSL","","owtf/plugins/web/passive/Testing_for_SSL-TLS@OWTF-CM-001.py"
 "OWTF-WS-001","web","passive","WS Information Gathering","Google Hacking/Third party sites for Web Services","WSPassiveSearchEngineDiscoveryLnk","","owtf/plugins/web/passive/WS_Information_Gathering@OWTF-WS-001.py"
 "OWTF-IG-004","web","passive","Web Application Fingerprint","Third party resources and fingerprinting suggestions","PassiveFingerPrint","","owtf/plugins/web/passive/Web_Application_Fingerprint@OWTF-IG-004.py"
-"OWTF-CM-008","web","semi-passive","HTTP Methods and XST","Normal request for HTTP methods analysis","SemiPassiveHTTPMethods","","owtf/plugins/web/semi_passive/HTTP_Methods_and_XST@OWTF-CM-008.py"
-"OWTF-IG-002","web","semi-passive","Search engine discovery reconnaissance","Metadata analysis","SemiPassiveSearchEngineDiscoveryCmd","","owtf/plugins/web/semi_passive/Search_engine_discovery_reconnaissance@OWTF-IG-002.py"
-"OWTF-SM-001","web","semi-passive","Session Management Schema","Normal requests to gather session management info","","https://www.owasp.org/index.php/Testing_for_Session_Management_Schema_%28OWASP-SM-001%29","owtf/plugins/web/semi_passive/Session_Management_Schema@OWTF-SM-001.py"
-"OWTF-IG-001","web","semi-passive","Spiders Robots and Crawlers","Normal request for robots.txt analysis","","","owtf/plugins/web/semi_passive/Spiders_Robots_and_Crawlers@OWTF-IG-001.py"
-"OWTF-DV-004","web","semi-passive","Testing for Cross site flashing","Normal requests for XSF analysis","","","owtf/plugins/web/semi_passive/Testing_for_Cross_site_flashing@OWTF-DV-004.py"
-"OWTF-IG-004","web","semi-passive","Web Application Fingerprint","Normal requests to gather fingerprint info","SemiPassiveFingerPrint","","owtf/plugins/web/semi_passive/Web_Application_Fingerprint@OWTF-IG-004.py"
+"OWTF-CM-008","web","semi_passive","HTTP Methods and XST","Normal request for HTTP methods analysis","SemiPassiveHTTPMethods","","owtf/plugins/web/semi_passive/HTTP_Methods_and_XST@OWTF-CM-008.py"
+"OWTF-IG-002","web","semi_passive","Search engine discovery reconnaissance","Metadata analysis","SemiPassiveSearchEngineDiscoveryCmd","","owtf/plugins/web/semi_passive/Search_engine_discovery_reconnaissance@OWTF-IG-002.py"
+"OWTF-SM-001","web","semi_passive","Session Management Schema","Normal requests to gather session management info","","https://www.owasp.org/index.php/Testing_for_Session_Management_Schema_%28OWASP-SM-001%29","owtf/plugins/web/semi_passive/Session_Management_Schema@OWTF-SM-001.py"
+"OWTF-IG-001","web","semi_passive","Spiders Robots and Crawlers","Normal request for robots.txt analysis","","","owtf/plugins/web/semi_passive/Spiders_Robots_and_Crawlers@OWTF-IG-001.py"
+"OWTF-DV-004","web","semi_passive","Testing for Cross site flashing","Normal requests for XSF analysis","","","owtf/plugins/web/semi_passive/Testing_for_Cross_site_flashing@OWTF-DV-004.py"
+"OWTF-IG-004","web","semi_passive","Web Application Fingerprint","Normal requests to gather fingerprint info","SemiPassiveFingerPrint","","owtf/plugins/web/semi_passive/Web_Application_Fingerprint@OWTF-IG-004.py"

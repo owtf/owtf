@@ -2,7 +2,7 @@ apiVersion: owtf.dev/v1alpha1
 kind: Plugin
 
 metadata:
-  id: OWTF-IG-004-semi-passive
+  id: OWTF-IG-004-semi_passive
   version: 0.1.0
   title: HTTP fingerprint capture
   description: Uses curl to preserve response headers and body for fingerprint review.
@@ -10,7 +10,8 @@ metadata:
 spec:
   techniques:
     - OWTF-IG-004
-  variant: semi-passive
+  group: web
+  type: semi_passive
   targetKinds:
     - url
   requirements:

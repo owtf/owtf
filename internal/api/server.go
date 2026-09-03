@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/owtf/owtf/internal/artifact"
+	"github.com/owtf/owtf/internal/model"
 	"github.com/owtf/owtf/internal/plugin"
 	reportoutput "github.com/owtf/owtf/internal/report"
 	"github.com/owtf/owtf/internal/runner"
@@ -226,20 +227,48 @@ func (s *Server) listPlugins(w http.ResponseWriter, r *http.Request) {
 		s.internalError(w, err)
 		return
 	}
-	writeJSON(w, http.StatusOK, items)
+	group := r.URL.Query().Get("group")
+	types := stringSet(r.URL.Query()["type"])
+	filtered := items[:0]
+	for _, item := range items {
+		if group != "" && item.Group != group {
+			continue
+		}
+		if len(types) != 0 && !types[item.Type] {
+			continue
+		}
+		filtered = append(filtered, item)
+	}
+	writeJSON(w, http.StatusOK, filtered)
 }
 
 func (s *Server) createRun(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		SessionID string   `json:"session_id"`
-		TargetIDs []string `json:"target_ids"`
-		PluginIDs []string `json:"plugin_ids"`
+		SessionID   string   `json:"session_id"`
+		TargetIDs   []string `json:"target_ids"`
+		PluginIDs   []string `json:"plugin_ids"`
+		PluginGroup string   `json:"plugin_group"`
+		PluginTypes []string `json:"plugin_types"`
 	}
 	if err := decodeJSON(w, r, &input); err != nil {
 		return
 	}
-	if input.SessionID == "" || len(input.TargetIDs) == 0 || len(input.PluginIDs) == 0 {
-		writeError(w, http.StatusBadRequest, "session_id, target_ids, and plugin_ids are required")
+	input.SessionID = strings.TrimSpace(input.SessionID)
+	input.TargetIDs = uniqueStrings(input.TargetIDs)
+	input.PluginIDs = uniqueStrings(input.PluginIDs)
+	input.PluginGroup = strings.TrimSpace(input.PluginGroup)
+	input.PluginTypes = uniqueStrings(input.PluginTypes)
+	groupLaunch := input.PluginGroup != ""
+	if input.SessionID == "" || len(input.TargetIDs) == 0 {
+		writeError(w, http.StatusBadRequest, "session_id and target_ids are required")
+		return
+	}
+	if (len(input.PluginIDs) == 0 && !groupLaunch) || (len(input.PluginIDs) != 0 && groupLaunch) {
+		writeError(w, http.StatusBadRequest, "provide either plugin_ids or plugin_group")
+		return
+	}
+	if !groupLaunch && len(input.PluginTypes) != 0 {
+		writeError(w, http.StatusBadRequest, "plugin_types requires plugin_group")
 		return
 	}
 	targetKinds := make(map[string]string, len(input.TargetIDs))
@@ -254,33 +283,59 @@ func (s *Server) createRun(w http.ResponseWriter, r *http.Request) {
 		}
 		targetKinds[targetID] = target.Kind
 	}
-	specs := make([]store.TaskSpec, 0, len(input.TargetIDs)*len(input.PluginIDs))
-	for _, pluginID := range input.PluginIDs {
-		entry, ok := s.catalog.Get(pluginID)
-		if !ok {
-			writeError(w, http.StatusBadRequest, fmt.Sprintf("plugin %s does not exist", pluginID))
+	entries := make([]plugin.Entry, 0, len(input.PluginIDs))
+	if groupLaunch {
+		pluginTypes, err := expandPluginTypes(input.PluginTypes)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		if entry.Availability != "ready" {
-			writeError(w, http.StatusConflict, fmt.Sprintf("plugin %s is unavailable: %s", pluginID, entry.Reason))
+		entries = s.catalog.EntriesByGroupType(input.PluginGroup, pluginTypes)
+		if len(entries) == 0 {
+			writeError(w, http.StatusBadRequest, "no plugins match the requested group and types")
 			return
 		}
-		for _, targetID := range input.TargetIDs {
-			if !entry.SupportsTarget(targetKinds[targetID]) {
-				writeError(w, http.StatusBadRequest, fmt.Sprintf("plugin %s does not support %s targets", pluginID, targetKinds[targetID]))
+	} else {
+		for _, pluginID := range input.PluginIDs {
+			entry, ok := s.catalog.Get(pluginID)
+			if !ok {
+				writeError(w, http.StatusBadRequest, fmt.Sprintf("plugin %s does not exist", pluginID))
 				return
 			}
+			if entry.Availability != "ready" {
+				writeError(w, http.StatusConflict, fmt.Sprintf("plugin %s is unavailable: %s", pluginID, entry.Reason))
+				return
+			}
+			for _, targetID := range input.TargetIDs {
+				if !entry.SupportsTarget(targetKinds[targetID]) {
+					writeError(w, http.StatusBadRequest, fmt.Sprintf("plugin %s does not support %s targets", pluginID, targetKinds[targetID]))
+					return
+				}
+			}
+			entries = append(entries, entry)
 		}
+	}
+
+	specs := make([]store.TaskSpec, 0, len(input.TargetIDs)*len(entries))
+	for _, entry := range entries {
 		snapshot, err := entry.Snapshot()
 		if err != nil {
 			s.internalError(w, err)
 			return
 		}
 		for _, targetID := range input.TargetIDs {
-			specs = append(specs, store.TaskSpec{
-				TargetID: targetID, PluginID: pluginID, PluginVersion: entry.Manifest.Metadata.Version,
-				PluginSnapshot: snapshot,
-			})
+			spec := store.TaskSpec{
+				TargetID: targetID, PluginID: entry.Manifest.Metadata.ID, PluginVersion: entry.Manifest.Metadata.Version,
+				PluginSnapshot: snapshot, Status: model.TaskQueued,
+			}
+			if groupLaunch && entry.Availability != "ready" {
+				spec.Status = model.TaskBlocked
+				spec.Error = entry.Reason
+			} else if groupLaunch && !entry.SupportsTarget(targetKinds[targetID]) {
+				spec.Status = model.TaskBlocked
+				spec.Error = fmt.Sprintf("plugin does not support %s targets", targetKinds[targetID])
+			}
+			specs = append(specs, spec)
 		}
 	}
 	run, tasks, err := s.store.CreateRun(r.Context(), input.SessionID, specs)
@@ -289,13 +344,54 @@ func (s *Server) createRun(w http.ResponseWriter, r *http.Request) {
 	}
 	ids := make([]string, 0, len(tasks))
 	for _, task := range tasks {
-		ids = append(ids, task.ID)
+		if task.Status == model.TaskQueued {
+			ids = append(ids, task.ID)
+		}
 	}
-	if err := s.runner.Submit(r.Context(), ids); err != nil {
-		s.internalError(w, fmt.Errorf("queue tasks: %w", err))
-		return
+	if len(ids) != 0 {
+		if err := s.runner.Submit(r.Context(), ids); err != nil {
+			s.internalError(w, fmt.Errorf("queue tasks: %w", err))
+			return
+		}
 	}
 	writeJSON(w, http.StatusAccepted, map[string]any{"run": run, "tasks": tasks})
+}
+
+func expandPluginTypes(values []string) ([]string, error) {
+	values = uniqueStrings(values)
+	if len(values) == 0 || (len(values) == 1 && values[0] == "all") {
+		return nil, nil
+	}
+	if len(values) == 1 && values[0] == "quiet" {
+		return []string{"passive", "semi_passive"}, nil
+	}
+	for _, value := range values {
+		if value == "all" || value == "quiet" {
+			return nil, fmt.Errorf("plugin type %q cannot be combined with other types", value)
+		}
+	}
+	return values, nil
+}
+
+func uniqueStrings(values []string) []string {
+	seen := make(map[string]bool, len(values))
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value != "" && !seen[value] {
+			seen[value] = true
+			result = append(result, value)
+		}
+	}
+	return result
+}
+
+func stringSet(values []string) map[string]bool {
+	result := make(map[string]bool, len(values))
+	for _, value := range uniqueStrings(values) {
+		result[value] = true
+	}
+	return result
 }
 
 func (s *Server) listRuns(w http.ResponseWriter, r *http.Request) {

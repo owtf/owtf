@@ -27,7 +27,8 @@ type Manifest struct {
 	} `yaml:"metadata" json:"metadata"`
 	Spec struct {
 		Techniques   []string `yaml:"techniques" json:"techniques"`
-		Variant      string   `yaml:"variant" json:"variant"`
+		Group        string   `yaml:"group" json:"group"`
+		Type         string   `yaml:"type" json:"type"`
 		TargetKinds  []string `yaml:"targetKinds,omitempty" json:"targetKinds,omitempty"`
 		Requirements struct {
 			Commands []string `yaml:"commands,omitempty" json:"commands,omitempty"`
@@ -169,6 +170,12 @@ func validateManifest(manifest Manifest) error {
 	if len(manifest.Spec.Techniques) == 0 {
 		return fmt.Errorf("at least one technique is required")
 	}
+	if !validPluginGroup(manifest.Spec.Group) {
+		return fmt.Errorf("unsupported plugin group %q", manifest.Spec.Group)
+	}
+	if !validPluginType(manifest.Spec.Type) {
+		return fmt.Errorf("unsupported plugin type %q", manifest.Spec.Type)
+	}
 	switch manifest.Spec.Runtime.Type {
 	case "builtin":
 		if manifest.Spec.Runtime.Builtin == "" || manifest.Spec.Runtime.Command != nil {
@@ -182,6 +189,24 @@ func validateManifest(manifest Manifest) error {
 		return fmt.Errorf("runtime type %q is not implemented", manifest.Spec.Runtime.Type)
 	}
 	return nil
+}
+
+func validPluginGroup(group string) bool {
+	switch group {
+	case "web", "network", "auxiliary":
+		return true
+	default:
+		return false
+	}
+}
+
+func validPluginType(pluginType string) bool {
+	switch pluginType {
+	case "passive", "semi_passive", "active", "grep", "external", "bruteforce", "dos", "exploit", "selenium", "smb":
+		return true
+	default:
+		return false
+	}
 }
 
 func validateCommand(command *CommandSpec) error {
@@ -307,6 +332,26 @@ func (c *Catalog) Entries() []Entry {
 	return entries
 }
 
+// EntriesByGroupType returns plugins in an OWTF plugin group, optionally
+// limited to the supplied plugin types.
+func (c *Catalog) EntriesByGroupType(group string, pluginTypes []string) []Entry {
+	wantedTypes := make(map[string]bool, len(pluginTypes))
+	for _, pluginType := range pluginTypes {
+		wantedTypes[pluginType] = true
+	}
+	entries := make([]Entry, 0)
+	for _, entry := range c.Entries() {
+		if entry.Manifest.Spec.Group != group {
+			continue
+		}
+		if len(wantedTypes) != 0 && !wantedTypes[entry.Manifest.Spec.Type] {
+			continue
+		}
+		entries = append(entries, entry)
+	}
+	return entries
+}
+
 // Plugin returns the operator-visible catalog record for an entry.
 func (e Entry) Plugin() model.Plugin {
 	return model.Plugin{
@@ -314,7 +359,8 @@ func (e Entry) Plugin() model.Plugin {
 		Version:      e.Manifest.Metadata.Version,
 		Title:        e.Manifest.Metadata.Title,
 		Description:  e.Manifest.Metadata.Description,
-		Variant:      e.Manifest.Spec.Variant,
+		Group:        e.Manifest.Spec.Group,
+		Type:         e.Manifest.Spec.Type,
 		Techniques:   append([]string(nil), e.Manifest.Spec.Techniques...),
 		RuntimeType:  e.Manifest.Spec.Runtime.Type,
 		Availability: e.Availability,

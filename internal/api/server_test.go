@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	"strings"
 	"testing"
 	"testing/fstest"
 	"time"
@@ -31,7 +32,8 @@ metadata:
   description: Captures one HTTP response as transaction evidence.
 spec:
   techniques: [OWTF-WSP-001]
-  variant: active
+  group: web
+  type: active
   targetKinds: [url]
   runtime:
     type: builtin
@@ -212,6 +214,69 @@ func assertSessionArchive(t *testing.T, client *http.Client, url, sessionID stri
 	}
 	if len(archive.File) != 4 {
 		t.Fatalf("expected report files plus one artifact, got %d files", len(archive.File))
+	}
+}
+
+func TestPluginGroupLaunchKeepsUnavailablePluginsInWorklist(t *testing.T) {
+	tempDir := t.TempDir()
+	database, err := store.Open(filepath.Join(tempDir, "owtf.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	artifacts, err := artifact.New(filepath.Join(tempDir, "artifacts"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	passive := strings.ReplaceAll(manifest, "OWTF-WSP-001-active", "OWTF-IG-001-passive")
+	passive = strings.ReplaceAll(passive, "OWTF-WSP-001", "OWTF-IG-001")
+	passive = strings.Replace(passive, "type: active", "type: passive", 1)
+	catalog, err := plugin.Load(fstest.MapFS{
+		"active/plugin.yaml":  &fstest.MapFile{Data: []byte(manifest)},
+		"passive/plugin.yaml": &fstest.MapFile{Data: []byte(passive)},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	entries := catalog.Entries()
+	plugins := make([]model.Plugin, 0, len(entries))
+	for _, entry := range entries {
+		plugins = append(plugins, entry.Plugin())
+	}
+	if err := database.ReplacePlugins(context.Background(), plugins); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	taskRunner := runner.New(database, artifacts, catalog, 1, time.Second)
+	if err := taskRunner.Start(ctx); err != nil {
+		t.Fatal(err)
+	}
+	defer taskRunner.Stop()
+	server := httptest.NewServer(api.New(database, artifacts, catalog, taskRunner))
+	defer server.Close()
+
+	session := requestJSON[model.Session](t, server.Client(), http.MethodPost, server.URL+"/api/v2/sessions", map[string]any{"name": "Group"}, http.StatusCreated)
+	added := requestJSON[struct {
+		Created []model.Target `json:"created"`
+	}](t, server.Client(), http.MethodPost, server.URL+"/api/v2/sessions/"+session.ID+"/targets", map[string]any{"targets": []string{"https://example.test"}}, http.StatusOK)
+	result := requestJSON[struct {
+		Run   model.Run    `json:"run"`
+		Tasks []model.Task `json:"tasks"`
+	}](t, server.Client(), http.MethodPost, server.URL+"/api/v2/runs", map[string]any{
+		"session_id": session.ID, "target_ids": []string{added.Created[0].ID}, "plugin_group": "web",
+	}, http.StatusAccepted)
+	if result.Run.Status != model.RunBlocked || result.Run.FinishedAt == nil || len(result.Tasks) != 2 {
+		t.Fatalf("unexpected blocked group run: %+v", result)
+	}
+	for _, task := range result.Tasks {
+		if task.Status != model.TaskBlocked || !strings.Contains(task.Error, "runtime is not registered") {
+			t.Fatalf("unavailable plugin disappeared from worklist: %+v", task)
+		}
+	}
+	filtered := requestJSON[[]model.Plugin](t, server.Client(), http.MethodGet, server.URL+"/api/v2/plugins?group=web&type=passive", nil, http.StatusOK)
+	if len(filtered) != 1 || filtered[0].Type != "passive" {
+		t.Fatalf("plugin group/type filter failed: %+v", filtered)
 	}
 }
 

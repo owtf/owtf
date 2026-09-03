@@ -23,7 +23,8 @@ metadata:
   title: Blocking test plugin
 spec:
   techniques: [OWTF-TEST-001]
-  variant: active
+  group: web
+  type: active
   runtime:
     type: builtin
     builtin: blocking

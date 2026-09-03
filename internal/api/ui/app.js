@@ -136,7 +136,7 @@ function renderTargets() {
             )}</span>`
           : ""
       }</span>
-      <span class="badge">${escapeHTML(item.variant)}</span>
+      <span class="badge">${escapeHTML(item.group)} / ${escapeHTML(item.type)}</span>
     </label>`;
     })
     .join("");

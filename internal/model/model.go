@@ -5,6 +5,7 @@ import "time"
 const (
 	// RunQueued indicates that a run still has work waiting for a worker.
 	RunQueued    = "queued"
+	RunBlocked   = "blocked"
 	RunRunning   = "running"
 	RunSucceeded = "succeeded"
 	RunFailed    = "failed"
@@ -42,7 +43,8 @@ type Plugin struct {
 	Version      string    `json:"version"`
 	Title        string    `json:"title"`
 	Description  string    `json:"description"`
-	Variant      string    `json:"variant"`
+	Group        string    `json:"group"`
+	Type         string    `json:"type"`
 	Techniques   []string  `json:"techniques"`
 	RuntimeType  string    `json:"runtime_type"`
 	Availability string    `json:"availability"`

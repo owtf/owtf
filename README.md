@@ -18,6 +18,7 @@ resulting evidence.
 
 - Durable sessions and normalized URL targets.
 - OWTF plugin manifests with established short technique codes.
+- OWTF plugin groups and types, including group launches and ``quiet`` mode.
 - A built-in HTTP collector and injection-safe argument-array command plugins.
 - Requirement discovery with visible ready, unavailable, and blocked states.
 - A bounded worklist with cancellation of the plugin process group.

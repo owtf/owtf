@@ -209,10 +209,27 @@ func (a *app) targets(ctx context.Context, args []string) error {
 }
 
 func (a *app) plugins(ctx context.Context, args []string) error {
-	if len(args) != 1 || args[0] != "list" {
-		return errors.New("usage: owtf plugins list")
+	if len(args) == 0 || args[0] != "list" {
+		return errors.New("usage: owtf plugins list [--group GROUP] [--type TYPE]")
 	}
-	return a.proxyJSON(ctx, http.MethodGet, "/api/v2/plugins", nil)
+	flags := a.flags("plugins list")
+	group := flags.String("group", "", "plugin group: web, network, or auxiliary")
+	var pluginTypes stringList
+	flags.Var(&pluginTypes, "type", "plugin type (repeatable or comma-separated)")
+	if err := flags.Parse(args[1:]); err != nil {
+		return err
+	}
+	if flags.NArg() != 0 {
+		return errors.New("usage: owtf plugins list [--group GROUP] [--type TYPE]")
+	}
+	query := url.Values{}
+	if *group != "" {
+		query.Set("group", *group)
+	}
+	for _, pluginType := range pluginTypes {
+		query.Add("type", pluginType)
+	}
+	return a.proxyJSON(ctx, http.MethodGet, withQuery("/api/v2/plugins", query), nil)
 }
 
 func (a *app) runs(ctx context.Context, args []string) error {
@@ -240,20 +257,30 @@ func (a *app) runs(ctx context.Context, args []string) error {
 	case "create":
 		flags := a.flags("runs create")
 		sessionID := flags.String("session", "", "session ID")
+		pluginGroup := flags.String("group", "", "plugin group: web, network, or auxiliary")
 		var targetIDs, pluginIDs stringList
+		var pluginTypes stringList
 		flags.Var(&targetIDs, "target", "target ID (repeatable or comma-separated)")
 		flags.Var(&pluginIDs, "plugin", "plugin ID (repeatable or comma-separated)")
+		flags.Var(&pluginTypes, "type", "plugin type (repeatable or comma-separated)")
 		if err := flags.Parse(args[1:]); err != nil {
 			return err
 		}
-		if *sessionID == "" || len(targetIDs) == 0 || len(pluginIDs) == 0 || flags.NArg() != 0 {
-			return errors.New("usage: owtf runs create --session SESSION_ID --target TARGET_ID --plugin PLUGIN_ID")
+		if *sessionID == "" || len(targetIDs) == 0 || flags.NArg() != 0 {
+			return errors.New("usage: owtf runs create --session ID --target ID (--plugin ID | --group GROUP [--type TYPE])")
 		}
-		return a.proxyJSON(ctx, http.MethodPost, "/api/v2/runs", map[string]any{
+		selection, err := pluginSelection(pluginIDs, *pluginGroup, pluginTypes)
+		if err != nil {
+			return err
+		}
+		input := map[string]any{
 			"session_id": *sessionID,
 			"target_ids": []string(targetIDs),
-			"plugin_ids": []string(pluginIDs),
-		})
+		}
+		for key, value := range selection {
+			input[key] = value
+		}
+		return a.proxyJSON(ctx, http.MethodPost, "/api/v2/runs", input)
 	default:
 		return fmt.Errorf("unknown runs command %q", args[0])
 	}
@@ -262,13 +289,20 @@ func (a *app) runs(ctx context.Context, args []string) error {
 func (a *app) scan(ctx context.Context, args []string) error {
 	flags := a.flags("scan")
 	sessionID := flags.String("session", "", "existing session ID; defaults to the newest session")
+	pluginGroup := flags.String("group", "", "plugin group: web, network, or auxiliary")
 	var pluginIDs stringList
+	var pluginTypes stringList
 	flags.Var(&pluginIDs, "plugin", "plugin ID (repeatable or comma-separated)")
+	flags.Var(&pluginTypes, "type", "plugin type (repeatable or comma-separated)")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
-	if len(pluginIDs) == 0 || flags.NArg() == 0 {
-		return errors.New("usage: owtf scan [--session SESSION_ID] --plugin PLUGIN_ID TARGET...")
+	if flags.NArg() == 0 {
+		return errors.New("usage: owtf scan [--session ID] (--plugin ID | --group GROUP [--type TYPE]) TARGET...")
+	}
+	selection, err := pluginSelection(pluginIDs, *pluginGroup, pluginTypes)
+	if err != nil {
+		return err
 	}
 	resolvedSessionID, err := a.ensureSession(ctx, *sessionID)
 	if err != nil {
@@ -293,14 +327,30 @@ func (a *app) scan(ctx context.Context, args []string) error {
 		return err
 	}
 	var result any
-	if err := a.request(ctx, http.MethodPost, "/api/v2/runs", map[string]any{
+	input := map[string]any{
 		"session_id": resolvedSessionID,
 		"target_ids": targetIDs,
-		"plugin_ids": []string(pluginIDs),
-	}, &result); err != nil {
+	}
+	for key, value := range selection {
+		input[key] = value
+	}
+	if err := a.request(ctx, http.MethodPost, "/api/v2/runs", input, &result); err != nil {
 		return err
 	}
 	return a.writeJSON(result)
+}
+
+func pluginSelection(pluginIDs []string, group string, pluginTypes []string) (map[string]any, error) {
+	if (len(pluginIDs) == 0 && group == "") || (len(pluginIDs) != 0 && group != "") {
+		return nil, errors.New("select plugins with either --plugin or --group")
+	}
+	if group == "" && len(pluginTypes) != 0 {
+		return nil, errors.New("--type requires --group")
+	}
+	if group != "" {
+		return map[string]any{"plugin_group": group, "plugin_types": []string(pluginTypes)}, nil
+	}
+	return map[string]any{"plugin_ids": []string(pluginIDs)}, nil
 }
 
 func (a *app) ensureSession(ctx context.Context, id string) (string, error) {
@@ -587,11 +637,11 @@ Usage:
   owtf [--url URL] sessions list|create|show|report
   owtf [--url URL] sessions export [--output FILE] ID
   owtf [--url URL] targets list|add|show|delete|report
-  owtf [--url URL] plugins list
+  owtf [--url URL] plugins list [--group GROUP] [--type TYPE]
   owtf [--url URL] runs list --session ID
   owtf [--url URL] runs show ID
-  owtf [--url URL] runs create --session ID --target ID --plugin ID
-  owtf [--url URL] scan [--session ID] --plugin ID TARGET...
+  owtf [--url URL] runs create --session ID --target ID (--plugin ID | --group GROUP [--type TYPE])
+  owtf [--url URL] scan [--session ID] (--plugin ID | --group GROUP [--type TYPE]) TARGET...
   owtf [--url URL] worklist [--session ID] [--status STATUS]
   owtf [--url URL] workers
   owtf [--url URL] tasks show|logs|cancel ID

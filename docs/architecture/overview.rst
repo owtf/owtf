@@ -28,19 +28,21 @@ Product decisions
 Plugin layout
 -------------
 
-Plugin source is organized by stable OWTF technique code and variant::
+Plugin source is organized by stable OWTF technique code and plugin type::
 
   plugins/
     OWTF-IG-004/
-      semi-passive/
+      semi_passive/
         plugin.yaml
     OWTF-WSP-001/
       active/
         plugin.yaml
 
 The manifest ID includes both parts, such as
-``OWTF-IG-004-semi-passive``. The directory is for maintainers; the manifest
-remains the runtime source of truth and the catalog discovers it recursively.
+``OWTF-IG-004-semi_passive``. Each manifest also declares its established OWTF
+plugin group (``web``, ``network``, or ``auxiliary``). The directory is for
+maintainers; the manifest remains the runtime source of truth and the catalog
+discovers it recursively.
 
 Core model
 ----------
@@ -54,7 +56,7 @@ Core model
 
 ``Plugin``
   A versioned manifest for one executable technique. IDs use the existing code
-  plus a variant where needed, for example ``OWTF-WSP-001-active``.
+  plus its plugin type, for example ``OWTF-WSP-001-active``.
 
 ``Run`` and ``Task``
   A run is an immutable launch plan. Each target/plugin pair becomes a durable
@@ -80,7 +82,7 @@ The replacement is not ready to supersede the old application until it can:
 1. Create a session and add, normalize, deduplicate, list, and delete target
    URLs, hosts, IP addresses, and CIDRs.
 2. Discover available plugins and explain unavailable requirements.
-3. Launch one plugin, a selected set, or a named profile against selected
+3. Launch one plugin, a selected set, or an OWTF plugin group against selected
    targets.
 4. Show a truthful worklist derived from persisted task state and a fixed,
    configured worker count.
@@ -95,7 +97,7 @@ Plugin execution
 ----------------
 
 The manifest is declarative. It identifies the plugin, version, OWTF technique
-codes, variant, runtime, requirements, and supported target kinds.
+codes, group, type, runtime, requirements, and supported target kinds.
 
 The first runtime is a Go builtin used to prove the contract. The next runtime
 is a local command expressed as an executable plus an argument array. Target and
@@ -104,9 +106,11 @@ they are never interpolated into shell source. A strict shell runtime may be
 added later only if its parsed syntax can reject dynamic commands, ``eval``,
 ``source``, command substitution, and ``sh -c`` before execution.
 
-Missing required executables make a plugin unavailable before a run starts.
-Optional plugins may be skipped only when the plan and UI record the reason.
-Plugins do not open SQLite or call internal Go packages.
+Missing required executables make a plugin unavailable before a run starts. An
+unavailable plugin selected directly fails before a run is created. During a
+plugin-group launch, unavailable or incompatible plugins remain visible as
+blocked worklist entries with the exact reason. Plugins do not open SQLite or
+call internal Go packages.
 
 Delivery phases and gates
 -------------------------
@@ -124,7 +128,8 @@ Phase 2: command plugins
 
 Phase 3: CLI and reporting
   Make every operator workflow available through the Go CLI: sessions, target
-  intake, plugin and profile launches, worklist, workers, logs, cancellation,
+  intake, individual and plugin-group launches, worklist, workers, logs,
+  cancellation,
   transactions, evidence, reports, and portable exports. The CLI calls the same
   HTTP API and emits scriptable JSON. The gate is a complete CLI-driven scan and
   an offline report opened without the server.
@@ -158,7 +163,7 @@ state, process restart, target report, transaction, observation, task events,
 and downloadable content-addressed evidence.
 
 Phase 2 was exercised with the real ``curl`` command plugin
-``OWTF-IG-004-semi-passive``. Automated tests also verify missing-command
+``OWTF-IG-004-semi_passive``. Automated tests also verify missing-command
 visibility, non-shell argument handling, task cancellation, and termination of
 the complete plugin process group, including a child that ignores the initial
 termination signal.

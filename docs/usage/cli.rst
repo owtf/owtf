@@ -30,9 +30,11 @@ An OWTF session is a named scan workspace, not an authenticated user session::
 Launch plugins
 --------------
 
-List ready and unavailable plugins before launching work::
+List ready and unavailable plugins before launching work. Filters use OWTF's
+established plugin group and type names::
 
   owtf plugins list
+  owtf plugins list --group web --type semi_passive
 
 Create a run from existing target IDs. ``--target`` and ``--plugin`` may be
 repeated or supplied as comma-separated IDs::
@@ -40,8 +42,18 @@ repeated or supplied as comma-separated IDs::
   owtf runs create \
     --session ses_ID \
     --target tgt_ID \
-    --plugin OWTF-IG-004-semi-passive \
+    --plugin OWTF-IG-004-semi_passive \
     --plugin OWTF-WSP-001-active
+
+Launch an OWTF plugin group by group and type. Omit ``--type`` (or use
+``--type all``) for every type in the group. ``--type quiet`` retains the old
+OWTF meaning of ``passive`` plus ``semi_passive``::
+
+  owtf runs create \
+    --session ses_ID \
+    --target tgt_ID \
+    --group web \
+    --type quiet
 
 List completed and active plugin runs, or inspect one run::
 
@@ -52,8 +64,8 @@ The ``scan`` convenience command accepts target values directly. It uses the
 newest session or creates ``Default session`` when ``--session`` is omitted::
 
   owtf scan \
-    --plugin OWTF-IG-004-semi-passive \
-    --plugin OWTF-WSP-001-active \
+    --group web \
+    --type semi_passive \
     https://example.test
 
 Inspect and control work
