@@ -89,6 +89,8 @@ func New(config Config) http.Handler {
 	mux.HandleFunc("GET /api/v2/tasks/{taskID}", server.getTask)
 	mux.HandleFunc("GET /api/v2/tasks/{taskID}/attempts", server.taskAttempts)
 	mux.HandleFunc("GET /api/v2/tasks/{taskID}/events", server.taskEvents)
+	mux.HandleFunc("GET /api/v2/tasks/{taskID}/review", server.pluginOutputReview)
+	mux.HandleFunc("PATCH /api/v2/tasks/{taskID}/review", server.updatePluginOutputReview)
 	mux.HandleFunc("POST /api/v2/tasks/{taskID}/cancel", server.cancelTask)
 	mux.HandleFunc("GET /api/v2/transactions", server.listTransactions)
 	mux.HandleFunc("GET /api/v2/transactions/search", server.searchTransactions)
@@ -596,6 +598,29 @@ func (s *Server) taskEvents(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, items)
 }
 
+func (s *Server) pluginOutputReview(w http.ResponseWriter, r *http.Request) {
+	review, err := s.store.GetPluginOutputReview(r.Context(), r.PathValue("taskID"))
+	if s.handleStoreError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, review)
+}
+
+func (s *Server) updatePluginOutputReview(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Rank  *string `json:"rank"`
+		Notes *string `json:"notes"`
+	}
+	if err := decodeJSON(w, r, &input); err != nil {
+		return
+	}
+	review, err := s.store.UpdatePluginOutputReview(r.Context(), r.PathValue("taskID"), input.Rank, input.Notes)
+	if s.handleStoreError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, review)
+}
+
 func (s *Server) listTransactions(w http.ResponseWriter, r *http.Request) {
 	sessionID := r.URL.Query().Get("session_id")
 	if sessionID == "" {
@@ -837,6 +862,10 @@ func (s *Server) handleStoreError(w http.ResponseWriter, err error) bool {
 	}
 	if errors.Is(err, store.ErrConflict) {
 		writeError(w, http.StatusConflict, err.Error())
+		return true
+	}
+	if errors.Is(err, store.ErrInvalid) {
+		writeError(w, http.StatusBadRequest, err.Error())
 		return true
 	}
 	s.internalError(w, err)

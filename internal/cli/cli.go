@@ -51,6 +51,18 @@ func (values *assignmentList) Set(value string) error {
 	return nil
 }
 
+type optionalString struct {
+	value string
+	set   bool
+}
+
+func (value *optionalString) String() string { return value.value }
+func (value *optionalString) Set(input string) error {
+	value.value = input
+	value.set = true
+	return nil
+}
+
 // Run parses and executes one CLI request against an OWTF server.
 func Run(ctx context.Context, args []string, out, errOut io.Writer) error {
 	flags := flag.NewFlagSet("owtf", flag.ContinueOnError)
@@ -296,14 +308,25 @@ func (a *app) targets(ctx context.Context, args []string) error {
 }
 
 func (a *app) plugin(ctx context.Context, args []string) error {
-	if len(args) == 0 || args[0] != "list" {
-		return errors.New("usage: owtf plugin list [--group GROUP] [--type TYPE]")
+	if len(args) == 0 {
+		return errors.New("plugin requires list or review")
 	}
+	switch args[0] {
+	case "list":
+		return a.listPlugins(ctx, args[1:])
+	case "review":
+		return a.reviewPluginOutput(ctx, args[1:])
+	default:
+		return fmt.Errorf("unknown plugin command %q", args[0])
+	}
+}
+
+func (a *app) listPlugins(ctx context.Context, args []string) error {
 	flags := a.flags("plugin list")
 	group := flags.String("group", "", "plugin group: web, network, or auxiliary")
 	var pluginTypes stringList
 	flags.Var(&pluginTypes, "type", "plugin type (repeatable or comma-separated)")
-	if err := flags.Parse(args[1:]); err != nil {
+	if err := flags.Parse(args); err != nil {
 		return err
 	}
 	if flags.NArg() != 0 {
@@ -317,6 +340,32 @@ func (a *app) plugin(ctx context.Context, args []string) error {
 		query.Add("type", pluginType)
 	}
 	return a.proxyJSON(ctx, http.MethodGet, withQuery("/api/v2/plugins", query), nil)
+}
+
+func (a *app) reviewPluginOutput(ctx context.Context, args []string) error {
+	flags := a.flags("plugin review")
+	var rank, notes optionalString
+	flags.Var(&rank, "rank", "output rank: unranked, passing, informational, low, medium, high, or critical")
+	flags.Var(&notes, "notes", "operator notes; use --notes= to clear")
+	if err := flags.Parse(args); err != nil {
+		return err
+	}
+	taskID, err := oneArg("plugin review", flags.Args())
+	if err != nil {
+		return err
+	}
+	path := "/api/v2/tasks/" + pathSegment(taskID) + "/review"
+	if !rank.set && !notes.set {
+		return a.proxyJSON(ctx, http.MethodGet, path, nil)
+	}
+	input := make(map[string]any, 2)
+	if rank.set {
+		input["rank"] = rank.value
+	}
+	if notes.set {
+		input["notes"] = notes.value
+	}
+	return a.proxyJSON(ctx, http.MethodPatch, path, input)
 }
 
 func (a *app) runs(ctx context.Context, args []string) error {
@@ -903,6 +952,7 @@ Usage:
   owtf [--url URL] sessions export [--output FILE] ID
   owtf [--url URL] targets list|search|add|show|update|delete|report
   owtf [--url URL] plugin list [--group GROUP] [--type TYPE]
+  owtf [--url URL] plugin review [--rank RANK] [--notes TEXT] TASK_ID
   owtf [--url URL] profiles list|show
   owtf [--url URL] runs list --session ID
   owtf [--url URL] runs show ID

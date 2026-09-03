@@ -24,6 +24,14 @@ const (
 
 	ObservationKindExternalReferences = "external.references"
 	ObservationKindGrepMatches        = "grep.matches"
+
+	PluginOutputRankUnranked      = "unranked"
+	PluginOutputRankPassing       = "passing"
+	PluginOutputRankInformational = "informational"
+	PluginOutputRankLow           = "low"
+	PluginOutputRankMedium        = "medium"
+	PluginOutputRankHigh          = "high"
+	PluginOutputRankCritical      = "critical"
 )
 
 // Session is a named scan workspace containing targets and their execution
@@ -185,6 +193,16 @@ type TaskEvent struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// PluginOutputReview contains the operator-owned review of one immutable task
+// output. OWTF has no user records; the deployment boundary owns actor
+// attribution when it is required.
+type PluginOutputReview struct {
+	TaskID    string     `json:"task_id"`
+	Rank      string     `json:"rank"`
+	Notes     string     `json:"notes"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+}
+
 // Worker reports the live state and process-lifetime counters of one bounded
 // runner worker.
 type Worker struct {
@@ -280,28 +298,30 @@ type ReportSummary struct {
 
 // TargetReport is the complete retained evidence view for one target.
 type TargetReport struct {
-	Target       Target        `json:"target"`
-	Tasks        []Task        `json:"tasks"`
-	Attempts     []TaskAttempt `json:"attempts"`
-	Events       []TaskEvent   `json:"events"`
-	Artifacts    []Artifact    `json:"artifacts"`
-	Transactions []Transaction `json:"transactions"`
-	Observations []Observation `json:"observations"`
-	Findings     []Finding     `json:"findings"`
+	Target              Target               `json:"target"`
+	Tasks               []Task               `json:"tasks"`
+	PluginOutputReviews []PluginOutputReview `json:"plugin_output_reviews"`
+	Attempts            []TaskAttempt        `json:"attempts"`
+	Events              []TaskEvent          `json:"events"`
+	Artifacts           []Artifact           `json:"artifacts"`
+	Transactions        []Transaction        `json:"transactions"`
+	Observations        []Observation        `json:"observations"`
+	Findings            []Finding            `json:"findings"`
 }
 
 // SessionReport is the complete retained execution and evidence view for one
 // OWTF session.
 type SessionReport struct {
-	Session      Session       `json:"session"`
-	Summary      ReportSummary `json:"summary"`
-	Targets      []Target      `json:"targets"`
-	Runs         []Run         `json:"runs"`
-	Tasks        []Task        `json:"tasks"`
-	Attempts     []TaskAttempt `json:"attempts"`
-	Events       []TaskEvent   `json:"events"`
-	Artifacts    []Artifact    `json:"artifacts"`
-	Transactions []Transaction `json:"transactions"`
-	Observations []Observation `json:"observations"`
-	Findings     []Finding     `json:"findings"`
+	Session             Session              `json:"session"`
+	Summary             ReportSummary        `json:"summary"`
+	Targets             []Target             `json:"targets"`
+	Runs                []Run                `json:"runs"`
+	Tasks               []Task               `json:"tasks"`
+	PluginOutputReviews []PluginOutputReview `json:"plugin_output_reviews"`
+	Attempts            []TaskAttempt        `json:"attempts"`
+	Events              []TaskEvent          `json:"events"`
+	Artifacts           []Artifact           `json:"artifacts"`
+	Transactions        []Transaction        `json:"transactions"`
+	Observations        []Observation        `json:"observations"`
+	Findings            []Finding            `json:"findings"`
 }

@@ -297,7 +297,10 @@ transaction search. Tasks retain ordered attempt history for normal execution
 and restart recovery. Failed and cancelled tasks remain terminal; an operator
 creates a new run when a technique must be repeated. Declarative external
 plugins retain curated manual guidance without sending target traffic, and
-declarative grep plugins retain evidence-linked transaction matches.
+declarative grep plugins retain evidence-linked transaction matches. Operators
+can assign the established OWTF rank and notes to terminal plugin output; that
+mutable review remains separate from scanner evidence and appears in target,
+session, CLI, API, and portable reports.
 Configuration validation, default/file/environment/flag precedence, bounded
 worker and proxy limits, secret redaction, profile validation, persisted run
 ordering, deletion conflicts, target pagination, input validation, immutable

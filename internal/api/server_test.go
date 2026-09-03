@@ -297,6 +297,21 @@ func TestTargetScanPersistsReportAndSupportsDeletion(t *testing.T) {
 	if inputs["request_label"] != "API run" {
 		t.Fatalf("runner did not use snapshotted inputs: %#v", inputs)
 	}
+	taskID := runResult.Tasks[0].ID
+	reviewURL := server.URL + "/api/v2/tasks/" + taskID + "/review"
+	review := requestJSON[model.PluginOutputReview](t, server.Client(), http.MethodGet, reviewURL, nil, http.StatusOK)
+	if review.TaskID != taskID || review.Rank != model.PluginOutputRankUnranked || review.UpdatedAt != nil {
+		t.Fatalf("unexpected default plugin output review: %+v", review)
+	}
+	requestJSON[map[string]string](t, server.Client(), http.MethodPatch, reviewURL, map[string]any{}, http.StatusBadRequest)
+	requestJSON[map[string]string](t, server.Client(), http.MethodPatch, reviewURL, map[string]any{"rank": "urgent"}, http.StatusBadRequest)
+	requestJSON[map[string]string](t, server.Client(), http.MethodPatch, reviewURL, map[string]any{"unknown": true}, http.StatusBadRequest)
+	review = requestJSON[model.PluginOutputReview](t, server.Client(), http.MethodPatch, reviewURL, map[string]any{
+		"rank": model.PluginOutputRankHigh, "notes": "Verified from retained HTTP evidence.",
+	}, http.StatusOK)
+	if review.Rank != model.PluginOutputRankHigh || review.Notes != "Verified from retained HTTP evidence." || review.UpdatedAt == nil {
+		t.Fatalf("plugin output review was not stored: %+v", review)
+	}
 
 	report := requestJSON[model.TargetReport](t, server.Client(), http.MethodGet, server.URL+"/api/v2/targets/"+target.ID+"/report", nil, http.StatusOK)
 	assertReport(t, report)
@@ -311,7 +326,8 @@ func TestTargetScanPersistsReportAndSupportsDeletion(t *testing.T) {
 	sessionReport := requestJSON[model.SessionReport](t, server.Client(), http.MethodGet, server.URL+"/api/v2/sessions/"+session.ID+"/report", nil, http.StatusOK)
 	if sessionReport.Summary.Targets != 1 || sessionReport.Summary.Runs != 1 || sessionReport.Summary.Tasks != 1 || sessionReport.Summary.Attempts != 1 ||
 		sessionReport.Summary.Succeeded != 1 || sessionReport.Summary.Transactions != 1 ||
-		sessionReport.Summary.Artifacts != 1 || sessionReport.Summary.Observations != 1 {
+		sessionReport.Summary.Artifacts != 1 || sessionReport.Summary.Observations != 1 || len(sessionReport.PluginOutputReviews) != 1 ||
+		sessionReport.PluginOutputReviews[0].Rank != model.PluginOutputRankHigh {
 		t.Fatalf("unexpected session report summary: %+v", sessionReport.Summary)
 	}
 	assertSessionArchive(t, server.Client(), server.URL+"/api/v2/sessions/"+session.ID+"/export", session.ID)
@@ -391,8 +407,21 @@ func assertSessionArchive(t *testing.T, client *http.Client, url, sessionID stri
 		t.Fatal(err)
 	}
 	reportFile.Close()
-	if exported.Session.ID != sessionID || exported.Summary.Artifacts != 1 {
+	if exported.Session.ID != sessionID || exported.Summary.Artifacts != 1 || len(exported.PluginOutputReviews) != 1 ||
+		exported.PluginOutputReviews[0].Rank != model.PluginOutputRankHigh {
 		t.Fatalf("unexpected exported report: %+v", exported)
+	}
+	htmlFile, err := files["index.html"].Open()
+	if err != nil {
+		t.Fatal(err)
+	}
+	html, err := io.ReadAll(htmlFile)
+	htmlFile.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Contains(html, []byte("Verified from retained HTTP evidence.")) || !bytes.Contains(html, []byte(model.PluginOutputRankHigh)) {
+		t.Fatal("session export omitted plugin output review")
 	}
 	if len(archive.File) != 4 {
 		t.Fatalf("expected report files plus one artifact, got %d files", len(archive.File))
@@ -675,6 +704,10 @@ func assertReport(t *testing.T, report model.TargetReport) {
 	}
 	if len(report.Events) < 3 {
 		t.Fatalf("expected lifecycle and plugin logs, got %d events", len(report.Events))
+	}
+	if len(report.PluginOutputReviews) != 1 || report.PluginOutputReviews[0].TaskID != report.Tasks[0].ID ||
+		report.PluginOutputReviews[0].Rank != model.PluginOutputRankHigh || report.PluginOutputReviews[0].Notes != "Verified from retained HTTP evidence." {
+		t.Fatalf("unexpected plugin output reviews: %+v", report.PluginOutputReviews)
 	}
 }
 

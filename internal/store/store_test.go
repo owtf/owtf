@@ -485,6 +485,93 @@ func TestRecoverTasksPreservesAttemptHistory(t *testing.T) {
 	}
 }
 
+func TestPluginOutputReviewIsSeparateFromTerminalTaskEvidence(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "owtf.db")
+	database, err := Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx := context.Background()
+	session, err := database.CreateSession(ctx, "Output review")
+	if err != nil {
+		t.Fatal(err)
+	}
+	normalized, err := target.Normalize("https://example.test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	added, err := database.AddTargets(ctx, session.ID, []target.Normalized{normalized})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, tasks, err := database.CreateRun(ctx, session.ID, "", []TaskSpec{{
+		TargetID: added.Created[0].ID, PluginID: "OWTF-TEST-001-active", PluginVersion: "0.1.0", PluginSnapshot: "{}",
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	taskID := tasks[0].ID
+	review, err := database.GetPluginOutputReview(ctx, taskID)
+	if err != nil || review.TaskID != taskID || review.Rank != model.PluginOutputRankUnranked || review.Notes != "" || review.UpdatedAt != nil {
+		t.Fatalf("unexpected default review: review=%+v err=%v", review, err)
+	}
+	if _, err := database.GetPluginOutputReview(ctx, "tsk_missing"); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("missing task review error = %v, want not found", err)
+	}
+	if _, err := database.UpdatePluginOutputReview(ctx, taskID, nil, nil); !errors.Is(err, ErrInvalid) {
+		t.Fatalf("empty review update error = %v, want invalid input", err)
+	}
+	rank := model.PluginOutputRankHigh
+	if _, err := database.UpdatePluginOutputReview(ctx, taskID, &rank, nil); !errors.Is(err, ErrConflict) {
+		t.Fatalf("active task review error = %v, want conflict", err)
+	}
+	execution, err := database.StartTask(ctx, taskID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := database.CompleteTask(ctx, execution, nil, nil, nil, nil); err != nil {
+		t.Fatal(err)
+	}
+	invalid := "urgent"
+	if _, err := database.UpdatePluginOutputReview(ctx, taskID, &invalid, nil); !errors.Is(err, ErrInvalid) {
+		t.Fatalf("invalid rank error = %v, want invalid input", err)
+	}
+	tooLong := strings.Repeat("x", maxPluginOutputNotes+1)
+	if _, err := database.UpdatePluginOutputReview(ctx, taskID, nil, &tooLong); !errors.Is(err, ErrInvalid) {
+		t.Fatalf("oversized notes error = %v, want invalid input", err)
+	}
+	notes := "Verified against retained evidence."
+	review, err = database.UpdatePluginOutputReview(ctx, taskID, &rank, &notes)
+	if err != nil || review.Rank != rank || review.Notes != notes || review.UpdatedAt == nil {
+		t.Fatalf("unexpected updated review: review=%+v err=%v", review, err)
+	}
+	cleared := ""
+	review, err = database.UpdatePluginOutputReview(ctx, taskID, nil, &cleared)
+	if err != nil || review.Rank != rank || review.Notes != "" {
+		t.Fatalf("partial review update lost rank: review=%+v err=%v", review, err)
+	}
+	targetReport, err := database.GetTargetReport(ctx, added.Created[0].ID)
+	if err != nil || len(targetReport.PluginOutputReviews) != 1 || targetReport.PluginOutputReviews[0].Rank != rank {
+		t.Fatalf("target report review missing: reviews=%+v err=%v", targetReport.PluginOutputReviews, err)
+	}
+	sessionReport, err := database.GetSessionReport(ctx, session.ID)
+	if err != nil || len(sessionReport.PluginOutputReviews) != 1 || sessionReport.PluginOutputReviews[0].TaskID != taskID {
+		t.Fatalf("session report review missing: reviews=%+v err=%v", sessionReport.PluginOutputReviews, err)
+	}
+	if err := database.Close(); err != nil {
+		t.Fatal(err)
+	}
+	database, err = Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	review, err = database.GetPluginOutputReview(ctx, taskID)
+	if err != nil || review.Rank != rank || review.Notes != "" || review.UpdatedAt == nil {
+		t.Fatalf("review did not persist: review=%+v err=%v", review, err)
+	}
+}
+
 func plugin(id string) model.Plugin {
 	pluginType := id[strings.LastIndexByte(id, '-')+1:]
 	code := strings.TrimSuffix(id, "-"+pluginType)

@@ -17,6 +17,7 @@ import (
 func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 	requests := make(map[string]int)
 	pluginInputRequests := 0
+	pluginReviewRequests := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		key := r.Method + " " + r.URL.Path
 		requests[key]++
@@ -73,6 +74,19 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 				t.Fatalf("unexpected plugin query: %s", r.URL.RawQuery)
 			}
 			writeTestJSON(t, w, []map[string]string{{"id": "OWTF-WSP-001-active"}})
+		case "GET /api/v2/tasks/tsk_1/review":
+			writeTestJSON(t, w, map[string]string{"task_id": "tsk_1", "rank": "unranked", "notes": ""})
+		case "PATCH /api/v2/tasks/tsk_1/review":
+			var input struct {
+				Rank  *string `json:"rank"`
+				Notes *string `json:"notes"`
+			}
+			decodeTestJSON(t, r, &input)
+			if input.Rank == nil || *input.Rank != "high" || input.Notes == nil || *input.Notes != "CLI review" {
+				t.Fatalf("unexpected plugin output review: %+v", input)
+			}
+			pluginReviewRequests++
+			writeTestJSON(t, w, map[string]string{"task_id": "tsk_1", "rank": *input.Rank, "notes": *input.Notes})
 		case "GET /api/v2/profiles":
 			writeTestJSON(t, w, []map[string]any{{"name": "default", "plugins": []string{"OWTF-WSP-001-active"}}})
 		case "GET /api/v2/profiles/default":
@@ -189,6 +203,8 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		{"targets", "delete", "tgt_1"},
 		{"plugin", "list"},
 		{"plugin", "list", "--group", "web", "--type", "active"},
+		{"plugin", "review", "tsk_1"},
+		{"plugin", "review", "--rank", "high", "--notes", "CLI review", "tsk_1"},
 		{"profiles", "list"},
 		{"profiles", "show", "default"},
 		{"runs", "list", "--session", "ses_1"},
@@ -272,6 +288,7 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		"GET /api/v2/sessions/ses_1/report", "GET /api/v2/sessions/ses_1/export",
 		"POST /api/v2/sessions/ses_1/targets", "GET /api/v2/sessions/ses_1/targets", "GET /api/v2/sessions/ses_1/targets/search",
 		"PATCH /api/v2/targets/tgt_1",
+		"GET /api/v2/tasks/tsk_1/review", "PATCH /api/v2/tasks/tsk_1/review",
 		"GET /api/v2/profiles", "GET /api/v2/profiles/default",
 		"POST /api/v2/runs", "GET /api/v2/runs", "GET /api/v2/runs/run_1", "GET /api/v2/tasks", "GET /api/v2/workers",
 		"GET /api/v2/tasks/tsk_1/attempts", "GET /api/v2/tasks/tsk_1/events",
@@ -288,6 +305,9 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 	}
 	if pluginInputRequests != 2 {
 		t.Fatalf("CLI sent plugin inputs on %d requests, want 2", pluginInputRequests)
+	}
+	if pluginReviewRequests != 1 {
+		t.Fatalf("CLI sent %d plugin output reviews, want 1", pluginReviewRequests)
 	}
 }
 

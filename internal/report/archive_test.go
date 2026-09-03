@@ -49,6 +49,9 @@ func TestWriteSessionArchiveIncludesPortableEvidence(t *testing.T) {
 			Techniques: []model.Technique{{Code: "OWTF-WSP-001", Title: "Visit URLs", Hint: "Visit the target.", Priority: 99, Reference: "https://owtf.org"}},
 			Status:     model.TaskSucceeded, CreatedAt: now,
 		}},
+		PluginOutputReviews: []model.PluginOutputReview{{
+			TaskID: "tsk_1", Rank: model.PluginOutputRankHigh, Notes: "Verified manually <script>alert(2)</script>", UpdatedAt: &now,
+		}},
 		Attempts: []model.TaskAttempt{{
 			ID: "att_1", TaskID: "tsk_1", AttemptNumber: 1, Status: model.TaskSucceeded, StartedAt: now, EndedAt: &now,
 		}},
@@ -114,11 +117,16 @@ func TestWriteSessionArchiveIncludesPortableEvidence(t *testing.T) {
 		!strings.Contains(string(files["index.html"]), `id="transaction-txn_1"`) {
 		t.Fatal("offline report did not link grep output to its transaction")
 	}
+	if !strings.Contains(string(files["index.html"]), model.PluginOutputRankHigh) ||
+		!strings.Contains(string(files["index.html"]), "Verified manually &lt;script&gt;alert(2)&lt;/script&gt;") ||
+		strings.Contains(string(files["index.html"]), "Verified manually <script>") {
+		t.Fatal("offline report omitted or unsafely rendered plugin output review")
+	}
 	var decoded model.SessionReport
 	if err := json.Unmarshal(files["report.json"], &decoded); err != nil {
 		t.Fatal(err)
 	}
-	if decoded.Session.ID != session.Session.ID || len(decoded.Attempts) != 1 || len(decoded.Artifacts) != 1 || len(decoded.Observations) != 2 || len(decoded.Transactions) != 1 {
+	if decoded.Session.ID != session.Session.ID || len(decoded.Attempts) != 1 || len(decoded.PluginOutputReviews) != 1 || len(decoded.Artifacts) != 1 || len(decoded.Observations) != 2 || len(decoded.Transactions) != 1 {
 		t.Fatalf("unexpected JSON report: %+v", decoded)
 	}
 	var metadata manifest

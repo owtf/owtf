@@ -186,10 +186,12 @@ Evidence and reports
 --------------------
 
 Target reports retain tasks, attempts, logs, observations, findings,
-transactions, and artifact metadata::
+transactions, plugin output reviews, and artifact metadata::
 
   owtf targets report tgt_ID
   owtf sessions report ses_ID
+  owtf plugin review tsk_ID
+  owtf plugin review --rank high --notes "Verified manually" tsk_ID
   owtf transactions list --session ses_ID --target tgt_ID
   owtf transactions list --target tgt_ID
   owtf transactions search --session ses_ID --search login --method POST --status 401
@@ -198,6 +200,12 @@ transactions, and artifact metadata::
   owtf transactions show --target tgt_ID txn_ID
   owtf transactions delete --target tgt_ID txn_ID
   owtf artifacts get --output response-body.bin art_ID
+
+Plugin output reviews are operator decisions stored separately from immutable
+scanner evidence. Valid ranks are ``unranked``, ``passing``,
+``informational``, ``low``, ``medium``, ``high``, and ``critical``. Running
+``plugin review`` without review flags reads the current value. ``--notes=``
+clears notes. Only completed, failed, or cancelled tasks can be reviewed.
 
 HAR import attaches transactions directly to the selected target. It does not
 create a plugin run, worklist task, or worker activity. OWTF retains the source

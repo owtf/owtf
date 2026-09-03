@@ -31,6 +31,13 @@ func WriteSessionArchive(destination io.Writer, session model.SessionReport, art
 	for _, item := range session.Artifacts {
 		artifactFiles[item.ID] = archiveArtifactPath(item)
 	}
+	reviewByTask := make(map[string]model.PluginOutputReview, len(session.Tasks))
+	for _, task := range session.Tasks {
+		reviewByTask[task.ID] = model.PluginOutputReview{TaskID: task.ID, Rank: model.PluginOutputRankUnranked}
+	}
+	for _, review := range session.PluginOutputReviews {
+		reviewByTask[review.TaskID] = review
+	}
 
 	reportJSON, err := json.MarshalIndent(session, "", "  ")
 	if err != nil {
@@ -47,7 +54,8 @@ func WriteSessionArchive(destination io.Writer, session model.SessionReport, art
 	if err := sessionTemplate.Execute(&reportHTML, struct {
 		Report        model.SessionReport
 		ArtifactFiles map[string]string
-	}{Report: session, ArtifactFiles: artifactFiles}); err != nil {
+		ReviewByTask  map[string]model.PluginOutputReview
+	}{Report: session, ArtifactFiles: artifactFiles, ReviewByTask: reviewByTask}); err != nil {
 		return fmt.Errorf("render report HTML: %w", err)
 	}
 
@@ -181,8 +189,8 @@ var sessionTemplate = template.Must(template.New("session-report").Funcs(templat
   {{range .Report.Targets}}<tr><td><code>{{.ID}}</code></td><td>{{.Kind}}</td><td>{{.Value}}</td></tr>{{else}}<tr><td colspan="3">No targets</td></tr>{{end}}
   </tbody></table>
   <h2>Tasks</h2>
-  <table><thead><tr><th>ID</th><th>Target</th><th>Plugin</th><th>Technique</th><th>Status</th><th>Error</th></tr></thead><tbody>
-  {{range .Report.Tasks}}<tr><td><code>{{.ID}}</code></td><td><code>{{.TargetID}}</code></td><td>{{.PluginID}}</td><td>{{range .Techniques}}<div><code>{{.Code}}</code> {{.Title}}{{if .Hint}}<br><span class="muted">{{.Hint}}</span>{{end}}{{if .Reference}}<br><a href="{{.Reference}}">Reference</a>{{end}}</div>{{end}}</td><td>{{.Status}}</td><td>{{.Error}}</td></tr>{{else}}<tr><td colspan="6">No tasks</td></tr>{{end}}
+  <table><thead><tr><th>ID</th><th>Target</th><th>Plugin</th><th>Technique</th><th>Status</th><th>Rank</th><th>Notes</th><th>Error</th></tr></thead><tbody>
+  {{range .Report.Tasks}}{{$review := index $.ReviewByTask .ID}}<tr><td><code>{{.ID}}</code></td><td><code>{{.TargetID}}</code></td><td>{{.PluginID}}</td><td>{{range .Techniques}}<div><code>{{.Code}}</code> {{.Title}}{{if .Hint}}<br><span class="muted">{{.Hint}}</span>{{end}}{{if .Reference}}<br><a href="{{.Reference}}">Reference</a>{{end}}</div>{{end}}</td><td>{{.Status}}</td><td>{{$review.Rank}}</td><td><pre>{{$review.Notes}}</pre></td><td>{{.Error}}</td></tr>{{else}}<tr><td colspan="8">No tasks</td></tr>{{end}}
   </tbody></table>
   <h2>Attempts</h2>
   <table><thead><tr><th>Task</th><th>Attempt</th><th>Status</th><th>Started</th><th>Error</th></tr></thead><tbody>
