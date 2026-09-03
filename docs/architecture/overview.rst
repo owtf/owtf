@@ -44,6 +44,14 @@ plugin group (``web``, ``network``, or ``auxiliary``). The directory is for
 maintainers; the manifest remains the runtime source of truth and the catalog
 discovers it recursively.
 
+Named ordering profiles are separate versioned files::
+
+  profiles/
+    default.yaml
+
+A profile orders a group launch but never acts as a hidden allowlist. Matching
+plugins omitted from the profile still run afterward in stable ID order.
+
 Core model
 ----------
 
@@ -60,7 +68,8 @@ Core model
 
 ``Run`` and ``Task``
   A run is an immutable launch plan. Each target/plugin pair becomes a durable
-  task with attempts, timestamps, terminal status, and an explicit error.
+  task with attempts, timestamps, terminal status, and an explicit error. A
+  group run also records the OWTF profile that fixed its plugin order.
 
 ``Event``
   Ordered lifecycle, stdout, and stderr output attached to a task attempt.
@@ -248,10 +257,12 @@ and SOCKS5 upstream proxies. Basic and Digest target authentication is scoped
   bounded, binary-safe frame transcript. Live interceptors remain before the
   phase gate.
 
-Phase 5 has a checked feature matrix and typed configuration shared by server
-and proxy startup. Configuration validation, default/file/environment/flag
-precedence, bounded worker and proxy limits, and secret redaction are covered by
-tests. The remaining matrix rows are not implied complete by this slice.
+Phase 5 has a checked feature matrix, typed configuration shared by server and
+proxy startup, and deterministic named plugin profiles. Configuration
+validation, default/file/environment/flag precedence, bounded worker and proxy
+limits, secret redaction, profile validation, and persisted run ordering are
+covered by tests. The remaining matrix rows are not implied complete by this
+slice.
 
 API regression gate
 -------------------

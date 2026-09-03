@@ -56,6 +56,7 @@ type Plugin struct {
 type Run struct {
 	ID         string     `json:"id"`
 	SessionID  string     `json:"session_id"`
+	Profile    string     `json:"profile,omitempty"`
 	Status     string     `json:"status"`
 	CreatedAt  time.Time  `json:"created_at"`
 	StartedAt  *time.Time `json:"started_at,omitempty"`

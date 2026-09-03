@@ -20,6 +20,7 @@ import (
 	"github.com/owtf/owtf/internal/har"
 	"github.com/owtf/owtf/internal/model"
 	"github.com/owtf/owtf/internal/plugin"
+	"github.com/owtf/owtf/internal/profile"
 	reportoutput "github.com/owtf/owtf/internal/report"
 	"github.com/owtf/owtf/internal/runner"
 	"github.com/owtf/owtf/internal/store"
@@ -31,16 +32,34 @@ var uiFiles embed.FS
 
 // Server owns the OWTF HTTP handlers and application services.
 type Server struct {
-	store     *store.Store
-	artifacts *artifact.Store
-	catalog   *plugin.Catalog
-	runner    *runner.Runner
+	store          *store.Store
+	artifacts      *artifact.Store
+	catalog        *plugin.Catalog
+	profiles       *profile.Catalog
+	defaultProfile string
+	runner         *runner.Runner
+}
+
+// Config supplies the services owned by one API server.
+type Config struct {
+	Store          *store.Store
+	Artifacts      *artifact.Store
+	Plugins        *plugin.Catalog
+	Profiles       *profile.Catalog
+	DefaultProfile string
+	Runner         *runner.Runner
 }
 
 // New returns the complete OWTF HTTP handler. Authentication is intentionally
 // outside this boundary and may be supplied by a reverse proxy.
-func New(database *store.Store, artifacts *artifact.Store, catalog *plugin.Catalog, taskRunner *runner.Runner) http.Handler {
-	server := &Server{store: database, artifacts: artifacts, catalog: catalog, runner: taskRunner}
+func New(config Config) http.Handler {
+	if config.Profiles == nil {
+		config.Profiles = profile.Empty()
+	}
+	server := &Server{
+		store: config.Store, artifacts: config.Artifacts, catalog: config.Plugins,
+		profiles: config.Profiles, defaultProfile: config.DefaultProfile, runner: config.Runner,
+	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /debug/health", server.health)
 	mux.HandleFunc("GET /api/v2/health", server.health)
@@ -55,6 +74,8 @@ func New(database *store.Store, artifacts *artifact.Store, catalog *plugin.Catal
 	mux.HandleFunc("DELETE /api/v2/targets/{targetID}", server.deleteTarget)
 	mux.HandleFunc("GET /api/v2/targets/{targetID}/report", server.targetReport)
 	mux.HandleFunc("GET /api/v2/plugins", server.listPlugins)
+	mux.HandleFunc("GET /api/v2/profiles", server.listProfiles)
+	mux.HandleFunc("GET /api/v2/profiles/{profileName}", server.getProfile)
 	mux.HandleFunc("POST /api/v2/runs", server.createRun)
 	mux.HandleFunc("GET /api/v2/runs", server.listRuns)
 	mux.HandleFunc("GET /api/v2/runs/{runID}", server.getRun)
@@ -76,6 +97,19 @@ func New(database *store.Store, artifacts *artifact.Store, catalog *plugin.Catal
 	mux.Handle("GET /assets/", http.StripPrefix("/assets/", http.FileServerFS(staticFS)))
 	mux.HandleFunc("GET /", server.app)
 	return server.middleware(mux)
+}
+
+func (s *Server) listProfiles(w http.ResponseWriter, _ *http.Request) {
+	writeJSON(w, http.StatusOK, s.profiles.List())
+}
+
+func (s *Server) getProfile(w http.ResponseWriter, r *http.Request) {
+	item, ok := s.profiles.Get(r.PathValue("profileName"))
+	if !ok {
+		writeError(w, http.StatusNotFound, "profile not found")
+		return
+	}
+	writeJSON(w, http.StatusOK, item)
 }
 
 func (s *Server) middleware(next http.Handler) http.Handler {
@@ -258,6 +292,7 @@ func (s *Server) createRun(w http.ResponseWriter, r *http.Request) {
 		PluginIDs   []string `json:"plugin_ids"`
 		PluginGroup string   `json:"plugin_group"`
 		PluginTypes []string `json:"plugin_types"`
+		Profile     string   `json:"profile"`
 	}
 	if err := decodeJSON(w, r, &input); err != nil {
 		return
@@ -267,6 +302,7 @@ func (s *Server) createRun(w http.ResponseWriter, r *http.Request) {
 	input.PluginIDs = uniqueStrings(input.PluginIDs)
 	input.PluginGroup = strings.TrimSpace(input.PluginGroup)
 	input.PluginTypes = uniqueStrings(input.PluginTypes)
+	input.Profile = strings.TrimSpace(input.Profile)
 	groupLaunch := input.PluginGroup != ""
 	if input.SessionID == "" || len(input.TargetIDs) == 0 {
 		writeError(w, http.StatusBadRequest, "session_id and target_ids are required")
@@ -278,6 +314,10 @@ func (s *Server) createRun(w http.ResponseWriter, r *http.Request) {
 	}
 	if !groupLaunch && len(input.PluginTypes) != 0 {
 		writeError(w, http.StatusBadRequest, "plugin_types requires plugin_group")
+		return
+	}
+	if !groupLaunch && input.Profile != "" {
+		writeError(w, http.StatusBadRequest, "profile requires plugin_group")
 		return
 	}
 	targetKinds := make(map[string]string, len(input.TargetIDs))
@@ -303,6 +343,16 @@ func (s *Server) createRun(w http.ResponseWriter, r *http.Request) {
 		if len(entries) == 0 {
 			writeError(w, http.StatusBadRequest, "no plugins match the requested group and types")
 			return
+		}
+		if input.Profile == "" {
+			input.Profile = s.defaultProfile
+		}
+		if input.Profile != "" {
+			entries, err = s.profiles.Order(input.Profile, entries)
+			if err != nil {
+				writeError(w, http.StatusBadRequest, err.Error())
+				return
+			}
 		}
 	} else {
 		for _, pluginID := range input.PluginIDs {
@@ -347,7 +397,7 @@ func (s *Server) createRun(w http.ResponseWriter, r *http.Request) {
 			specs = append(specs, spec)
 		}
 	}
-	run, tasks, err := s.store.CreateRun(r.Context(), input.SessionID, specs)
+	run, tasks, err := s.store.CreateRun(r.Context(), input.SessionID, input.Profile, specs)
 	if s.handleStoreError(w, err) {
 		return
 	}

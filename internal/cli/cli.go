@@ -78,6 +78,8 @@ func Run(ctx context.Context, args []string, out, errOut io.Writer) error {
 		return application.targets(ctx, commandArgs)
 	case "plugins":
 		return application.plugins(ctx, commandArgs)
+	case "profiles":
+		return application.profiles(ctx, commandArgs)
 	case "runs":
 		return application.runs(ctx, commandArgs)
 	case "scan":
@@ -97,6 +99,26 @@ func Run(ctx context.Context, args []string, out, errOut io.Writer) error {
 		return nil
 	default:
 		return fmt.Errorf("unknown command %q; run owtf help", command)
+	}
+}
+
+func (a *app) profiles(ctx context.Context, args []string) error {
+	if len(args) == 0 {
+		return errors.New("profiles requires list or show")
+	}
+	switch args[0] {
+	case "list":
+		return noArgs(args[1:], func() error {
+			return a.proxyJSON(ctx, http.MethodGet, "/api/v2/profiles", nil)
+		})
+	case "show":
+		name, err := oneArg("profiles show", args[1:])
+		if err != nil {
+			return err
+		}
+		return a.proxyJSON(ctx, http.MethodGet, "/api/v2/profiles/"+pathSegment(name), nil)
+	default:
+		return fmt.Errorf("unknown profiles command %q", args[0])
 	}
 }
 
@@ -259,6 +281,7 @@ func (a *app) runs(ctx context.Context, args []string) error {
 		flags := a.flags("runs create")
 		sessionID := flags.String("session", "", "session ID")
 		pluginGroup := flags.String("group", "", "plugin group: web, network, or auxiliary")
+		profileName := flags.String("profile", "", "plugin order profile for a group launch")
 		var targetIDs, pluginIDs stringList
 		var pluginTypes stringList
 		flags.Var(&targetIDs, "target", "target ID (repeatable or comma-separated)")
@@ -268,11 +291,17 @@ func (a *app) runs(ctx context.Context, args []string) error {
 			return err
 		}
 		if *sessionID == "" || len(targetIDs) == 0 || flags.NArg() != 0 {
-			return errors.New("usage: owtf runs create --session ID --target ID (--plugin ID | --group GROUP [--type TYPE])")
+			return errors.New("usage: owtf runs create --session ID --target ID (--plugin ID | --group GROUP [--type TYPE] [--profile NAME])")
 		}
 		selection, err := pluginSelection(pluginIDs, *pluginGroup, pluginTypes)
 		if err != nil {
 			return err
+		}
+		if *profileName != "" {
+			if *pluginGroup == "" {
+				return errors.New("--profile requires --group")
+			}
+			selection["profile"] = *profileName
 		}
 		input := map[string]any{
 			"session_id": *sessionID,
@@ -291,6 +320,7 @@ func (a *app) scan(ctx context.Context, args []string) error {
 	flags := a.flags("scan")
 	sessionID := flags.String("session", "", "existing session ID; defaults to the newest session")
 	pluginGroup := flags.String("group", "", "plugin group: web, network, or auxiliary")
+	profileName := flags.String("profile", "", "plugin order profile for a group launch")
 	var pluginIDs stringList
 	var pluginTypes stringList
 	flags.Var(&pluginIDs, "plugin", "plugin ID (repeatable or comma-separated)")
@@ -299,11 +329,17 @@ func (a *app) scan(ctx context.Context, args []string) error {
 		return err
 	}
 	if flags.NArg() == 0 {
-		return errors.New("usage: owtf scan [--session ID] (--plugin ID | --group GROUP [--type TYPE]) TARGET...")
+		return errors.New("usage: owtf scan [--session ID] (--plugin ID | --group GROUP [--type TYPE] [--profile NAME]) TARGET...")
 	}
 	selection, err := pluginSelection(pluginIDs, *pluginGroup, pluginTypes)
 	if err != nil {
 		return err
+	}
+	if *profileName != "" {
+		if *pluginGroup == "" {
+			return errors.New("--profile requires --group")
+		}
+		selection["profile"] = *profileName
 	}
 	resolvedSessionID, err := a.ensureSession(ctx, *sessionID)
 	if err != nil {
@@ -719,10 +755,11 @@ Usage:
   owtf [--url URL] sessions export [--output FILE] ID
   owtf [--url URL] targets list|add|show|delete|report
   owtf [--url URL] plugins list [--group GROUP] [--type TYPE]
+  owtf [--url URL] profiles list|show
   owtf [--url URL] runs list --session ID
   owtf [--url URL] runs show ID
-  owtf [--url URL] runs create --session ID --target ID (--plugin ID | --group GROUP [--type TYPE])
-  owtf [--url URL] scan [--session ID] (--plugin ID | --group GROUP [--type TYPE]) TARGET...
+  owtf [--url URL] runs create --session ID --target ID (--plugin ID | --group GROUP [--type TYPE] [--profile NAME])
+  owtf [--url URL] scan [--session ID] (--plugin ID | --group GROUP [--type TYPE] [--profile NAME]) TARGET...
   owtf [--url URL] worklist [--session ID] [--status STATUS]
   owtf [--url URL] workers
   owtf [--url URL] tasks show|logs|cancel ID

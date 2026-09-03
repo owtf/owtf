@@ -19,6 +19,7 @@ import (
 	owtfconfig "github.com/owtf/owtf/internal/config"
 	"github.com/owtf/owtf/internal/model"
 	"github.com/owtf/owtf/internal/plugin"
+	"github.com/owtf/owtf/internal/profile"
 	"github.com/owtf/owtf/internal/runner"
 	"github.com/owtf/owtf/internal/store"
 )
@@ -65,6 +66,16 @@ func serve(settings owtfconfig.Config) error {
 	catalog.RegisterBuiltin("http-collector", plugin.HTTPCollector(nil))
 	catalog.ResolveCommands()
 	catalog.ResolveContainers(context.Background(), plugin.NewDockerEngine(settings.Plugins.ContainerEngine))
+	profiles, err := profile.Load(os.DirFS(settings.Plugins.ProfilesDirectory))
+	if err != nil {
+		return fmt.Errorf("load profiles: %w", err)
+	}
+	if err := profiles.ValidatePlugins(catalog); err != nil {
+		return fmt.Errorf("validate profiles: %w", err)
+	}
+	if _, ok := profiles.Get(settings.Plugins.DefaultProfile); !ok {
+		return fmt.Errorf("default profile %q does not exist", settings.Plugins.DefaultProfile)
+	}
 	plugins := make([]model.Plugin, 0, len(catalog.Entries()))
 	for _, entry := range catalog.Entries() {
 		plugins = append(plugins, entry.Plugin())
@@ -84,8 +95,11 @@ func serve(settings owtfconfig.Config) error {
 	defer taskRunner.Stop()
 
 	server := &http.Server{
-		Addr:              settings.Server.Address,
-		Handler:           api.New(database, artifacts, catalog, taskRunner),
+		Addr: settings.Server.Address,
+		Handler: api.New(api.Config{
+			Store: database, Artifacts: artifacts, Plugins: catalog,
+			Profiles: profiles, DefaultProfile: settings.Plugins.DefaultProfile, Runner: taskRunner,
+		}),
 		ReadHeaderTimeout: 5 * time.Second,
 		IdleTimeout:       60 * time.Second,
 	}

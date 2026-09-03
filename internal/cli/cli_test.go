@@ -53,6 +53,10 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 				t.Fatalf("unexpected plugin query: %s", r.URL.RawQuery)
 			}
 			writeTestJSON(t, w, []map[string]string{{"id": "OWTF-WSP-001-active"}})
+		case "GET /api/v2/profiles":
+			writeTestJSON(t, w, []map[string]any{{"name": "default", "plugins": []string{"OWTF-WSP-001-active"}}})
+		case "GET /api/v2/profiles/default":
+			writeTestJSON(t, w, map[string]any{"name": "default", "plugins": []string{"OWTF-WSP-001-active"}})
 		case "POST /api/v2/runs":
 			var input struct {
 				SessionID   string   `json:"session_id"`
@@ -60,10 +64,11 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 				PluginIDs   []string `json:"plugin_ids"`
 				PluginGroup string   `json:"plugin_group"`
 				PluginTypes []string `json:"plugin_types"`
+				Profile     string   `json:"profile"`
 			}
 			decodeTestJSON(t, r, &input)
 			explicit := len(input.PluginIDs) == 1 && input.PluginIDs[0] == "OWTF-WSP-001-active" && input.PluginGroup == ""
-			grouped := len(input.PluginIDs) == 0 && input.PluginGroup == "web" && len(input.PluginTypes) == 1 && input.PluginTypes[0] == "active"
+			grouped := len(input.PluginIDs) == 0 && input.PluginGroup == "web" && len(input.PluginTypes) == 1 && input.PluginTypes[0] == "active" && input.Profile == "default"
 			if input.SessionID != "ses_1" || len(input.TargetIDs) != 1 || input.TargetIDs[0] != "tgt_1" || (!explicit && !grouped) {
 				t.Fatalf("unexpected run request: %+v", input)
 			}
@@ -138,11 +143,13 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		{"targets", "delete", "tgt_1"},
 		{"plugins", "list"},
 		{"plugins", "list", "--group", "web", "--type", "active"},
+		{"profiles", "list"},
+		{"profiles", "show", "default"},
 		{"runs", "list", "--session", "ses_1"},
 		{"runs", "show", "run_1"},
 		{"runs", "create", "--session", "ses_1", "--target", "tgt_1", "--plugin", "OWTF-WSP-001-active"},
-		{"runs", "create", "--session", "ses_1", "--target", "tgt_1", "--group", "web", "--type", "active"},
-		{"scan", "--session", "ses_1", "--group", "web", "--type", "active", "https://example.test/"},
+		{"runs", "create", "--session", "ses_1", "--target", "tgt_1", "--group", "web", "--type", "active", "--profile", "default"},
+		{"scan", "--session", "ses_1", "--group", "web", "--type", "active", "--profile", "default", "https://example.test/"},
 		{"worklist", "--session", "ses_1", "--status", "queued"},
 		{"workers"},
 		{"tasks", "show", "tsk_1"},
@@ -208,6 +215,7 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		"GET /debug/health", "GET /api/v2/sessions", "POST /api/v2/sessions",
 		"GET /api/v2/sessions/ses_1/report", "GET /api/v2/sessions/ses_1/export",
 		"POST /api/v2/sessions/ses_1/targets", "GET /api/v2/sessions/ses_1/targets",
+		"GET /api/v2/profiles", "GET /api/v2/profiles/default",
 		"POST /api/v2/runs", "GET /api/v2/runs", "GET /api/v2/runs/run_1", "GET /api/v2/tasks", "GET /api/v2/workers",
 		"GET /api/v2/tasks/tsk_1/events", "POST /api/v2/tasks/tsk_1/cancel",
 		"GET /api/v2/transactions", "GET /api/v2/targets/tgt_1/transactions",

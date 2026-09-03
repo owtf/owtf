@@ -124,6 +124,8 @@ fi
 
 mkdir -p "${TMP_DIR}/plugins"
 cp -R "${ROOT_DIR}/plugins/." "${TMP_DIR}/plugins/"
+mkdir -p "${TMP_DIR}/profiles"
+cp -R "${ROOT_DIR}/profiles/." "${TMP_DIR}/profiles/"
 mkdir -p "${TMP_DIR}/plugins/OWTF-SMOKE-001/active" "${TMP_DIR}/plugins/OWTF-SMOKE-002/active"
 cat >"${TMP_DIR}/plugins/OWTF-SMOKE-001/active/plugin.yaml" <<'YAML'
 apiVersion: owtf.dev/v1alpha1
@@ -175,6 +177,8 @@ server:
   taskTimeoutSeconds: 30
 plugins:
   directory: "${TMP_DIR}/plugins"
+  profilesDirectory: "${TMP_DIR}/profiles"
+  defaultProfile: default
   containerEngine: docker
 proxy:
   listenAddress: "${PROXY_ADDRESS}"
@@ -309,6 +313,14 @@ cli_json plugins list
 jq -e 'length == 4' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin catalog is incomplete'
 cli_json plugins list --group web --type active
 jq -e 'length == 1 and .[0].id == "OWTF-WSP-001-active"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin group/type filter is incorrect'
+request GET /api/v2/profiles 200
+assert_json 'length == 1 and .[0].name == "default" and .[0].plugins == ["OWTF-IG-004-semi_passive","OWTF-WSP-001-active"]' 'profile catalog is incorrect'
+request GET /api/v2/profiles/default 200
+assert_json '.name == "default" and (.plugins | length) == 2' 'default profile is incorrect'
+cli_json profiles list
+jq -e 'length == 1 and .[0].name == "default"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI profile catalog is incorrect'
+cli_json profiles show default
+jq -e '.plugins == ["OWTF-IG-004-semi_passive","OWTF-WSP-001-active"]' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI default profile is incorrect'
 
 UNSUPPORTED_RUN=$(jq -nc --arg session "${SESSION_ID}" --arg target "${HOST_TARGET_ID}" '{session_id:$session,target_ids:[$target],plugin_ids:["OWTF-WSP-001-active"]}')
 request POST /api/v2/runs 400 "${UNSUPPORTED_RUN}"
@@ -322,7 +334,7 @@ assert_json 'length == 0' 'preflight failures created tasks'
 printf '%s\n' 'Checking grouped execution, workers, logs, reports, and evidence...'
 GROUP_RUN=$(jq -nc --arg session "${SESSION_ID}" --arg target "${URL_TARGET_ID}" '{session_id:$session,target_ids:[$target],plugin_group:"web",plugin_types:["semi_passive","active"]}')
 request POST /api/v2/runs 202 "${GROUP_RUN}"
-assert_json '.tasks | length == 2' 'grouped run did not create two tasks'
+assert_json '.run.profile == "default" and (.tasks | length) == 2 and .tasks[0].plugin_id == "OWTF-IG-004-semi_passive" and .tasks[1].plugin_id == "OWTF-WSP-001-active"' 'default profile did not order the grouped run'
 GROUP_RUN_ID=$(jq -r '.run.id' "${RESPONSE_FILE}")
 GROUP_TASK_IDS=()
 while IFS= read -r task_id; do GROUP_TASK_IDS+=("${task_id}"); done < <(jq -r '.tasks[].id' "${RESPONSE_FILE}")
@@ -348,9 +360,9 @@ request GET /api/v2/artifacts/does-not-exist 404
 request GET "/api/v2/transactions?session_id=${SESSION_ID}" 200
 assert_json 'length == 2 and ([.[].status_code] | sort) == [200,201] and all(.[]; .target_id == $target)' 'transaction list is incorrect' --arg target "${URL_TARGET_ID}"
 request GET "/api/v2/runs?session_id=${SESSION_ID}" 200
-assert_json 'length == 1 and .[0].id == $run and .[0].status == "succeeded"' 'run history is incorrect' --arg run "${GROUP_RUN_ID}"
+assert_json 'length == 1 and .[0].id == $run and .[0].profile == "default" and .[0].status == "succeeded"' 'run history is incorrect' --arg run "${GROUP_RUN_ID}"
 request GET "/api/v2/runs/${GROUP_RUN_ID}" 200
-assert_json '.status == "succeeded" and .finished_at != null' 'run was not finalized'
+assert_json '.profile == "default" and .status == "succeeded" and .finished_at != null' 'run was not finalized'
 request GET "/api/v2/sessions/${SESSION_ID}/report" 200
 assert_json '.summary.targets == 4 and .summary.runs == 1 and .summary.tasks == 2 and .summary.succeeded == 2 and .summary.transactions == 2 and .summary.artifacts == 6 and .summary.observations == 2' 'session report summary is incorrect'
 request GET "/api/v2/sessions/${SESSION_ID}/export" 200
@@ -396,7 +408,8 @@ request GET "/api/v2/artifacts/${IMPORTED_RESPONSE_ARTIFACT_ID}" 404
 request GET "/api/v2/transactions?session_id=${SESSION_ID}" 200
 assert_json 'length == 1 and .[0].status_code == 200' 'transaction deletion removed plugin traffic or retained imported traffic'
 
-cli_json runs create --session "${SESSION_ID}" --target "${URL_TARGET_ID}" --group web --type active
+cli_json runs create --session "${SESSION_ID}" --target "${URL_TARGET_ID}" --group web --type active --profile default
+[[ $(jq -r '.run.profile' "${CLI_RESPONSE_FILE}") == 'default' ]] || fail 'CLI run did not persist its profile'
 CLI_RUN_TASK_ID=$(jq -r '.tasks[0].id' "${CLI_RESPONSE_FILE}")
 wait_for_task_status "${CLI_RUN_TASK_ID}" succeeded
 cli_json scan --session "${SESSION_ID}" --plugin OWTF-WSP-001-active "${BASE_URL}/debug/health"

@@ -13,11 +13,12 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl tini \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --uid 10001 owtf \
-    && mkdir -p /data /app/plugins \
+    && mkdir -p /data /app/plugins /app/profiles \
     && chown -R owtf:owtf /data /app
 
 COPY --from=build /out/owtf /usr/local/bin/owtf
 COPY --chown=owtf:owtf plugins/ /app/plugins/
+COPY --chown=owtf:owtf profiles/ /app/profiles/
 
 USER owtf
 WORKDIR /app
@@ -25,6 +26,7 @@ WORKDIR /app
 ENV OWTF_ADDR=:8009 \
     OWTF_DATA_DIR=/data \
     OWTF_PLUGIN_DIR=/app/plugins \
+    OWTF_PROFILE_DIR=/app/profiles \
     OWTF_WORKERS=1
 
 EXPOSE 8009

@@ -45,8 +45,10 @@ type Server struct {
 
 // Plugins configures trusted manifest discovery and optional container runs.
 type Plugins struct {
-	Directory       string `json:"directory" yaml:"directory"`
-	ContainerEngine string `json:"container_engine" yaml:"containerEngine"`
+	Directory         string `json:"directory" yaml:"directory"`
+	ProfilesDirectory string `json:"profiles_directory" yaml:"profilesDirectory"`
+	DefaultProfile    string `json:"default_profile" yaml:"defaultProfile"`
+	ContainerEngine   string `json:"container_engine" yaml:"containerEngine"`
 }
 
 // Proxy configures the standalone OWTF capture proxy.
@@ -79,7 +81,10 @@ func Default() Config {
 			Address: ":8009", DataDirectory: ".owtf", Workers: 1,
 			TaskTimeoutSeconds: 30,
 		},
-		Plugins: Plugins{Directory: "plugins", ContainerEngine: "docker"},
+		Plugins: Plugins{
+			Directory: "plugins", ProfilesDirectory: "profiles",
+			DefaultProfile: "default", ContainerEngine: "docker",
+		},
 		Proxy: Proxy{
 			ListenAddress: "127.0.0.1:8008", APIAddress: "127.0.0.1:8010",
 			Output: ".owtf/proxy/capture.har", CACertificate: ".owtf/proxy/ca.crt",
@@ -174,6 +179,8 @@ func (config *Config) ApplyEnvironment(lookup func(string) (string, bool)) error
 		{"OWTF_ADDR", &next.Server.Address},
 		{"OWTF_DATA_DIR", &next.Server.DataDirectory},
 		{"OWTF_PLUGIN_DIR", &next.Plugins.Directory},
+		{"OWTF_PROFILE_DIR", &next.Plugins.ProfilesDirectory},
+		{"OWTF_PROFILE", &next.Plugins.DefaultProfile},
 		{"OWTF_CONTAINER_ENGINE", &next.Plugins.ContainerEngine},
 		{"OWTF_PROXY_LISTEN", &next.Proxy.ListenAddress},
 		{"OWTF_PROXY_API_LISTEN", &next.Proxy.APIAddress},
@@ -272,6 +279,12 @@ func (config Config) Validate() error {
 		return errors.New("server.taskTimeoutSeconds must be between 1 and 86400")
 	}
 	if err := textValue("plugins.directory", config.Plugins.Directory); err != nil {
+		return err
+	}
+	if err := textValue("plugins.profilesDirectory", config.Plugins.ProfilesDirectory); err != nil {
+		return err
+	}
+	if err := textValue("plugins.defaultProfile", config.Plugins.DefaultProfile); err != nil {
 		return err
 	}
 	if err := textValue("plugins.containerEngine", config.Plugins.ContainerEngine); err != nil {

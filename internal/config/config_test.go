@@ -72,6 +72,8 @@ func TestEnvironmentOverlayIsAtomicAndRedacted(t *testing.T) {
 	values := map[string]string{
 		"OWTF_WORKERS":                 "4",
 		"OWTF_TASK_TIMEOUT":            "90",
+		"OWTF_PROFILE_DIR":             "custom-profiles",
+		"OWTF_PROFILE":                 "careful",
 		"OWTF_PROXY_CACHE_ENTRIES":     "0",
 		"OWTF_PROXY_TARGET_HOSTS":      "example.test, api.example.test",
 		"OWTF_PROXY_INSECURE_UPSTREAM": "true",
@@ -88,7 +90,8 @@ func TestEnvironmentOverlayIsAtomicAndRedacted(t *testing.T) {
 	if err := loaded.ApplyEnvironment(lookup); err != nil {
 		t.Fatal(err)
 	}
-	if loaded.Server.Workers != 4 || loaded.Server.TaskTimeoutSeconds != 90 || loaded.Proxy.CacheEntries != 0 ||
+	if loaded.Server.Workers != 4 || loaded.Server.TaskTimeoutSeconds != 90 || loaded.Plugins.ProfilesDirectory != "custom-profiles" ||
+		loaded.Plugins.DefaultProfile != "careful" || loaded.Proxy.CacheEntries != 0 ||
 		len(loaded.Proxy.TargetHosts) != 2 || !loaded.Proxy.InsecureUpstream || len(loaded.Proxy.CookieBlacklist) != 0 {
 		t.Fatalf("configuration = %+v", loaded)
 	}

@@ -20,6 +20,7 @@ import (
 	"github.com/owtf/owtf/internal/artifact"
 	"github.com/owtf/owtf/internal/model"
 	"github.com/owtf/owtf/internal/plugin"
+	"github.com/owtf/owtf/internal/profile"
 	"github.com/owtf/owtf/internal/runner"
 	"github.com/owtf/owtf/internal/store"
 	targetvalue "github.com/owtf/owtf/internal/target"
@@ -41,7 +42,9 @@ func TestImportBrowseAndDeleteHARTransactions(t *testing.T) {
 		t.Fatal(err)
 	}
 	taskRunner := runner.New(database, artifacts, catalog, 1, time.Second)
-	server := httptest.NewServer(api.New(database, artifacts, catalog, taskRunner))
+	server := httptest.NewServer(api.New(api.Config{
+		Store: database, Artifacts: artifacts, Plugins: catalog, Runner: taskRunner,
+	}))
 	defer server.Close()
 
 	ctx := context.Background()
@@ -207,7 +210,9 @@ func TestTargetScanPersistsReportAndSupportsDeletion(t *testing.T) {
 	if err := taskRunner.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
-	server := httptest.NewServer(api.New(database, artifacts, catalog, taskRunner))
+	server := httptest.NewServer(api.New(api.Config{
+		Store: database, Artifacts: artifacts, Plugins: catalog, Runner: taskRunner,
+	}))
 
 	session := requestJSON[model.Session](t, server.Client(), http.MethodPost, server.URL+"/api/v2/sessions", map[string]any{"name": "E2E session"}, http.StatusCreated)
 	added := requestJSON[struct {
@@ -371,6 +376,21 @@ func TestPluginGroupLaunchKeepsUnavailablePluginsInWorklist(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	profiles, err := profile.Load(fstest.MapFS{"default.yaml": &fstest.MapFile{Data: []byte(`
+apiVersion: owtf.dev/v1alpha1
+kind: Profile
+metadata: {name: default}
+spec:
+  plugins:
+    - OWTF-WSP-001-active
+    - OWTF-IG-001-passive
+`)}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := profiles.ValidatePlugins(catalog); err != nil {
+		t.Fatal(err)
+	}
 	entries := catalog.Entries()
 	plugins := make([]model.Plugin, 0, len(entries))
 	for _, entry := range entries {
@@ -386,21 +406,35 @@ func TestPluginGroupLaunchKeepsUnavailablePluginsInWorklist(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer taskRunner.Stop()
-	server := httptest.NewServer(api.New(database, artifacts, catalog, taskRunner))
+	server := httptest.NewServer(api.New(api.Config{
+		Store: database, Artifacts: artifacts, Plugins: catalog, Profiles: profiles,
+		DefaultProfile: "default", Runner: taskRunner,
+	}))
 	defer server.Close()
 
 	session := requestJSON[model.Session](t, server.Client(), http.MethodPost, server.URL+"/api/v2/sessions", map[string]any{"name": "Group"}, http.StatusCreated)
 	added := requestJSON[struct {
 		Created []model.Target `json:"created"`
 	}](t, server.Client(), http.MethodPost, server.URL+"/api/v2/sessions/"+session.ID+"/targets", map[string]any{"targets": []string{"https://example.test"}}, http.StatusOK)
+	requestJSON[map[string]any](t, server.Client(), http.MethodPost, server.URL+"/api/v2/runs", map[string]any{
+		"session_id": session.ID, "target_ids": []string{added.Created[0].ID},
+		"plugin_group": "web", "profile": "missing",
+	}, http.StatusBadRequest)
+	requestJSON[map[string]any](t, server.Client(), http.MethodPost, server.URL+"/api/v2/runs", map[string]any{
+		"session_id": session.ID, "target_ids": []string{added.Created[0].ID},
+		"plugin_ids": []string{"OWTF-WSP-001-active"}, "profile": "default",
+	}, http.StatusBadRequest)
 	result := requestJSON[struct {
 		Run   model.Run    `json:"run"`
 		Tasks []model.Task `json:"tasks"`
 	}](t, server.Client(), http.MethodPost, server.URL+"/api/v2/runs", map[string]any{
 		"session_id": session.ID, "target_ids": []string{added.Created[0].ID}, "plugin_group": "web",
 	}, http.StatusAccepted)
-	if result.Run.Status != model.RunBlocked || result.Run.FinishedAt == nil || len(result.Tasks) != 2 {
+	if result.Run.Profile != "default" || result.Run.Status != model.RunBlocked || result.Run.FinishedAt == nil || len(result.Tasks) != 2 {
 		t.Fatalf("unexpected blocked group run: %+v", result)
+	}
+	if result.Tasks[0].PluginID != "OWTF-WSP-001-active" || result.Tasks[1].PluginID != "OWTF-IG-001-passive" {
+		t.Fatalf("profile order was not applied: %+v", result.Tasks)
 	}
 	for _, task := range result.Tasks {
 		if task.Status != model.TaskBlocked || !strings.Contains(task.Error, "runtime is not registered") {
@@ -410,6 +444,14 @@ func TestPluginGroupLaunchKeepsUnavailablePluginsInWorklist(t *testing.T) {
 	filtered := requestJSON[[]model.Plugin](t, server.Client(), http.MethodGet, server.URL+"/api/v2/plugins?group=web&type=passive", nil, http.StatusOK)
 	if len(filtered) != 1 || filtered[0].Type != "passive" {
 		t.Fatalf("plugin group/type filter failed: %+v", filtered)
+	}
+	listedProfiles := requestJSON[[]profile.Profile](t, server.Client(), http.MethodGet, server.URL+"/api/v2/profiles", nil, http.StatusOK)
+	if len(listedProfiles) != 1 || listedProfiles[0].Name != "default" {
+		t.Fatalf("profile list is incorrect: %+v", listedProfiles)
+	}
+	shownProfile := requestJSON[profile.Profile](t, server.Client(), http.MethodGet, server.URL+"/api/v2/profiles/default", nil, http.StatusOK)
+	if len(shownProfile.Plugins) != 2 || shownProfile.Plugins[0] != "OWTF-WSP-001-active" {
+		t.Fatalf("profile detail is incorrect: %+v", shownProfile)
 	}
 }
 
@@ -469,7 +511,9 @@ func newTestServer(t *testing.T) (*httptest.Server, *store.Store, *runner.Runner
 		database.Close()
 		t.Fatal(err)
 	}
-	return httptest.NewServer(api.New(database, artifacts, catalog, taskRunner)), database, taskRunner, cancel
+	return httptest.NewServer(api.New(api.Config{
+		Store: database, Artifacts: artifacts, Plugins: catalog, Runner: taskRunner,
+	})), database, taskRunner, cancel
 }
 
 func assertReport(t *testing.T, report model.TargetReport) {

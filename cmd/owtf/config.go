@@ -38,6 +38,8 @@ func serverConfiguration(args []string, stderr io.Writer) (owtfconfig.Config, er
 	flags.StringVar(&settings.Server.DataDirectory, "data-dir", settings.Server.DataDirectory, "data directory")
 	flags.IntVar(&settings.Server.Workers, "workers", settings.Server.Workers, "worker count")
 	flags.StringVar(&settings.Plugins.Directory, "plugin-dir", settings.Plugins.Directory, "plugin directory")
+	flags.StringVar(&settings.Plugins.ProfilesDirectory, "profile-dir", settings.Plugins.ProfilesDirectory, "plugin profile directory")
+	flags.StringVar(&settings.Plugins.DefaultProfile, "profile", settings.Plugins.DefaultProfile, "default plugin profile")
 	flags.StringVar(&settings.Plugins.ContainerEngine, "container-engine", settings.Plugins.ContainerEngine, "container engine executable")
 	taskTimeout := time.Duration(settings.Server.TaskTimeoutSeconds) * time.Second
 	flags.DurationVar(&taskTimeout, "task-timeout", taskTimeout, "maximum plugin task duration")

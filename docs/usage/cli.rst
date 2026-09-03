@@ -35,6 +35,8 @@ A minimal file may override only the required settings::
     taskTimeoutSeconds: 300
   plugins:
     directory: plugins
+    profilesDirectory: profiles
+    defaultProfile: default
     containerEngine: docker
   proxy:
     listenAddress: 127.0.0.1:8008
@@ -42,12 +44,14 @@ A minimal file may override only the required settings::
     targetHosts: [example.test]
 
 Server flags are ``--addr``, ``--data-dir``, ``--workers``, ``--plugin-dir``,
-``--container-engine``, and ``--task-timeout``. Existing ``OWTF_ADDR``,
-``OWTF_DATA_DIR``, ``OWTF_WORKERS``, ``OWTF_PLUGIN_DIR``, and
-``OWTF_CONTAINER_ENGINE`` variables remain supported; ``OWTF_TASK_TIMEOUT`` is
-an integer number of seconds. Proxy YAML fields correspond to the documented
-proxy flags. Their environment names use the ``OWTF_PROXY_`` prefix, such as
-``OWTF_PROXY_LISTEN``, ``OWTF_PROXY_API_LISTEN``, ``OWTF_PROXY_MAX_BODY``, and
+``--profile-dir``, ``--profile``, ``--container-engine``, and
+``--task-timeout``. Existing ``OWTF_ADDR``, ``OWTF_DATA_DIR``,
+``OWTF_WORKERS``, ``OWTF_PLUGIN_DIR``, ``OWTF_PROFILE_DIR``, ``OWTF_PROFILE``,
+and ``OWTF_CONTAINER_ENGINE`` variables remain supported;
+``OWTF_TASK_TIMEOUT`` is an integer number of seconds. Proxy YAML fields
+correspond to the documented proxy flags. Their environment names use the
+``OWTF_PROXY_`` prefix, such as ``OWTF_PROXY_LISTEN``,
+``OWTF_PROXY_API_LISTEN``, ``OWTF_PROXY_MAX_BODY``, and
 ``OWTF_PROXY_TARGET_HOSTS``. Comma-separated environment values are used for
 cookie lists and target hosts.
 
@@ -82,6 +86,11 @@ established plugin group and type names::
   owtf plugins list
   owtf plugins list --group web --type semi_passive
 
+List profiles or inspect their plugin order::
+
+  owtf profiles list
+  owtf profiles show default
+
 Create a run from existing target IDs. ``--target`` and ``--plugin`` may be
 repeated or supplied as comma-separated IDs::
 
@@ -99,7 +108,13 @@ OWTF meaning of ``passive`` plus ``semi_passive``::
     --session ses_ID \
     --target tgt_ID \
     --group web \
-    --type quiet
+    --type quiet \
+    --profile default
+
+The configured default profile applies when ``--profile`` is omitted. A
+profile orders matching plugins; it does not exclude matching plugins that are
+not listed. Those plugins follow in stable ID order. OWTF records the selected
+profile on the immutable run.
 
 List completed and active plugin runs, or inspect one run::
 

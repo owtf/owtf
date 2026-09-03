@@ -50,6 +50,10 @@ INSERT INTO http_exchanges VALUES(1, 'txn_old', 1, 1, 'GET', 'https://example.te
 	if len(transactions) != 1 || transactions[0].ID != "txn_old" || transactions[0].TaskID != "tsk_old" || transactions[0].ResponseBodyArtifactID != "art_old" {
 		t.Fatalf("transaction was not migrated: %+v", transactions)
 	}
+	run, err := database.GetRun(context.Background(), "run_old")
+	if err != nil || run.Profile != "" {
+		t.Fatalf("run profile was not migrated: run=%+v err=%v", run, err)
+	}
 	artifact, err := database.GetArtifact(context.Background(), "art_old")
 	if err != nil || artifact.TargetID != "tgt_old" || artifact.TaskID != "tsk_old" {
 		t.Fatalf("artifact was not migrated: artifact=%+v err=%v", artifact, err)
@@ -187,7 +191,7 @@ func TestDeleteTargetPrunesEmptyRun(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, _, err := database.CreateRun(ctx, session.ID, []TaskSpec{{
+	if _, _, err := database.CreateRun(ctx, session.ID, "", []TaskSpec{{
 		TargetID: added.Created[0].ID, PluginID: "OWTF-TEST-001-active", PluginVersion: "0.1.0", PluginSnapshot: "{}",
 	}}); err != nil {
 		t.Fatal(err)
@@ -220,14 +224,14 @@ func TestBlockedPluginRemainsVisibleInWorklistAndRun(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	run, tasks, err := database.CreateRun(ctx, session.ID, []TaskSpec{
+	run, tasks, err := database.CreateRun(ctx, session.ID, "default", []TaskSpec{
 		{TargetID: added.Created[0].ID, PluginID: "OWTF-TEST-001-active", PluginVersion: "0.1.0", PluginSnapshot: "{}"},
 		{TargetID: added.Created[0].ID, PluginID: "OWTF-TEST-002-active", PluginVersion: "0.1.0", PluginSnapshot: "{}", Status: model.TaskBlocked, Error: "missing commands: scanner"},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if run.Status != model.RunQueued || len(tasks) != 2 || tasks[1].Status != model.TaskBlocked || tasks[1].EndedAt == nil {
+	if run.Profile != "default" || run.Status != model.RunQueued || len(tasks) != 2 || tasks[1].Status != model.TaskBlocked || tasks[1].EndedAt == nil {
 		t.Fatalf("unexpected initial run: run=%+v tasks=%+v", run, tasks)
 	}
 	events, err := database.ListTaskEvents(ctx, tasks[1].ID)
@@ -245,7 +249,7 @@ func TestBlockedPluginRemainsVisibleInWorklistAndRun(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if finished.Status != model.RunBlocked || finished.FinishedAt == nil {
+	if finished.Profile != "default" || finished.Status != model.RunBlocked || finished.FinishedAt == nil {
 		t.Fatalf("run did not retain blocked status: %+v", finished)
 	}
 }

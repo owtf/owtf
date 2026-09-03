@@ -111,6 +111,7 @@ CREATE TABLE IF NOT EXISTS runs (
     id INTEGER PRIMARY KEY,
     public_id TEXT NOT NULL UNIQUE,
     session_id INTEGER NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+    profile TEXT NOT NULL DEFAULT '',
     status TEXT NOT NULL,
     created_at TEXT NOT NULL,
     started_at TEXT,
@@ -207,11 +208,28 @@ CREATE TABLE IF NOT EXISTS findings (
 	if err := s.migratePluginColumns(ctx); err != nil {
 		return err
 	}
+	if err := s.migrateRunColumns(ctx); err != nil {
+		return err
+	}
 	if err := s.migrateTransactionTables(ctx); err != nil {
 		return err
 	}
 	if _, err := s.db.ExecContext(ctx, `DELETE FROM runs WHERE NOT EXISTS (SELECT 1 FROM tasks WHERE tasks.run_id=runs.id)`); err != nil {
 		return fmt.Errorf("prune empty runs: %w", err)
+	}
+	return nil
+}
+
+func (s *Store) migrateRunColumns(ctx context.Context) error {
+	columns, err := s.tableColumns(ctx, "runs")
+	if err != nil {
+		return err
+	}
+	if columns["profile"] {
+		return nil
+	}
+	if _, err := s.db.ExecContext(ctx, `ALTER TABLE runs ADD COLUMN profile TEXT NOT NULL DEFAULT ''`); err != nil {
+		return fmt.Errorf("add run profile column: %w", err)
 	}
 	return nil
 }
@@ -585,7 +603,7 @@ FROM plugins ORDER BY id`)
 }
 
 // CreateRun atomically creates an immutable launch record and its tasks.
-func (s *Store) CreateRun(ctx context.Context, sessionID string, specs []TaskSpec) (model.Run, []model.Task, error) {
+func (s *Store) CreateRun(ctx context.Context, sessionID, profile string, specs []TaskSpec) (model.Run, []model.Task, error) {
 	if len(specs) == 0 {
 		return model.Run{}, nil, fmt.Errorf("at least one task is required")
 	}
@@ -618,13 +636,16 @@ func (s *Store) CreateRun(ctx context.Context, sessionID string, specs []TaskSpe
 		return model.Run{}, nil, err
 	}
 	now := time.Now().UTC()
-	run := model.Run{ID: newID("run"), SessionID: sessionID, Status: model.RunQueued, CreatedAt: now}
+	run := model.Run{
+		ID: newID("run"), SessionID: sessionID, Profile: strings.TrimSpace(profile),
+		Status: model.RunQueued, CreatedAt: now,
+	}
 	if !hasQueued {
 		run.Status = model.RunBlocked
 		run.FinishedAt = &now
 	}
-	result, err := tx.ExecContext(ctx, `INSERT INTO runs(public_id, session_id, status, created_at, finished_at) VALUES(?, ?, ?, ?, ?)`,
-		run.ID, sessionPK, run.Status, formatTime(run.CreatedAt), nullableTime(run.FinishedAt))
+	result, err := tx.ExecContext(ctx, `INSERT INTO runs(public_id, session_id, profile, status, created_at, finished_at) VALUES(?, ?, ?, ?, ?, ?)`,
+		run.ID, sessionPK, run.Profile, run.Status, formatTime(run.CreatedAt), nullableTime(run.FinishedAt))
 	if err != nil {
 		return model.Run{}, nil, err
 	}
@@ -670,7 +691,7 @@ VALUES((SELECT id FROM tasks WHERE public_id=?), 'lifecycle', ?, ?)`, task.ID, "
 // ListRuns returns all runs in a session, newest first.
 func (s *Store) ListRuns(ctx context.Context, sessionID string) ([]model.Run, error) {
 	rows, err := s.db.QueryContext(ctx, `
-SELECT r.public_id, s.public_id, r.status, r.created_at, r.started_at, r.finished_at
+SELECT r.public_id, s.public_id, r.profile, r.status, r.created_at, r.started_at, r.finished_at
 FROM runs r JOIN sessions s ON s.id=r.session_id
 WHERE s.public_id=? ORDER BY r.id DESC`, sessionID)
 	if err != nil {
@@ -691,7 +712,7 @@ WHERE s.public_id=? ORDER BY r.id DESC`, sessionID)
 // GetRun returns one run by public ID.
 func (s *Store) GetRun(ctx context.Context, runID string) (model.Run, error) {
 	row := s.db.QueryRowContext(ctx, `
-SELECT r.public_id, s.public_id, r.status, r.created_at, r.started_at, r.finished_at
+SELECT r.public_id, s.public_id, r.profile, r.status, r.created_at, r.started_at, r.finished_at
 FROM runs r JOIN sessions s ON s.id=r.session_id WHERE r.public_id=?`, runID)
 	item, err := scanRun(row)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -704,7 +725,7 @@ func scanRun(row rowScanner) (model.Run, error) {
 	var item model.Run
 	var created string
 	var started, finished sql.NullString
-	err := row.Scan(&item.ID, &item.SessionID, &item.Status, &created, &started, &finished)
+	err := row.Scan(&item.ID, &item.SessionID, &item.Profile, &item.Status, &created, &started, &finished)
 	item.CreatedAt = parseTime(created)
 	item.StartedAt = parseNullTime(started)
 	item.FinishedAt = parseNullTime(finished)

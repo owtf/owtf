@@ -1,0 +1,11 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Profile
+
+metadata:
+  name: default
+  description: Default OWTF plugin execution order.
+
+spec:
+  plugins:
+    - OWTF-IG-004-semi_passive
+    - OWTF-WSP-001-active

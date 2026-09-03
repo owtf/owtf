@@ -19,6 +19,7 @@ resulting evidence.
 - Durable sessions and normalized URL targets.
 - OWTF plugin manifests with established short technique codes.
 - OWTF plugin groups and types, including group launches and ``quiet`` mode.
+- Named OWTF profiles with deterministic plugin ordering recorded on each run.
 - A built-in HTTP collector, trusted host-command plugins, and isolated
   container plugins with forced cleanup.
 - Requirement discovery with visible ready, unavailable, and blocked states.
