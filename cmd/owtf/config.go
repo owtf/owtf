@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/owtf/owtf/internal/cli"
 	owtfconfig "github.com/owtf/owtf/internal/config"
 )
 
@@ -18,6 +19,7 @@ func runServe(args []string, stdout, stderr io.Writer) error {
 	if err != nil {
 		return err
 	}
+	cli.WriteBanner(stdout)
 	return serve(settings)
 }
 

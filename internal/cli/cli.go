@@ -28,6 +28,7 @@ type app struct {
 	client  *http.Client
 	out     io.Writer
 	errOut  io.Writer
+	human   bool
 }
 
 type stringList []string
@@ -69,9 +70,17 @@ func Run(ctx context.Context, args []string, out, errOut io.Writer) error {
 	flags.SetOutput(errOut)
 	baseURL := flags.String("url", env("OWTF_URL", defaultURL), "OWTF server URL")
 	timeout := flags.Duration("timeout", 30*time.Second, "HTTP request timeout")
+	jsonOutput := flags.Bool("json", false, "write JSON even when stdout is a terminal")
+	humanOutput := flags.Bool("human", false, "write interactive output even when stdout is redirected")
 	flags.Usage = func() { printUsage(errOut) }
 	if err := flags.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return nil
+		}
 		return err
+	}
+	if *jsonOutput && *humanOutput {
+		return errors.New("--json and --human cannot be used together")
 	}
 	if flags.NArg() == 0 {
 		printUsage(out)
@@ -87,6 +96,7 @@ func Run(ctx context.Context, args []string, out, errOut io.Writer) error {
 		client:  &http.Client{Timeout: *timeout},
 		out:     out,
 		errOut:  errOut,
+		human:   *humanOutput || (!*jsonOutput && isTerminal(out)),
 	}
 	command := flags.Arg(0)
 	commandArgs := flags.Args()[1:]
@@ -347,7 +357,15 @@ func (a *app) listPlugins(ctx context.Context, args []string) error {
 	for _, pluginType := range pluginTypes {
 		query.Add("type", pluginType)
 	}
-	return a.proxyJSON(ctx, http.MethodGet, withQuery("/api/v2/plugins", query), nil)
+	var plugins []model.Plugin
+	if err := a.request(ctx, http.MethodGet, withQuery("/api/v2/plugins", query), nil, &plugins); err != nil {
+		return err
+	}
+	if a.human {
+		newPresentation(a.out).writePlugins(plugins)
+		return nil
+	}
+	return a.writeJSON(plugins)
 }
 
 func (a *app) reviewPluginOutput(ctx context.Context, args []string) error {
@@ -993,6 +1011,15 @@ func (a *app) writeJSON(value any) error {
 
 func pathSegment(value string) string { return url.PathEscape(value) }
 
+func isTerminal(output io.Writer) bool {
+	file, ok := output.(*os.File)
+	if !ok {
+		return false
+	}
+	info, err := file.Stat()
+	return err == nil && info.Mode()&os.ModeCharDevice != 0
+}
+
 func withQuery(path string, values url.Values) string {
 	if len(values) == 0 {
 		return path
@@ -1022,9 +1049,8 @@ func env(key, fallback string) string {
 }
 
 func printUsage(output io.Writer) {
-	fmt.Fprint(output, `OWTF
-
-Usage:
+	WriteBanner(output)
+	fmt.Fprint(output, `Usage:
   owtf serve [--config FILE] [--workers COUNT] [--task-timeout DURATION]
   owtf config show [--config FILE]
   owtf config validate FILE
@@ -1036,17 +1062,17 @@ Usage:
   owtf [--url URL] sessions export [--output FILE] ID
   owtf [--url URL] targets list|search|add|show|update|delete|report
   owtf [--url URL] plugin list [--group GROUP] [--type TYPE]
-	  owtf [--url URL] plugin review [--rank RANK] [--notes TEXT] TASK_ID
-	  owtf [--url URL] help list
+  owtf [--url URL] plugin review [--rank RANK] [--notes TEXT] TASK_ID
+  owtf [--url URL] help list
   owtf [--url URL] profiles list|show
   owtf [--url URL] runs list --session ID
   owtf [--url URL] runs show ID
   owtf [--url URL] runs create --session ID --target ID (--plugin ID | --group GROUP [--type TYPE] [--profile NAME]) [--input PLUGIN_ID.NAME=VALUE]
   owtf [--url URL] scan [--session ID] (--plugin ID | --group GROUP [--type TYPE] [--profile NAME]) [--input PLUGIN_ID.NAME=VALUE] TARGET...
-	  owtf [--url URL] worklist [--session ID] [--status STATUS]
-	  owtf [--url URL] worklist reorder --session ID TASK_ID...
-	  owtf [--url URL] workers
-	  owtf [--url URL] tasks show|attempts|logs|cancel|pause|resume|remove ID
+  owtf [--url URL] worklist [--session ID] [--status STATUS]
+  owtf [--url URL] worklist reorder --session ID TASK_ID...
+  owtf [--url URL] workers
+  owtf [--url URL] tasks show|attempts|logs|cancel|pause|resume|remove ID
   owtf [--url URL] urls list --target TARGET_ID
   owtf [--url URL] urls search --target TARGET_ID [--search TEXT] [--visited BOOL] [--scope BOOL] [--limit N] [--offset N]
   owtf [--url URL] transactions list (--session ID | --target ID)
@@ -1056,5 +1082,6 @@ Usage:
   owtf [--url URL] artifacts get [--output FILE] ID
 
 Repeat --target and --plugin, or pass comma-separated IDs.
+Use --json for machine-readable output or --human to force terminal presentation.
 `)
 }

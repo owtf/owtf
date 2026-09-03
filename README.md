@@ -89,6 +89,10 @@ The CLI uses the same API:
 ./build/owtf proxy --target-host example.com
 ```
 
+Interactive commands use the familiar OWTF banner and terminal formatting.
+Redirected command output remains JSON; pass `--json` or `--human` to make
+the output mode explicit.
+
 Set `OWTF_URL` when the server is not at its default address. Runtime state is
 stored under `.owtf/` unless configuration, `OWTF_DATA_DIR`, or `--data-dir`
 changes it.

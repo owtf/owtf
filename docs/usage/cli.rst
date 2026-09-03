@@ -2,9 +2,11 @@ OWTF CLI
 =============
 
 The command line is the primary operator and automation interface. It calls the
-same HTTP API as other clients and prints JSON to standard output. Diagnostics
-go to standard error, so output can be passed directly to tools such as
-``jq``.
+same HTTP API as other clients. Interactive terminals use OWTF's banner,
+sectioned plugin list, and terminal-aware color. Redirected output remains JSON,
+so it can be passed directly to tools such as ``jq``. Pass ``--json`` to force
+JSON in a terminal or ``--human`` to retain the readable layout when capturing
+output. Diagnostics go to standard error.
 
 Start the local OWTF server::
 
