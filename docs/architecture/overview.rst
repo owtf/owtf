@@ -335,6 +335,14 @@ bounded service and exposure probes are retained. Obsolete EMC probing is
 rejected, while SNMP, DNS name discovery, and credential attacks remain deferred
 until their privilege, resource, authorization, and rate-limit requirements can
 be represented honestly.
+All 145 inventoried legacy plugin variants now have an enforced decision in
+``plugin-support-decisions.csv``. ``implemented`` points to a manifest that
+exists in the current catalog. ``planned`` identifies one canonical replacement
+for a useful technique instead of preserving duplicate Python wrappers.
+``defer`` records a concrete missing safety or capability boundary, and
+``reject`` records why an obsolete, misleading, or redundant behavior will not
+return. A Go test fails if an inventory row is missing, duplicated, or claims an
+implemented replacement that is not loadable.
 The original Help categories are retained as a versioned, non-executable
 catalog. Dead destinations are omitted, every retained link uses HTTPS, and the
 same immutable data is available through curl and ``owtf help list`` for a final
