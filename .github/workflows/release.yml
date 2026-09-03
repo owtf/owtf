@@ -65,7 +65,11 @@ jobs:
           pip install -r requirements/release.txt
           python -m build
           python -m twine check dist/*
-          sha256sum dist/* > SHA256SUMS
+          (
+            cd dist
+            sha256sum * > ../SHA256SUMS
+            sha256sum -c ../SHA256SUMS
+          )
 
       - name: Publish GitHub release
         env:
