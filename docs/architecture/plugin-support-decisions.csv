@@ -139,7 +139,7 @@ OWTF-CM-001,web,passive,Testing for SSL-TLS,replace,OWTF-CM-001-active,implement
 OWTF-WS-001,web,passive,WS Information Gathering,replace,OWTF-WS-001-external,implemented,Replace third-party search and resource wrappers with the canonical retained plugin for this OWTF technique.
 OWTF-IG-004,web,passive,Web Application Fingerprint,replace,OWTF-IG-004-external,implemented,Replace third-party search and resource wrappers with the canonical retained plugin for this OWTF technique.
 OWTF-CM-008,web,semi_passive,HTTP Methods and XST,replace,OWTF-CM-008-semi_passive,implemented,Retain bounded OPTIONS and TRACE observations with the native HTTP runtime.
-OWTF-IG-002,web,semi_passive,Search engine discovery reconnaissance,replace,OWTF-IG-002-semi_passive,implemented,"Retain metadata inspection with a maintained parser and bounded downloaded artifacts, not the legacy command template."
+OWTF-IG-002,web,semi_passive,Search engine discovery reconnaissance,replace,OWTF-IG-002-semi_passive,implemented,Retain bounded search-engine document discovery and link evidence through current Metagoofil; do not claim metadata extraction that its maintained version no longer performs.
 OWTF-SM-001,web,semi_passive,Session Management Schema,replace,OWTF-SM-001-semi_passive,implemented,Retain candidate session identifier flow through bounded grep rules over captured request and response headers.
 OWTF-IG-001,web,semi_passive,Spiders Robots and Crawlers,replace,OWTF-IG-001-semi_passive,implemented,Retain direct robots.txt collection with the native HTTP runtime.
 OWTF-DV-004,web,semi_passive,Testing for Cross site flashing,reject,"",reviewed,Cross-site Flash testing is obsolete because current browsers no longer run the Flash plugin.
