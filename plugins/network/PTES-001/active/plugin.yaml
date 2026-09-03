@@ -3,7 +3,7 @@ kind: Plugin
 
 metadata:
   id: PTES-001-active
-  version: 0.2.0
+  version: 0.3.0
   title: FTP Service Probe
   description: Uses Nmap to identify FTP service metadata and anonymous access.
 
@@ -54,4 +54,5 @@ spec:
       artifacts:
         - name: nmap.xml
           mediaType: application/xml
+          decoder: nmap-xml
           required: true

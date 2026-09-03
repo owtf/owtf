@@ -3,7 +3,7 @@ kind: Plugin
 
 metadata:
   id: PTES-002-active
-  version: 0.2.0
+  version: 0.3.0
   title: SMTP Service Probe
   description: Uses Nmap to identify SMTP capabilities and NTLM metadata.
 
@@ -52,4 +52,5 @@ spec:
       artifacts:
         - name: nmap.xml
           mediaType: application/xml
+          decoder: nmap-xml
           required: true

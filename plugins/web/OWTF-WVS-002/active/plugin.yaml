@@ -3,7 +3,7 @@ kind: Plugin
 
 metadata:
   id: OWTF-WVS-002-active
-  version: 0.2.0
+  version: 0.3.0
   title: Nikto Unauthenticated
   description: Runs a bounded unauthenticated Nikto scan and retains its XML report.
 
@@ -54,4 +54,5 @@ spec:
       artifacts:
         - name: nikto.xml
           mediaType: application/xml
+          decoder: nikto-xml
           required: true

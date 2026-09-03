@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE niktoscans PUBLIC "SYSTEM" "/var/lib/nikto/templates/nikto.dtd">
+
+<niktoscans>
+  <niktoscan hoststest="0" options="-host http://host.docker.internal:18130/ -ask no -nointeractive -nocheck -timeout 5 -maxtime 20 -Format xml -output /owtf/artifacts/nikto.xml" version="2.6.1" scanstart="Thu Sep  3 20:33:05 2026" scanend="Thu Sep  3 20:33:05 2026" scanelapsed="0" nxmlversion="1.2">
+    <scandetails targetip="192.168.5.2" targethostname="host.docker.internal" targetport="18130" targetbanner="" starttime="2026-09-03 20:33:05" sitename="http://host.docker.internal:18130/" siteip="http://192.168.5.2:18130/" hostheader="host.docker.internal" errors="0" checks="7240">
+      <item id="013587" method="GET">
+        <description>/: Suggested security header missing: x-content-type-options.</description>
+        <uri>/</uri>
+        <namelink></namelink>
+        <iplink></iplink>
+        <references>https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options</references>
+      </item>
+      <item id="013587" method="GET">
+        <description>/: Suggested security header missing: permissions-policy.</description>
+        <uri>/</uri>
+        <namelink></namelink>
+        <iplink></iplink>
+        <references>https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy</references>
+      </item>
+      <item id="013587" method="GET">
+        <description>/: Suggested security header missing: referrer-policy.</description>
+        <uri>/</uri>
+        <namelink></namelink>
+        <iplink></iplink>
+        <references>https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy</references>
+      </item>
+      <item id="013587" method="GET">
+        <description>/: Suggested security header missing: strict-transport-security.</description>
+        <uri>/</uri>
+        <namelink></namelink>
+        <iplink></iplink>
+        <references>https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security</references>
+      </item>
+      <item id="013587" method="GET">
+        <description>/: Suggested security header missing: content-security-policy.</description>
+        <uri>/</uri>
+        <namelink></namelink>
+        <iplink></iplink>
+        <references>https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP</references>
+      </item>
+      <item id="006230" method="GET">
+        <description>/admin/index.html: Admin login page/section found.</description>
+        <uri>/admin/index.html</uri>
+        <namelink></namelink>
+        <iplink></iplink>
+        <references></references>
+      </item>
+      <item id="007342" method="GET">
+        <description>/: X-Frame-Options header is deprecated and was replaced with the Content-Security-Policy HTTP header with the frame-ancestors directive.</description>
+        <uri>/</uri>
+        <namelink></namelink>
+        <iplink></iplink>
+        <references>https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options</references>
+      </item>
+      <item id="007352" method="GET">
+        <description>/: The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type.</description>
+        <uri>/</uri>
+        <namelink></namelink>
+        <iplink></iplink>
+        <references>https://www.netsparker.com/web-vulnerability-scanner/vulnerabilities/missing-content-type-header/</references>
+      </item>
+      <statistics elapsed="7" itemsfound="8" itemstested="7240" endtime="2026-09-03 20:33:12" />
+    </scandetails>
+  </niktoscan>
+</niktoscans>

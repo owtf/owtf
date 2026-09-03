@@ -68,7 +68,7 @@ func CommandExecutor(manifest Manifest, executable, wordlistDirectory string) Ex
 		}
 		result, err := decodeArtifacts(manifest, request.Target, artifacts)
 		if err != nil {
-			return Result{}, err
+			return Result{Artifacts: artifacts}, err
 		}
 		artifactNames := make([]string, 0, len(artifacts))
 		for _, artifact := range artifacts {

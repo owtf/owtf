@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<?xml-stylesheet href="file:///usr/share/nmap/nmap.xsl" type="text/xsl"?>
+<!-- Nmap 7.99 scan initiated Thu Sep  3 20:33:04 2026 as: /usr/lib/nmap/nmap -Pn -n -sT -sV -&#45;version-light -&#45;script ftp-anon,ftp-syst -&#45;script-timeout 15s -&#45;host-timeout 30s -&#45;max-retries 1 -p 21 -oX /owtf/artifacts/nmap.xml 172.17.0.2 -->
+<nmaprun scanner="nmap" args="/usr/lib/nmap/nmap -Pn -n -sT -sV -&#45;version-light -&#45;script ftp-anon,ftp-syst -&#45;script-timeout 15s -&#45;host-timeout 30s -&#45;max-retries 1 -p 21 -oX /owtf/artifacts/nmap.xml 172.17.0.2" start="1788467584" startstr="Thu Sep  3 20:33:04 2026" version="7.99" xmloutputversion="1.05">
+<scaninfo type="connect" protocol="tcp" numservices="1" services="21"/>
+<verbose level="0"/>
+<debugging level="0"/>
+<host starttime="1788467584" endtime="1788467584"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="172.17.0.2" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<ports><port protocol="tcp" portid="21"><state state="open" reason="syn-ack" reason_ttl="0"/><service name="ftp" product="vsftpd" version="3.0.5" ostype="Unix" method="probed" conf="10"><cpe>cpe:/a:vsftpd:vsftpd:3.0.5</cpe></service><script id="ftp-anon" output="Anonymous FTP login allowed (FTP code 230)&#xa;drwxr-xr-x    2 0        0            4096 Sep 03 20:31 admin&#xa;drwxr-xr-x    3 0        0            4096 Sep 03 20:31 cancel&#xa;drwxr-xr-x    3 0        0            4096 Sep 03 20:31 crash&#xa;-rw-r-&#45;r-&#45;    1 0        0              61 Sep 03 20:31 index.html&#xa;drwxr-xr-x    3 0        0            4096 Sep 03 20:31 timeout"/><script id="ftp-syst" output="&#xa;  STAT: &#xa;FTP server status:&#xa;     Connected to 172.17.0.3&#xa;     Logged in as ftp&#xa;     TYPE: ASCII&#xa;     No session bandwidth limit&#xa;     Session timeout in seconds is 300&#xa;     Control connection is plain text&#xa;     Data connections will be plain text&#xa;     At session startup, client count was 1&#xa;     vsFTPd 3.0.5 - secure, fast, stable&#xa;End of status"><elem key="STAT">&#xa;FTP server status:&#xa;     Connected to 172.17.0.3&#xa;     Logged in as ftp&#xa;     TYPE: ASCII&#xa;     No session bandwidth limit&#xa;     Session timeout in seconds is 300&#xa;     Control connection is plain text&#xa;     Data connections will be plain text&#xa;     At session startup, client count was 1&#xa;     vsFTPd 3.0.5 - secure, fast, stable&#xa;End of status</elem>
+</script></port>
+</ports>
+<times srtt="16" rttvar="5000" to="100000"/>
+</host>
+<runstats><finished time="1788467584" timestr="Thu Sep  3 20:33:04 2026" summary="Nmap done at Thu Sep  3 20:33:04 2026; 1 IP address (1 host up) scanned in 0.12 seconds" elapsed="0.12" exit="success"/><hosts up="1" down="0" total="1"/>
+</runstats>
+</nmaprun>

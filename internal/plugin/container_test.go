@@ -78,6 +78,23 @@ func TestContainerArtifactArchiveRoundTrip(t *testing.T) {
 	}
 }
 
+func TestContainerDecoderFailureRetainsRawArtifact(t *testing.T) {
+	manifest := containerManifest()
+	manifest.Spec.Runtime.Container.Artifacts[0].Decoder = "nmap-xml"
+	engine := &fakeContainerEngine{run: func(run ContainerRun) error {
+		return os.WriteFile(filepath.Join(run.ArtifactDir, "result.json"), []byte("<nmaprun>"), 0o600)
+	}}
+	result, err := ContainerExecutor(manifest, engine, t.TempDir())(context.Background(), Request{
+		TaskID: "task-1", Target: model.Target{Kind: "url", Value: "https://example.test"}, Log: func(string, string) {},
+	})
+	if err == nil || !strings.Contains(err.Error(), "decode artifact") {
+		t.Fatalf("decoder failure was hidden: %v", err)
+	}
+	if len(result.Artifacts) != 1 || string(result.Artifacts[0].Data) != "<nmaprun>" || len(result.Observations) != 0 {
+		t.Fatalf("raw evidence was discarded or completion fabricated: %+v", result)
+	}
+}
+
 func TestContainerArtifactArchiveRejectsUndeclaredFile(t *testing.T) {
 	source := t.TempDir()
 	if err := os.WriteFile(filepath.Join(source, "unexpected.json"), []byte("{}"), 0o600); err != nil {

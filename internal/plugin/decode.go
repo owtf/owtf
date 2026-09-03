@@ -24,6 +24,8 @@ var artifactDecoders = map[string]func([]byte, decodeContext) (Result, error){
 	"gobuster-dir":   decodeGobusterDir,
 	"gobuster-gcs":   decodeGobusterGCS,
 	"gobuster-vhost": decodeGobusterVHost,
+	"nmap-xml":       decodeNmap,
+	"nikto-xml":      decodeNikto,
 	"nuclei-jsonl":   decodeNuclei,
 	"testssl-json":   decodeTestSSL,
 	"url-list":       decodeURLList,

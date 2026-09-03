@@ -3,7 +3,7 @@ kind: Plugin
 
 metadata:
   id: PTES-006-active
-  version: 0.2.0
+  version: 0.3.0
   title: Microsoft SQL Server Probe
   description: Uses Nmap to identify Microsoft SQL Server and NTLM metadata without logging in.
 
@@ -54,4 +54,5 @@ spec:
       artifacts:
         - name: nmap.xml
           mediaType: application/xml
+          decoder: nmap-xml
           required: true

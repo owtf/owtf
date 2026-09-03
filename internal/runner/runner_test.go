@@ -3,6 +3,8 @@ package runner_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"os"
 	"path/filepath"
 	"testing"
 	"testing/fstest"
@@ -323,6 +325,90 @@ func TestPauseResumeAndReorderChangeDispatchOrder(t *testing.T) {
 	}
 	if _, err := taskRunner.Cancel(context.Background(), tasks[2].ID); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestFailedExecutorRetainsOnlyRawEvidence(t *testing.T) {
+	ctx := context.Background()
+	database, err := store.Open(filepath.Join(t.TempDir(), "owtf.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	artifactRoot := t.TempDir()
+	artifacts, err := artifact.New(artifactRoot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	catalog, err := plugin.Load(fstest.MapFS{"plugin.yaml": {Data: []byte(blockingManifest)}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	catalog.RegisterBuiltin("blocking", func(context.Context, plugin.Request) (plugin.Result, error) {
+		return plugin.Result{
+			Artifacts:    []plugin.ArtifactResult{{Name: "nmap.xml", MediaType: "application/xml", Data: []byte("<nmaprun>")}},
+			Observations: []plugin.ObservationResult{{Kind: "must-not-persist", Data: "{}"}},
+			Findings:     []plugin.FindingResult{{Title: "must-not-persist", Severity: "high"}},
+			URLs:         []plugin.URLResult{{URL: "https://example.test/partial"}},
+		}, errors.New("decode artifact nmap.xml: unexpected EOF")
+	})
+	entry, _ := catalog.Get("OWTF-TEST-001-active")
+	if err := database.ReplacePlugins(ctx, []model.Plugin{entry.Plugin()}); err != nil {
+		t.Fatal(err)
+	}
+	session, err := database.CreateSession(ctx, "Decoder failure")
+	if err != nil {
+		t.Fatal(err)
+	}
+	normalized, _ := target.Normalize("https://example.test")
+	added, err := database.AddTargets(ctx, session.ID, []target.Normalized{normalized})
+	if err != nil {
+		t.Fatal(err)
+	}
+	targetID := added.Created[0].ID
+	snapshot, err := entry.Snapshot(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, tasks, err := database.CreateRun(ctx, session.ID, "", []store.TaskSpec{{
+		TargetID: targetID, PluginID: entry.Manifest.Metadata.ID,
+		PluginVersion: entry.Manifest.Metadata.Version, PluginSnapshot: snapshot,
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	taskRunner := runner.New(database, artifacts, catalog, 1, time.Minute)
+	if err := taskRunner.Start(ctx); err != nil {
+		t.Fatal(err)
+	}
+	defer taskRunner.Stop()
+	if err := taskRunner.Submit([]string{tasks[0].ID}); err != nil {
+		t.Fatal(err)
+	}
+	want(t, time.Second, func() bool {
+		task, err := database.GetTask(ctx, tasks[0].ID)
+		return err == nil && task.Status == model.TaskFailed
+	}, "decoder error did not fail task")
+	report, err := database.GetTargetReport(ctx, targetID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(report.Artifacts) != 1 || len(report.Observations) != 0 || len(report.Findings) != 0 {
+		t.Fatalf("failure discarded raw evidence or retained partial results: %+v", report)
+	}
+	for _, item := range report.URLs {
+		if item.URL == "https://example.test/partial" {
+			t.Fatal("partial decoded URL was persisted")
+		}
+	}
+	file := report.Artifacts[0]
+	data, err := os.ReadFile(filepath.Join(artifactRoot, file.Path))
+	if err != nil || string(data) != "<nmaprun>" || file.TaskID != tasks[0].ID || file.TargetID != targetID {
+		t.Fatalf("raw artifact changed or lost provenance: %+v, %q, %v", file, data, err)
+	}
+	attempts, err := database.ListTaskAttempts(ctx, tasks[0].ID)
+	if err != nil || len(attempts) != 1 || attempts[0].Status != model.TaskFailed {
+		t.Fatalf("failed attempt state: %+v, %v", attempts, err)
 	}
 }
 

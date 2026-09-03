@@ -3,7 +3,7 @@ kind: Plugin
 
 metadata:
   id: PTES-007-active
-  version: 0.2.0
+  version: 0.3.0
   title: MSRPC Endpoint Probe
   description: Uses Nmap to enumerate services exposed by an MSRPC endpoint mapper.
 
@@ -52,4 +52,5 @@ spec:
       artifacts:
         - name: nmap.xml
           mediaType: application/xml
+          decoder: nmap-xml
           required: true

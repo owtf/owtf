@@ -462,7 +462,7 @@ func TestExecutionMetrics(t *testing.T) {
 		if index == 0 {
 			err = database.CompleteTask(ctx, execution, nil, nil, nil, nil, nil)
 		} else {
-			err = database.FailTask(ctx, execution, errors.New("scanner failed"))
+			err = database.FailTask(ctx, execution, nil, errors.New("scanner failed"))
 		}
 		if err != nil {
 			t.Fatal(err)

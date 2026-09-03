@@ -403,8 +403,35 @@ if [[ "${MODE}" == all ]]; then
     fail 'TLS scanner evidence is incomplete'
   fi
 
-  OWTF_URL="${BASE_URL}" "${TMP_DIR}/owtf" --json targets report "${HTTP_TARGET}" |
-    jq -e 'any(.artifacts[]; .name == "wapiti.json")' >/dev/null || fail 'CLI target report is incomplete'
+  assert_nmap_results() {
+    jq -e --arg open "${NMAP_TASK}" --arg closed "${NMAP_CLOSED_TASK}" '
+      any(.observations[]; .task_id == $open and .kind == "network.port" and
+        (.data | fromjson | .port == 21 and .state == "open" and .protocol == "tcp" and
+          .service.name == "ftp" and .service.product == "vsftpd" and (.service.version | length) > 0)) and
+      any(.observations[]; .task_id == $open and .kind == "network.script" and
+        (.data | fromjson | .id == "ftp-anon" and (.output | contains("Anonymous FTP login allowed")))) and
+      any(.observations[]; .task_id == $closed and .kind == "network.port" and
+        (.data | fromjson | .port == 65000 and .state == "closed")) and
+      all(.findings[]; .task_id != $open and .task_id != $closed)
+    ' "$1" >/dev/null || fail "structured Nmap evidence is incomplete in $1"
+  }
+  assert_nikto_results() {
+    jq -e --arg task "${NIKTO_TASK}" --arg url "${HTTP_URL}" '
+      [.findings[] | select(.task_id == $task)] as $findings |
+      ($findings | length) > 0 and
+      all($findings[]; .severity == "unranked" and .technique_code == "OWTF-WVS-002") and
+      any($findings[]; (.description | ascii_downcase | contains("x-content-type-options")) and
+        (.description | contains("URL: " + $url))) and
+      any(.urls[]; .url == $url and .visited) and
+      any(.artifacts[]; .name == "nikto.xml" and .task_id == $task)
+    ' "$1" >/dev/null || fail "structured Nikto findings are incomplete in $1"
+  }
+  assert_nmap_results "${EVIDENCE_DIR}/ftp-report.json"
+  assert_nikto_results "${EVIDENCE_DIR}/http-report.json"
+  OWTF_URL="${BASE_URL}" "${TMP_DIR}/owtf" --json targets report "${HTTP_TARGET}" >"${EVIDENCE_DIR}/http-cli-report.json"
+  OWTF_URL="${BASE_URL}" "${TMP_DIR}/owtf" --json targets report "${FTP_TARGET}" >"${EVIDENCE_DIR}/ftp-cli-report.json"
+  assert_nmap_results "${EVIDENCE_DIR}/ftp-cli-report.json"
+  assert_nikto_results "${EVIDENCE_DIR}/http-cli-report.json"
   request GET /api/v2/metrics | jq -e '
     .tasks.total == 10 and .tasks.succeeded == 10 and .attempts.succeeded == 10 and
     .workers.total == 1 and .workers.idle == 1 and .outputs.artifacts >= 5 and
@@ -415,12 +442,21 @@ if [[ "${MODE}" == all ]]; then
   unzip -p "${EVIDENCE_DIR}/report.zip" report.json | jq -e \
     '.summary.succeeded == 10 and any(.artifacts[]; .name == "nmap.xml") and any(.artifacts[]; .name == "nikto.xml") and any(.artifacts[]; .name == "vhosts.txt")' \
     >/dev/null || fail 'offline report is missing scanner evidence'
+  unzip -p "${EVIDENCE_DIR}/report.zip" report.json >"${EVIDENCE_DIR}/export-report.json"
+  assert_nmap_results "${EVIDENCE_DIR}/export-report.json"
+  assert_nikto_results "${EVIDENCE_DIR}/export-report.json"
+  unzip -p "${EVIDENCE_DIR}/report.zip" index.html >"${EVIDENCE_DIR}/report.html"
+  for text in network.port network.script vsftpd 'Anonymous FTP login allowed' 'Nikto:' x-content-type-options unranked; do
+    grep -Fq "${text}" "${EVIDENCE_DIR}/report.html" || fail "offline HTML is missing ${text}"
+  done
   unzip -p "${EVIDENCE_DIR}/report.zip" manifest.json >"${EVIDENCE_DIR}/export-manifest.json"
   while IFS=$'\t' read -r artifact_id task_id name; do
     archive_path=$(jq -r --arg id "${artifact_id}" '.artifact_files[$id]' "${EVIDENCE_DIR}/export-manifest.json")
+    grep -Fq "href=\"${archive_path}\"" "${EVIDENCE_DIR}/report.html" || fail "offline HTML has no link to ${name}"
     unzip -p "${EVIDENCE_DIR}/report.zip" "${archive_path}" | cmp - "${EVIDENCE_DIR}/artifacts/${task_id}-${name}" \
       || fail "offline report changed artifact ${name}"
   done <"${EVIDENCE_DIR}/artifacts.tsv"
+  printf '%s\n' 'PASS: Nmap/Nikto structured results in API, CLI, and offline JSON/HTML; raw artifacts match byte for byte.'
 fi
 
 printf '%s\n' 'Checking cancellation, crash, and timeout after real scanner activity...'

@@ -216,6 +216,8 @@ type FindingResult struct {
 }
 
 // Result contains all structured output produced by one plugin execution.
+// Result contains task output. On execution errors only Artifacts are retained;
+// derived records are discarded so incomplete decoding cannot look successful.
 type Result struct {
 	Artifacts    []ArtifactResult
 	URLs         []URLResult

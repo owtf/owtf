@@ -127,7 +127,7 @@ mkdir -p "${TMP_DIR}/bin" "${TMP_DIR}/plugins" "${TMP_DIR}/wordlists"
 cp -R "${ROOT_DIR}/plugins/." "${TMP_DIR}/plugins/"
 mkdir -p "${TMP_DIR}/profiles"
 cp -R "${ROOT_DIR}/profiles/." "${TMP_DIR}/profiles/"
-mkdir -p "${TMP_DIR}/plugins/auxiliary/OWTF-SMOKE-001/active" "${TMP_DIR}/plugins/auxiliary/OWTF-SMOKE-002/active"
+mkdir -p "${TMP_DIR}/plugins/auxiliary/OWTF-SMOKE-001/active" "${TMP_DIR}/plugins/auxiliary/OWTF-SMOKE-002/active" "${TMP_DIR}/plugins/auxiliary/OWTF-SMOKE-003/active"
 cat >"${TMP_DIR}/plugins/auxiliary/OWTF-SMOKE-001/active/plugin.yaml" <<'YAML'
 apiVersion: owtf.dev/v1alpha1
 kind: Plugin
@@ -170,6 +170,34 @@ YAML
 
 ln -s "$(command -v curl)" "${TMP_DIR}/bin/curl"
 ln -s "$(command -v sleep)" "${TMP_DIR}/bin/sleep"
+ln -s "$(command -v cp)" "${TMP_DIR}/bin/cp"
+# Deliberately malformed output, not a mock scanner or a parity claim.
+printf '<nmaprun>' >"${TMP_DIR}/malformed.xml"
+cat >"${TMP_DIR}/plugins/auxiliary/OWTF-SMOKE-003/active/plugin.yaml" <<YAML
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+metadata:
+  id: OWTF-SMOKE-003-active
+  version: 0.1.0
+  title: Malformed XML error fixture
+spec:
+  techniques: [OWTF-SMOKE-003]
+  group: auxiliary
+  type: active
+  targetKinds: [url]
+  requirements:
+    commands: [cp]
+  runtime:
+    type: command
+    command:
+      executable: cp
+      args: ["${TMP_DIR}/malformed.xml", "{{artifact:nmap.xml}}"]
+      artifacts:
+        - name: nmap.xml
+          mediaType: application/xml
+          decoder: nmap-xml
+          required: true
+YAML
 printf '%s\n' admin backup api dev staging >"${TMP_DIR}/wordlists/smoke.txt"
 
 cat >"${CONFIG_FILE}" <<YAML
@@ -282,6 +310,32 @@ jq -e '.scope == true' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI target sco
 cli_json targets show "${URL_TARGET_ID}"
 jq -e --arg id "${URL_TARGET_ID}" '.id == $id' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI could not show the target'
 
+printf '%s\n' 'Checking decoder failure evidence through the API, CLI, and offline export...'
+request POST /api/v2/sessions 201 '{"name":"Malformed XML error fixture"}'
+XML_SESSION_ID=$(jq -r '.id' "${RESPONSE_FILE}")
+cli_json scan --session "${XML_SESSION_ID}" --plugin OWTF-SMOKE-003-active http://127.0.0.1:1/no-request
+XML_TASK_ID=$(jq -r '.tasks[0].id' "${CLI_RESPONSE_FILE}")
+XML_TARGET_ID=$(jq -r '.tasks[0].target_id' "${CLI_RESPONSE_FILE}")
+wait_for_task_status "${XML_TASK_ID}" failed
+request GET "/api/v2/targets/${XML_TARGET_ID}/report" 200
+assert_json '(.artifacts | length) == 1 and (.findings | length) == 0 and (.observations | length) == 0 and
+  .tasks[0].status == "failed" and (.tasks[0].error | contains("decode artifact nmap.xml"))' 'decoder failure did not retain only raw evidence'
+XML_ARTIFACT_ID=$(jq -r '.artifacts[0].id' "${RESPONSE_FILE}")
+request GET "/api/v2/artifacts/${XML_ARTIFACT_ID}" 200
+cmp "${RESPONSE_FILE}" "${TMP_DIR}/malformed.xml" || fail 'failed task artifact bytes changed'
+cli_json targets report "${XML_TARGET_ID}"
+jq -e --arg task "${XML_TASK_ID}" '.artifacts[0].task_id == $task and .tasks[0].status == "failed"' \
+  "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI report lost failed-task evidence'
+request GET "/api/v2/tasks/${XML_TASK_ID}/attempts" 200
+assert_json 'length == 1 and .[0].status == "failed"' 'decoder failure created extra attempts'
+request GET "/api/v2/sessions/${XML_SESSION_ID}/export" 200
+cp "${RESPONSE_FILE}" "${TMP_DIR}/xml-error.zip"
+unzip -p "${TMP_DIR}/xml-error.zip" "artifacts/${XML_ARTIFACT_ID}/nmap.xml" |
+  cmp - "${TMP_DIR}/malformed.xml" || fail 'offline export lost malformed XML'
+unzip -p "${TMP_DIR}/xml-error.zip" report.json |
+  jq -e '.summary.failed == 1 and (.artifacts | length) == 1 and (.findings | length) == 0' >/dev/null || fail 'offline error report is incorrect'
+request DELETE "/api/v2/sessions/${XML_SESSION_ID}" 204
+
 printf '%s\n' 'Checking HAR transaction import, retrieval, files, and deletion...'
 HAR_FILE="${TMP_DIR}/capture.har"
 cat >"${HAR_FILE}" <<JSON
@@ -333,8 +387,8 @@ jq -e '.records_total == 1 and .records_filtered == 1 and (.data | length) == 1'
 
 printf '%s\n' 'Checking plugin discovery and preflight failures...'
 request GET /api/v2/plugins 200
-assert_json 'length == 87' 'plugin catalog is incomplete'
-assert_json '[.[] | select(.availability == "ready")] | length == 68' 'ready plugin count is incorrect'
+assert_json 'length == 88' 'plugin catalog is incomplete'
+assert_json '[.[] | select(.availability == "ready")] | length == 69' 'ready plugin count is incorrect'
 assert_json '[.[] | select(.id == "OWTF-SMOKE-002-active" and .availability == "missing_requirements" and (.reason | contains("owtf-command-that-does-not-exist")))] | length == 1' 'missing requirement is not visible'
 assert_json '[.[] | select(.group == "web" and (.type == "active" or .type == "semi_passive"))] | length == 15' 'OWTF plugin group and type metadata is incorrect'
 assert_json '[.[] | select(.availability == "unavailable")] | length == 0' 'placeholder plugin runtimes remain'
@@ -343,7 +397,7 @@ assert_json '[.[] | select(.id == "OWTF-IG-004-semi_passive" and (.inputs | map(
 assert_json '[.[] | select(.id == "OWTF-IG-004-semi_passive" and .techniques[0].code == "OWTF-IG-004" and .techniques[0].hint == "What is that site running?" and .techniques[0].priority == 99)] | length == 1' 'plugin technique metadata is not visible'
 assert_json '[.[] | select(.runtime_type == "http" and .availability == "ready") | .id] | sort == ["OWTF-CM-008-semi_passive","OWTF-IG-001-semi_passive"]' 'HTTP plugins are unavailable'
 cli_json plugin list
-jq -e 'length == 87' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin catalog is incomplete'
+jq -e 'length == 88' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin catalog is incomplete'
 cli_json plugin list --group web --type active
 jq -e 'length == 10 and ([.[] | select(.availability == "ready") | .id] | sort) == ["OWTF-WSP-001-active"] and ([.[] | select(.availability == "missing_requirements")] | length) == 9' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin group/type filter is incorrect'
 cli_json plugin list --group web --type external

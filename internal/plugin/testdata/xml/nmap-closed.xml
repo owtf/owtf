@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<?xml-stylesheet href="file:///usr/share/nmap/nmap.xsl" type="text/xsl"?>
+<!-- Nmap 7.99 scan initiated Thu Sep  3 20:33:04 2026 as: /usr/lib/nmap/nmap -Pn -n -sT -sV -&#45;version-light -&#45;script ftp-anon,ftp-syst -&#45;script-timeout 15s -&#45;host-timeout 30s -&#45;max-retries 1 -p 65000 -oX /owtf/artifacts/nmap.xml 172.17.0.2 -->
+<nmaprun scanner="nmap" args="/usr/lib/nmap/nmap -Pn -n -sT -sV -&#45;version-light -&#45;script ftp-anon,ftp-syst -&#45;script-timeout 15s -&#45;host-timeout 30s -&#45;max-retries 1 -p 65000 -oX /owtf/artifacts/nmap.xml 172.17.0.2" start="1788467584" startstr="Thu Sep  3 20:33:04 2026" version="7.99" xmloutputversion="1.05">
+<scaninfo type="connect" protocol="tcp" numservices="1" services="65000"/>
+<verbose level="0"/>
+<debugging level="0"/>
+<host starttime="1788467584" endtime="1788467584"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="172.17.0.2" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<ports><port protocol="tcp" portid="65000"><state state="closed" reason="conn-refused" reason_ttl="0"/></port>
+</ports>
+<times srtt="6" rttvar="5000" to="100000"/>
+</host>
+<runstats><finished time="1788467584" timestr="Thu Sep  3 20:33:04 2026" summary="Nmap done at Thu Sep  3 20:33:04 2026; 1 IP address (1 host up) scanned in 0.10 seconds" elapsed="0.10" exit="success"/><hosts up="1" down="0" total="1"/>
+</runstats>
+</nmaprun>

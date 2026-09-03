@@ -146,8 +146,10 @@ remain blocked, without attempts or fabricated scanner artifacts.
 
 With the Kali image already built, run `make test-tools` for real scanner
 execution against temporary local HTTP/TLS and FTP fixtures. It checks Nmap
-service and anonymous-login detection, closed-port handling, Nikto XML, and
-Gobuster virtual-host discoveries, alongside reporting, metrics, cancellation,
+service and NSE observations, closed-port handling, unranked Nikto findings,
+affected URLs, and Gobuster virtual-host discoveries. API, CLI, and offline
+JSON/HTML reports must contain the decoded results; exported raw XML must match
+the API artifact bytes. The gate also checks metrics, cancellation,
 and container/volume cleanup without rebuilding the tools image.
 Metagoofil receives a startup check only; its search-provider
 workflow requires a separate authorized live test.

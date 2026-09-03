@@ -221,26 +221,26 @@ func (r *Runner) execute(parent context.Context, workerIndex int, taskID string)
 
 	entry, ok := r.catalog.Get(execution.PluginID)
 	if !ok {
-		r.fail(parent, execution, logEvent, fmt.Errorf("plugin %s is not in the catalog", execution.PluginID))
+		r.fail(parent, execution, logEvent, nil, fmt.Errorf("plugin %s is not in the catalog", execution.PluginID))
 		return model.TaskFailed
 	}
 	snapshot, err := plugin.ParseSnapshot(execution.PluginSnapshot)
 	if err != nil {
-		r.fail(parent, execution, logEvent, err)
+		r.fail(parent, execution, logEvent, nil, err)
 		return model.TaskFailed
 	}
 	if snapshot.Manifest.Metadata.ID != execution.PluginID || !snapshot.Matches(entry.Manifest) {
-		r.fail(parent, execution, logEvent, errors.New("plugin manifest changed after task creation; create a new run"))
+		r.fail(parent, execution, logEvent, nil, errors.New("plugin manifest changed after task creation; create a new run"))
 		return model.TaskFailed
 	}
 	if entry.Availability != "ready" || entry.Executor == nil {
-		r.fail(parent, execution, logEvent, fmt.Errorf("plugin %s is unavailable: %s", execution.PluginID, entry.Reason))
+		r.fail(parent, execution, logEvent, nil, fmt.Errorf("plugin %s is unavailable: %s", execution.PluginID, entry.Reason))
 		return model.TaskFailed
 	}
 
 	ctx, cancel := context.WithTimeout(taskCtx, r.timeout)
 	defer cancel()
-	result, err := entry.Executor(ctx, plugin.Request{
+	result, executionErr := entry.Executor(ctx, plugin.Request{
 		TaskID: execution.ID, PluginID: execution.PluginID, Target: execution.Target,
 		Inputs: snapshot.Inputs,
 		Transactions: transactionReader{
@@ -248,21 +248,21 @@ func (r *Runner) execute(parent context.Context, workerIndex int, taskID string)
 		},
 		Log: logEvent,
 	})
+	if executionErr != nil && errors.Is(ctx.Err(), context.Canceled) && parent.Err() == nil {
+		logEvent("system", "task cancelled")
+		_, _ = r.store.CancelTask(parent, execution.ID)
+		return model.TaskCancelled
+	}
+	artifacts, artifactIDs, err := r.persistArtifacts(execution, result.Artifacts)
 	if err != nil {
-		if errors.Is(ctx.Err(), context.Canceled) && parent.Err() == nil {
-			logEvent("system", "task cancelled")
-			_, _ = r.store.CancelTask(parent, execution.ID)
-			return model.TaskCancelled
-		}
-		r.fail(parent, execution, logEvent, err)
+		r.fail(parent, execution, logEvent, nil, errors.Join(executionErr, err))
+		return model.TaskFailed
+	}
+	if executionErr != nil {
+		r.fail(parent, execution, logEvent, artifacts, executionErr)
 		return model.TaskFailed
 	}
 
-	artifacts, artifactIDs, err := r.persistArtifacts(execution, result.Artifacts)
-	if err != nil {
-		r.fail(parent, execution, logEvent, err)
-		return model.TaskFailed
-	}
 	now := time.Now().UTC()
 	urls := make([]model.URL, 0, len(result.URLs))
 	for _, item := range result.URLs {
@@ -277,7 +277,7 @@ func (r *Runner) execute(parent context.Context, workerIndex int, taskID string)
 			var found bool
 			artifactID, found = artifactIDs[item.ResponseBodyArtifactName]
 			if !found {
-				r.fail(parent, execution, logEvent, fmt.Errorf("exchange references unknown artifact %q", item.ResponseBodyArtifactName))
+				r.fail(parent, execution, logEvent, nil, fmt.Errorf("exchange references unknown artifact %q", item.ResponseBodyArtifactName))
 				return model.TaskFailed
 			}
 		}
@@ -307,7 +307,7 @@ func (r *Runner) execute(parent context.Context, workerIndex int, taskID string)
 		if errors.Is(err, store.ErrTaskNotRunning) {
 			return model.TaskCancelled
 		}
-		r.fail(parent, execution, logEvent, fmt.Errorf("persist plugin result: %w", err))
+		r.fail(parent, execution, logEvent, nil, fmt.Errorf("persist plugin result: %w", err))
 		return model.TaskFailed
 	}
 	logEvent("system", "task completed")
@@ -378,9 +378,9 @@ func (r *Runner) persistArtifacts(execution model.TaskExecution, results []plugi
 	return items, ids, nil
 }
 
-func (r *Runner) fail(ctx context.Context, execution model.TaskExecution, logEvent func(string, string), taskError error) {
+func (r *Runner) fail(ctx context.Context, execution model.TaskExecution, logEvent func(string, string), artifacts []model.Artifact, taskError error) {
 	logEvent("stderr", taskError.Error())
-	if err := r.store.FailTask(ctx, execution, taskError); err != nil && ctx.Err() == nil {
+	if err := r.store.FailTask(ctx, execution, artifacts, taskError); err != nil && ctx.Err() == nil {
 		slog.Error("fail task", "task_id", execution.ID, "error", err)
 	}
 }

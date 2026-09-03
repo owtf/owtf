@@ -3,7 +3,7 @@ kind: Plugin
 
 metadata:
   id: PTES-004-active
-  version: 0.2.0
+  version: 0.3.0
   title: X11 Access Probe
   description: Uses Nmap to check whether an X server permits unauthenticated access.
 
@@ -52,4 +52,5 @@ spec:
       artifacts:
         - name: nmap.xml
           mediaType: application/xml
+          decoder: nmap-xml
           required: true

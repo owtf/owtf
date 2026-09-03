@@ -147,6 +147,11 @@ func TestScannerPluginRuntimesUseKaliContainers(t *testing.T) {
 			container.Executable != executable {
 			t.Errorf("plugin %q must run %q through the Kali container", id, executable)
 		}
+		if executable == "nmap" || executable == "nikto" {
+			if len(container.Artifacts) != 1 || container.Artifacts[0].Decoder != executable+"-xml" {
+				t.Errorf("plugin %q must decode its XML artifact", id)
+			}
+		}
 	}
 }
 

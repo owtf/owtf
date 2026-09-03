@@ -1150,16 +1150,9 @@ WHERE t.public_id=? AND a.public_id=?`, execution.ID, execution.AttemptID).
 	if taskStatus != model.TaskRunning {
 		return ErrTaskNotRunning
 	}
-	artifactPKs := make(map[string]int64)
-	for _, item := range artifacts {
-		result, err := tx.ExecContext(ctx, `
-		INSERT INTO artifacts(public_id, task_id, target_id, name, media_type, size, sha256, path, created_at)
-	VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)`, item.ID, taskPK, targetPK, item.Name, item.MediaType, item.Size, item.SHA256,
-			item.Path, formatTime(item.CreatedAt))
-		if err != nil {
-			return err
-		}
-		artifactPKs[item.ID], _ = result.LastInsertId()
+	artifactPKs, err := insertTaskArtifacts(ctx, tx, taskPK, targetPK, artifacts)
+	if err != nil {
+		return err
 	}
 	for _, item := range urls {
 		if item.TargetID != "" && item.TargetID != execution.TargetID {
@@ -1304,23 +1297,27 @@ func importedArtifactPK(artifacts map[string]int64, id string) (any, error) {
 	return primaryKey, nil
 }
 
-// FailTask records a terminal execution error and refreshes its parent run.
-func (s *Store) FailTask(ctx context.Context, execution model.TaskExecution, taskError error) error {
+// FailTask atomically retains diagnostic artifacts, records a terminal execution
+// error, and refreshes its parent run. It does not persist derived scan results.
+func (s *Store) FailTask(ctx context.Context, execution model.TaskExecution, artifacts []model.Artifact, taskError error) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
-	var taskPK, runPK, attemptPK int64
+	var taskPK, runPK, targetPK, attemptPK int64
 	var taskStatus string
 	if err := tx.QueryRowContext(ctx, `
-SELECT t.id, t.run_id, a.id, t.status FROM tasks t JOIN attempts a ON a.task_id=t.id
+SELECT t.id, t.run_id, t.target_id, a.id, t.status FROM tasks t JOIN attempts a ON a.task_id=t.id
 WHERE t.public_id=? AND a.public_id=?`, execution.ID, execution.AttemptID).
-		Scan(&taskPK, &runPK, &attemptPK, &taskStatus); err != nil {
+		Scan(&taskPK, &runPK, &targetPK, &attemptPK, &taskStatus); err != nil {
 		return err
 	}
 	if taskStatus != model.TaskRunning {
 		return ErrTaskNotRunning
+	}
+	if _, err := insertTaskArtifacts(ctx, tx, taskPK, targetPK, artifacts); err != nil {
+		return err
 	}
 	now := time.Now().UTC()
 	message := taskError.Error()
@@ -1334,6 +1331,25 @@ WHERE t.public_id=? AND a.public_id=?`, execution.ID, execution.AttemptID).
 		return err
 	}
 	return tx.Commit()
+}
+
+func insertTaskArtifacts(ctx context.Context, tx *sql.Tx, taskPK, targetPK int64, artifacts []model.Artifact) (map[string]int64, error) {
+	ids := make(map[string]int64, len(artifacts))
+	for _, item := range artifacts {
+		result, err := tx.ExecContext(ctx, `
+INSERT INTO artifacts(public_id, task_id, target_id, name, media_type, size, sha256, path, created_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)`, item.ID, taskPK, targetPK, item.Name, item.MediaType, item.Size,
+			item.SHA256, item.Path, formatTime(item.CreatedAt))
+		if err != nil {
+			return nil, err
+		}
+		id, err := result.LastInsertId()
+		if err != nil {
+			return nil, err
+		}
+		ids[item.ID] = id
+	}
+	return ids, nil
 }
 
 func refreshRunStatus(ctx context.Context, tx *sql.Tx, runPK int64, now time.Time) error {

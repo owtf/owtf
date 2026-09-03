@@ -604,7 +604,7 @@ func TestTaskAttemptHistoryAPI(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := database.FailTask(ctx, execution, errors.New("scanner failed")); err != nil {
+	if err := database.FailTask(ctx, execution, nil, errors.New("scanner failed")); err != nil {
 		t.Fatal(err)
 	}
 	taskRunner := runner.New(database, artifacts, catalog, 1, time.Second)

@@ -191,6 +191,29 @@ the tool supports them, and retain fixed-name artifacts for reporting. Stable
 report formats have bounded decoders that extract factual observations,
 findings, and discovered URLs while preserving the raw reports.
 
+The ``nmap-xml`` decoder emits ``network.host``, ``network.port``,
+``network.port_summary``, and ``network.script`` observations. Port records
+include protocol, state, and available service product/version/CPE data.
+Port-level and host-level NSE results retain their script IDs and textual
+output; nested NSE tables remain available in the original XML. Open ports
+and NSE output do not automatically become vulnerabilities.
+
+The ``nikto-xml`` decoder retains every item as a finding, including repeated
+test IDs. Affected HTTP(S) URLs are resolved against the task target and added
+to its URL catalog. Findings include the test ID, method, and references.
+Severity is ``unranked`` unless a recognized ``severity`` attribute is supplied;
+normal Nikto XML supplies none. Neither decoder executes report content.
+
+XML decoding uses Go's standard library with a 10 MiB input limit, 32-level
+nesting limit, 160,000-element limit, and 10,000 decoded-record limit. Retained
+text fields are capped at 4 KiB. External DTDs and stylesheets are not fetched;
+internal DTD subsets and unknown entities are rejected. Malformed documents,
+multiple roots, oversized reports, and missing Nmap completion metadata fail the
+task rather than produce an apparently empty successful scan. A decoder
+failure retains the bounded raw artifacts with the failed task but discards
+all derived records. Process failures before artifact collection still retain
+logs only. No automatic retries are introduced.
+
 Wordlist inputs name files under ``plugins.wordlistDirectory``, never arbitrary
 host paths. OWTF validates UTF-8 content, byte and line limits, and copies the
 file before execution. Container inputs and artifacts use task-owned volumes,
@@ -423,11 +446,15 @@ server/database must not create another attempt. Evidence is retained under
 
 ``make test-tools`` also runs the unchanged production scanner manifests against
 nginx and vsftpd. Nmap must identify FTP and anonymous access, while a second
-probe must report a closed port. Nikto must retain its XML header findings.
+probe must report a closed port. Nikto must produce unranked header findings
+and affected URLs while retaining its XML.
 Gobuster must discover exactly one configured virtual host, preserve its port,
 and put it in the target URL catalog. Raw artifacts downloaded through the API
-must match their offline ZIP entries byte for byte. Nmap and Nikto XML remains
-raw evidence, not automatically ranked or decoded findings. Other Nmap protocol
+must match their offline ZIP entries byte for byte. Decoded Nmap and Nikto
+results must appear in API and CLI target reports and the offline JSON and HTML
+report. ``make test-api`` separately uses deliberately malformed XML to verify
+failed-task state, a single attempt, and raw artifact downloads and export.
+These error fixtures are not scanner parity evidence. Other Nmap protocol
 probes still require their own service fixtures; this FTP test does not prove
 SMTP, SMB, or other protocol-specific behavior.
 
