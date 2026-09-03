@@ -10,7 +10,7 @@ try:
 except ImportError as e:
     print(e)
 
-__version__ = "2.6.0"
+__version__ = "2.7.0"
 __homepage__ = "https://github.com/owtf/owtf"
 __docformat__ = "markdown"
 

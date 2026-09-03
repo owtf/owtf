@@ -119,7 +119,7 @@ To request new features or improvements:
 
 - **Documentation Version**: 1.0.0
 - **Last Updated**: August 2025
-- **OWTF Version**: 2.6.0
+- **OWTF Version**: 2.7.0
 - **Proxy Version**: 1.0.0
 
 ## Related Resources

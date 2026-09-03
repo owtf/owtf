@@ -1,0 +1,79 @@
+name: Publish Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish GitHub release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tagged source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify release commit is on develop
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/develop
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements/release.txt
+
+      - name: Verify tag and changelog versions
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          package_text = Path("owtf/__init__.py").read_text(encoding="utf-8")
+          match = re.search(r'^__version__ = "([^"]+)"$', package_text, re.MULTILINE)
+          if not match:
+              raise SystemExit("Could not read __version__ from owtf/__init__.py")
+
+          package_version = match.group(1)
+          tag_version = os.environ["RELEASE_TAG"].removeprefix("v")
+          if tag_version != package_version:
+              raise SystemExit(
+                  f"Tag {tag_version!r} does not match package version {package_version!r}"
+              )
+
+          changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
+          heading = f"## [{package_version}]"
+          start = changelog.find(heading)
+          if start == -1:
+              raise SystemExit(f"CHANGELOG.md has no {heading!r} release section")
+          end = changelog.find("\n## [", start + len(heading))
+          release_notes = changelog[start:end if end != -1 else None].strip() + "\n"
+          Path("release-notes.md").write_text(release_notes, encoding="utf-8")
+          PY
+
+      - name: Build and validate distributions
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/release.txt
+          python -m build
+          python -m twine check dist/*
+          sha256sum dist/* > SHA256SUMS
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            dist/* \
+            SHA256SUMS \
+            --verify-tag \
+            --title "OWTF $GITHUB_REF_NAME" \
+            --notes-file release-notes.md

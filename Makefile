@@ -7,7 +7,7 @@ VENV_PATH := ${HOME}/.virtualenvs/${PROJ}
 SHELL := /bin/bash
 PY_QUALITY_PATHS := owtf/config.py owtf/lib/exceptions.py owtf/managers/config.py owtf/managers/target.py owtf/requester/base.py owtf/transactions/base.py owtf/transactions/main.py owtf/utils/http.py
 
-.PHONY: venv setup bootstrap web docs lint typecheck-py format-py clean bump build release
+.PHONY: venv setup bootstrap web docs lint typecheck-py format-py clean bump build release-check
 
 check-root:
 ifeq ($(USER), root)
@@ -207,11 +207,11 @@ bump-major:
 	echo -n "Now on version: " && \
 	git describe --tags
 
-release:
-	python setup.py register sdist bdist_wheel upload
-
 build:
-	$(PYTHON) setup.py sdist bdist_wheel
+	$(PYTHON) -m build
+
+release-check: build
+	$(PYTHON) -m twine check dist/*
 
 startdb:
 	docker compose -p $(PROJ) -f docker/docker-compose.yml up -d --no-recreate

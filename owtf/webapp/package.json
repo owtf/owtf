@@ -92,7 +92,6 @@
     "@types/react": "^18.0.28",
     "@types/react-redux": "^7.1.24",
     "babel-core": "^7.0.0-bridge.0",
-    "babel-jest": "^23.4.2",
     "babel-loader": "^8.0.0",
     "babel-plugin-emotion": "^9.1.0",
     "check-prop-types": "^1.1.2",
@@ -113,12 +112,10 @@
     "http-proxy-middleware": "^0.18.0",
     "husky": "^0.14.3",
     "identity-obj-proxy": "^3.0.0",
-    "image-webpack-loader": "^4.2.0",
     "ip": "^1.1.9",
     "jest": "^24.3.1",
     "jest-enzyme": "^7.0.2",
     "json-loader": "^0.5.7",
-    "offline-plugin": "^4.9.0",
     "prettier": "^1.13.5",
     "pretty-quick": "^1.6.0",
     "redux-logger": "^3.0.6",
@@ -145,6 +142,8 @@
   },
   "resolutions": {
     "@types/react": "17.0.14",
-    "@types/react-dom": "17.0.14"
+    "@types/react-dom": "17.0.14",
+    "**/form-data": "2.5.5",
+    "html-webpack-plugin/**/loader-utils": "1.4.2"
   }
 }

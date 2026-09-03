@@ -118,7 +118,7 @@ Use the provided test script to verify functionality:
 
 ```bash
 # Run comprehensive HTTPS tests
-docker exec -it owtf-backend python /home/owtf/owtf-venv/lib/python3.11/site-packages/owtf-2.6.0-py3.11.egg/owtf/proxy/test_https_interception.py
+docker exec -it owtf-backend python -m owtf.proxy.test_https_interception
 ```
 
 ## 🔧 Configuration

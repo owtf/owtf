@@ -36,10 +36,11 @@ feasible but cannot guarantee fixes for external dependencies.
 | Version                           | Supported |
 | --------------------------------- | --------- |
 | `develop`                         | Yes       |
+| `2.7.x`                           | Yes       |
 | `2.6.0` and older tagged releases | No        |
 
-The `develop` branch is pre-release software and is currently the only line receiving security fixes. Tagged releases do not
-currently receive security backports. This table will be updated when a new stable release is published.
+Security fixes are developed on `develop` and released as `2.7.x` patch updates when required. Older tagged releases do not
+receive security fixes.
 
 ## Acknowledgements
 

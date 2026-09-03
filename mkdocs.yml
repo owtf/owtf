@@ -62,6 +62,7 @@ nav:
       - Community plugin security: reference/community-plugin-security.md
   - Contribute:
       - Documentation: contributing/documentation.md
+      - Release process: contributing/releasing.md
       - Project contributing guide: https://github.com/owtf/owtf/blob/develop/CONTRIBUTING.md
       - Security policy: https://github.com/owtf/owtf/security/policy
 

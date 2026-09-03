@@ -7,15 +7,38 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-09-02
+
+### Added
+
+- Added a complete intercepting-proxy workspace with HTTPS interception, transaction history, live interception, and a request repeater.
+- Added a reviewed community-plugin marketplace with upload validation, administrator approval, owner visibility, and execution through the normal OWTF work queue.
+- Added priority-based scheduling, dynamic worker scaling, execution timeouts and retries, output fingerprinting, and execution metrics with HTML reporting.
+- Added Azure, Terraform, and Kubernetes deployment resources.
+- Added and refreshed discovery plugins for cloud storage, LDAP, IMAP/SMTP injection, Gobuster, BBOT, AJAX behavior, and TLS testing.
+
 ### Changed
 
+- Raised the supported runtime to Python 3.11 and 3.12, removed remaining Python 2 runtime paths, and migrated packaging to `pyproject.toml`.
+- Modernized the React application and continued its TypeScript migration, including the proxy and community-plugin interfaces.
+- Split the development containers into frontend, backend, and PostgreSQL services and standardized the supported startup path on Docker Compose.
+- Replaced the Sphinx documentation with a responsive, searchable MkDocs Material site.
 - Consolidated the supported end-user installation instructions around Docker Compose.
 - Replaced the legacy issue template with dedicated bug, feature, and documentation forms.
 - Consolidated contributor guidance in the repository-root `CONTRIBUTING.md`.
 - Updated public project, documentation, support, and community links.
 
+### Fixed
+
+- Fixed targets disappearing from the active session and corrected selected-plugin execution.
+- Fixed proxy interceptor response handling, cache lock timeouts, and process termination escalation.
+- Fixed work-queue claiming and draining gaps, timeout and exception outcomes, and duplicate plugin output under concurrent execution.
+
 ### Security
 
+- Added authenticated OWTF accounts and tightened access to targets, reports, proxy traffic, and community-plugin administration.
+- Hardened community-plugin validation against aliased imports and shell-execution bypasses, and made persisted administrator state authoritative.
+- Removed obsolete frontend build plugins, resolved all critical advisories reported by Yarn, and added a CI gate that blocks new critical frontend dependency advisories.
 - Clarified the private vulnerability-reporting process and the versions that currently receive security fixes.
 
 ## [2.6.0] - 2022-03-16
@@ -36,4 +59,5 @@ The original release did not include detailed release notes. See the
 - [All historical releases](https://github.com/owtf/owtf/releases)
 - [Legacy detailed changelog](https://github.com/owtf/owtf/blob/v2.6.0/CHANGELOG.md)
 
-[unreleased]: https://github.com/owtf/owtf/compare/v2.6.0...develop
+[unreleased]: https://github.com/owtf/owtf/compare/v2.7.0...develop
+[2.7.0]: https://github.com/owtf/owtf/compare/v2.6.0...v2.7.0
