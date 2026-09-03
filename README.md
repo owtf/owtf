@@ -25,8 +25,7 @@ resulting evidence.
 - A built-in HTTP collector, trusted host-command plugins, and isolated
   container plugins with forced cleanup.
 - Requirement discovery with visible ready, unavailable, and blocked states.
-- A bounded worklist with process-group cancellation, retry, and per-attempt
-  history.
+- A bounded worklist with process-group cancellation and per-attempt history.
 - Worker state, task events, HTTP transactions, artifacts, observations, and
   findings stored in SQLite.
 - HAR transaction import with retained source, request, and response files.

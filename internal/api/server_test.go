@@ -519,11 +519,7 @@ func TestRunRejectsUnsupportedTargetKindBeforeCreatingTasks(t *testing.T) {
 	}
 }
 
-func TestTaskRetryAPIExposesAttemptHistory(t *testing.T) {
-	targetServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusNoContent)
-	}))
-	defer targetServer.Close()
+func TestTaskAttemptHistoryAPI(t *testing.T) {
 	tempDir := t.TempDir()
 	database, err := store.Open(filepath.Join(tempDir, "owtf.db"))
 	if err != nil {
@@ -534,26 +530,17 @@ func TestTaskRetryAPIExposesAttemptHistory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	catalog, err := plugin.Load(fstest.MapFS{"collector/plugin.yaml": &fstest.MapFile{Data: []byte(manifest)}})
-	if err != nil {
-		t.Fatal(err)
-	}
-	catalog.RegisterBuiltin("http-collector", plugin.HTTPCollector(targetServer.Client()))
-	entry, _ := catalog.Get("OWTF-WSP-001-active")
-	if err := database.ReplacePlugins(context.Background(), []model.Plugin{entry.Plugin()}); err != nil {
-		t.Fatal(err)
-	}
-	snapshot, err := entry.Snapshot(nil)
+	catalog, err := plugin.Load(fstest.MapFS{})
 	if err != nil {
 		t.Fatal(err)
 	}
 	ctx := context.Background()
-	session, _ := database.CreateSession(ctx, "Retry API")
-	normalized, _ := targetvalue.Normalize(targetServer.URL)
+	session, _ := database.CreateSession(ctx, "Attempt API")
+	normalized, _ := targetvalue.Normalize("https://example.test")
 	added, _ := database.AddTargets(ctx, session.ID, []targetvalue.Normalized{normalized})
 	_, tasks, err := database.CreateRun(ctx, session.ID, "", []store.TaskSpec{{
-		TargetID: added.Created[0].ID, PluginID: entry.Manifest.Metadata.ID,
-		PluginVersion: entry.Manifest.Metadata.Version, PluginSnapshot: snapshot,
+		TargetID: added.Created[0].ID, PluginID: "OWTF-TEST-001-active",
+		PluginVersion: "0.1.0", PluginSnapshot: "{}",
 	}})
 	if err != nil {
 		t.Fatal(err)
@@ -566,44 +553,24 @@ func TestTaskRetryAPIExposesAttemptHistory(t *testing.T) {
 		t.Fatal(err)
 	}
 	taskRunner := runner.New(database, artifacts, catalog, 1, time.Second)
-	runnerContext, cancel := context.WithCancel(context.Background())
-	if err := taskRunner.Start(runnerContext); err != nil {
-		cancel()
-		t.Fatal(err)
-	}
 	server := httptest.NewServer(api.New(api.Config{
 		Store: database, Artifacts: artifacts, Plugins: catalog, Runner: taskRunner,
 	}))
-	defer func() {
-		server.Close()
-		cancel()
-		taskRunner.Stop()
-	}()
-
-	retried := requestJSON[model.Task](t, server.Client(), http.MethodPost,
-		server.URL+"/api/v2/tasks/"+tasks[0].ID+"/retry", map[string]any{}, http.StatusAccepted)
-	if retried.Status != model.TaskQueued || retried.Inputs["request_label"] != "default" {
-		t.Fatalf("unexpected retried task: %+v", retried)
-	}
-	deadline := time.Now().Add(time.Second)
-	for {
-		item, getErr := database.GetTask(ctx, tasks[0].ID)
-		if getErr == nil && item.Status == model.TaskSucceeded {
-			break
-		}
-		if time.Now().After(deadline) {
-			t.Fatalf("retried task did not succeed: task=%+v err=%v", item, getErr)
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
+	defer server.Close()
 	attempts := requestJSON[[]model.TaskAttempt](t, server.Client(), http.MethodGet,
 		server.URL+"/api/v2/tasks/"+tasks[0].ID+"/attempts", nil, http.StatusOK)
-	if len(attempts) != 2 || attempts[0].AttemptNumber != 1 || attempts[0].Status != model.TaskFailed ||
-		attempts[0].Error != "scanner failed" || attempts[1].AttemptNumber != 2 || attempts[1].Status != model.TaskSucceeded {
+	if len(attempts) != 1 || attempts[0].AttemptNumber != 1 || attempts[0].Status != model.TaskFailed ||
+		attempts[0].Error != "scanner failed" {
 		t.Fatalf("unexpected attempt history: %+v", attempts)
 	}
-	requestJSON[map[string]string](t, server.Client(), http.MethodPost,
-		server.URL+"/api/v2/tasks/"+tasks[0].ID+"/retry", map[string]any{}, http.StatusConflict)
+	response, err := server.Client().Post(server.URL+"/api/v2/tasks/"+tasks[0].ID+"/retry", "application/json", strings.NewReader("{}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	response.Body.Close()
+	if response.StatusCode != http.StatusMethodNotAllowed {
+		t.Fatalf("retry endpoint status = %d, want %d", response.StatusCode, http.StatusMethodNotAllowed)
+	}
 	requestJSON[map[string]string](t, server.Client(), http.MethodGet,
 		server.URL+"/api/v2/tasks/missing/attempts", nil, http.StatusNotFound)
 }

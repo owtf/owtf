@@ -20,7 +20,6 @@ PROXY_HAR="${TMP_DIR}/proxy.har"
 PROXY_CA="${TMP_DIR}/proxy-ca.crt"
 PROXY_KEY="${TMP_DIR}/proxy-ca.key"
 CONFIG_FILE="${TMP_DIR}/config.yaml"
-RETRY_MARKER="${TMP_DIR}/retry-ready"
 
 cleanup() {
   if [[ -n "${PROXY_PID}" ]] && kill -0 "${PROXY_PID}" 2>/dev/null; then
@@ -127,8 +126,7 @@ mkdir -p "${TMP_DIR}/plugins"
 cp -R "${ROOT_DIR}/plugins/." "${TMP_DIR}/plugins/"
 mkdir -p "${TMP_DIR}/profiles"
 cp -R "${ROOT_DIR}/profiles/." "${TMP_DIR}/profiles/"
-mkdir -p "${TMP_DIR}/plugins/OWTF-SMOKE-001/active" "${TMP_DIR}/plugins/OWTF-SMOKE-002/active" \
-  "${TMP_DIR}/plugins/OWTF-SMOKE-003/active"
+mkdir -p "${TMP_DIR}/plugins/OWTF-SMOKE-001/active" "${TMP_DIR}/plugins/OWTF-SMOKE-002/active"
 cat >"${TMP_DIR}/plugins/OWTF-SMOKE-001/active/plugin.yaml" <<'YAML'
 apiVersion: owtf.dev/v1alpha1
 kind: Plugin
@@ -148,26 +146,6 @@ spec:
     command:
       executable: sleep
       args: ["30"]
-YAML
-cat >"${TMP_DIR}/plugins/OWTF-SMOKE-003/active/plugin.yaml" <<YAML
-apiVersion: owtf.dev/v1alpha1
-kind: Plugin
-metadata:
-  id: OWTF-SMOKE-003-active
-  version: 0.1.0
-  title: Smoke retry fixture
-spec:
-  techniques: [OWTF-SMOKE-003]
-  group: auxiliary
-  type: active
-  targetKinds: [url]
-  requirements:
-    commands: [test]
-  runtime:
-    type: command
-    command:
-      executable: test
-      args: ["-e", "${RETRY_MARKER}"]
 YAML
 cat >"${TMP_DIR}/plugins/OWTF-SMOKE-002/active/plugin.yaml" <<'YAML'
 apiVersion: owtf.dev/v1alpha1
@@ -337,13 +315,13 @@ assert_json 'length == 1 and .[0].id == $transaction' 'target transaction list i
 
 printf '%s\n' 'Checking plugin discovery and preflight failures...'
 request GET /api/v2/plugins 200
-assert_json 'length == 5' 'plugin catalog is incomplete'
-assert_json '[.[] | select(.availability == "ready")] | length == 4' 'ready plugin count is incorrect'
+assert_json 'length == 4' 'plugin catalog is incomplete'
+assert_json '[.[] | select(.availability == "ready")] | length == 3' 'ready plugin count is incorrect'
 assert_json '[.[] | select(.id == "OWTF-SMOKE-002-active" and .availability == "missing_requirements" and (.reason | contains("owtf-command-that-does-not-exist")))] | length == 1' 'missing requirement is not visible'
 assert_json '[.[] | select(.group == "web" and (.type == "active" or .type == "semi_passive"))] | length == 2' 'OWTF plugin group and type metadata is incorrect'
 assert_json '[.[] | select(.id == "OWTF-IG-004-semi_passive" and (.inputs | map(.name)) == ["timeout_seconds","user_agent"])] | length == 1' 'plugin input schema is not visible'
 cli_json plugins list
-jq -e 'length == 5' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin catalog is incomplete'
+jq -e 'length == 4' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin catalog is incomplete'
 cli_json plugins list --group web --type active
 jq -e 'length == 1 and .[0].id == "OWTF-WSP-001-active"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin group/type filter is incorrect'
 request GET /api/v2/profiles 200
@@ -429,6 +407,10 @@ cli_json workers
 jq -e 'length == 1 and .[0].completed == 2' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI worker state is incorrect'
 cli_json tasks show "${GROUP_TASK_IDS[0]}"
 jq -e '.status == "succeeded"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI task state is incorrect'
+request GET "/api/v2/tasks/${GROUP_TASK_IDS[0]}/attempts" 200
+assert_json 'length == 1 and .[0].attempt_number == 1 and .[0].status == "succeeded"' 'API task attempt history is incorrect'
+cli_json tasks attempts "${GROUP_TASK_IDS[0]}"
+jq -e 'length == 1 and .[0].attempt_number == 1 and .[0].status == "succeeded"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI task attempt history is incorrect'
 cli_json tasks logs "${GROUP_TASK_IDS[0]}"
 jq -e 'length >= 3' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI task logs are incomplete'
 cli_json targets report "${URL_TARGET_ID}"
@@ -473,34 +455,6 @@ CLI_SCAN_TASK_ID=$(jq -r '.tasks[0].id' "${CLI_RESPONSE_FILE}")
 wait_for_task_status "${CLI_SCAN_TASK_ID}" succeeded
 cli_json workers
 jq -e '.[0].completed == 4' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI-launched work was not completed'
-
-printf '%s\n' 'Checking failed work retry and attempt history...'
-RETRY_RUN=$(jq -nc --arg session "${SESSION_ID}" --arg target "${URL_TARGET_ID}" '{session_id:$session,target_ids:[$target],plugin_ids:["OWTF-SMOKE-003-active"]}')
-request POST /api/v2/runs 202 "${RETRY_RUN}"
-RETRY_TASK_ID=$(jq -r '.tasks[0].id' "${RESPONSE_FILE}")
-wait_for_task_status "${RETRY_TASK_ID}" failed
-request GET "/api/v2/tasks/${RETRY_TASK_ID}/attempts" 200
-assert_json 'length == 1 and .[0].attempt_number == 1 and .[0].status == "failed"' 'failed attempt was not retained'
-touch "${RETRY_MARKER}"
-request POST "/api/v2/tasks/${RETRY_TASK_ID}/retry" 202 '{}'
-assert_json '.status == "queued" and .started_at == null and .ended_at == null' 'retry did not requeue the task'
-wait_for_task_status "${RETRY_TASK_ID}" succeeded
-request GET "/api/v2/tasks/${RETRY_TASK_ID}/attempts" 200
-assert_json 'length == 2 and (map(.attempt_number) == [1,2]) and (map(.status) == ["failed","succeeded"])' 'API retry attempt history is incorrect'
-request GET "/api/v2/tasks/${RETRY_TASK_ID}/events" 200
-assert_json '([.[] | .attempt_id // empty] | unique | length) == 2 and ([.[].message] | index("task queued for retry") != null)' 'retry logs are not separated by attempt'
-request POST "/api/v2/tasks/${RETRY_TASK_ID}/retry" 409 '{}'
-
-rm -f "${RETRY_MARKER}"
-cli_json runs create --session "${SESSION_ID}" --target "${URL_TARGET_ID}" --plugin OWTF-SMOKE-003-active
-CLI_RETRY_TASK_ID=$(jq -r '.tasks[0].id' "${CLI_RESPONSE_FILE}")
-wait_for_task_status "${CLI_RETRY_TASK_ID}" failed
-touch "${RETRY_MARKER}"
-cli_json tasks retry "${CLI_RETRY_TASK_ID}"
-jq -e '.status == "queued"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI retry did not requeue the task'
-wait_for_task_status "${CLI_RETRY_TASK_ID}" succeeded
-cli_json tasks attempts "${CLI_RETRY_TASK_ID}"
-jq -e 'length == 2 and (map(.status) == ["failed","succeeded"])' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI attempt history is incorrect'
 
 printf '%s\n' 'Checking cancellation and worker cleanup...'
 CANCEL_RUN=$(jq -nc --arg session "${SESSION_ID}" --arg target "${URL_TARGET_ID}" '{session_id:$session,target_ids:[$target],plugin_ids:["OWTF-SMOKE-001-active"]}')

@@ -406,14 +406,14 @@ func TestBlockedPluginRemainsVisibleInWorklistAndRun(t *testing.T) {
 	}
 }
 
-func TestRetryTaskPreservesAttemptHistory(t *testing.T) {
+func TestRecoverTasksPreservesAttemptHistory(t *testing.T) {
 	database, err := Open(filepath.Join(t.TempDir(), "owtf.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer database.Close()
 	ctx := context.Background()
-	session, _ := database.CreateSession(ctx, "Retry")
+	session, _ := database.CreateSession(ctx, "Recovery")
 	normalized, _ := target.Normalize("https://example.test")
 	added, _ := database.AddTargets(ctx, session.ID, []target.Normalized{normalized})
 	run, tasks, err := database.CreateRun(ctx, session.ID, "", []TaskSpec{{
@@ -426,22 +426,19 @@ func TestRetryTaskPreservesAttemptHistory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := database.FailTask(ctx, first, errors.New("first attempt failed")); err != nil {
-		t.Fatal(err)
-	}
-	retried, err := database.RetryTask(ctx, tasks[0].ID)
+	recovered, err := database.RecoverTasks(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if retried.Status != model.TaskQueued || retried.Error != "" || retried.StartedAt != nil || retried.EndedAt != nil {
-		t.Fatalf("unexpected retried task: %+v", retried)
+	if len(recovered) != 1 || recovered[0] != tasks[0].ID {
+		t.Fatalf("unexpected recovered tasks: %v", recovered)
 	}
-	retriedRun, err := database.GetRun(ctx, run.ID)
-	if err != nil || retriedRun.Status != model.RunQueued || retriedRun.FinishedAt != nil {
-		t.Fatalf("unexpected retried run: run=%+v err=%v", retriedRun, err)
+	queued, err := database.GetTask(ctx, tasks[0].ID)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if _, err := database.RetryTask(ctx, tasks[0].ID); !errors.Is(err, ErrConflict) {
-		t.Fatalf("queued task retry error = %v, want conflict", err)
+	if queued.Status != model.TaskQueued || queued.Error != "recovered after server restart" || queued.StartedAt != nil {
+		t.Fatalf("unexpected recovered task: %+v", queued)
 	}
 	second, err := database.StartTask(ctx, tasks[0].ID)
 	if err != nil {
@@ -457,34 +454,16 @@ func TestRetryTaskPreservesAttemptHistory(t *testing.T) {
 	if err != nil || len(attempts) != 2 || attempts[0].Status != model.TaskFailed || attempts[1].Status != model.TaskSucceeded {
 		t.Fatalf("unexpected attempt history: attempts=%+v err=%v", attempts, err)
 	}
-	if _, err := database.RetryTask(ctx, tasks[0].ID); !errors.Is(err, ErrConflict) {
-		t.Fatalf("successful task retry error = %v, want conflict", err)
+	if attempts[0].Error != "server restarted during execution" {
+		t.Fatalf("interrupted attempt has wrong error: %+v", attempts[0])
 	}
-	events, err := database.ListTaskEvents(ctx, tasks[0].ID)
-	if err != nil || len(events) != 1 || events[0].Message != "task queued for retry" {
-		t.Fatalf("unexpected retry events: events=%+v err=%v", events, err)
+	finished, err := database.GetRun(ctx, run.ID)
+	if err != nil || finished.Status != model.RunSucceeded || finished.FinishedAt == nil {
+		t.Fatalf("recovered run did not finish: run=%+v err=%v", finished, err)
 	}
-
-	activeRun, activeTasks, err := database.CreateRun(ctx, session.ID, "", []TaskSpec{
-		{TargetID: added.Created[0].ID, PluginID: "OWTF-TEST-001-active", PluginVersion: "0.1.0", PluginSnapshot: "{}"},
-		{TargetID: added.Created[0].ID, PluginID: "OWTF-TEST-002-active", PluginVersion: "0.1.0", PluginSnapshot: "{}"},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	activeAttempt, err := database.StartTask(ctx, activeTasks[0].ID)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := database.FailTask(ctx, activeAttempt, errors.New("failed beside queued work")); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := database.RetryTask(ctx, activeTasks[0].ID); err != nil {
-		t.Fatal(err)
-	}
-	stillActive, err := database.GetRun(ctx, activeRun.ID)
-	if err != nil || stillActive.Status != model.RunRunning || stillActive.FinishedAt != nil {
-		t.Fatalf("retry changed active run state: run=%+v err=%v", stillActive, err)
+	report, err := database.GetTargetReport(ctx, added.Created[0].ID)
+	if err != nil || len(report.Attempts) != 2 {
+		t.Fatalf("report lost recovery attempts: attempts=%+v err=%v", report.Attempts, err)
 	}
 }
 

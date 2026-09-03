@@ -1282,47 +1282,6 @@ WHERE task_id=? AND status=?`, model.TaskCancelled, formatTime(now), taskPK, mod
 	return s.GetTask(ctx, taskID)
 }
 
-// RetryTask returns failed or cancelled work to the queue without changing its
-// target, plugin version, or resolved inputs. Existing attempts remain intact.
-func (s *Store) RetryTask(ctx context.Context, taskID string) (model.Task, error) {
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return model.Task{}, err
-	}
-	defer tx.Rollback()
-	var taskPK, runPK int64
-	var status string
-	if err := tx.QueryRowContext(ctx, `SELECT id, run_id, status FROM tasks WHERE public_id=?`, taskID).
-		Scan(&taskPK, &runPK, &status); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return model.Task{}, ErrNotFound
-		}
-		return model.Task{}, err
-	}
-	if status != model.TaskFailed && status != model.TaskCancelled {
-		return model.Task{}, fmt.Errorf("%w: task is %s", ErrConflict, status)
-	}
-	now := time.Now().UTC()
-	if _, err := tx.ExecContext(ctx, `
-UPDATE tasks SET status=?, error='', started_at=NULL, ended_at=NULL WHERE id=?`, model.TaskQueued, taskPK); err != nil {
-		return model.Task{}, err
-	}
-	if _, err := tx.ExecContext(ctx, `
-UPDATE runs SET status=CASE WHEN status IN (?, ?, ?, ?) THEN ? ELSE status END, finished_at=NULL WHERE id=?`,
-		model.RunSucceeded, model.RunFailed, model.RunCancelled, model.RunBlocked, model.RunQueued, runPK); err != nil {
-		return model.Task{}, err
-	}
-	if _, err := tx.ExecContext(ctx, `
-INSERT INTO task_events(task_id, stream, message, created_at) VALUES(?, 'lifecycle', 'task queued for retry', ?)`,
-		taskPK, formatTime(now)); err != nil {
-		return model.Task{}, err
-	}
-	if err := tx.Commit(); err != nil {
-		return model.Task{}, err
-	}
-	return s.GetTask(ctx, taskID)
-}
-
 func scanTask(row rowScanner) (model.Task, error) {
 	var item model.Task
 	var snapshot, created string

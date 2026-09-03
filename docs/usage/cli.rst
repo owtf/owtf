@@ -155,12 +155,12 @@ executor state::
   owtf tasks attempts tsk_ID
   owtf tasks logs tsk_ID
   owtf tasks cancel tsk_ID
-  owtf tasks retry tsk_ID
 
-Only failed and cancelled tasks can be retried. Retry preserves the original
-target, plugin version, and resolved inputs while adding a numbered attempt.
-Use ``tasks attempts`` to distinguish failures and timing across executions;
-``tasks logs`` keeps every event linked to its attempt ID.
+Failed and cancelled tasks are terminal. To repeat a technique, create a new
+run so the worklist retains a distinct task and clear execution provenance.
+Use ``tasks attempts`` to inspect execution history, including interrupted work
+recovered after a server restart; ``tasks logs`` keeps every event linked to
+its attempt ID.
 
 Evidence and reports
 --------------------

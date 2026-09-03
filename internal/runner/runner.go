@@ -113,18 +113,6 @@ func (r *Runner) Cancel(ctx context.Context, taskID string) (model.Task, error) 
 	return r.store.CancelTask(ctx, taskID)
 }
 
-// Retry requeues failed or cancelled work with the original task snapshot.
-func (r *Runner) Retry(ctx context.Context, taskID string) (model.Task, error) {
-	task, err := r.store.RetryTask(ctx, taskID)
-	if err != nil {
-		return model.Task{}, err
-	}
-	if err := r.Submit([]string{taskID}); err != nil {
-		return model.Task{}, err
-	}
-	return task, nil
-}
-
 // Submit places durable task IDs on the bounded in-memory dispatch queue. The
 // runner lifecycle, rather than an API request, owns pending dispatch.
 func (r *Runner) Submit(taskIDs []string) error {

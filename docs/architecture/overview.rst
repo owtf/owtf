@@ -277,8 +277,9 @@ and SOCKS5 upstream proxies. Basic and Digest target authentication is scoped
 Phase 5 has a checked feature matrix, typed configuration shared by server and
 proxy startup, deterministic named plugin profiles, target scope and bounded
 search, complete session deletion, typed plugin inputs, and bounded persisted
-transaction search. Failed and cancelled work can be retried with immutable
-inputs and ordered attempt history. Configuration validation,
+transaction search. Tasks retain ordered attempt history for normal execution
+and restart recovery. Failed and cancelled tasks remain terminal; an operator
+creates a new run when a technique must be repeated. Configuration validation,
 default/file/environment/flag precedence, bounded worker and proxy limits,
 secret redaction, profile validation, persisted run ordering, deletion
 conflicts, target pagination, input validation, immutable snapshots, shell-free

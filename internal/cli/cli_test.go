@@ -124,9 +124,6 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 			writeTestJSON(t, w, []map[string]string{{"task_id": "tsk_1", "message": "task started"}})
 		case "POST /api/v2/tasks/tsk_1/cancel":
 			writeTestJSON(t, w, map[string]string{"id": "tsk_1", "status": "cancelled"})
-		case "POST /api/v2/tasks/tsk_1/retry":
-			w.WriteHeader(http.StatusAccepted)
-			writeTestJSON(t, w, map[string]string{"id": "tsk_1", "status": "queued"})
 		case "GET /api/v2/transactions":
 			if r.URL.Query().Get("session_id") != "ses_1" || r.URL.Query().Get("target_id") != "tgt_1" {
 				t.Fatalf("unexpected transaction query: %s", r.URL.RawQuery)
@@ -205,7 +202,6 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		{"tasks", "attempts", "tsk_1"},
 		{"tasks", "logs", "tsk_1"},
 		{"tasks", "cancel", "tsk_1"},
-		{"tasks", "retry", "tsk_1"},
 		{"transactions", "list", "--session", "ses_1", "--target", "tgt_1"},
 		{"transactions", "list", "--target", "tgt_1"},
 		{"transactions", "search", "--session", "ses_1", "--target", "tgt_1", "--search", "example", "--method", "post", "--status", "201", "--limit", "25", "--offset", "5"},
@@ -226,6 +222,9 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 				t.Fatalf("output is not JSON: %q: %v", output.String(), err)
 			}
 		})
+	}
+	if err := Run(context.Background(), []string{"--url", server.URL, "tasks", "retry", "tsk_1"}, io.Discard, io.Discard); err == nil || !strings.Contains(err.Error(), `unknown tasks command "retry"`) {
+		t.Fatalf("tasks retry error = %v", err)
 	}
 
 	artifactPath := filepath.Join(t.TempDir(), "evidence", "body.txt")
@@ -273,7 +272,7 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		"GET /api/v2/profiles", "GET /api/v2/profiles/default",
 		"POST /api/v2/runs", "GET /api/v2/runs", "GET /api/v2/runs/run_1", "GET /api/v2/tasks", "GET /api/v2/workers",
 		"GET /api/v2/tasks/tsk_1/attempts", "GET /api/v2/tasks/tsk_1/events",
-		"POST /api/v2/tasks/tsk_1/cancel", "POST /api/v2/tasks/tsk_1/retry",
+		"POST /api/v2/tasks/tsk_1/cancel",
 		"GET /api/v2/transactions", "GET /api/v2/targets/tgt_1/transactions",
 		"GET /api/v2/transactions/search", "GET /api/v2/targets/tgt_1/transactions/search",
 		"POST /api/v2/targets/tgt_1/transactions/import",

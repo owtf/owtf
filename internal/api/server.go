@@ -90,7 +90,6 @@ func New(config Config) http.Handler {
 	mux.HandleFunc("GET /api/v2/tasks/{taskID}/attempts", server.taskAttempts)
 	mux.HandleFunc("GET /api/v2/tasks/{taskID}/events", server.taskEvents)
 	mux.HandleFunc("POST /api/v2/tasks/{taskID}/cancel", server.cancelTask)
-	mux.HandleFunc("POST /api/v2/tasks/{taskID}/retry", server.retryTask)
 	mux.HandleFunc("GET /api/v2/transactions", server.listTransactions)
 	mux.HandleFunc("GET /api/v2/transactions/search", server.searchTransactions)
 	mux.HandleFunc("GET /api/v2/targets/{targetID}/transactions", server.listTargetTransactions)
@@ -571,14 +570,6 @@ func (s *Server) cancelTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, item)
-}
-
-func (s *Server) retryTask(w http.ResponseWriter, r *http.Request) {
-	item, err := s.runner.Retry(r.Context(), r.PathValue("taskID"))
-	if s.handleStoreError(w, err) {
-		return
-	}
-	writeJSON(w, http.StatusAccepted, item)
 }
 
 func (s *Server) taskAttempts(w http.ResponseWriter, r *http.Request) {
