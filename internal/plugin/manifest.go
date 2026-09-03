@@ -1,9 +1,12 @@
 package plugin
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/fs"
+	"net/url"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -14,6 +17,57 @@ import (
 	"github.com/owtf/owtf/internal/model"
 	"gopkg.in/yaml.v3"
 )
+
+const defaultTechniquePriority = 99
+
+// TechniqueSpec preserves the OWTF test-group metadata referenced by a plugin.
+type TechniqueSpec struct {
+	Code      string `yaml:"code" json:"code"`
+	Title     string `yaml:"title,omitempty" json:"title"`
+	Hint      string `yaml:"hint,omitempty" json:"hint,omitempty"`
+	Priority  int    `yaml:"priority,omitempty" json:"priority"`
+	Reference string `yaml:"reference,omitempty" json:"reference,omitempty"`
+}
+
+// UnmarshalYAML accepts historical code-only manifests while new manifests use
+// a mapping that retains the complete OWTF technique metadata.
+func (t *TechniqueSpec) UnmarshalYAML(node *yaml.Node) error {
+	if node.Kind == yaml.ScalarNode {
+		var code string
+		if err := node.Decode(&code); err != nil {
+			return err
+		}
+		*t = TechniqueSpec{Code: code}
+		return nil
+	}
+	if node.Kind != yaml.MappingNode {
+		return fmt.Errorf("technique must be a code or mapping")
+	}
+	allowed := map[string]bool{"code": true, "title": true, "hint": true, "priority": true, "reference": true}
+	for index := 0; index < len(node.Content); index += 2 {
+		if !allowed[node.Content[index].Value] {
+			return fmt.Errorf("unknown technique field %q", node.Content[index].Value)
+		}
+	}
+	type plain TechniqueSpec
+	return node.Decode((*plain)(t))
+}
+
+// UnmarshalJSON keeps stored code-only task snapshots readable.
+func (t *TechniqueSpec) UnmarshalJSON(data []byte) error {
+	if data = bytes.TrimSpace(data); len(data) != 0 && data[0] == '"' {
+		var code string
+		if err := json.Unmarshal(data, &code); err != nil {
+			return err
+		}
+		*t = TechniqueSpec{Code: code}
+		return nil
+	}
+	type plain TechniqueSpec
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	return decoder.Decode((*plain)(t))
+}
 
 // Manifest is the validated plugin.yaml contract retained with each task.
 type Manifest struct {
@@ -26,7 +80,7 @@ type Manifest struct {
 		Description string `yaml:"description" json:"description"`
 	} `yaml:"metadata" json:"metadata"`
 	Spec struct {
-		Techniques   []string            `yaml:"techniques" json:"techniques"`
+		Techniques   []TechniqueSpec     `yaml:"techniques" json:"techniques"`
 		Group        string              `yaml:"group" json:"group"`
 		Type         string              `yaml:"type" json:"type"`
 		TargetKinds  []string            `yaml:"targetKinds,omitempty" json:"targetKinds,omitempty"`
@@ -137,6 +191,7 @@ type Catalog struct {
 // a unit so startup cannot silently omit malformed plugins.
 func Load(fsys fs.FS) (*Catalog, error) {
 	catalog := &Catalog{entries: make(map[string]Entry)}
+	techniques := make(map[string]TechniqueSpec)
 	err := fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
@@ -154,12 +209,18 @@ func Load(fsys fs.FS) (*Catalog, error) {
 		if err := decoder.Decode(&manifest); err != nil {
 			return fmt.Errorf("parse %s: %w", path, err)
 		}
+		normalizeManifest(&manifest)
 		if err := validateManifest(manifest); err != nil {
 			return fmt.Errorf("validate %s: %w", path, err)
 		}
 		if _, exists := catalog.entries[manifest.Metadata.ID]; exists {
 			return fmt.Errorf("duplicate plugin ID %q", manifest.Metadata.ID)
 		}
+		technique := manifest.Spec.Techniques[0]
+		if existing, ok := techniques[technique.Code]; ok && existing != technique {
+			return fmt.Errorf("plugin %q conflicts with metadata for technique %q", manifest.Metadata.ID, technique.Code)
+		}
+		techniques[technique.Code] = technique
 		catalog.entries[manifest.Metadata.ID] = Entry{
 			Manifest: manifest, Availability: "missing_runtime", Reason: "runtime is not registered",
 		}
@@ -169,6 +230,22 @@ func Load(fsys fs.FS) (*Catalog, error) {
 		return nil, err
 	}
 	return catalog, nil
+}
+
+func normalizeManifest(manifest *Manifest) {
+	for index := range manifest.Spec.Techniques {
+		technique := &manifest.Spec.Techniques[index]
+		technique.Code = strings.TrimSpace(technique.Code)
+		technique.Title = strings.TrimSpace(technique.Title)
+		technique.Hint = strings.TrimSpace(technique.Hint)
+		technique.Reference = strings.TrimSpace(technique.Reference)
+		if technique.Title == "" {
+			technique.Title = strings.TrimSpace(manifest.Metadata.Title)
+		}
+		if technique.Priority == 0 {
+			technique.Priority = defaultTechniquePriority
+		}
+	}
 }
 
 func validateManifest(manifest Manifest) error {
@@ -181,14 +258,27 @@ func validateManifest(manifest Manifest) error {
 	if manifest.Metadata.ID == "" || manifest.Metadata.Version == "" || manifest.Metadata.Title == "" {
 		return fmt.Errorf("metadata.id, metadata.version, and metadata.title are required")
 	}
-	if len(manifest.Spec.Techniques) == 0 {
-		return fmt.Errorf("at least one technique is required")
+	if len(manifest.Spec.Techniques) != 1 {
+		return fmt.Errorf("exactly one technique is required")
 	}
 	if !validPluginGroup(manifest.Spec.Group) {
 		return fmt.Errorf("unsupported plugin group %q", manifest.Spec.Group)
 	}
 	if !validPluginType(manifest.Spec.Type) {
 		return fmt.Errorf("unsupported plugin type %q", manifest.Spec.Type)
+	}
+	technique := manifest.Spec.Techniques[0]
+	if technique.Code == "" || technique.Title == "" || technique.Priority < 1 {
+		return fmt.Errorf("technique code, title, and positive priority are required")
+	}
+	if manifest.Metadata.ID != technique.Code+"-"+manifest.Spec.Type {
+		return fmt.Errorf("plugin ID must be %q", technique.Code+"-"+manifest.Spec.Type)
+	}
+	if technique.Reference != "" {
+		reference, err := url.Parse(technique.Reference)
+		if err != nil || (reference.Scheme != "http" && reference.Scheme != "https") || reference.Host == "" {
+			return fmt.Errorf("technique %q has invalid reference %q", technique.Code, technique.Reference)
+		}
 	}
 	inputNames, err := validateInputs(manifest.Spec.Inputs)
 	if err != nil {
@@ -432,6 +522,13 @@ func (c *Catalog) EntriesByGroupType(group string, pluginTypes []string) []Entry
 
 // Plugin returns the operator-visible catalog record for an entry.
 func (e Entry) Plugin() model.Plugin {
+	techniques := make([]model.Technique, len(e.Manifest.Spec.Techniques))
+	for index, technique := range e.Manifest.Spec.Techniques {
+		techniques[index] = model.Technique{
+			Code: technique.Code, Title: technique.Title, Hint: technique.Hint,
+			Priority: technique.Priority, Reference: technique.Reference,
+		}
+	}
 	return model.Plugin{
 		ID:           e.Manifest.Metadata.ID,
 		Version:      e.Manifest.Metadata.Version,
@@ -439,7 +536,7 @@ func (e Entry) Plugin() model.Plugin {
 		Description:  e.Manifest.Metadata.Description,
 		Group:        e.Manifest.Spec.Group,
 		Type:         e.Manifest.Spec.Type,
-		Techniques:   append([]string(nil), e.Manifest.Spec.Techniques...),
+		Techniques:   techniques,
 		Inputs:       append([]model.PluginInput{}, e.Manifest.Spec.Inputs...),
 		RuntimeType:  e.Manifest.Spec.Runtime.Type,
 		Availability: e.Availability,

@@ -181,7 +181,12 @@ metadata:
   title: HTTP response collector
   description: Captures one HTTP response as transaction evidence.
 spec:
-  techniques: [OWTF-WSP-001]
+  techniques:
+    - code: OWTF-WSP-001
+      title: Visit URLs
+      hint: Visit the target and retain its response.
+      priority: 99
+      reference: https://owtf.org
   group: web
   type: active
   targetKinds: [url]
@@ -250,8 +255,9 @@ func TestTargetScanPersistsReportAndSupportsDeletion(t *testing.T) {
 	}
 	target := added.Created[0]
 	plugins := requestJSON[[]model.Plugin](t, server.Client(), http.MethodGet, server.URL+"/api/v2/plugins", nil, http.StatusOK)
-	if len(plugins) != 1 || len(plugins[0].Inputs) != 1 || plugins[0].Inputs[0].Name != "request_label" {
-		t.Fatalf("plugin inputs are not exposed: %+v", plugins)
+	if len(plugins) != 1 || len(plugins[0].Inputs) != 1 || plugins[0].Inputs[0].Name != "request_label" ||
+		len(plugins[0].Techniques) != 1 || plugins[0].Techniques[0].Hint != "Visit the target and retain its response." {
+		t.Fatalf("plugin contract is not exposed: %+v", plugins)
 	}
 	requestJSON[map[string]string](t, server.Client(), http.MethodPost, server.URL+"/api/v2/runs", map[string]any{
 		"session_id":    session.ID,
@@ -653,7 +659,9 @@ func newTestServer(t *testing.T) (*httptest.Server, *store.Store, *runner.Runner
 
 func assertReport(t *testing.T, report model.TargetReport) {
 	t.Helper()
-	if len(report.Tasks) != 1 || report.Tasks[0].Status != model.TaskSucceeded || report.Tasks[0].Inputs["request_label"] != "API run" {
+	if len(report.Tasks) != 1 || report.Tasks[0].Status != model.TaskSucceeded || report.Tasks[0].Inputs["request_label"] != "API run" ||
+		len(report.Tasks[0].Techniques) != 1 || report.Tasks[0].Techniques[0].Code != "OWTF-WSP-001" ||
+		report.Tasks[0].Techniques[0].Reference != "https://owtf.org" {
 		t.Fatalf("unexpected tasks: %+v", report.Tasks)
 	}
 	if len(report.Transactions) != 1 || report.Transactions[0].StatusCode != http.StatusCreated {

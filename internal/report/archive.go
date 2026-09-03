@@ -155,8 +155,8 @@ var sessionTemplate = template.Must(template.New("session-report").Funcs(templat
   {{range .Report.Targets}}<tr><td><code>{{.ID}}</code></td><td>{{.Kind}}</td><td>{{.Value}}</td></tr>{{else}}<tr><td colspan="3">No targets</td></tr>{{end}}
   </tbody></table>
   <h2>Tasks</h2>
-  <table><thead><tr><th>ID</th><th>Target</th><th>Plugin</th><th>Status</th><th>Error</th></tr></thead><tbody>
-  {{range .Report.Tasks}}<tr><td><code>{{.ID}}</code></td><td><code>{{.TargetID}}</code></td><td>{{.PluginID}}</td><td>{{.Status}}</td><td>{{.Error}}</td></tr>{{else}}<tr><td colspan="5">No tasks</td></tr>{{end}}
+  <table><thead><tr><th>ID</th><th>Target</th><th>Plugin</th><th>Technique</th><th>Status</th><th>Error</th></tr></thead><tbody>
+  {{range .Report.Tasks}}<tr><td><code>{{.ID}}</code></td><td><code>{{.TargetID}}</code></td><td>{{.PluginID}}</td><td>{{range .Techniques}}<div><code>{{.Code}}</code> {{.Title}}{{if .Hint}}<br><span class="muted">{{.Hint}}</span>{{end}}{{if .Reference}}<br><a href="{{.Reference}}">Reference</a>{{end}}</div>{{end}}</td><td>{{.Status}}</td><td>{{.Error}}</td></tr>{{else}}<tr><td colspan="6">No tasks</td></tr>{{end}}
   </tbody></table>
   <h2>Attempts</h2>
   <table><thead><tr><th>Task</th><th>Attempt</th><th>Status</th><th>Started</th><th>Error</th></tr></thead><tbody>

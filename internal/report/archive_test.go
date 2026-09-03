@@ -27,7 +27,11 @@ func TestWriteSessionArchiveIncludesPortableEvidence(t *testing.T) {
 		Session: model.Session{ID: "ses_1", Name: "Escaping <script>alert(1)</script>", CreatedAt: now},
 		Summary: model.ReportSummary{Targets: 1, Runs: 1, Tasks: 1, Attempts: 1, Succeeded: 1, Artifacts: 1},
 		Targets: []model.Target{{ID: "tgt_1", SessionID: "ses_1", Kind: "url", Value: "https://example.test/?q=<script>", CreatedAt: now}},
-		Tasks:   []model.Task{{ID: "tsk_1", RunID: "run_1", TargetID: "tgt_1", PluginID: "OWTF-WSP-001-active", Status: model.TaskSucceeded, CreatedAt: now}},
+		Tasks: []model.Task{{
+			ID: "tsk_1", RunID: "run_1", TargetID: "tgt_1", PluginID: "OWTF-WSP-001-active",
+			Techniques: []model.Technique{{Code: "OWTF-WSP-001", Title: "Visit URLs", Hint: "Visit the target.", Priority: 99, Reference: "https://owtf.org"}},
+			Status:     model.TaskSucceeded, CreatedAt: now,
+		}},
 		Attempts: []model.TaskAttempt{{
 			ID: "att_1", TaskID: "tsk_1", AttemptNumber: 1, Status: model.TaskSucceeded, StartedAt: now, EndedAt: &now,
 		}},
@@ -68,6 +72,11 @@ func TestWriteSessionArchiveIncludesPortableEvidence(t *testing.T) {
 	if strings.Contains(string(files["index.html"]), "<script>alert(1)</script>") ||
 		!strings.Contains(string(files["index.html"]), "&lt;script&gt;") {
 		t.Fatal("offline report did not escape operator-controlled content")
+	}
+	if !strings.Contains(string(files["index.html"]), "OWTF-WSP-001") ||
+		!strings.Contains(string(files["index.html"]), "Visit URLs") ||
+		!strings.Contains(string(files["index.html"]), "https://owtf.org") {
+		t.Fatal("offline report omitted technique metadata")
 	}
 	var decoded model.SessionReport
 	if err := json.Unmarshal(files["report.json"], &decoded); err != nil {

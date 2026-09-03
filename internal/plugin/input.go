@@ -230,6 +230,7 @@ func ParseSnapshot(data string) (TaskSnapshot, error) {
 		if err := decodeSnapshot(data, &manifest); err != nil {
 			return TaskSnapshot{}, fmt.Errorf("decode legacy plugin snapshot: %w", err)
 		}
+		normalizeManifest(&manifest)
 		if err := validateManifest(manifest); err != nil {
 			return TaskSnapshot{}, fmt.Errorf("validate legacy plugin snapshot: %w", err)
 		}
@@ -242,6 +243,7 @@ func ParseSnapshot(data string) (TaskSnapshot, error) {
 	if err := decodeSnapshot(data, &snapshot); err != nil {
 		return TaskSnapshot{}, fmt.Errorf("decode plugin snapshot: %w", err)
 	}
+	normalizeManifest(&snapshot.Manifest)
 	if err := validateManifest(snapshot.Manifest); err != nil {
 		return TaskSnapshot{}, fmt.Errorf("validate plugin snapshot: %w", err)
 	}

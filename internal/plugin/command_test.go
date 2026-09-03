@@ -51,7 +51,7 @@ func TestCommandArtifactsCannotEscapeTheirDirectory(t *testing.T) {
 func TestCancellationKillsPluginProcessGroup(t *testing.T) {
 	manifest := Manifest{}
 	manifest.Metadata.ID = "OWTF-TEST-001-active"
-	manifest.Spec.Techniques = []string{"OWTF-TEST-001"}
+	manifest.Spec.Techniques = []TechniqueSpec{{Code: "OWTF-TEST-001", Title: "Test", Priority: 99}}
 	manifest.Spec.TargetKinds = []string{"url"}
 	manifest.Spec.Runtime.Command = &CommandSpec{Args: []string{"-test.run=TestCommandProcessHelper", "--", "spawn"}}
 

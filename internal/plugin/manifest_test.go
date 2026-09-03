@@ -41,6 +41,51 @@ func TestEntriesByGroupType(t *testing.T) {
 	}
 }
 
+func TestTechniqueMetadataIsExposedAndConsistent(t *testing.T) {
+	manifest := strings.Replace(commandManifest("executable: echo", ""),
+		"  techniques: [OWTF-TEST-001]", `  techniques:
+    - code: OWTF-TEST-001
+      title: Test technique
+      hint: Inspect the response.
+      priority: 10
+      reference: https://example.test/reference`, 1)
+	catalog, err := Load(fstest.MapFS{"active/plugin.yaml": {Data: []byte(manifest)}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	entry, _ := catalog.Get("OWTF-TEST-001-active")
+	technique := entry.Plugin().Techniques[0]
+	if technique.Code != "OWTF-TEST-001" || technique.Title != "Test technique" ||
+		technique.Hint != "Inspect the response." || technique.Priority != 10 ||
+		technique.Reference != "https://example.test/reference" {
+		t.Fatalf("unexpected technique metadata: %+v", technique)
+	}
+
+	for name, invalid := range map[string]string{
+		"wrong ID":          strings.Replace(manifest, "id: OWTF-TEST-001-active", "id: OWTF-OTHER-001-active", 1),
+		"negative priority": strings.Replace(manifest, "priority: 10", "priority: -1", 1),
+		"invalid reference": strings.Replace(manifest, "https://example.test/reference", "file:///tmp/reference", 1),
+		"unknown field":     strings.Replace(manifest, "      hint:", "      category: web\n      hint:", 1),
+		"multiple codes":    strings.Replace(manifest, "  group: web", "    - OWTF-TEST-002\n  group: web", 1),
+	} {
+		t.Run(name, func(t *testing.T) {
+			if _, err := Load(fstest.MapFS{"plugin.yaml": {Data: []byte(invalid)}}); err == nil {
+				t.Fatal("invalid technique metadata was accepted")
+			}
+		})
+	}
+
+	passive := strings.Replace(manifest, "id: OWTF-TEST-001-active", "id: OWTF-TEST-001-passive", 1)
+	passive = strings.Replace(passive, "type: active", "type: passive", 1)
+	passive = strings.Replace(passive, "hint: Inspect the response.", "hint: Different metadata.", 1)
+	if _, err := Load(fstest.MapFS{
+		"active/plugin.yaml":  {Data: []byte(manifest)},
+		"passive/plugin.yaml": {Data: []byte(passive)},
+	}); err == nil {
+		t.Fatal("conflicting metadata for one OWTF code was accepted")
+	}
+}
+
 func TestCommandManifestRejectsShellAndPartialInterpolation(t *testing.T) {
 	for name, runtime := range map[string]string{
 		"shell":   "executable: sh\n      args: []",

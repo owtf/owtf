@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -199,6 +200,11 @@ CREATE TABLE plugins (
   runtime_type TEXT NOT NULL, availability TEXT NOT NULL, reason TEXT NOT NULL DEFAULT '',
   updated_at TEXT NOT NULL
 );
+CREATE TABLE techniques (
+  id INTEGER PRIMARY KEY, code TEXT NOT NULL UNIQUE, title TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'supported'
+);
+INSERT INTO techniques VALUES(1,'OWTF-TEST-001','test','supported');
 INSERT INTO plugins VALUES('OWTF-TEST-001-passive','0.1.0','test','','passive','["OWTF-TEST-001"]','builtin','ready','','2026-01-01T00:00:00Z');`)
 	if err != nil {
 		legacy.Close()
@@ -217,7 +223,9 @@ INSERT INTO plugins VALUES('OWTF-TEST-001-passive','0.1.0','test','','passive','
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(plugins) != 1 || plugins[0].Group != "web" || plugins[0].Type != "passive" || len(plugins[0].Inputs) != 0 {
+	if len(plugins) != 1 || plugins[0].Group != "web" || plugins[0].Type != "passive" || len(plugins[0].Inputs) != 0 ||
+		len(plugins[0].Techniques) != 1 || plugins[0].Techniques[0].Code != "OWTF-TEST-001" ||
+		plugins[0].Techniques[0].Title != "test" || plugins[0].Techniques[0].Priority != 99 {
 		t.Fatalf("legacy plugin columns were not migrated: %+v", plugins)
 	}
 }
@@ -232,6 +240,8 @@ func TestReplacePluginsRemovesStaleCatalogEntries(t *testing.T) {
 	first := plugin("OWTF-TEST-001-active")
 	second := plugin("OWTF-TEST-002-passive")
 	second.Inputs = []model.PluginInput{{Name: "timeout_seconds", Type: "integer", Default: 20}}
+	second.Techniques[0].Hint = "Inspect the retained response."
+	second.Techniques[0].Reference = "https://example.test/reference"
 	if err := database.ReplacePlugins(context.Background(), []model.Plugin{first, second}); err != nil {
 		t.Fatal(err)
 	}
@@ -242,7 +252,8 @@ func TestReplacePluginsRemovesStaleCatalogEntries(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(plugins) != 1 || plugins[0].ID != second.ID || len(plugins[0].Inputs) != 1 || plugins[0].Inputs[0].Name != "timeout_seconds" {
+	if len(plugins) != 1 || plugins[0].ID != second.ID || len(plugins[0].Inputs) != 1 || plugins[0].Inputs[0].Name != "timeout_seconds" ||
+		len(plugins[0].Techniques) != 1 || plugins[0].Techniques[0] != second.Techniques[0] {
 		t.Fatalf("stale plugins remain after catalog replacement: %+v", plugins)
 	}
 }
@@ -468,8 +479,10 @@ func TestRecoverTasksPreservesAttemptHistory(t *testing.T) {
 }
 
 func plugin(id string) model.Plugin {
+	pluginType := id[strings.LastIndexByte(id, '-')+1:]
+	code := strings.TrimSuffix(id, "-"+pluginType)
 	return model.Plugin{
-		ID: id, Version: "0.1.0", Title: id, Group: "web", Type: "active",
-		Techniques: []string{id}, RuntimeType: "builtin", Availability: "ready",
+		ID: id, Version: "0.1.0", Title: id, Group: "web", Type: pluginType,
+		Techniques: []model.Technique{{Code: code, Title: id, Priority: 99}}, RuntimeType: "builtin", Availability: "ready",
 	}
 }

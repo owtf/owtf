@@ -9,7 +9,11 @@ metadata:
 
 spec:
   techniques:
-    - OWTF-WSP-001
+    - code: OWTF-WSP-001
+      title: Visit URLs
+      hint: Visit URLs discovered by spidering.
+      priority: 99
+      reference: https://owtf.org
   group: web
   type: active
   targetKinds:

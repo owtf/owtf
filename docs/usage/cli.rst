@@ -93,6 +93,11 @@ established plugin group and type names::
   owtf plugins list
   owtf plugins list --group web --type semi_passive
 
+``plugins list`` returns each type-specific implementation with its established
+OWTF code, title, hint, priority, and reference. Each task snapshots that
+metadata so later manifest edits do not rewrite historical reports. There is no
+separate technique command.
+
 List profiles or inspect their plugin order::
 
   owtf profiles list

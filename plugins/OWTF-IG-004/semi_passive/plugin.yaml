@@ -9,7 +9,11 @@ metadata:
 
 spec:
   techniques:
-    - OWTF-IG-004
+    - code: OWTF-IG-004
+      title: Web Application Fingerprint
+      hint: What is that site running?
+      priority: 99
+      reference: https://www.owasp.org/index.php/Testing_for_Web_Application_Fingerprint_(OWASP-IG-004)
   group: web
   type: semi_passive
   targetKinds:

@@ -34,6 +34,17 @@ func TestPluginInputsResolveAndSnapshot(t *testing.T) {
 	if !snapshot.Matches(entry.Manifest) || snapshot.Inputs["timeout_seconds"] != int64(20) || snapshot.Inputs["mode"] != "fast" {
 		t.Fatalf("unexpected task snapshot: %+v", snapshot)
 	}
+	codeOnly := strings.Replace(snapshotJSON,
+		`"techniques":[{"code":"OWTF-TEST-001","title":"Input test","priority":99}]`,
+		`"techniques":["OWTF-TEST-001"]`, 1)
+	if codeOnly == snapshotJSON {
+		t.Fatal("test snapshot did not contain structured technique metadata")
+	}
+	oldSnapshot, err := ParseSnapshot(codeOnly)
+	if err != nil || oldSnapshot.Manifest.Spec.Techniques[0].Title != "Input test" ||
+		oldSnapshot.Manifest.Spec.Techniques[0].Priority != 99 {
+		t.Fatalf("code-only task snapshot was not migrated: snapshot=%+v err=%v", oldSnapshot, err)
+	}
 	changed := entry.Manifest
 	changed.Metadata.Version = "0.2.0"
 	if snapshot.Matches(changed) {

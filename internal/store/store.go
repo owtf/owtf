@@ -726,7 +726,8 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, item.ID, item.Version, item.Title, 
 			return err
 		}
 		for _, technique := range item.Techniques {
-			if _, err := tx.ExecContext(ctx, `INSERT INTO techniques(code, title) VALUES(?, ?) ON CONFLICT(code) DO NOTHING`, technique, technique); err != nil {
+			if _, err := tx.ExecContext(ctx, `INSERT INTO techniques(code, title) VALUES(?, ?)
+ON CONFLICT(code) DO UPDATE SET title=excluded.title`, technique.Code, technique.Title); err != nil {
 				return err
 			}
 		}
@@ -754,6 +755,7 @@ FROM plugins ORDER BY id`)
 		if err := json.Unmarshal([]byte(techniquesJSON), &item.Techniques); err != nil {
 			return nil, fmt.Errorf("decode plugin %s techniques: %w", item.ID, err)
 		}
+		normalizeStoredTechniques(item.Title, item.Techniques)
 		if err := json.Unmarshal([]byte(inputsJSON), &item.Inputs); err != nil {
 			return nil, fmt.Errorf("decode plugin %s inputs: %w", item.ID, err)
 		}
@@ -824,9 +826,9 @@ func (s *Store) CreateRun(ctx context.Context, sessionID, profile string, specs 
 			ID: newID("tsk"), RunID: run.ID, TargetID: spec.TargetID, PluginID: spec.PluginID,
 			Status: spec.Status, Error: spec.Error, CreatedAt: now,
 		}
-		task.Inputs, err = taskInputs(spec.PluginSnapshot)
+		task.Inputs, task.Techniques, err = taskSnapshotDetails(spec.PluginSnapshot)
 		if err != nil {
-			return model.Run{}, nil, fmt.Errorf("decode plugin %s inputs: %w", spec.PluginID, err)
+			return model.Run{}, nil, fmt.Errorf("decode plugin %s snapshot: %w", spec.PluginID, err)
 		}
 		if task.Status == model.TaskBlocked {
 			task.EndedAt = &now
@@ -1291,9 +1293,9 @@ func scanTask(row rowScanner) (model.Task, error) {
 	if err != nil {
 		return model.Task{}, err
 	}
-	item.Inputs, err = taskInputs(snapshot)
+	item.Inputs, item.Techniques, err = taskSnapshotDetails(snapshot)
 	if err != nil {
-		return model.Task{}, fmt.Errorf("decode task %s inputs: %w", item.ID, err)
+		return model.Task{}, fmt.Errorf("decode task %s snapshot: %w", item.ID, err)
 	}
 	item.CreatedAt = parseTime(created)
 	item.StartedAt = parseNullTime(started)
@@ -1301,19 +1303,55 @@ func scanTask(row rowScanner) (model.Task, error) {
 	return item, err
 }
 
-func taskInputs(snapshot string) (map[string]any, error) {
+func taskSnapshotDetails(snapshot string) (map[string]any, []model.Technique, error) {
 	var stored struct {
+		Version  int `json:"version"`
+		Manifest struct {
+			Metadata struct {
+				Title string `json:"title"`
+			} `json:"metadata"`
+			Spec struct {
+				Techniques []model.Technique `json:"techniques"`
+			} `json:"spec"`
+		} `json:"manifest"`
+		Metadata struct {
+			Title string `json:"title"`
+		} `json:"metadata"`
+		Spec struct {
+			Techniques []model.Technique `json:"techniques"`
+		} `json:"spec"`
 		Inputs map[string]any `json:"inputs"`
 	}
 	decoder := json.NewDecoder(strings.NewReader(snapshot))
 	decoder.UseNumber()
 	if err := decoder.Decode(&stored); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if stored.Inputs == nil {
 		stored.Inputs = make(map[string]any)
 	}
-	return stored.Inputs, nil
+	techniques := stored.Manifest.Spec.Techniques
+	title := stored.Manifest.Metadata.Title
+	if stored.Version == 0 {
+		techniques = stored.Spec.Techniques
+		title = stored.Metadata.Title
+	}
+	if techniques == nil {
+		techniques = make([]model.Technique, 0)
+	}
+	normalizeStoredTechniques(title, techniques)
+	return stored.Inputs, techniques, nil
+}
+
+func normalizeStoredTechniques(title string, techniques []model.Technique) {
+	for index := range techniques {
+		if techniques[index].Title == "" {
+			techniques[index].Title = title
+		}
+		if techniques[index].Priority == 0 {
+			techniques[index].Priority = 99
+		}
+	}
 }
 
 // ListTaskAttempts returns execution attempts in the order they started.

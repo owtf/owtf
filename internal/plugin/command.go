@@ -65,7 +65,7 @@ func CommandExecutor(manifest Manifest, executable string) Executor {
 		return Result{
 			Artifacts: artifacts,
 			Observations: []ObservationResult{{
-				TechniqueCode: manifest.Spec.Techniques[0], Kind: "command.completed", Data: string(observation),
+				TechniqueCode: manifest.Spec.Techniques[0].Code, Kind: "command.completed", Data: string(observation),
 			}},
 		}, nil
 	}

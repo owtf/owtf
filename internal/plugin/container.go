@@ -80,7 +80,7 @@ func ContainerExecutor(manifest Manifest, engine ContainerEngine) Executor {
 		return Result{
 			Artifacts: artifacts,
 			Observations: []ObservationResult{{
-				TechniqueCode: manifest.Spec.Techniques[0], Kind: "container.completed",
+				TechniqueCode: manifest.Spec.Techniques[0].Code, Kind: "container.completed",
 				Data: containerObservation(spec, artifactNames),
 			}},
 		}, nil

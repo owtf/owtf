@@ -66,6 +66,11 @@ Core model
   A versioned manifest for one executable technique. IDs use the existing code
   plus its plugin type, for example ``OWTF-WSP-001-active``.
 
+``Technique``
+  The established OWTF test-group code, title, hint, priority, and reference.
+  Plugin type variants share identical metadata for the same code. A task keeps
+  the metadata from its immutable plugin snapshot.
+
 ``Run`` and ``Task``
   A run is an immutable launch plan. Each target/plugin pair becomes a durable
   task with attempts, timestamps, terminal status, and an explicit error. A
@@ -111,8 +116,8 @@ Plugin execution
 ----------------
 
 The manifest is declarative. It identifies the plugin, version, OWTF technique
-codes, group, type, runtime, requirements, supported target kinds, and optional
-operator inputs. Inputs use the small ``string``, ``integer``, and ``boolean``
+metadata, group, type, runtime, requirements, supported target kinds, and
+optional operator inputs. Inputs use the small ``string``, ``integer``, and ``boolean``
 type set. String choices and integer bounds describe validation and provide the
 same rendering contract to the CLI, API, and final UI.
 

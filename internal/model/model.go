@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"bytes"
+	"encoding/json"
+	"time"
+)
 
 const (
 	// RunQueued indicates that a run still has work waiting for a worker.
@@ -58,6 +62,29 @@ type PluginInput struct {
 	Maximum     *int64   `yaml:"maximum,omitempty" json:"maximum,omitempty"`
 }
 
+// Technique is the OWTF test-group metadata shared by plugin type variants.
+type Technique struct {
+	Code      string `json:"code"`
+	Title     string `json:"title"`
+	Hint      string `json:"hint,omitempty"`
+	Priority  int    `json:"priority"`
+	Reference string `json:"reference,omitempty"`
+}
+
+// UnmarshalJSON accepts the code-only format used by early rewrite databases.
+func (t *Technique) UnmarshalJSON(data []byte) error {
+	if data = bytes.TrimSpace(data); len(data) != 0 && data[0] == '"' {
+		var code string
+		if err := json.Unmarshal(data, &code); err != nil {
+			return err
+		}
+		*t = Technique{Code: code}
+		return nil
+	}
+	type plain Technique
+	return json.Unmarshal(data, (*plain)(t))
+}
+
 // Plugin is the indexed, operator-visible form of a plugin manifest.
 type Plugin struct {
 	ID           string        `json:"id"`
@@ -66,7 +93,7 @@ type Plugin struct {
 	Description  string        `json:"description"`
 	Group        string        `json:"group"`
 	Type         string        `json:"type"`
-	Techniques   []string      `json:"techniques"`
+	Techniques   []Technique   `json:"techniques"`
 	Inputs       []PluginInput `json:"inputs"`
 	RuntimeType  string        `json:"runtime_type"`
 	Availability string        `json:"availability"`
@@ -87,16 +114,17 @@ type Run struct {
 
 // Task is one plugin and target pair scheduled by a run.
 type Task struct {
-	ID        string         `json:"id"`
-	RunID     string         `json:"run_id"`
-	TargetID  string         `json:"target_id"`
-	PluginID  string         `json:"plugin_id"`
-	Inputs    map[string]any `json:"inputs"`
-	Status    string         `json:"status"`
-	Error     string         `json:"error,omitempty"`
-	CreatedAt time.Time      `json:"created_at"`
-	StartedAt *time.Time     `json:"started_at,omitempty"`
-	EndedAt   *time.Time     `json:"ended_at,omitempty"`
+	ID         string         `json:"id"`
+	RunID      string         `json:"run_id"`
+	TargetID   string         `json:"target_id"`
+	PluginID   string         `json:"plugin_id"`
+	Techniques []Technique    `json:"techniques"`
+	Inputs     map[string]any `json:"inputs"`
+	Status     string         `json:"status"`
+	Error      string         `json:"error,omitempty"`
+	CreatedAt  time.Time      `json:"created_at"`
+	StartedAt  *time.Time     `json:"started_at,omitempty"`
+	EndedAt    *time.Time     `json:"ended_at,omitempty"`
 }
 
 // TaskExecution contains the task, its current attempt, and the resolved target
