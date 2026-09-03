@@ -120,8 +120,20 @@ func externalOutput(observation model.Observation) *model.ExternalOutput {
 	return &output
 }
 
+func grepOutput(observation model.Observation) *model.GrepOutput {
+	if observation.Kind != model.ObservationKindGrepMatches {
+		return nil
+	}
+	var output model.GrepOutput
+	if err := json.Unmarshal([]byte(observation.Data), &output); err != nil {
+		return nil
+	}
+	return &output
+}
+
 var sessionTemplate = template.Must(template.New("session-report").Funcs(template.FuncMap{
 	"external": externalOutput,
+	"grep":     grepOutput,
 	"time":     func(value time.Time) string { return value.UTC().Format(time.RFC3339) },
 }).Parse(`<!doctype html>
 <html lang="en">
@@ -178,15 +190,15 @@ var sessionTemplate = template.Must(template.New("session-report").Funcs(templat
   </tbody></table>
   <h2>Observations</h2>
   <table><thead><tr><th>Technique</th><th>Kind</th><th>Output</th></tr></thead><tbody>
-  {{range .Report.Observations}}<tr><td><code>{{.TechniqueCode}}</code></td><td>{{.Kind}}</td><td>{{$external := external .}}{{if $external}}<div>{{$external.Guidance}}</div><ul>{{range $external.References}}<li><a href="{{.URL}}">{{.Title}}</a></li>{{end}}</ul>{{else}}<pre>{{.Data}}</pre>{{end}}</td></tr>{{else}}<tr><td colspan="3">No observations</td></tr>{{end}}
+  {{range .Report.Observations}}<tr><td><code>{{.TechniqueCode}}</code></td><td>{{.Kind}}</td><td>{{$external := external .}}{{$grep := grep .}}{{if $external}}<div>{{$external.Guidance}}</div><ul>{{range $external.References}}<li><a href="{{.URL}}">{{.Title}}</a></li>{{end}}</ul>{{else if $grep}}<div>{{$grep.Title}}</div><ul>{{range $grep.TransactionIDs}}<li><a href="#transaction-{{.}}"><code>{{.}}</code></a></li>{{else}}<li class="muted">No matching transactions</li>{{end}}</ul>{{if $grep.Truncated}}<div class="muted">Match list truncated</div>{{end}}{{else}}<pre>{{.Data}}</pre>{{end}}</td></tr>{{else}}<tr><td colspan="3">No observations</td></tr>{{end}}
   </tbody></table>
   <h2>Findings</h2>
   <table><thead><tr><th>Severity</th><th>Technique</th><th>Title</th><th>Description</th></tr></thead><tbody>
   {{range .Report.Findings}}<tr><td>{{.Severity}}</td><td><code>{{.TechniqueCode}}</code></td><td>{{.Title}}</td><td>{{.Description}}</td></tr>{{else}}<tr><td colspan="4">No findings</td></tr>{{end}}
   </tbody></table>
   <h2>Transactions</h2>
-  <table><thead><tr><th>Method</th><th>URL</th><th>Status</th><th>Duration</th></tr></thead><tbody>
-  {{range .Report.Transactions}}<tr><td>{{.Method}}</td><td>{{.URL}}</td><td>{{.StatusCode}}</td><td>{{.DurationMS}} ms</td></tr>{{else}}<tr><td colspan="4">No transactions</td></tr>{{end}}
+  <table><thead><tr><th>ID</th><th>Method</th><th>URL</th><th>Status</th><th>Duration</th></tr></thead><tbody>
+  {{range .Report.Transactions}}<tr id="transaction-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Method}}</td><td>{{.URL}}</td><td>{{.StatusCode}}</td><td>{{.DurationMS}} ms</td></tr>{{else}}<tr><td colspan="5">No transactions</td></tr>{{end}}
   </tbody></table>
   <h2>Artifacts</h2>
 	  <table><thead><tr><th>Name</th><th>Target</th><th>Task</th><th>Size</th><th>SHA-256</th></tr></thead><tbody>

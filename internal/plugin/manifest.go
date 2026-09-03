@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"sort"
 	"strings"
@@ -25,6 +26,10 @@ const (
 	maxExternalReferences = 32
 	maxExternalTitle      = 256
 	maxExternalURL        = 2048
+	maxGrepRules          = 64
+	maxGrepPattern        = 4096
+	maxGrepMatches        = 1000
+	defaultGrepMatches    = 100
 )
 
 // TechniqueSpec preserves the OWTF test-group metadata referenced by a plugin.
@@ -101,6 +106,7 @@ type Manifest struct {
 			Command   *CommandSpec   `yaml:"command,omitempty" json:"command,omitempty"`
 			Container *ContainerSpec `yaml:"container,omitempty" json:"container,omitempty"`
 			External  *ExternalSpec  `yaml:"external,omitempty" json:"external,omitempty"`
+			Grep      *GrepSpec      `yaml:"grep,omitempty" json:"grep,omitempty"`
 		} `yaml:"runtime" json:"runtime"`
 	} `yaml:"spec" json:"spec"`
 }
@@ -126,6 +132,20 @@ type ContainerSpec struct {
 type ExternalSpec struct {
 	Guidance   string                    `yaml:"guidance" json:"guidance"`
 	References []model.ExternalReference `yaml:"references" json:"references"`
+}
+
+// GrepSpec contains bounded RE2 rules evaluated over retained transactions.
+type GrepSpec struct {
+	MaxMatches int        `yaml:"maxMatches,omitempty" json:"maxMatches"`
+	Rules      []GrepRule `yaml:"rules" json:"rules"`
+}
+
+// GrepRule searches one explicit part of each captured transaction.
+type GrepRule struct {
+	ID      string `yaml:"id" json:"id"`
+	Title   string `yaml:"title" json:"title"`
+	Source  string `yaml:"source" json:"source"`
+	Pattern string `yaml:"pattern" json:"pattern"`
 }
 
 // CommandArtifact declares a file a command plugin may emit in its assigned
@@ -179,11 +199,12 @@ type Result struct {
 
 // Request provides the target and event logger available to an executor.
 type Request struct {
-	TaskID   string
-	PluginID string
-	Target   model.Target
-	Inputs   map[string]any
-	Log      func(stream, message string)
+	TaskID       string
+	PluginID     string
+	Target       model.Target
+	Inputs       map[string]any
+	Transactions TransactionReader
+	Log          func(stream, message string)
 }
 
 // Executor runs one plugin against one target.
@@ -239,10 +260,15 @@ func Load(fsys fs.FS) (*Catalog, error) {
 		entry := Entry{
 			Manifest: manifest, Availability: "missing_runtime", Reason: "runtime is not registered",
 		}
-		if manifest.Spec.Runtime.Type == "external" {
+		switch manifest.Spec.Runtime.Type {
+		case "external":
 			entry.Availability = "ready"
 			entry.Reason = ""
 			entry.Executor = ExternalExecutor(manifest)
+		case "grep":
+			entry.Availability = "ready"
+			entry.Reason = ""
+			entry.Executor = GrepExecutor(manifest)
 		}
 		catalog.entries[manifest.Metadata.ID] = entry
 		return nil
@@ -272,6 +298,17 @@ func normalizeManifest(manifest *Manifest) {
 		for index := range external.References {
 			external.References[index].Title = strings.TrimSpace(external.References[index].Title)
 			external.References[index].URL = strings.TrimSpace(external.References[index].URL)
+		}
+	}
+	if grep := manifest.Spec.Runtime.Grep; grep != nil {
+		if grep.MaxMatches == 0 {
+			grep.MaxMatches = defaultGrepMatches
+		}
+		for index := range grep.Rules {
+			grep.Rules[index].ID = strings.TrimSpace(grep.Rules[index].ID)
+			grep.Rules[index].Title = strings.TrimSpace(grep.Rules[index].Title)
+			grep.Rules[index].Source = strings.TrimSpace(grep.Rules[index].Source)
+			grep.Rules[index].Pattern = strings.TrimSpace(grep.Rules[index].Pattern)
 		}
 	}
 }
@@ -314,31 +351,41 @@ func validateManifest(manifest Manifest) error {
 	}
 	switch manifest.Spec.Runtime.Type {
 	case "builtin":
-		if manifest.Spec.Runtime.Builtin == "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.Container != nil || manifest.Spec.Runtime.External != nil {
+		if manifest.Spec.Runtime.Builtin == "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.Container != nil || manifest.Spec.Runtime.External != nil || manifest.Spec.Runtime.Grep != nil {
 			return fmt.Errorf("builtin runtime requires only a builtin name")
 		}
 	case "command":
-		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Container != nil || manifest.Spec.Runtime.External != nil {
+		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Container != nil || manifest.Spec.Runtime.External != nil || manifest.Spec.Runtime.Grep != nil {
 			return fmt.Errorf("command runtime requires only a command")
 		}
 		if err := validateCommand(manifest.Spec.Runtime.Command, inputNames); err != nil {
 			return err
 		}
 	case "container":
-		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.External != nil {
+		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.External != nil || manifest.Spec.Runtime.Grep != nil {
 			return fmt.Errorf("container runtime requires only a container")
 		}
 		if err := validateContainer(manifest.Spec.Runtime.Container, inputNames); err != nil {
 			return err
 		}
 	case "external":
-		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.Container != nil {
+		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.Container != nil || manifest.Spec.Runtime.Grep != nil {
 			return fmt.Errorf("external runtime requires only external guidance")
 		}
 		if len(manifest.Spec.Requirements.Commands) != 0 {
 			return fmt.Errorf("external runtime cannot require commands")
 		}
 		if err := validateExternal(manifest.Spec.Runtime.External); err != nil {
+			return err
+		}
+	case "grep":
+		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.Container != nil || manifest.Spec.Runtime.External != nil {
+			return fmt.Errorf("grep runtime requires only grep rules")
+		}
+		if len(manifest.Spec.Requirements.Commands) != 0 {
+			return fmt.Errorf("grep runtime cannot require commands")
+		}
+		if err := validateGrep(manifest.Spec.Runtime.Grep); err != nil {
 			return err
 		}
 	default:
@@ -444,6 +491,57 @@ func validateExternal(external *ExternalSpec) error {
 		seen[reference.URL] = true
 	}
 	return nil
+}
+
+func validateGrep(grep *GrepSpec) error {
+	if grep == nil || len(grep.Rules) == 0 || len(grep.Rules) > maxGrepRules {
+		return fmt.Errorf("grep runtime requires 1 to %d rules", maxGrepRules)
+	}
+	if grep.MaxMatches < 1 || grep.MaxMatches > maxGrepMatches {
+		return fmt.Errorf("grep maxMatches must be between 1 and %d", maxGrepMatches)
+	}
+	seen := make(map[string]bool, len(grep.Rules))
+	for _, rule := range grep.Rules {
+		if !validGrepRuleID(rule.ID) || seen[rule.ID] {
+			return fmt.Errorf("invalid or duplicate grep rule ID %q", rule.ID)
+		}
+		seen[rule.ID] = true
+		if rule.Title == "" || len(rule.Title) > maxExternalTitle {
+			return fmt.Errorf("grep rule %q title must contain 1 to %d bytes", rule.ID, maxExternalTitle)
+		}
+		if !validGrepSource(rule.Source) {
+			return fmt.Errorf("grep rule %q has unsupported source %q", rule.ID, rule.Source)
+		}
+		if rule.Pattern == "" || len(rule.Pattern) > maxGrepPattern {
+			return fmt.Errorf("grep rule %q pattern must contain 1 to %d bytes", rule.ID, maxGrepPattern)
+		}
+		if _, err := regexp.Compile(rule.Pattern); err != nil {
+			return fmt.Errorf("grep rule %q pattern: %w", rule.ID, err)
+		}
+	}
+	return nil
+}
+
+func validGrepRuleID(value string) bool {
+	if len(value) == 0 || len(value) > 64 || value[0] < 'a' || value[0] > 'z' {
+		return false
+	}
+	for _, character := range value[1:] {
+		if character >= 'a' && character <= 'z' || character >= '0' && character <= '9' || character == '-' || character == '_' {
+			continue
+		}
+		return false
+	}
+	return true
+}
+
+func validGrepSource(source string) bool {
+	switch source {
+	case "url", "request_headers", "response_headers", "request_body", "response_body":
+		return true
+	default:
+		return false
+	}
 }
 
 func validArtifactName(name string) bool {

@@ -85,8 +85,8 @@ func Run(ctx context.Context, args []string, out, errOut io.Writer) error {
 		return application.sessions(ctx, commandArgs)
 	case "targets":
 		return application.targets(ctx, commandArgs)
-	case "plugins":
-		return application.plugins(ctx, commandArgs)
+	case "plugin":
+		return application.plugin(ctx, commandArgs)
 	case "profiles":
 		return application.profiles(ctx, commandArgs)
 	case "runs":
@@ -295,11 +295,11 @@ func (a *app) targets(ctx context.Context, args []string) error {
 	}
 }
 
-func (a *app) plugins(ctx context.Context, args []string) error {
+func (a *app) plugin(ctx context.Context, args []string) error {
 	if len(args) == 0 || args[0] != "list" {
-		return errors.New("usage: owtf plugins list [--group GROUP] [--type TYPE]")
+		return errors.New("usage: owtf plugin list [--group GROUP] [--type TYPE]")
 	}
-	flags := a.flags("plugins list")
+	flags := a.flags("plugin list")
 	group := flags.String("group", "", "plugin group: web, network, or auxiliary")
 	var pluginTypes stringList
 	flags.Var(&pluginTypes, "type", "plugin type (repeatable or comma-separated)")
@@ -307,7 +307,7 @@ func (a *app) plugins(ctx context.Context, args []string) error {
 		return err
 	}
 	if flags.NArg() != 0 {
-		return errors.New("usage: owtf plugins list [--group GROUP] [--type TYPE]")
+		return errors.New("usage: owtf plugin list [--group GROUP] [--type TYPE]")
 	}
 	query := url.Values{}
 	if *group != "" {
@@ -902,7 +902,7 @@ Usage:
   owtf [--url URL] sessions list|create|show|report|delete
   owtf [--url URL] sessions export [--output FILE] ID
   owtf [--url URL] targets list|search|add|show|update|delete|report
-  owtf [--url URL] plugins list [--group GROUP] [--type TYPE]
+  owtf [--url URL] plugin list [--group GROUP] [--type TYPE]
   owtf [--url URL] profiles list|show
   owtf [--url URL] runs list --session ID
   owtf [--url URL] runs show ID

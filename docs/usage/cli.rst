@@ -90,10 +90,10 @@ Launch plugins
 List ready and unavailable plugins before launching work. Filters use OWTF's
 established plugin group and type names::
 
-  owtf plugins list
-  owtf plugins list --group web --type semi_passive
+  owtf plugin list
+  owtf plugin list --group web --type semi_passive
 
-``plugins list`` returns each type-specific implementation with its established
+``plugin list`` returns each type-specific implementation with its established
 OWTF code, title, hint, priority, and reference. Each task snapshots that
 metadata so later manifest edits do not rewrite historical reports. There is no
 separate technique command.
@@ -105,6 +105,13 @@ target::
     --session SESSION_ID \
     --plugin OWTF-IG-004-external \
     https://example.test
+
+Run a grep plugin after traffic has been captured or imported::
+
+  owtf runs create \
+    --session SESSION_ID \
+    --target TARGET_ID \
+    --plugin OWTF-IG-004-grep
 
 List profiles or inspect their plugin order::
 

@@ -23,6 +23,7 @@ const (
 	TaskCancelled = "cancelled"
 
 	ObservationKindExternalReferences = "external.references"
+	ObservationKindGrepMatches        = "grep.matches"
 )
 
 // Session is a named scan workspace containing targets and their execution
@@ -84,6 +85,17 @@ type ExternalReference struct {
 type ExternalOutput struct {
 	Guidance   string              `json:"guidance"`
 	References []ExternalReference `json:"references"`
+}
+
+// GrepOutput identifies the captured transactions matched by one declarative
+// grep rule. Transaction IDs retain the evidence relationship without copying
+// request or response content into the observation.
+type GrepOutput struct {
+	RuleID         string   `json:"rule_id"`
+	Title          string   `json:"title"`
+	Source         string   `json:"source"`
+	TransactionIDs []string `json:"transaction_ids"`
+	Truncated      bool     `json:"truncated,omitempty"`
 }
 
 // UnmarshalJSON accepts the code-only format used by early rewrite databases.

@@ -1441,7 +1441,7 @@ func (s *Store) GetTargetReport(ctx context.Context, targetID string) (model.Tar
 	if report.Artifacts, err = s.listArtifacts(ctx, targetID); err != nil {
 		return model.TargetReport{}, err
 	}
-	if report.Transactions, err = s.listTransactions(ctx, targetID); err != nil {
+	if report.Transactions, err = s.listTransactions(ctx, targetID, 0); err != nil {
 		return model.TargetReport{}, err
 	}
 	if report.Observations, err = s.listObservations(ctx, targetID); err != nil {
@@ -1705,8 +1705,8 @@ func (s *Store) GetArtifact(ctx context.Context, artifactID string) (model.Artif
 	return item, nil
 }
 
-func (s *Store) listTransactions(ctx context.Context, targetID string) ([]model.Transaction, error) {
-	rows, err := s.db.QueryContext(ctx, `
+func (s *Store) listTransactions(ctx context.Context, targetID string, limit int) ([]model.Transaction, error) {
+	query := `
 		SELECT tr.public_id, COALESCE(t.public_id,''), tg.public_id, tr.method, tr.url, tr.request_headers, tr.status_code,
 		       tr.response_headers, COALESCE(source.public_id,''), COALESCE(request_body.public_id,''),
 		       COALESCE(response_body.public_id,''), tr.duration_ms, tr.created_at
@@ -1714,7 +1714,13 @@ func (s *Store) listTransactions(ctx context.Context, targetID string) ([]model.
 		LEFT JOIN artifacts source ON source.id=tr.source_artifact_id
 		LEFT JOIN artifacts request_body ON request_body.id=tr.request_body_artifact_id
 		LEFT JOIN artifacts response_body ON response_body.id=tr.response_body_artifact_id
-	WHERE tg.public_id=? ORDER BY tr.id DESC`, targetID)
+	WHERE tg.public_id=? ORDER BY tr.id DESC`
+	args := []any{targetID}
+	if limit > 0 {
+		query += ` LIMIT ?`
+		args = append(args, limit)
+	}
+	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -1727,7 +1733,19 @@ func (s *Store) ListTargetTransactions(ctx context.Context, targetID string) ([]
 	if _, err := s.GetTarget(ctx, targetID); err != nil {
 		return nil, err
 	}
-	return s.listTransactions(ctx, targetID)
+	return s.listTransactions(ctx, targetID, 0)
+}
+
+// ListTargetTransactionsBounded returns at most limit transactions for an
+// internal consumer that must place a hard bound on retained evidence.
+func (s *Store) ListTargetTransactionsBounded(ctx context.Context, targetID string, limit int) ([]model.Transaction, error) {
+	if limit < 1 {
+		return nil, errors.New("transaction limit must be positive")
+	}
+	if _, err := s.GetTarget(ctx, targetID); err != nil {
+		return nil, err
+	}
+	return s.listTransactions(ctx, targetID, limit)
 }
 
 // ListTransactions returns captured transactions for a session and optional

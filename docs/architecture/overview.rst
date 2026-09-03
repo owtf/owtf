@@ -126,6 +126,12 @@ references. It records that material as a target observation without starting
 a process or sending traffic. This replaces the legacy Python wrappers around
 resource lists while retaining the ``external`` plugin type and short code.
 
+A ``grep`` plugin applies declarative RE2 rules to captured transaction URLs,
+headers, and bodies. The runner supplies a read-only transaction reader rather
+than a database handle. It loads only requested bodies, refuses more than
+10,000 transactions or an individual body over 8 MiB, and records matched
+transaction IDs instead of copying evidence into plugin output.
+
 Launch input is non-secret because its resolved value is intentionally retained
 on every task and included in reports. Defaults are resolved once when the task
 is created. Unknown, missing, incorrectly typed, and out-of-bounds values fail
@@ -290,7 +296,8 @@ search, complete session deletion, typed plugin inputs, and bounded persisted
 transaction search. Tasks retain ordered attempt history for normal execution
 and restart recovery. Failed and cancelled tasks remain terminal; an operator
 creates a new run when a technique must be repeated. Declarative external
-plugins retain curated manual guidance without sending target traffic.
+plugins retain curated manual guidance without sending target traffic, and
+declarative grep plugins retain evidence-linked transaction matches.
 Configuration validation, default/file/environment/flag precedence, bounded
 worker and proxy limits, secret redaction, profile validation, persisted run
 ordering, deletion conflicts, target pagination, input validation, immutable

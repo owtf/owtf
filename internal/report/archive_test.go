@@ -33,9 +33,16 @@ func TestWriteSessionArchiveIncludesPortableEvidence(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	grepData, err := json.Marshal(model.GrepOutput{
+		RuleID: "server-header", Title: "Server header", Source: "response_headers",
+		TransactionIDs: []string{"txn_1"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
 	session := model.SessionReport{
 		Session: model.Session{ID: "ses_1", Name: "Escaping <script>alert(1)</script>", CreatedAt: now},
-		Summary: model.ReportSummary{Targets: 1, Runs: 1, Tasks: 1, Attempts: 1, Succeeded: 1, Artifacts: 1, Observations: 1},
+		Summary: model.ReportSummary{Targets: 1, Runs: 1, Tasks: 1, Attempts: 1, Succeeded: 1, Transactions: 1, Artifacts: 1, Observations: 2},
 		Targets: []model.Target{{ID: "tgt_1", SessionID: "ses_1", Kind: "url", Value: "https://example.test/?q=<script>", CreatedAt: now}},
 		Tasks: []model.Task{{
 			ID: "tsk_1", RunID: "run_1", TargetID: "tgt_1", PluginID: "OWTF-WSP-001-active",
@@ -48,6 +55,12 @@ func TestWriteSessionArchiveIncludesPortableEvidence(t *testing.T) {
 		Observations: []model.Observation{{
 			ID: "obs_1", TaskID: "tsk_1", TargetID: "tgt_1", TechniqueCode: "OWTF-WSP-001",
 			Kind: model.ObservationKindExternalReferences, Data: string(externalData), CreatedAt: now,
+		}, {
+			ID: "obs_2", TaskID: "tsk_1", TargetID: "tgt_1", TechniqueCode: "OWTF-WSP-001",
+			Kind: model.ObservationKindGrepMatches, Data: string(grepData), CreatedAt: now,
+		}},
+		Transactions: []model.Transaction{{
+			ID: "txn_1", TargetID: "tgt_1", Method: "GET", URL: "https://example.test/", StatusCode: 200, CreatedAt: now,
 		}},
 		Artifacts: []model.Artifact{{
 			ID: "art_1", TaskID: "tsk_1", Name: `..\..\evidence.txt`, MediaType: "text/plain",
@@ -97,11 +110,15 @@ func TestWriteSessionArchiveIncludesPortableEvidence(t *testing.T) {
 		!strings.Contains(string(files["index.html"]), "#ZgotmplZ") {
 		t.Fatal("offline report omitted or unsafely rendered external guidance")
 	}
+	if !strings.Contains(string(files["index.html"]), `href="#transaction-txn_1"`) ||
+		!strings.Contains(string(files["index.html"]), `id="transaction-txn_1"`) {
+		t.Fatal("offline report did not link grep output to its transaction")
+	}
 	var decoded model.SessionReport
 	if err := json.Unmarshal(files["report.json"], &decoded); err != nil {
 		t.Fatal(err)
 	}
-	if decoded.Session.ID != session.Session.ID || len(decoded.Attempts) != 1 || len(decoded.Artifacts) != 1 || len(decoded.Observations) != 1 {
+	if decoded.Session.ID != session.Session.ID || len(decoded.Attempts) != 1 || len(decoded.Artifacts) != 1 || len(decoded.Observations) != 2 || len(decoded.Transactions) != 1 {
 		t.Fatalf("unexpected JSON report: %+v", decoded)
 	}
 	var metadata manifest

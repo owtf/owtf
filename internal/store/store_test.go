@@ -109,6 +109,13 @@ func TestImportAndDeleteTargetTransactions(t *testing.T) {
 	if err != nil || stored.TaskID != "" || stored.SourceArtifactID != "art_source" || stored.RequestBodyArtifactID != "art_request" {
 		t.Fatalf("unexpected imported transaction: transaction=%+v err=%v", stored, err)
 	}
+	bounded, err := database.ListTargetTransactionsBounded(ctx, targetID, 1)
+	if err != nil || len(bounded) != 1 || bounded[0].ID != transaction.ID {
+		t.Fatalf("unexpected bounded transaction list: transactions=%+v err=%v", bounded, err)
+	}
+	if _, err := database.ListTargetTransactionsBounded(ctx, targetID, 0); err == nil {
+		t.Fatal("non-positive transaction bound was accepted")
+	}
 	if tasks, _ := database.ListTasks(ctx, session.ID, ""); len(tasks) != 0 {
 		t.Fatalf("transaction import created worklist tasks: %+v", tasks)
 	}

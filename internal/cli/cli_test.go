@@ -187,8 +187,8 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		{"targets", "update", "--scope", "false", "tgt_1"},
 		{"targets", "report", "tgt_1"},
 		{"targets", "delete", "tgt_1"},
-		{"plugins", "list"},
-		{"plugins", "list", "--group", "web", "--type", "active"},
+		{"plugin", "list"},
+		{"plugin", "list", "--group", "web", "--type", "active"},
 		{"profiles", "list"},
 		{"profiles", "show", "default"},
 		{"runs", "list", "--session", "ses_1"},
@@ -225,6 +225,9 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 	}
 	if err := Run(context.Background(), []string{"--url", server.URL, "tasks", "retry", "tsk_1"}, io.Discard, io.Discard); err == nil || !strings.Contains(err.Error(), `unknown tasks command "retry"`) {
 		t.Fatalf("tasks retry error = %v", err)
+	}
+	if err := Run(context.Background(), []string{"--url", server.URL, "plugins", "list"}, io.Discard, io.Discard); err == nil || !strings.Contains(err.Error(), `unknown command "plugins"`) {
+		t.Fatalf("plural plugins command error = %v", err)
 	}
 
 	artifactPath := filepath.Join(t.TempDir(), "evidence", "body.txt")

@@ -200,7 +200,11 @@ func (r *Runner) execute(parent context.Context, workerIndex int, taskID string)
 	defer cancel()
 	result, err := entry.Executor(ctx, plugin.Request{
 		TaskID: execution.ID, PluginID: execution.PluginID, Target: execution.Target,
-		Inputs: snapshot.Inputs, Log: logEvent,
+		Inputs: snapshot.Inputs,
+		Transactions: transactionReader{
+			store: r.store, artifacts: r.artifacts, targetID: execution.TargetID,
+		},
+		Log: logEvent,
 	})
 	if err != nil {
 		if errors.Is(ctx.Err(), context.Canceled) && parent.Err() == nil {

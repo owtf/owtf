@@ -1,0 +1,32 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-IG-004-grep
+  version: 0.1.0
+  title: Web Application Fingerprint
+  description: Searches captured responses for web server and application fingerprint markers.
+
+spec:
+  techniques:
+    - code: OWTF-IG-004
+      title: Web Application Fingerprint
+      hint: What is that site running?
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework
+  group: web
+  type: grep
+  targetKinds: [url]
+  runtime:
+    type: grep
+    grep:
+      maxMatches: 100
+      rules:
+        - id: server-header
+          title: Server software headers
+          source: response_headers
+          pattern: '(?i)"(?:server|x-powered-by)"\s*:'
+        - id: generator-meta
+          title: HTML generator metadata
+          source: response_body
+          pattern: '(?i)<meta[^>]+name\s*=\s*["'']generator["'']'

@@ -315,18 +315,20 @@ assert_json 'length == 1 and .[0].id == $transaction' 'target transaction list i
 
 printf '%s\n' 'Checking plugin discovery and preflight failures...'
 request GET /api/v2/plugins 200
-assert_json 'length == 5' 'plugin catalog is incomplete'
-assert_json '[.[] | select(.availability == "ready")] | length == 4' 'ready plugin count is incorrect'
+assert_json 'length == 6' 'plugin catalog is incomplete'
+assert_json '[.[] | select(.availability == "ready")] | length == 5' 'ready plugin count is incorrect'
 assert_json '[.[] | select(.id == "OWTF-SMOKE-002-active" and .availability == "missing_requirements" and (.reason | contains("owtf-command-that-does-not-exist")))] | length == 1' 'missing requirement is not visible'
 assert_json '[.[] | select(.group == "web" and (.type == "active" or .type == "semi_passive"))] | length == 2' 'OWTF plugin group and type metadata is incorrect'
 assert_json '[.[] | select(.id == "OWTF-IG-004-semi_passive" and (.inputs | map(.name)) == ["timeout_seconds","user_agent"])] | length == 1' 'plugin input schema is not visible'
 assert_json '[.[] | select(.id == "OWTF-IG-004-semi_passive" and .techniques[0].code == "OWTF-IG-004" and .techniques[0].hint == "What is that site running?" and .techniques[0].priority == 99)] | length == 1' 'plugin technique metadata is not visible'
-cli_json plugins list
-jq -e 'length == 5' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin catalog is incomplete'
-cli_json plugins list --group web --type active
+cli_json plugin list
+jq -e 'length == 6' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin catalog is incomplete'
+cli_json plugin list --group web --type active
 jq -e 'length == 1 and .[0].id == "OWTF-WSP-001-active"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin group/type filter is incorrect'
-cli_json plugins list --group web --type external
+cli_json plugin list --group web --type external
 jq -e 'length == 1 and .[0].id == "OWTF-IG-004-external" and .[0].runtime_type == "external" and .[0].availability == "ready"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI external plugin is unavailable'
+cli_json plugin list --group web --type grep
+jq -e 'length == 1 and .[0].id == "OWTF-IG-004-grep" and .[0].runtime_type == "grep" and .[0].availability == "ready"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI grep plugin is unavailable'
 request GET /api/v2/profiles 200
 assert_json 'length == 1 and .[0].name == "default" and .[0].plugins == ["OWTF-IG-004-semi_passive","OWTF-WSP-001-active"]' 'profile catalog is incorrect'
 request GET /api/v2/profiles/default 200
@@ -512,6 +514,34 @@ unzip -tqq "${EXTERNAL_REPORT_ZIP}" || fail 'external plugin report ZIP is inval
 unzip -p "${EXTERNAL_REPORT_ZIP}" index.html | grep -q 'OWASP WSTG - Fingerprint Web Server' || fail 'external references are missing from the offline report'
 request DELETE "/api/v2/sessions/${EXTERNAL_SESSION_ID}" 204
 request GET "/api/v2/sessions/${EXTERNAL_SESSION_ID}" 404
+
+printf '%s\n' 'Checking transaction grep evidence and report links...'
+request POST /api/v2/sessions 201 '{"name":"Grep plugin smoke session"}'
+GREP_SESSION_ID=$(jq -r '.id' "${RESPONSE_FILE}")
+request POST "/api/v2/sessions/${GREP_SESSION_ID}/targets" 200 '{"targets":["https://grep.example.test"]}'
+GREP_TARGET_ID=$(jq -r '.created[0].id' "${RESPONSE_FILE}")
+GREP_HAR="${TMP_DIR}/grep.har"
+cat >"${GREP_HAR}" <<'JSON'
+{"log":{"version":"1.2","entries":[{
+  "startedDateTime":"2026-09-02T10:11:12Z","time":4,
+  "request":{"method":"GET","url":"https://grep.example.test/","headers":[]},
+  "response":{"status":200,"headers":[{"name":"Server","value":"Caddy"}],"content":{"mimeType":"text/html","text":"<meta name=\"generator\" content=\"OWTF\">"}}
+}]}}
+JSON
+upload_har "${GREP_TARGET_ID}" "${GREP_HAR}" 201
+GREP_TRANSACTION_ID=$(jq -r '.transactions[0].id' "${RESPONSE_FILE}")
+cli_json runs create --session "${GREP_SESSION_ID}" --target "${GREP_TARGET_ID}" --plugin OWTF-IG-004-grep
+GREP_TASK_ID=$(jq -r '.tasks[0].id' "${CLI_RESPONSE_FILE}")
+wait_for_task_status "${GREP_TASK_ID}" succeeded
+request GET "/api/v2/targets/${GREP_TARGET_ID}/report" 200
+assert_json '(.tasks | length) == 1 and (.transactions | length) == 1 and (.observations | length) == 2 and all(.observations[]; .kind == "grep.matches" and ((.data | fromjson).transaction_ids == [$transaction]))' 'grep output is not linked to the captured transaction' --arg transaction "${GREP_TRANSACTION_ID}"
+request GET "/api/v2/sessions/${GREP_SESSION_ID}/export" 200
+GREP_REPORT_ZIP="${TMP_DIR}/grep-report.zip"
+cp "${RESPONSE_FILE}" "${GREP_REPORT_ZIP}"
+unzip -tqq "${GREP_REPORT_ZIP}" || fail 'grep report ZIP is invalid'
+unzip -p "${GREP_REPORT_ZIP}" index.html | grep -q "href=\"#transaction-${GREP_TRANSACTION_ID}\"" || fail 'grep observation is not linked in the offline report'
+request DELETE "/api/v2/sessions/${GREP_SESSION_ID}" 204
+request GET "/api/v2/sessions/${GREP_SESSION_ID}" 404
 
 printf '%s\n' 'Checking destructive cleanup and final empty state...'
 cli_json targets add --session "${SESSION_ID}" 198.51.100.9
