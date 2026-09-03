@@ -278,7 +278,9 @@ visibility, non-shell argument handling, task cancellation, and termination of
 the complete plugin process group, including a child that ignores the initial
 termination signal. The retained ``PTES-001-active`` network plugin uses the
 same shell-free command runtime to run bounded Nmap FTP service and anonymous
-access probes against hostname or IP targets.
+access probes against hostname or IP targets. The same contract retains SMTP,
+VNC, X11, Microsoft SQL Server, MSRPC, RPC-over-HTTP, and SMB discovery without
+the legacy Metasploit control plane.
 
 Phase 3 was exercised through the Go CLI against a live one-worker server. The
 gate covers sessions, targets, individual and grouped plugin launches, worklist,
@@ -323,6 +325,11 @@ DoS and exploit launchers and the SMB transfer helper are rejected, and password
 brute force remains deferred pending an authorization and safety design. These
 decisions are recorded in ``plugin-support-decisions.csv`` rather than hidden by
 omission.
+All legacy network variants now have the same explicit decision record. Eight
+bounded service and exposure probes are retained. Obsolete EMC probing is
+rejected, while SNMP, DNS name discovery, and credential attacks remain deferred
+until their privilege, resource, authorization, and rate-limit requirements can
+be represented honestly.
 Configuration validation, default/file/environment/flag precedence, bounded
 worker and proxy limits, secret redaction, profile validation, persisted run
 ordering, deletion conflicts, target pagination, input validation, immutable

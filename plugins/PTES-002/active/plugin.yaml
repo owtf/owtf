@@ -1,0 +1,55 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: PTES-002-active
+  version: 0.1.0
+  title: SMTP Service Probe
+  description: Uses Nmap to identify SMTP capabilities and NTLM metadata.
+
+spec:
+  techniques:
+    - code: PTES-002
+      title: SMTP Service Probe
+      hint: Which SMTP capabilities and service metadata does the target expose?
+      priority: 99
+      reference: https://owasp.org/www-project-penetration-testing-execution-standard/
+  group: network
+  type: active
+  targetKinds: [hostname, ip]
+  inputs:
+    - name: port
+      type: integer
+      description: TCP port to probe.
+      default: 25
+      minimum: 1
+      maximum: 65535
+  requirements:
+    commands: [nmap]
+  runtime:
+    type: command
+    command:
+      executable: nmap
+      args:
+        - -Pn
+        - -n
+        - -sT
+        - -sV
+        - --version-light
+        - --script
+        - smtp-commands,smtp-ntlm-info
+        - --script-timeout
+        - 15s
+        - --host-timeout
+        - 30s
+        - --max-retries
+        - "1"
+        - -p
+        - "{{input:port}}"
+        - -oX
+        - "{{artifact:nmap.xml}}"
+        - "{{target}}"
+      artifacts:
+        - name: nmap.xml
+          mediaType: application/xml
+          required: true

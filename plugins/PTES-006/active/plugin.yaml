@@ -1,0 +1,57 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: PTES-006-active
+  version: 0.1.0
+  title: Microsoft SQL Server Probe
+  description: Uses Nmap to identify Microsoft SQL Server and NTLM metadata without logging in.
+
+spec:
+  techniques:
+    - code: PTES-006
+      title: Microsoft SQL Server Probe
+      hint: Which SQL Server version, instance, and NTLM metadata does the target expose?
+      priority: 99
+      reference: https://owasp.org/www-project-penetration-testing-execution-standard/
+  group: network
+  type: active
+  targetKinds: [hostname, ip]
+  inputs:
+    - name: port
+      type: integer
+      description: TCP port to probe.
+      default: 1433
+      minimum: 1
+      maximum: 65535
+  requirements:
+    commands: [nmap]
+  runtime:
+    type: command
+    command:
+      executable: nmap
+      args:
+        - -Pn
+        - -n
+        - -sT
+        - -sV
+        - --version-light
+        - --script
+        - ms-sql-info,ms-sql-ntlm-info
+        - --script-args
+        - mssql.scanned-ports-only=true
+        - --script-timeout
+        - 15s
+        - --host-timeout
+        - 30s
+        - --max-retries
+        - "1"
+        - -p
+        - "{{input:port}}"
+        - -oX
+        - "{{artifact:nmap.xml}}"
+        - "{{target}}"
+      artifacts:
+        - name: nmap.xml
+          mediaType: application/xml
+          required: true

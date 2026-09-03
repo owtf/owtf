@@ -175,6 +175,7 @@ set -euo pipefail
 output=""
 port=""
 scripts=""
+script_args=""
 script_timeout=""
 host_timeout=""
 max_retries=""
@@ -184,6 +185,7 @@ while (($#)); do
     -oX) output=${2-}; shift 2 ;;
     -p) port=${2-}; shift 2 ;;
     --script) scripts=${2-}; shift 2 ;;
+    --script-args) script_args=${2-}; shift 2 ;;
     --script-timeout) script_timeout=${2-}; shift 2 ;;
     --host-timeout) host_timeout=${2-}; shift 2 ;;
     --max-retries) max_retries=${2-}; shift 2 ;;
@@ -196,12 +198,17 @@ while (($#)); do
   esac
 done
 
-[[ -n "${output}" && "${port}" == 21 && "${scripts}" == "ftp-anon,ftp-syst" ]] || exit 64
 [[ "${script_timeout}" == 15s && "${host_timeout}" == 30s && "${max_retries}" == 1 ]] || exit 64
 [[ "${target}" == example.test ]] || exit 64
+case "${port}:${scripts}:${script_args}" in
+  21:ftp-anon,ftp-syst:|25:smtp-commands,smtp-ntlm-info:|5900:vnc-info,vnc-title:|6000:x11-access:|135:msrpc-enum:|593:http-ntlm-info:|445:smb-protocols,smb-security-mode,smb2-security-mode,smb2-capabilities,smb-os-discovery:) ;;
+  1433:ms-sql-info,ms-sql-ntlm-info:mssql.scanned-ports-only=true) ;;
+  *) exit 64 ;;
+esac
+[[ -n "${output}" ]] || exit 64
 printf '<nmaprun><host name="%s"><port protocol="tcp" portid="%s"/></host></nmaprun>\n' \
   "${target}" "${port}" >"${output}"
-printf 'FTP probe completed for %s:%s\n' "${target}" "${port}"
+printf 'Network probe completed for %s:%s\n' "${target}" "${port}"
 SCRIPT
 chmod +x "${TMP_DIR}/bin/nmap"
 
@@ -363,15 +370,15 @@ jq -e '.records_total == 1 and .records_filtered == 1 and (.data | length) == 1'
 
 printf '%s\n' 'Checking plugin discovery and preflight failures...'
 request GET /api/v2/plugins 200
-assert_json 'length == 14' 'plugin catalog is incomplete'
-assert_json '[.[] | select(.availability == "ready")] | length == 13' 'ready plugin count is incorrect'
+assert_json 'length == 21' 'plugin catalog is incomplete'
+assert_json '[.[] | select(.availability == "ready")] | length == 20' 'ready plugin count is incorrect'
 assert_json '[.[] | select(.id == "OWTF-SMOKE-002-active" and .availability == "missing_requirements" and (.reason | contains("owtf-command-that-does-not-exist")))] | length == 1' 'missing requirement is not visible'
 assert_json '[.[] | select(.group == "web" and (.type == "active" or .type == "semi_passive"))] | length == 4' 'OWTF plugin group and type metadata is incorrect'
 assert_json '[.[] | select(.id == "OWTF-IG-004-semi_passive" and (.inputs | map(.name)) == ["timeout_seconds","user_agent"])] | length == 1' 'plugin input schema is not visible'
 assert_json '[.[] | select(.id == "OWTF-IG-004-semi_passive" and .techniques[0].code == "OWTF-IG-004" and .techniques[0].hint == "What is that site running?" and .techniques[0].priority == 99)] | length == 1' 'plugin technique metadata is not visible'
 assert_json '[.[] | select(.runtime_type == "http" and .availability == "ready") | .id] | sort == ["OWTF-CM-008-semi_passive","OWTF-IG-001-semi_passive"]' 'HTTP plugins are unavailable'
 cli_json plugin list
-jq -e 'length == 14' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin catalog is incomplete'
+jq -e 'length == 21' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin catalog is incomplete'
 cli_json plugin list --group web --type active
 jq -e 'length == 1 and .[0].id == "OWTF-WSP-001-active"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin group/type filter is incorrect'
 cli_json plugin list --group web --type external
@@ -379,7 +386,7 @@ jq -e 'length == 1 and .[0].id == "OWTF-IG-004-external" and .[0].runtime_type =
 cli_json plugin list --group web --type grep
 jq -e 'length == 6 and all(.[]; .runtime_type == "grep" and .availability == "ready") and any(.[]; .id == "OWTF-IG-004-grep")' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI grep plugins are unavailable'
 cli_json plugin list --group network --type active
-jq -e 'length == 1 and .[0].id == "PTES-001-active" and .[0].runtime_type == "command" and .[0].availability == "ready" and .[0].inputs[0].name == "port"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI network plugin is unavailable'
+jq -e 'length == 8 and all(.[]; .runtime_type == "command" and .availability == "ready" and .inputs[0].name == "port") and [.[].id] == ["PTES-001-active","PTES-002-active","PTES-003-active","PTES-004-active","PTES-006-active","PTES-007-active","PTES-008-active","PTES-009-active"]' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI network plugins are unavailable'
 request GET /api/v2/profiles 200
 assert_json 'length == 1 and .[0].name == "default" and .[0].plugins == ["OWTF-IG-001-semi_passive","OWTF-IG-004-semi_passive","OWTF-CM-008-semi_passive","OWTF-WSP-001-active"]' 'profile catalog is incorrect'
 request GET /api/v2/profiles/default 200
@@ -529,17 +536,23 @@ cli_json workers
 jq -e '.[0].completed == 6' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI-launched work was not completed'
 
 printf '%s\n' 'Checking maintained network plugin execution and evidence...'
-cli_json runs create --session "${SESSION_ID}" --target "${HOST_TARGET_ID}" --plugin PTES-001-active \
-  --input PTES-001-active.port=21
-NETWORK_TASK_ID=$(jq -r '.tasks[0].id' "${CLI_RESPONSE_FILE}")
-wait_for_task_status "${NETWORK_TASK_ID}" succeeded
-request GET "/api/v2/tasks/${NETWORK_TASK_ID}/events" 200
-assert_json '[.[].message] | join("\n") | contains("FTP probe completed for example.test:21")' 'network plugin stdout was not retained'
+cli_json runs create --session "${SESSION_ID}" --target "${HOST_TARGET_ID}" --group network --type active --profile default
+jq -e '(.tasks | length) == 8 and [.tasks[].plugin_id] == ["PTES-001-active","PTES-002-active","PTES-003-active","PTES-004-active","PTES-006-active","PTES-007-active","PTES-008-active","PTES-009-active"]' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'network plugin group is incomplete'
+NETWORK_TASK_IDS=()
+while IFS= read -r task_id; do NETWORK_TASK_IDS+=("${task_id}"); done < <(jq -r '.tasks[].id' "${CLI_RESPONSE_FILE}")
+for task_id in "${NETWORK_TASK_IDS[@]}"; do
+  wait_for_task_status "${task_id}" succeeded
+  request GET "/api/v2/tasks/${task_id}/events" 200
+  assert_json '[.[].message] | join("\n") | contains("Network probe completed for example.test:")' "network plugin ${task_id} stdout was not retained"
+done
 request GET "/api/v2/targets/${HOST_TARGET_ID}/report" 200
-assert_json '(.tasks | length) == 1 and .tasks[0].plugin_id == "PTES-001-active" and .tasks[0].inputs.port == 21 and (.artifacts | length) == 1 and .artifacts[0].name == "nmap.xml"' 'network plugin report evidence is incomplete'
-NETWORK_ARTIFACT_ID=$(jq -r '.artifacts[0].id' "${RESPONSE_FILE}")
-request GET "/api/v2/artifacts/${NETWORK_ARTIFACT_ID}" 200
-grep -q '<host name="example.test"><port protocol="tcp" portid="21"' "${RESPONSE_FILE}" || fail 'network plugin artifact is incorrect'
+assert_json '(.tasks | length) == 8 and ([.tasks[].inputs.port] | sort) == [21,25,135,445,593,1433,5900,6000] and (.artifacts | length) == 8 and all(.artifacts[]; .name == "nmap.xml")' 'network plugin report evidence is incomplete'
+NETWORK_ARTIFACT_IDS=()
+while IFS= read -r artifact_id; do NETWORK_ARTIFACT_IDS+=("${artifact_id}"); done < <(jq -r '.artifacts[].id' "${RESPONSE_FILE}")
+for artifact_id in "${NETWORK_ARTIFACT_IDS[@]}"; do
+  request GET "/api/v2/artifacts/${artifact_id}" 200
+  grep -q '<host name="example.test"><port protocol="tcp" portid="' "${RESPONSE_FILE}" || fail "network plugin artifact ${artifact_id} is incorrect"
+done
 
 printf '%s\n' 'Checking cancellation and worker cleanup...'
 CANCEL_RUN=$(jq -nc --arg session "${SESSION_ID}" --arg target "${URL_TARGET_ID}" '{session_id:$session,target_ids:[$target],plugin_ids:["OWTF-SMOKE-001-active"]}')

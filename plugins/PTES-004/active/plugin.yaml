@@ -1,0 +1,55 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: PTES-004-active
+  version: 0.1.0
+  title: X11 Access Probe
+  description: Uses Nmap to check whether an X server permits unauthenticated access.
+
+spec:
+  techniques:
+    - code: PTES-004
+      title: X11 Access Probe
+      hint: Does the target permit unauthenticated access to an X server?
+      priority: 99
+      reference: https://owasp.org/www-project-penetration-testing-execution-standard/
+  group: network
+  type: active
+  targetKinds: [hostname, ip]
+  inputs:
+    - name: port
+      type: integer
+      description: TCP port to probe.
+      default: 6000
+      minimum: 1
+      maximum: 65535
+  requirements:
+    commands: [nmap]
+  runtime:
+    type: command
+    command:
+      executable: nmap
+      args:
+        - -Pn
+        - -n
+        - -sT
+        - -sV
+        - --version-light
+        - --script
+        - x11-access
+        - --script-timeout
+        - 15s
+        - --host-timeout
+        - 30s
+        - --max-retries
+        - "1"
+        - -p
+        - "{{input:port}}"
+        - -oX
+        - "{{artifact:nmap.xml}}"
+        - "{{target}}"
+      artifacts:
+        - name: nmap.xml
+          mediaType: application/xml
+          required: true

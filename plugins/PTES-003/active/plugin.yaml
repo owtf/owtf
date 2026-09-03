@@ -1,0 +1,55 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: PTES-003-active
+  version: 0.1.0
+  title: VNC Service Probe
+  description: Uses Nmap to identify VNC security and desktop metadata.
+
+spec:
+  techniques:
+    - code: PTES-003
+      title: VNC Service Probe
+      hint: Which VNC security modes and desktop metadata does the target expose?
+      priority: 99
+      reference: https://owasp.org/www-project-penetration-testing-execution-standard/
+  group: network
+  type: active
+  targetKinds: [hostname, ip]
+  inputs:
+    - name: port
+      type: integer
+      description: TCP port to probe.
+      default: 5900
+      minimum: 1
+      maximum: 65535
+  requirements:
+    commands: [nmap]
+  runtime:
+    type: command
+    command:
+      executable: nmap
+      args:
+        - -Pn
+        - -n
+        - -sT
+        - -sV
+        - --version-light
+        - --script
+        - vnc-info,vnc-title
+        - --script-timeout
+        - 15s
+        - --host-timeout
+        - 30s
+        - --max-retries
+        - "1"
+        - -p
+        - "{{input:port}}"
+        - -oX
+        - "{{artifact:nmap.xml}}"
+        - "{{target}}"
+      artifacts:
+        - name: nmap.xml
+          mediaType: application/xml
+          required: true
