@@ -81,4 +81,4 @@ Authorized browser ──► Proxy :8008 ──► target
 
 ## Project status
 
-These docs track the active `develop` branch. The latest tagged release is [v2.6.0](https://github.com/owtf/owtf/releases/tag/v2.6.0), published in March 2022. Use the development documentation when working from the current repository.
+These docs track the active `develop` branch. The latest tagged release is [v2.7.0](https://github.com/owtf/owtf/releases/tag/v2.7.0), published in September 2026. Use the development documentation when working from the current repository.
