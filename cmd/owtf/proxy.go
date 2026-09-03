@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -11,6 +12,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -37,6 +39,7 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	flags := flag.NewFlagSet("owtf proxy", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	listenAddress := flags.String("listen", "127.0.0.1:8008", "proxy listen address")
+	controlAddress := flags.String("control-listen", "127.0.0.1:8010", "proxy control API listen address")
 	outputPath := flags.String("output", filepath.Join(".owtf", "proxy", "capture.har"), "HAR output path")
 	certificatePath := flags.String("ca-cert", filepath.Join(".owtf", "proxy", "ca.crt"), "proxy CA certificate path")
 	keyPath := flags.String("ca-key", filepath.Join(".owtf", "proxy", "ca.key"), "proxy CA private key path")
@@ -68,6 +71,7 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 		return err
 	}
 	transport := http.DefaultTransport.(*http.Transport).Clone()
+	defer transport.CloseIdleConnections()
 	transport.DisableCompression = true
 	transport.Proxy = nil
 	transport.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS12, InsecureSkipVerify: *insecureUpstream}
@@ -130,32 +134,101 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	if err != nil {
 		return fmt.Errorf("listen for proxy traffic: %w", err)
 	}
+	controlListener, err := net.Listen("tcp", *controlAddress)
+	if err != nil {
+		listener.Close()
+		return fmt.Errorf("listen for proxy control: %w", err)
+	}
+	proxyURL := &url.URL{Scheme: "http", Host: listener.Addr().String()}
+	roots := x509.NewCertPool()
+	if !roots.AppendCertsFromPEM(authority.CertificatePEM()) {
+		listener.Close()
+		controlListener.Close()
+		return errors.New("load proxy CA for repeater")
+	}
+	repeatTransport := http.DefaultTransport.(*http.Transport).Clone()
+	defer repeatTransport.CloseIdleConnections()
+	repeatTransport.DisableCompression = true
+	repeatTransport.Proxy = http.ProxyURL(proxyURL)
+	repeatTransport.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS12, RootCAs: roots}
+	repeatClient := &http.Client{
+		Transport: repeatTransport, Timeout: 2 * time.Minute,
+		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
+	}
+	controlHandler, err := owtfproxy.NewControl(owtfproxy.ControlConfig{
+		Authority: authority, Recorder: recorder, RepeatClient: repeatClient, MaximumBody: *maximumBody,
+	})
+	if err != nil {
+		listener.Close()
+		controlListener.Close()
+		return err
+	}
 	server := &http.Server{
 		Handler: handler, ReadHeaderTimeout: 10 * time.Second, IdleTimeout: 60 * time.Second,
 		ErrorLog: log.New(stderr, "proxy: ", log.LstdFlags),
 	}
+	controlServer := &http.Server{
+		Handler: controlHandler, ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 30 * time.Second,
+		ErrorLog: log.New(stderr, "proxy control: ", log.LstdFlags),
+	}
 	ctx, stop := signal.NotifyContext(parent, os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	go func() {
-		<-ctx.Done()
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		_ = server.Shutdown(shutdownCtx)
-	}()
 	if err := json.NewEncoder(stdout).Encode(map[string]any{
-		"listen": listener.Addr().String(), "ca_certificate": *certificatePath, "output": *outputPath,
+		"listen": listener.Addr().String(), "control": controlListener.Addr().String(),
+		"ca_certificate": *certificatePath, "output": *outputPath,
 	}); err != nil {
 		listener.Close()
+		controlListener.Close()
 		return fmt.Errorf("write proxy status: %w", err)
 	}
-	serveErr := server.Serve(listener)
-	if err := recorder.WriteHAR(*outputPath); err != nil {
-		return err
+	type serverResult struct {
+		name string
+		err  error
 	}
-	if serveErr != nil && !errors.Is(serveErr, http.ErrServerClosed) {
-		return serveErr
+	results := make(chan serverResult, 2)
+	go func() { results <- serverResult{name: "proxy", err: server.Serve(listener)} }()
+	go func() { results <- serverResult{name: "proxy control", err: controlServer.Serve(controlListener)} }()
+
+	received := 0
+	var runErr error
+	select {
+	case <-ctx.Done():
+	case result := <-results:
+		received++
+		if result.err != nil && !errors.Is(result.err, http.ErrServerClosed) {
+			runErr = fmt.Errorf("%s server: %w", result.name, result.err)
+		}
 	}
-	return nil
+	stop()
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	shutdownErr := shutdownHTTPServers(shutdownCtx, server, controlServer)
+	for received < 2 {
+		result := <-results
+		received++
+		if result.err != nil && !errors.Is(result.err, http.ErrServerClosed) {
+			runErr = errors.Join(runErr, fmt.Errorf("%s server: %w", result.name, result.err))
+		}
+	}
+	return errors.Join(runErr, shutdownErr, recorder.WriteHAR(*outputPath))
+}
+
+func shutdownHTTPServers(ctx context.Context, servers ...*http.Server) error {
+	results := make(chan error, len(servers))
+	for _, server := range servers {
+		go func() {
+			err := server.Shutdown(ctx)
+			if err != nil {
+				err = errors.Join(err, server.Close())
+			}
+			results <- err
+		}()
+	}
+	var result error
+	for range servers {
+		result = errors.Join(result, <-results)
+	}
+	return result
 }
 
 func splitNames(value string) []string {

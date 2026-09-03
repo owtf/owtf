@@ -38,7 +38,7 @@ func run(args []string, stdout, stderr io.Writer) error {
 				return fmt.Errorf("serve accepts no arguments")
 			}
 		case "proxy":
-			return runProxy(context.Background(), args[1:], stdout, stderr)
+			return runProxyCommand(context.Background(), args[1:], stdout, stderr)
 		default:
 			return cli.Run(context.Background(), args, stdout, stderr)
 		}

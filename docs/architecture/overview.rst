@@ -198,10 +198,12 @@ persists its CA, records bounded HAR captures, tunnels WebSockets, enforces an
 optional host scope, retries failures and HTTP 408/599 responses, caches bounded
 responses with cookie-key filtering, and supports authenticated HTTP, HTTPS,
 and SOCKS5 upstream proxies. Basic and Digest target authentication is scoped
-to configured hosts and loaded from a private file. Priority-ordered static
-request and response interceptors provide bounded URL, header, body, and delay
-actions. WebSocket frame artifacts, repeater, CA and history APIs, and live
-interceptors remain before the phase gate.
+  to configured hosts and loaded from a private file. Priority-ordered static
+  request and response interceptors provide bounded URL, header, body, and delay
+  actions. A separate loopback control listener provides transaction history,
+  filters, statistics, clearing, CA download, and request replay through the
+  same proxy path. WebSocket frame artifacts and live interceptors remain
+  before the phase gate.
 
 API regression gate
 -------------------

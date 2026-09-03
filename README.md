@@ -29,6 +29,8 @@ resulting evidence.
 - An OWTF-owned HTTP/HTTPS interception proxy with a persistent CA, bounded HAR
   capture and cache, retries, WebSocket tunneling, host scope, and outbound
   HTTP/HTTPS/SOCKS5 proxy support.
+- A loopback proxy control API and CLI for transaction history, filtering,
+  statistics, clearing, CA download, and binary-safe request replay.
 - Challenge-based Basic and Digest authentication for explicitly configured
   target hosts.
 - Priority-ordered static request and response interceptors with bounded URL,

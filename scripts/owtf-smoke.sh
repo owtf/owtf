@@ -9,10 +9,15 @@ BASE_URL="http://${ADDRESS}"
 RESPONSE_FILE="${TMP_DIR}/response"
 CLI_RESPONSE_FILE="${TMP_DIR}/cli-response"
 SERVER_PID=""
+PROXY_PID=""
 GO_PATH=${OWTF_SMOKE_GOPATH:-${TMPDIR:-/tmp}/owtf-go}
 GO_MODULE_CACHE=${OWTF_SMOKE_GOMODCACHE:-${GO_PATH}/pkg/mod}
 
 cleanup() {
+  if [[ -n "${PROXY_PID}" ]] && kill -0 "${PROXY_PID}" 2>/dev/null; then
+    kill "${PROXY_PID}" 2>/dev/null || true
+    wait "${PROXY_PID}" 2>/dev/null || true
+  fi
   if [[ -n "${SERVER_PID}" ]] && kill -0 "${SERVER_PID}" 2>/dev/null; then
     kill "${SERVER_PID}" 2>/dev/null || true
     wait "${SERVER_PID}" 2>/dev/null || true
@@ -73,6 +78,11 @@ assert_json() {
 cli_json() {
   OWTF_URL="${BASE_URL}" "${TMP_DIR}/owtf" "$@" >"${CLI_RESPONSE_FILE}"
   jq -e . "${CLI_RESPONSE_FILE}" >/dev/null || fail "CLI returned invalid JSON for: $*"
+}
+
+proxy_cli_json() {
+  OWTF_PROXY_URL="${PROXY_CONTROL_URL}" "${TMP_DIR}/owtf" proxy "$@" >"${CLI_RESPONSE_FILE}"
+  jq -e . "${CLI_RESPONSE_FILE}" >/dev/null || fail "proxy CLI returned invalid JSON for: $*"
 }
 
 wait_for_task_status() {
@@ -418,5 +428,87 @@ request GET "/api/v2/tasks?session_id=${SESSION_ID}" 200
 assert_json 'length == 0' 'tasks survived target deletion'
 request GET "/api/v2/transactions?session_id=${SESSION_ID}" 200
 assert_json 'length == 0' 'transactions survived target deletion'
+
+printf '%s\n' 'Checking proxy traffic, control API, repeater, history, CA, and CLI...'
+PROXY_ADDRESS=${OWTF_SMOKE_PROXY_ADDR:-127.0.0.1:18118}
+PROXY_CONTROL_ADDRESS=${OWTF_SMOKE_PROXY_CONTROL_ADDR:-127.0.0.1:18120}
+PROXY_URL="http://${PROXY_ADDRESS}"
+PROXY_CONTROL_URL="http://${PROXY_CONTROL_ADDRESS}"
+PROXY_HAR="${TMP_DIR}/proxy.har"
+PROXY_CA="${TMP_DIR}/proxy-ca.crt"
+PROXY_KEY="${TMP_DIR}/proxy-ca.key"
+if curl --silent --fail --max-time 1 "${PROXY_CONTROL_URL}/api/v2/health" >/dev/null 2>&1; then
+  fail "${PROXY_CONTROL_ADDRESS} is already serving a proxy control API"
+fi
+"${TMP_DIR}/owtf" proxy \
+  --listen "${PROXY_ADDRESS}" \
+  --control-listen "${PROXY_CONTROL_ADDRESS}" \
+  --target-host 127.0.0.1 \
+  --output "${PROXY_HAR}" \
+  --ca-cert "${PROXY_CA}" \
+  --ca-key "${PROXY_KEY}" \
+  >"${TMP_DIR}/proxy-status.json" 2>"${TMP_DIR}/proxy.log" &
+PROXY_PID=$!
+for attempt in $(seq 1 100); do
+  if curl --silent --fail --max-time 1 "${PROXY_CONTROL_URL}/api/v2/health" >/dev/null 2>&1; then
+    break
+  fi
+  if ! kill -0 "${PROXY_PID}" 2>/dev/null; then
+    cat "${TMP_DIR}/proxy.log" >&2
+    fail 'proxy exited during startup'
+  fi
+  sleep 0.05
+done
+jq -e --arg proxy "${PROXY_ADDRESS}" --arg control "${PROXY_CONTROL_ADDRESS}" \
+  '.listen == $proxy and .control == $control' "${TMP_DIR}/proxy-status.json" >/dev/null || fail 'proxy startup status is incorrect'
+
+curl --silent --show-error --fail --max-time 10 --noproxy '' --proxy "${PROXY_URL}" \
+  "${BASE_URL}/debug/health" >"${RESPONSE_FILE}"
+assert_json '.status == "ok"' 'curl traffic did not pass through the proxy'
+
+REPEAT_PAYLOAD=$(jq -nc --arg url "${BASE_URL}/debug/health" '{method:"GET",url:$url}')
+request_status=$(curl --silent --show-error --max-time 10 \
+  --request POST --header 'Content-Type: application/json' --data "${REPEAT_PAYLOAD}" \
+  --output "${RESPONSE_FILE}" --write-out '%{http_code}' "${PROXY_CONTROL_URL}/api/v2/repeater")
+[[ "${request_status}" == 200 ]] || fail "proxy repeater returned ${request_status}: $(cat "${RESPONSE_FILE}")"
+assert_json '.status_code == 200 and .truncated == false and (.body_base64 | @base64d | fromjson | .status == "ok")' 'proxy repeater response is incorrect'
+
+curl --silent --show-error --fail --max-time 10 \
+  "${PROXY_CONTROL_URL}/api/v2/transactions?method=GET&status=200&url=debug%2Fhealth&limit=10" >"${RESPONSE_FILE}"
+assert_json 'length == 2 and all(.[]; .method == "GET" and .status_code == 200)' 'proxy transaction filtering is incorrect'
+curl --silent --show-error --fail --max-time 10 \
+  "${PROXY_CONTROL_URL}/api/v2/transactions/1" >"${RESPONSE_FILE}"
+assert_json '.id == 1 and .response_body_base64 != ""' 'proxy transaction detail is incomplete'
+curl --silent --show-error --fail --max-time 10 \
+  "${PROXY_CONTROL_URL}/api/v2/transactions/stats" >"${RESPONSE_FILE}"
+assert_json '.total == 2 and .methods.GET == 2 and .statuses["200"] == 2' 'proxy transaction stats are incorrect'
+curl --silent --show-error --fail --max-time 10 \
+  "${PROXY_CONTROL_URL}/api/v2/ca" >"${TMP_DIR}/downloaded-ca.crt"
+cmp -s "${PROXY_CA}" "${TMP_DIR}/downloaded-ca.crt" || fail 'proxy CA download differs from generated CA'
+
+proxy_cli_json status
+jq -e '.status == "ok"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy CLI status is incorrect'
+proxy_cli_json transactions --url debug/health --limit 10
+jq -e 'length == 2' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy CLI transactions are incorrect'
+proxy_cli_json transaction 1
+jq -e '.id == 1 and .status_code == 200' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy CLI transaction detail is incorrect'
+proxy_cli_json stats
+jq -e '.total == 2' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy CLI stats are incorrect'
+proxy_cli_json repeat "${BASE_URL}/debug/health"
+jq -e '.status_code == 200 and (.body_base64 | @base64d | fromjson | .status == "ok")' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy CLI repeater is incorrect'
+proxy_cli_json ca --output "${TMP_DIR}/cli-proxy-ca.crt"
+cmp -s "${PROXY_CA}" "${TMP_DIR}/cli-proxy-ca.crt" || fail 'proxy CLI CA differs from generated CA'
+
+request_status=$(curl --silent --show-error --max-time 10 --request DELETE \
+  --output "${RESPONSE_FILE}" --write-out '%{http_code}' "${PROXY_CONTROL_URL}/api/v2/transactions")
+[[ "${request_status}" == 200 ]] || fail "proxy clear returned ${request_status}: $(cat "${RESPONSE_FILE}")"
+assert_json '.removed == 3' 'proxy history clear count is incorrect'
+proxy_cli_json stats
+jq -e '.total == 0' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy history survived clear'
+
+kill "${PROXY_PID}"
+wait "${PROXY_PID}"
+PROXY_PID=""
+jq -e '.log.entries | length == 0' "${PROXY_HAR}" >/dev/null || fail 'cleared proxy history remained in shutdown HAR'
 
 printf '%s\n' 'PASS: curl API smoke test completed.'

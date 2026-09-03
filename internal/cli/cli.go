@@ -710,6 +710,8 @@ func printUsage(output io.Writer) {
 
 Usage:
   owtf serve
+  owtf proxy [--listen ADDRESS] [--control-listen ADDRESS]
+  owtf proxy status|transactions|transaction|stats|clear|ca|repeat
   owtf [--url URL] health
   owtf [--url URL] sessions list|create|show|report
   owtf [--url URL] sessions export [--output FILE] ID

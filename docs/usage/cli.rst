@@ -116,9 +116,11 @@ shutdown it writes a standard HAR file that can be imported into a target::
     --output .owtf/proxy/capture.har
 
 The command prints its listen address, CA certificate path, and output path as
-JSON before accepting traffic. Trust the generated CA only in a dedicated test
+JSON before accepting traffic. It also prints the control API address, which
+defaults to ``127.0.0.1:8010``. Trust the generated CA only in a dedicated test
 browser or tool profile. ``--target-host`` may be repeated; omit it only for an
-interactive proxy that intentionally accepts every host.
+interactive proxy that intentionally accepts every host. Keep the proxy and
+control listeners on loopback unless a trusted reverse proxy protects them.
 
 The proxy retains at most 10,000 transactions and captures at most 1 MiB per
 request or response by default. Its bounded response cache excludes OWTF's
@@ -195,6 +197,41 @@ Configuration is capped at 1 MiB and 100 rules. Body changes use
 ``--max-body`` as a hard limit, reject encoded content, and are not applied to
 WebSocket streams. Response rules are skipped for WebSocket upgrades. URL
 rewrites are checked against ``--target-host`` after transformation.
+
+Inspect and replay proxy traffic
+--------------------------------
+
+The proxy control commands use ``http://127.0.0.1:8010`` by default. Override
+that address with ``OWTF_PROXY_URL`` or ``--control``::
+
+  owtf proxy status
+  owtf proxy transactions --method POST --status 200 --search token
+  owtf proxy transaction 1
+  owtf proxy stats
+  owtf proxy ca --output owtf-proxy-ca.crt
+  owtf proxy repeat --method POST --header 'Content-Type: application/json' \
+    --data '{"probe":true}' https://example.test/api
+  owtf proxy clear
+
+``proxy transactions`` returns bounded summaries. ``proxy transaction``
+returns raw headers and base64-encoded request and response bodies. Repeater
+bodies are also base64-encoded internally so binary data is not coerced; use
+``--data-file`` for a binary request and ``--output`` for a binary response.
+Repeater requests travel through the running OWTF proxy and therefore use the
+same target scope, cache, retry, authentication, interceptors, and capture path.
+Clearing history releases the in-memory capture, so cleared entries will not be
+present in the HAR written at shutdown.
+
+The same operations are available directly for scripts::
+
+  curl -sS http://127.0.0.1:8010/api/v2/transactions
+  curl -sS http://127.0.0.1:8010/api/v2/transactions/stats
+  curl -sS http://127.0.0.1:8010/api/v2/transactions/1
+  curl -sS http://127.0.0.1:8010/api/v2/ca -o owtf-proxy-ca.crt
+  curl -sS -X POST -H 'Content-Type: application/json' \
+    --data '{"method":"GET","url":"https://example.test/"}' \
+    http://127.0.0.1:8010/api/v2/repeater
+  curl -sS -X DELETE http://127.0.0.1:8010/api/v2/transactions
 
 Run ``owtf help`` for the compact command index. The CLI never opens the
 SQLite database or starts plugin processes itself; all state transitions pass
