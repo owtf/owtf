@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and community support
+    url: https://owasp.org/slack/invite
+    about: "Join the OWASP Slack workspace and ask in #project-owtf."
+  - name: Report a security vulnerability
+    url: https://github.com/owtf/owtf/security/policy
+    about: Read the private reporting instructions. Do not disclose vulnerabilities in a public issue.

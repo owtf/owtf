@@ -1,23 +1,25 @@
 # OWASP Offensive Web Testing Framework (OWTF) Security Policy
 
-The OWTF leadership team takes security issues seriously. We value coordinated disclosure and will work with you to understand
-and remediate vulnerabilities in a timely manner.
-
-We aim to acknowledge new reports within **3 business days** and, where a fix is accepted, release an update within **7 business
-days**. If a report is declined we will explain why.
+The OWTF leadership team takes security issues seriously. We value coordinated disclosure and will work with reporters to
+understand, remediate, and disclose vulnerabilities responsibly. Response and remediation times depend on maintainer
+availability, severity, and the complexity of the fix; we will agree on a disclosure timeline after triage.
 
 ## Reporting a vulnerability
 
-Email the project maintainers at [owasp_owtf_developers@lists.owasp.org](mailto:owasp_owtf_developers@lists.owasp.org) with the
-following details:
+Do **not** open a public issue or discussion containing vulnerability details.
+
+Email the current [OWTF project leaders](https://owasp.org/www-project-owtf/#div-leaders) at
+[viyat.bhalodia@owasp.org](mailto:viyat.bhalodia@owasp.org) and
+[abraham.aranguren@owasp.org](mailto:abraham.aranguren@owasp.org) with the subject `[OWTF SECURITY]`. Include:
 
 1. Your name and affiliation (if any)
 2. A clear description of the vulnerability
 3. Steps to reproduce the issue, including sample payloads or proof-of-concept code if applicable
 4. Any related CVE, advisory, or public references
-5. Your expectation for disclosure timelines (if different from the defaults above)
+5. Your preferred disclosure timeline
 
-Please encrypt sensitive information if possible. If you need a PGP key, request one in your initial email and we will provide it.
+If you need an encrypted channel, send an initial message without sensitive technical details and ask the maintainers to arrange
+one.
 
 ## Scope
 
@@ -31,10 +33,14 @@ feasible but cannot guarantee fixes for external dependencies.
 
 ## Supported versions
 
-We support the latest tagged release and the `develop` branch. Security fixes are generally backported to the most recent stable
-release.
+| Version                           | Supported |
+| --------------------------------- | --------- |
+| `develop`                         | Yes       |
+| `2.6.0` and older tagged releases | No        |
+
+The `develop` branch is pre-release software and is currently the only line receiving security fixes. Tagged releases do not
+currently receive security backports. This table will be updated when a new stable release is published.
 
 ## Acknowledgements
 
-We maintain a [hall of fame](https://github.com/OWASP/OWTF/blob/master/hall_of-fame.md) to recognise individuals and
-organisations that responsibly disclose security issues.
+With the reporter's consent, we credit responsible disclosures in the corresponding published GitHub security advisory.

@@ -1,0 +1,84 @@
+name: Bug report
+description: Report reproducible behaviour that is not working as expected.
+title: "[Bug]: "
+labels:
+  - Bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve OWTF. Remove credentials, target data, tokens, and other sensitive information before submitting.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong, and what were you trying to do?
+    validations:
+      required: true
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Installation method
+      options:
+        - Docker Compose (make compose-safe)
+        - Docker Compose (make compose-unsafe)
+        - Native/source installation
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Provide the release tag, branch, or output of `git rev-parse --short HEAD`.
+      placeholder: develop at abc1234
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Include operating system, architecture, Docker version, and browser when relevant.
+      placeholder: Kali 2026.x, arm64, Docker 28.x, Firefox 142
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Provide the smallest reliable sequence that triggers the problem.
+      placeholder: |
+        1. Start OWTF with ...
+        2. Open ...
+        3. Run ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Paste a short, sanitised excerpt or link to a sanitised log. Do not include secrets or vulnerability details.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched existing issues for a duplicate.
+          required: true
+        - label: I removed credentials, private target data, and other sensitive information.
+          required: true
+        - label: This is not a security vulnerability. I will use SECURITY.md for vulnerabilities.
+          required: true

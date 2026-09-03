@@ -1,0 +1,47 @@
+name: Documentation issue
+description: Report incorrect, missing, confusing, or outdated OWTF documentation.
+title: "[Docs]: "
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Documentation area
+      options:
+        - README or installation
+        - User documentation
+        - API reference
+        - Contributor documentation
+        - Website or project page
+        - Screenshots or examples
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: location
+    attributes:
+      label: Page or file
+      description: Link to the page or provide the repository path.
+      placeholder: https://docs.owtf.org/... or docs/usage/...
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What needs to change?
+      description: Quote only the relevant text and explain why it is incorrect, missing, or unclear.
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested replacement or addition
+      description: If possible, provide corrected wording, commands, screenshots, or authoritative references.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I checked the current `develop` branch or development documentation.
+          required: true
+        - label: I searched existing issues for a duplicate.
+          required: true

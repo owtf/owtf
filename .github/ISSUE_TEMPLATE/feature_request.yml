@@ -1,0 +1,66 @@
+name: Feature request
+description: Propose a focused improvement to OWTF.
+title: "[Feature]: "
+labels:
+  - Feature
+body:
+  - type: markdown
+    attributes:
+      value: Describe the user problem first so maintainers can evaluate the smallest useful solution.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Who experiences this problem, and how does it affect an OWTF workflow?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Backend or API
+        - Web interface
+        - Proxy
+        - Plugins or tool integration
+        - Reports
+        - Installation or infrastructure
+        - Documentation or community
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the desired behaviour and how a user would interact with it.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: List existing workarounds or other approaches you considered.
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: What observable outcomes would make this feature complete?
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to help implement or test this feature.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched existing issues for a duplicate.
+          required: true

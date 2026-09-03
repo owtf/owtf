@@ -5,8 +5,7 @@ add a feature, or improve our documentation, every contribution makes OWTF bette
 
 ## How to get involved
 
-- **Ask questions** – Use [GitHub Discussions](https://github.com/owtf/owtf/discussions) or join the OWASP Slack workspace and
-  head to `#project-owtf`.
+- **Ask questions** – Join the [OWASP Slack workspace](https://owasp.org/slack/invite) and head to `#project-owtf`.
 - **Report issues** – Search the [issue tracker](https://github.com/owtf/owtf/issues) before opening a new ticket. Provide as
   much detail as possible (steps to reproduce, expected behaviour, environment details, and logs where relevant).
 - **Contribute code or documentation** – Pick an open issue or propose a new improvement, then submit a pull request.
@@ -21,8 +20,17 @@ Please make sure you read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
    cd owtf
    git checkout -b feature/my-change
    ```
-2. **Set up your environment** using the instructions in the [README](README.md). The `requirements/dev.txt` file contains
-   development dependencies.
+2. **Set up OWTF** with the Docker Compose instructions in the [README](README.md). For backend-only host development, use
+   Python 3.11 or 3.12 in a virtual environment:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   python -m pip install --upgrade pip setuptools wheel
+   python -m pip install -r requirements/base.txt -r requirements/dev.txt -r requirements/test.txt
+   OWTF_SKIP_POST_INSTALL=1 python -m pip install -e . --no-deps
+   make startdb
+   ```
+   Install frontend dependencies separately with `cd owtf/webapp && yarn install --frozen-lockfile`.
 3. **Run the tests and linters** before submitting your changes:
    ```bash
    make startdb
@@ -58,7 +66,7 @@ Please do **not** open a public issue if you find a security vulnerability. Inst
 
 ## Recognition
 
-We are grateful to everyone who contributes to OWTF. Significant contributions are highlighted in the project's
-[hall of fame](https://github.com/OWASP/OWTF/blob/master/hall_of-fame.md).
+We are grateful to everyone who contributes to OWTF. Project authors and contributors are listed in
+[AUTHORS.md](AUTHORS.md).
 
 Thank you for helping us build a stronger, more secure web!

@@ -56,9 +56,10 @@ an official social media account, or acting as an appointed representative at an
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behaviour may be reported to the OWTF project leadership at
-[owasp_owtf_developers@lists.owasp.org](mailto:owasp_owtf_developers@lists.owasp.org). All complaints will be reviewed and
-investigated promptly and fairly.
+Instances of abusive, harassing, or otherwise unacceptable behaviour may be reported privately to the OWTF project leaders at
+[viyat.bhalodia@owasp.org](mailto:viyat.bhalodia@owasp.org) and
+[abraham.aranguren@owasp.org](mailto:abraham.aranguren@owasp.org). All complaints will be reviewed and investigated promptly
+and fairly.
 
 Project maintainers are obligated to respect the privacy and security of the reporter of any incident.
 
