@@ -8,7 +8,7 @@ OWTF_GO_PATH ?= /tmp/owtf-go
 OWTF_GO_CACHE ?= /tmp/owtf-go-cache
 OWTF_GO_ENV := GOPATH=$(OWTF_GO_PATH) GOMODCACHE=$(OWTF_GO_PATH)/pkg/mod GOCACHE=$(OWTF_GO_CACHE) GOMAXPROCS=2
 
-.PHONY: build check-compose clean fmt fmt-check lint local-down local-logs local-status local-up run test test-unit test-api test-tools tools-image vet
+.PHONY: build check-compose clean fmt fmt-check lint local-down local-logs local-status local-up run test test-unit test-api test-tools test-failures tools-image vet
 
 build:
 	@echo "--> Building OWTF"
@@ -48,6 +48,10 @@ test-tools: check-compose
 		echo "Missing owtf/kali-tools:local. Run: make tools-image"; exit 1; \
 	}
 	@./scripts/owtf-tools-smoke.sh
+
+test-failures:
+	@echo "--> Checking active-scan cancellation, crashes, and timeouts"
+	@./scripts/owtf-tools-smoke.sh --failure-only
 
 test: lint test-unit test-api
 

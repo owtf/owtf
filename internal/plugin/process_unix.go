@@ -12,6 +12,8 @@ import (
 
 func executeProcess(ctx context.Context, command *exec.Cmd) error {
 	command.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	// Orphaned children can keep output pipes open after the parent exits.
+	command.WaitDelay = time.Second
 	if err := command.Start(); err != nil {
 		return err
 	}

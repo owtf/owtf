@@ -169,6 +169,13 @@ into shell source. This prevents OWTF from turning target or operator text into
 shell syntax, but it does not sandbox the executable. Host command plugins are
 trusted code with the same operating-system access as OWTF.
 
+Host command cancellation sends TERM to the process group, then KILL after a
+bounded grace period. Parent exit also kills the group. The output-pipe wait
+is bounded so children retaining stdout/stderr cannot prevent cleanup after a
+parent crash. Native regression tests use a real parent, child, and grandchild
+that ignore TERM, and verify process and group disappearance for cancellation,
+deadline expiry, and forced parent death.
+
 ``{{target}}`` passes the normalized target unchanged. ``{{target.host}}``
 parses a URL target and passes only its hostname, which is required by tools
 such as Metagoofil. ``{{artifact:name}}`` resolves inside the task-owned
@@ -403,6 +410,15 @@ the resulting state. The test uses temporary plugins for deterministic
 cancellation and a missing requirement, removes its database and artifacts on
 exit, and does not start Docker or Colima. Run ``make clean`` after
 development to remove the bounded Go build cache under ``/tmp``.
+
+``make test-failures`` reuses the Kali tools image and runs Gobuster against a
+temporary local nginx target. Cancellation, SIGKILL of the scanner process,
+and a 15-second OWTF deadline happen only after the target's access log and the
+task's stdout establish actual scan activity. Each case requires one terminal
+attempt, matching task/run state, retained attempt-linked logs, an idle worker,
+and no task containers, volumes, or temporary input files. Restarting the same
+server/database must not create another attempt. Evidence is retained under
+``build/test-evidence/``. The full ``make test-tools`` run includes this gate.
 
 Resource discipline
 -------------------

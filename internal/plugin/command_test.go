@@ -4,9 +4,11 @@ package plugin
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"reflect"
 	"strconv"
@@ -127,7 +129,16 @@ func TestCommandArtifactsCannotEscapeTheirDirectory(t *testing.T) {
 	}
 }
 
-func TestCancellationKillsPluginProcessGroup(t *testing.T) {
+func TestFailureKillsPluginProcessGroup(t *testing.T) {
+	for _, outcome := range []string{"cancel", "timeout", "crash"} {
+		t.Run(outcome, func(t *testing.T) {
+			testFailureKillsPluginProcessGroup(t, outcome)
+		})
+	}
+}
+
+func testFailureKillsPluginProcessGroup(t *testing.T, outcome string) {
+	t.Helper()
 	manifest := Manifest{}
 	manifest.Metadata.ID = "OWTF-TEST-001-active"
 	manifest.Spec.Techniques = []TechniqueSpec{{Code: "OWTF-TEST-001", Title: "Test", Priority: 99}}
@@ -135,20 +146,21 @@ func TestCancellationKillsPluginProcessGroup(t *testing.T) {
 	manifest.Spec.Runtime.Command = &CommandSpec{Args: []string{"-test.run=TestCommandProcessHelper", "--", "spawn"}}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	processes := make(chan []int, 1)
+	if outcome == "timeout" {
+		cancel()
+		ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
+	}
+	defer cancel()
+	processes := make(chan int, 3)
 	done := make(chan error, 1)
+	wordlists := t.TempDir()
 	go func() {
-		_, err := CommandExecutor(manifest, os.Args[0], t.TempDir())(ctx, Request{
+		_, err := CommandExecutor(manifest, os.Args[0], wordlists)(ctx, Request{
 			Target: model.Target{Kind: "url", Value: "https://example.test/"},
 			Log: func(stream, message string) {
-				if stream == "stdout" && strings.HasPrefix(message, "processes=") {
-					parts := strings.Split(strings.TrimPrefix(message, "processes="), ",")
-					ids := make([]int, 0, len(parts))
-					for _, part := range parts {
-						id, _ := strconv.Atoi(part)
-						ids = append(ids, id)
-					}
-					processes <- ids
+				if stream == "stdout" && strings.HasPrefix(message, "process=") {
+					id, _ := strconv.Atoi(strings.TrimPrefix(message, "process="))
+					processes <- id
 				}
 			},
 		})
@@ -156,19 +168,39 @@ func TestCancellationKillsPluginProcessGroup(t *testing.T) {
 	}()
 
 	var ids []int
-	select {
-	case ids = <-processes:
-	case <-time.After(2 * time.Second):
-		t.Fatal("plugin process group did not start")
+	defer func() {
+		if len(ids) != 0 {
+			_ = signalProcessGroup(ids[0], syscall.SIGKILL)
+		}
+	}()
+	for len(ids) != 3 {
+		select {
+		case id := <-processes:
+			if id < 2 {
+				t.Fatalf("invalid helper PID %d", id)
+			}
+			ids = append(ids, id)
+		case <-time.After(2 * time.Second):
+			t.Fatal("plugin parent, child, and grandchild did not start")
+		}
 	}
-	cancel()
+	if outcome == "cancel" {
+		cancel()
+	} else if outcome == "crash" {
+		if err := syscall.Kill(ids[0], syscall.SIGKILL); err != nil {
+			t.Fatal(err)
+		}
+	}
 	select {
 	case err := <-done:
-		if !strings.Contains(err.Error(), context.Canceled.Error()) {
-			t.Fatalf("unexpected cancellation error: %v", err)
+		var exitError *exec.ExitError
+		if outcome == "cancel" && !errors.Is(err, context.Canceled) ||
+			outcome == "timeout" && !errors.Is(err, context.DeadlineExceeded) ||
+			outcome == "crash" && !errors.As(err, &exitError) {
+			t.Fatalf("unexpected %s error: %v", outcome, err)
 		}
-	case <-time.After(3 * time.Second):
-		t.Fatal("plugin cancellation did not return")
+	case <-time.After(4 * time.Second):
+		t.Fatalf("plugin %s did not return", outcome)
 	}
 	for _, pid := range ids {
 		waitForProcessExit(t, pid)
@@ -177,17 +209,28 @@ func TestCancellationKillsPluginProcessGroup(t *testing.T) {
 }
 
 func TestCommandProcessHelper(t *testing.T) {
-	if len(os.Args) < 2 || os.Args[len(os.Args)-1] != "spawn" {
+	role := os.Args[len(os.Args)-1]
+	if role != "spawn" && role != "child" && role != "leaf" {
 		return
 	}
-	child := exec.Command("/bin/sh", "-c", "trap '' TERM; while :; do sleep 1; done")
+	signal.Ignore(syscall.SIGTERM)
+	fmt.Printf("process=%d\n", os.Getpid())
+	if role == "leaf" {
+		for {
+			time.Sleep(time.Hour)
+		}
+	}
+	next := "child"
+	if role == "child" {
+		next = "leaf"
+	}
+	child := exec.Command(os.Args[0], "-test.run=TestCommandProcessHelper", "--", next)
 	child.Stdout = os.Stdout
 	child.Stderr = os.Stderr
 	if err := child.Start(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)
 	}
-	fmt.Printf("processes=%d,%d\n", os.Getpid(), child.Process.Pid)
 	_ = child.Wait()
 	os.Exit(0)
 }
@@ -201,7 +244,7 @@ func waitForProcessExit(t *testing.T, pid int) {
 			return
 		}
 		if time.Now().After(deadline) {
-			t.Fatalf("process %d survived cancellation", pid)
+			t.Fatalf("process %d survived cleanup", pid)
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
@@ -216,7 +259,7 @@ func waitForProcessGroupExit(t *testing.T, processGroupID int) {
 			return
 		}
 		if time.Now().After(deadline) {
-			t.Fatalf("process group %d survived cancellation", processGroupID)
+			t.Fatalf("process group %d survived cleanup", processGroupID)
 		}
 		time.Sleep(20 * time.Millisecond)
 	}

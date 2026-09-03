@@ -149,6 +149,15 @@ metrics, cancellation, and container/volume cleanup without rebuilding the
 tools image. Metagoofil receives a startup check only; its search-provider
 workflow requires a separate authorized live test.
 
+Run `make test-failures` to check only cancellation, scanner process death,
+and OWTF's task deadline using the existing Kali image. Every case waits for
+both a target-side request and Gobuster output before fault injection, then
+checks status, attempt-linked logs, container/volume cleanup, and absence of
+retries after server restart. Native process tests also check a stubborn
+parent/child/grandchild tree, including parent death with inherited output pipes.
+API/CLI results and Docker snapshots are retained under `build/test-evidence/`;
+`make clean` removes them. The full `make test-tools` run includes these checks.
+
 ## Access control
 
 OWTF has no user or authentication subsystem. Bind it to localhost for
