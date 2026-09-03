@@ -396,7 +396,7 @@ class ProxyHandler(tornado.web.RequestHandler):
                             # Clean up
                             self.application.live_interceptor.cleanup_request(request_id)
                             break
-                        time.sleep(LIVE_INTERCEPTION_DELAY)  # Small delay to avoid busy waiting
+                        yield tornado.gen.sleep(LIVE_INTERCEPTION_DELAY)  # Small delay to avoid busy waiting
                     else:
                         # Timeout - auto-forward
                         logger.info(f"Request {request_id} timed out, auto-forwarding")
