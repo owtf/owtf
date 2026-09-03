@@ -9,6 +9,7 @@ import (
 	"math"
 	"net/http"
 	"net/url"
+	"sort"
 	"strings"
 	"time"
 )
@@ -32,8 +33,15 @@ type Transaction struct {
 
 type document struct {
 	Log struct {
+		Version string  `json:"version,omitempty"`
+		Creator creator `json:"creator,omitempty"`
 		Entries []entry `json:"entries"`
 	} `json:"log"`
+}
+
+type creator struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
 }
 
 type entry struct {
@@ -46,10 +54,110 @@ type entry struct {
 		PostData *content `json:"postData"`
 	} `json:"request"`
 	Response struct {
-		Status  int      `json:"status"`
-		Headers []header `json:"headers"`
-		Content content  `json:"content"`
+		Status     int      `json:"status"`
+		StatusText string   `json:"statusText,omitempty"`
+		Headers    []header `json:"headers"`
+		Content    content  `json:"content"`
 	} `json:"response"`
+}
+
+// Write serializes captured OWTF transactions as a standard HAR 1.2 document.
+// Bodies are base64 encoded so arbitrary response bytes round-trip safely.
+func Write(writer io.Writer, transactions []Transaction) error {
+	if len(transactions) > MaxEntries {
+		return fmt.Errorf("cannot write %d transactions; maximum is %d", len(transactions), MaxEntries)
+	}
+	var output document
+	output.Log.Version = "1.2"
+	output.Log.Creator = creator{Name: "OWTF", Version: "0.1"}
+	output.Log.Entries = make([]entry, 0, len(transactions))
+	for index, transaction := range transactions {
+		item, err := writeEntry(transaction)
+		if err != nil {
+			return fmt.Errorf("transaction %d: %w", index+1, err)
+		}
+		output.Log.Entries = append(output.Log.Entries, item)
+	}
+	encoder := json.NewEncoder(writer)
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(output); err != nil {
+		return fmt.Errorf("encode HAR: %w", err)
+	}
+	return nil
+}
+
+func writeEntry(transaction Transaction) (entry, error) {
+	if transaction.StartedAt.IsZero() {
+		return entry{}, errors.New("started time is required")
+	}
+	if transaction.DurationMS < 0 {
+		return entry{}, errors.New("duration cannot be negative")
+	}
+	parsedURL, err := url.Parse(transaction.URL)
+	if err != nil || parsedURL.Host == "" || (parsedURL.Scheme != "http" && parsedURL.Scheme != "https") {
+		return entry{}, fmt.Errorf("invalid HTTP URL %q", transaction.URL)
+	}
+	requestHeaders, err := decodeHeaders(transaction.RequestHeaders)
+	if err != nil {
+		return entry{}, fmt.Errorf("request headers: %w", err)
+	}
+	responseHeaders, err := decodeHeaders(transaction.ResponseHeaders)
+	if err != nil {
+		return entry{}, fmt.Errorf("response headers: %w", err)
+	}
+	var item entry
+	item.StartedDateTime = transaction.StartedAt.UTC().Format(time.RFC3339Nano)
+	item.Time = float64(transaction.DurationMS)
+	item.Request.Method = strings.ToUpper(strings.TrimSpace(transaction.Method))
+	if item.Request.Method == "" {
+		return entry{}, errors.New("request method is required")
+	}
+	item.Request.URL = parsedURL.String()
+	item.Request.Headers = requestHeaders
+	if len(transaction.RequestBody) > 0 {
+		item.Request.PostData = encodedContent(transaction.RequestBody, transaction.RequestMediaType)
+	}
+	if transaction.StatusCode < 0 || transaction.StatusCode > 999 {
+		return entry{}, fmt.Errorf("invalid response status %d", transaction.StatusCode)
+	}
+	item.Response.Status = transaction.StatusCode
+	item.Response.StatusText = http.StatusText(transaction.StatusCode)
+	item.Response.Headers = responseHeaders
+	item.Response.Content = *encodedContent(transaction.ResponseBody, transaction.ResponseMediaType)
+	return item, nil
+}
+
+func decodeHeaders(value string) ([]header, error) {
+	if strings.TrimSpace(value) == "" {
+		return []header{}, nil
+	}
+	var values map[string][]string
+	if err := json.Unmarshal([]byte(value), &values); err != nil {
+		return nil, err
+	}
+	names := make([]string, 0, len(values))
+	for name := range values {
+		if strings.TrimSpace(name) == "" {
+			return nil, errors.New("header name is empty")
+		}
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	result := make([]header, 0, len(values))
+	for _, name := range names {
+		for _, value := range values[name] {
+			result = append(result, header{Name: name, Value: value})
+		}
+	}
+	return result, nil
+}
+
+func encodedContent(data []byte, mediaType string) *content {
+	return &content{
+		MimeType: mediaType,
+		Text:     base64.StdEncoding.EncodeToString(data),
+		Encoding: "base64",
+	}
 }
 
 type header struct {

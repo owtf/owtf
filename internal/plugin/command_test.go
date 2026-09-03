@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
@@ -28,6 +29,21 @@ func TestCommandArgumentsDoNotInvokeAShell(t *testing.T) {
 	}
 	if len(args) != 3 || args[1] != target {
 		t.Fatalf("target was not preserved as one argument: %#v", args)
+	}
+}
+
+func TestCommandArtifactsCannotEscapeTheirDirectory(t *testing.T) {
+	directory := t.TempDir()
+	outside := filepath.Join(t.TempDir(), "secret")
+	if err := os.WriteFile(outside, []byte("secret"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(outside, filepath.Join(directory, "result")); err != nil {
+		t.Fatal(err)
+	}
+	_, err := readCommandArtifacts(directory, []CommandArtifact{{Name: "result", Required: true}})
+	if err == nil {
+		t.Fatal("artifact symlink outside the assigned directory was accepted")
 	}
 }
 

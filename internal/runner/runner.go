@@ -165,7 +165,9 @@ func (r *Runner) execute(parent context.Context, workerIndex int, taskID string)
 
 	ctx, cancel := context.WithTimeout(taskCtx, r.timeout)
 	defer cancel()
-	result, err := entry.Executor(ctx, plugin.Request{Target: execution.Target, Log: logEvent})
+	result, err := entry.Executor(ctx, plugin.Request{
+		TaskID: execution.ID, PluginID: execution.PluginID, Target: execution.Target, Log: logEvent,
+	})
 	if err != nil {
 		if errors.Is(ctx.Err(), context.Canceled) && parent.Err() == nil {
 			logEvent("system", "task cancelled")

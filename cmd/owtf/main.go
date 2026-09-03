@@ -31,11 +31,17 @@ func main() {
 }
 
 func run(args []string, stdout, stderr io.Writer) error {
-	if len(args) > 0 && args[0] != "serve" {
-		return cli.Run(context.Background(), args, stdout, stderr)
-	}
-	if len(args) > 1 {
-		return fmt.Errorf("serve accepts no arguments")
+	if len(args) > 0 {
+		switch args[0] {
+		case "serve":
+			if len(args) > 1 {
+				return fmt.Errorf("serve accepts no arguments")
+			}
+		case "proxy":
+			return runProxy(context.Background(), args[1:], stdout, stderr)
+		default:
+			return cli.Run(context.Background(), args, stdout, stderr)
+		}
 	}
 	return serve()
 }
@@ -58,6 +64,7 @@ func serve() error {
 	}
 	catalog.RegisterBuiltin("http-collector", plugin.HTTPCollector(nil))
 	catalog.ResolveCommands()
+	catalog.ResolveContainers(context.Background(), plugin.NewDockerEngine(env("OWTF_CONTAINER_ENGINE", "docker")))
 	plugins := make([]model.Plugin, 0, len(catalog.Entries()))
 	for _, entry := range catalog.Entries() {
 		plugins = append(plugins, entry.Plugin())

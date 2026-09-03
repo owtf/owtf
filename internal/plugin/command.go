@@ -111,14 +111,29 @@ func commandEnvironment(request Request, workDir string) []string {
 }
 
 func readCommandArtifacts(workDir string, specs []CommandArtifact) ([]ArtifactResult, error) {
+	root, err := os.OpenRoot(workDir)
+	if err != nil {
+		return nil, fmt.Errorf("open artifact directory: %w", err)
+	}
+	defer root.Close()
+
 	result := make([]ArtifactResult, 0, len(specs))
 	for _, spec := range specs {
-		file, err := os.Open(filepath.Join(workDir, spec.Name))
+		file, err := root.Open(spec.Name)
 		if os.IsNotExist(err) && !spec.Required {
 			continue
 		}
 		if err != nil {
 			return nil, fmt.Errorf("open artifact %s: %w", spec.Name, err)
+		}
+		info, err := file.Stat()
+		if err != nil {
+			file.Close()
+			return nil, fmt.Errorf("inspect artifact %s: %w", spec.Name, err)
+		}
+		if !info.Mode().IsRegular() {
+			file.Close()
+			return nil, fmt.Errorf("artifact %s is not a regular file", spec.Name)
 		}
 		data, readErr := io.ReadAll(io.LimitReader(file, maxArtifactSize+1))
 		closeErr := file.Close()

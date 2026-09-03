@@ -1,9 +1,11 @@
 package har
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestParseTransactions(t *testing.T) {
@@ -62,5 +64,30 @@ func TestParseLimitsTransactionCount(t *testing.T) {
 	_, err := Parse(strings.NewReader(input))
 	if err == nil || !strings.Contains(err.Error(), fmt.Sprintf("maximum is %d", MaxEntries)) {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestWriteRoundTripsBinaryBodiesAndDuplicateHeaders(t *testing.T) {
+	original := Transaction{
+		Method: "POST", URL: "https://example.test/upload",
+		RequestHeaders: `{"X-Test":["one","two"]}`, RequestBody: []byte{0, 1, 2},
+		RequestMediaType: "application/octet-stream", StatusCode: 201,
+		ResponseHeaders: `{"Content-Type":["application/octet-stream"]}`,
+		ResponseBody:    []byte{3, 4, 5}, ResponseMediaType: "application/octet-stream",
+		DurationMS: 17, StartedAt: time.Date(2026, 9, 2, 10, 11, 12, 123, time.UTC),
+	}
+	var output bytes.Buffer
+	if err := Write(&output, []Transaction{original}); err != nil {
+		t.Fatal(err)
+	}
+	parsed, err := Parse(&output)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(parsed) != 1 || !bytes.Equal(parsed[0].RequestBody, original.RequestBody) || !bytes.Equal(parsed[0].ResponseBody, original.ResponseBody) {
+		t.Fatalf("HAR round trip changed bodies: %+v", parsed)
+	}
+	if parsed[0].RequestHeaders != original.RequestHeaders || parsed[0].DurationMS != original.DurationMS {
+		t.Fatalf("HAR round trip changed metadata: %+v", parsed[0])
 	}
 }

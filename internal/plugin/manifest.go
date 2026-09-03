@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/owtf/owtf/internal/model"
 	"gopkg.in/yaml.v3"
@@ -34,15 +35,25 @@ type Manifest struct {
 			Commands []string `yaml:"commands,omitempty" json:"commands,omitempty"`
 		} `yaml:"requirements,omitempty" json:"requirements,omitempty"`
 		Runtime struct {
-			Type    string       `yaml:"type" json:"type"`
-			Builtin string       `yaml:"builtin,omitempty" json:"builtin,omitempty"`
-			Command *CommandSpec `yaml:"command,omitempty" json:"command,omitempty"`
+			Type      string         `yaml:"type" json:"type"`
+			Builtin   string         `yaml:"builtin,omitempty" json:"builtin,omitempty"`
+			Command   *CommandSpec   `yaml:"command,omitempty" json:"command,omitempty"`
+			Container *ContainerSpec `yaml:"container,omitempty" json:"container,omitempty"`
 		} `yaml:"runtime" json:"runtime"`
 	} `yaml:"spec" json:"spec"`
 }
 
 // CommandSpec defines direct executable invocation without a shell.
 type CommandSpec struct {
+	Executable string            `yaml:"executable" json:"executable"`
+	Args       []string          `yaml:"args,omitempty" json:"args,omitempty"`
+	Artifacts  []CommandArtifact `yaml:"artifacts,omitempty" json:"artifacts,omitempty"`
+}
+
+// ContainerSpec defines a shell-free command executed in a pre-existing image.
+// Images are never pulled implicitly by OWTF.
+type ContainerSpec struct {
+	Image      string            `yaml:"image" json:"image"`
 	Executable string            `yaml:"executable" json:"executable"`
 	Args       []string          `yaml:"args,omitempty" json:"args,omitempty"`
 	Artifacts  []CommandArtifact `yaml:"artifacts,omitempty" json:"artifacts,omitempty"`
@@ -99,8 +110,10 @@ type Result struct {
 
 // Request provides the target and event logger available to an executor.
 type Request struct {
-	Target model.Target
-	Log    func(stream, message string)
+	TaskID   string
+	PluginID string
+	Target   model.Target
+	Log      func(stream, message string)
 }
 
 // Executor runs one plugin against one target.
@@ -178,11 +191,21 @@ func validateManifest(manifest Manifest) error {
 	}
 	switch manifest.Spec.Runtime.Type {
 	case "builtin":
-		if manifest.Spec.Runtime.Builtin == "" || manifest.Spec.Runtime.Command != nil {
+		if manifest.Spec.Runtime.Builtin == "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.Container != nil {
 			return fmt.Errorf("builtin runtime requires only a builtin name")
 		}
 	case "command":
+		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Container != nil {
+			return fmt.Errorf("command runtime requires only a command")
+		}
 		if err := validateCommand(manifest.Spec.Runtime.Command); err != nil {
+			return err
+		}
+	case "container":
+		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Command != nil {
+			return fmt.Errorf("container runtime requires only a container")
+		}
+		if err := validateContainer(manifest.Spec.Runtime.Container); err != nil {
 			return err
 		}
 	default:
@@ -238,6 +261,24 @@ func validateCommand(command *CommandSpec) error {
 			continue
 		}
 		return fmt.Errorf("argument %q contains an unsupported or partial placeholder", arg)
+	}
+	return nil
+}
+
+func validateContainer(container *ContainerSpec) error {
+	if container == nil {
+		return fmt.Errorf("container runtime requires a container")
+	}
+	if strings.TrimSpace(container.Image) == "" || strings.ContainsAny(container.Image, " \t\r\n") {
+		return fmt.Errorf("container runtime requires one image reference without whitespace")
+	}
+	command := &CommandSpec{
+		Executable: container.Executable,
+		Args:       container.Args,
+		Artifacts:  container.Artifacts,
+	}
+	if err := validateCommand(command); err != nil {
+		return fmt.Errorf("container %w", err)
 	}
 	return nil
 }
@@ -298,6 +339,35 @@ func (c *Catalog) ResolveCommands() {
 			entry.Availability = "ready"
 			entry.Reason = ""
 		}
+		c.entries[id] = entry
+	}
+}
+
+// ResolveContainers checks local image availability without pulling or running
+// an image. Container plugins stay visible with an exact unavailable reason.
+func (c *Catalog) ResolveContainers(ctx context.Context, engine ContainerEngine) {
+	for id, entry := range c.entries {
+		if entry.Manifest.Spec.Runtime.Type != "container" {
+			continue
+		}
+		if engine == nil {
+			entry.Availability = "missing_runtime"
+			entry.Reason = "container engine is not configured"
+			c.entries[id] = entry
+			continue
+		}
+		checkCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+		err := engine.ImageAvailable(checkCtx, entry.Manifest.Spec.Runtime.Container.Image)
+		cancel()
+		if err != nil {
+			entry.Availability = "missing_requirements"
+			entry.Reason = err.Error()
+			c.entries[id] = entry
+			continue
+		}
+		entry.Executor = ContainerExecutor(entry.Manifest, engine)
+		entry.Availability = "ready"
+		entry.Reason = ""
 		c.entries[id] = entry
 	}
 }
