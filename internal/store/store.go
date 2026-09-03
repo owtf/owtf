@@ -21,6 +21,8 @@ import (
 var (
 	// ErrNotFound indicates that a requested public ID does not exist.
 	ErrNotFound = errors.New("not found")
+	// ErrConflict indicates that current state prevents a destructive change.
+	ErrConflict = errors.New("conflict")
 	// ErrTaskNotRunning indicates that a terminal task cannot transition again.
 	ErrTaskNotRunning = errors.New("task is not running")
 )
@@ -85,6 +87,7 @@ CREATE TABLE IF NOT EXISTS targets (
     kind TEXT NOT NULL,
     original TEXT NOT NULL,
     value TEXT NOT NULL,
+    scope INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL,
     UNIQUE(session_id, value)
 );
@@ -208,6 +211,9 @@ CREATE TABLE IF NOT EXISTS findings (
 	if err := s.migratePluginColumns(ctx); err != nil {
 		return err
 	}
+	if err := s.migrateTargetColumns(ctx); err != nil {
+		return err
+	}
 	if err := s.migrateRunColumns(ctx); err != nil {
 		return err
 	}
@@ -216,6 +222,20 @@ CREATE TABLE IF NOT EXISTS findings (
 	}
 	if _, err := s.db.ExecContext(ctx, `DELETE FROM runs WHERE NOT EXISTS (SELECT 1 FROM tasks WHERE tasks.run_id=runs.id)`); err != nil {
 		return fmt.Errorf("prune empty runs: %w", err)
+	}
+	return nil
+}
+
+func (s *Store) migrateTargetColumns(ctx context.Context) error {
+	columns, err := s.tableColumns(ctx, "targets")
+	if err != nil {
+		return err
+	}
+	if columns["scope"] {
+		return nil
+	}
+	if _, err := s.db.ExecContext(ctx, `ALTER TABLE targets ADD COLUMN scope INTEGER NOT NULL DEFAULT 1`); err != nil {
+		return fmt.Errorf("add target scope column: %w", err)
 	}
 	return nil
 }
@@ -444,10 +464,49 @@ func (s *Store) GetSession(ctx context.Context, id string) (model.Session, error
 	return item, nil
 }
 
+// DeleteSession removes a session and all of its target and execution records.
+// Active work must be cancelled before the session can be deleted.
+func (s *Store) DeleteSession(ctx context.Context, id string) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	var sessionPK int64
+	if err := tx.QueryRowContext(ctx, `SELECT id FROM sessions WHERE public_id=?`, id).Scan(&sessionPK); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+		return err
+	}
+	var active int
+	if err := tx.QueryRowContext(ctx, `
+SELECT COUNT(*) FROM tasks t JOIN runs r ON r.id=t.run_id
+WHERE r.session_id=? AND t.status IN (?, ?)`, sessionPK, model.TaskQueued, model.TaskRunning).Scan(&active); err != nil {
+		return err
+	}
+	if active != 0 {
+		return fmt.Errorf("%w: session has active work", ErrConflict)
+	}
+	if _, err := tx.ExecContext(ctx, `DELETE FROM sessions WHERE id=?`, sessionPK); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
 // AddTargetsResult separates newly stored targets from normalized duplicates.
 type AddTargetsResult struct {
 	Created    []model.Target `json:"created"`
 	Duplicates []string       `json:"duplicates"`
+}
+
+// TargetFilter is a bounded target search within one session.
+type TargetFilter struct {
+	Search string
+	Kind   string
+	Scope  *bool
+	Limit  int
+	Offset int
 }
 
 // AddTargets stores normalized targets in a session and reports duplicates.
@@ -464,11 +523,11 @@ func (s *Store) AddTargets(ctx context.Context, sessionID string, targets []targ
 	for _, normalized := range targets {
 		item := model.Target{
 			ID: newID("tgt"), SessionID: sessionID, Kind: normalized.Kind,
-			Original: normalized.Original, Value: normalized.Value, CreatedAt: now,
+			Original: normalized.Original, Value: normalized.Value, Scope: true, CreatedAt: now,
 		}
 		_, err := s.db.ExecContext(ctx, `
-INSERT INTO targets(public_id, session_id, kind, original, value, created_at)
-VALUES(?, ?, ?, ?, ?, ?)`, item.ID, sessionPK, item.Kind, item.Original, item.Value, formatTime(item.CreatedAt))
+INSERT INTO targets(public_id, session_id, kind, original, value, scope, created_at)
+VALUES(?, ?, ?, ?, ?, ?, ?)`, item.ID, sessionPK, item.Kind, item.Original, item.Value, item.Scope, formatTime(item.CreatedAt))
 		if err != nil {
 			if strings.Contains(err.Error(), "UNIQUE constraint failed") {
 				result.Duplicates = append(result.Duplicates, normalized.Original)
@@ -484,7 +543,7 @@ VALUES(?, ?, ?, ?, ?, ?)`, item.ID, sessionPK, item.Kind, item.Original, item.Va
 // ListTargets returns all targets in a session, newest first.
 func (s *Store) ListTargets(ctx context.Context, sessionID string) ([]model.Target, error) {
 	rows, err := s.db.QueryContext(ctx, `
-SELECT t.public_id, s.public_id, t.kind, t.original, t.value, t.created_at
+SELECT t.public_id, s.public_id, t.kind, t.original, t.value, t.scope, t.created_at
 FROM targets t JOIN sessions s ON s.id = t.session_id
 WHERE s.public_id = ? ORDER BY t.id DESC`, sessionID)
 	if err != nil {
@@ -502,16 +561,82 @@ WHERE s.public_id = ? ORDER BY t.id DESC`, sessionID)
 	return targets, rows.Err()
 }
 
+// SearchTargets returns a deterministic page and both unfiltered and filtered
+// counts. Limit must be between 1 and 1000.
+func (s *Store) SearchTargets(ctx context.Context, sessionID string, filter TargetFilter) (model.TargetSearchResult, error) {
+	if filter.Limit < 1 || filter.Limit > 1000 || filter.Offset < 0 {
+		return model.TargetSearchResult{}, errors.New("invalid target search bounds")
+	}
+	if _, err := s.GetSession(ctx, sessionID); err != nil {
+		return model.TargetSearchResult{}, err
+	}
+	result := model.TargetSearchResult{Data: []model.Target{}}
+	if err := s.db.QueryRowContext(ctx, `
+SELECT COUNT(*) FROM targets t JOIN sessions s ON s.id=t.session_id WHERE s.public_id=?`, sessionID).
+		Scan(&result.RecordsTotal); err != nil {
+		return model.TargetSearchResult{}, err
+	}
+	where := []string{"s.public_id=?"}
+	args := []any{sessionID}
+	if filter.Search != "" {
+		where = append(where, `(LOWER(t.value) LIKE '%' || LOWER(?) || '%' OR LOWER(t.original) LIKE '%' || LOWER(?) || '%')`)
+		args = append(args, filter.Search, filter.Search)
+	}
+	if filter.Kind != "" {
+		where = append(where, "t.kind=?")
+		args = append(args, filter.Kind)
+	}
+	if filter.Scope != nil {
+		where = append(where, "t.scope=?")
+		args = append(args, *filter.Scope)
+	}
+	predicate := strings.Join(where, " AND ")
+	if err := s.db.QueryRowContext(ctx, `
+SELECT COUNT(*) FROM targets t JOIN sessions s ON s.id=t.session_id WHERE `+predicate, args...).
+		Scan(&result.RecordsFiltered); err != nil {
+		return model.TargetSearchResult{}, err
+	}
+	queryArgs := append(append([]any(nil), args...), filter.Limit, filter.Offset)
+	rows, err := s.db.QueryContext(ctx, `
+SELECT t.public_id, s.public_id, t.kind, t.original, t.value, t.scope, t.created_at
+FROM targets t JOIN sessions s ON s.id=t.session_id
+WHERE `+predicate+` ORDER BY t.id DESC LIMIT ? OFFSET ?`, queryArgs...)
+	if err != nil {
+		return model.TargetSearchResult{}, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		item, err := scanTarget(rows)
+		if err != nil {
+			return model.TargetSearchResult{}, err
+		}
+		result.Data = append(result.Data, item)
+	}
+	return result, rows.Err()
+}
+
 // GetTarget returns one target by public ID.
 func (s *Store) GetTarget(ctx context.Context, id string) (model.Target, error) {
 	row := s.db.QueryRowContext(ctx, `
-SELECT t.public_id, s.public_id, t.kind, t.original, t.value, t.created_at
+SELECT t.public_id, s.public_id, t.kind, t.original, t.value, t.scope, t.created_at
 FROM targets t JOIN sessions s ON s.id = t.session_id WHERE t.public_id = ?`, id)
 	item, err := scanTarget(row)
 	if errors.Is(err, sql.ErrNoRows) {
 		return model.Target{}, ErrNotFound
 	}
 	return item, err
+}
+
+// UpdateTargetScope changes whether a target participates in scoped work.
+func (s *Store) UpdateTargetScope(ctx context.Context, id string, scope bool) (model.Target, error) {
+	result, err := s.db.ExecContext(ctx, `UPDATE targets SET scope=? WHERE public_id=?`, scope, id)
+	if err != nil {
+		return model.Target{}, err
+	}
+	if count, _ := result.RowsAffected(); count == 0 {
+		return model.Target{}, ErrNotFound
+	}
+	return s.GetTarget(ctx, id)
 }
 
 // DeleteTarget removes a target and its dependent execution evidence.
@@ -521,6 +646,22 @@ func (s *Store) DeleteTarget(ctx context.Context, id string) error {
 		return err
 	}
 	defer tx.Rollback()
+	var targetPK int64
+	if err := tx.QueryRowContext(ctx, `SELECT id FROM targets WHERE public_id=?`, id).Scan(&targetPK); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+		return err
+	}
+	var active int
+	if err := tx.QueryRowContext(ctx, `
+SELECT COUNT(*) FROM tasks WHERE target_id=? AND status IN (?, ?)`, targetPK, model.TaskQueued, model.TaskRunning).
+		Scan(&active); err != nil {
+		return err
+	}
+	if active != 0 {
+		return fmt.Errorf("%w: target has active work", ErrConflict)
+	}
 	result, err := tx.ExecContext(ctx, `DELETE FROM targets WHERE public_id = ?`, id)
 	if err != nil {
 		return err
@@ -541,8 +682,10 @@ type rowScanner interface {
 func scanTarget(row rowScanner) (model.Target, error) {
 	var item model.Target
 	var created string
-	err := row.Scan(&item.ID, &item.SessionID, &item.Kind, &item.Original, &item.Value, &created)
-	item.CreatedAt = parseTime(created)
+	err := row.Scan(&item.ID, &item.SessionID, &item.Kind, &item.Original, &item.Value, &item.Scope, &created)
+	if err == nil {
+		item.CreatedAt = parseTime(created)
+	}
 	return item, err
 }
 
@@ -774,7 +917,7 @@ func (s *Store) StartTask(ctx context.Context, taskID string) (model.TaskExecuti
 	var targetCreated, taskCreated string
 	err = tx.QueryRowContext(ctx, `
 SELECT t.id, t.public_id, r.id, r.public_id, tg.id, tg.public_id, a.public_id,
-       tg.kind, tg.original, tg.value, tg.created_at, t.plugin_id, t.status, t.created_at
+       tg.kind, tg.original, tg.value, tg.scope, tg.created_at, t.plugin_id, t.status, t.created_at
 FROM tasks t
 JOIN runs r ON r.id = t.run_id
 JOIN targets tg ON tg.id = t.target_id
@@ -782,7 +925,7 @@ JOIN sessions a ON a.id = tg.session_id
 WHERE t.public_id = ?`, taskID).Scan(
 		&taskPK, &execution.ID, &runPK, &execution.RunID, &targetPK, &execution.Target.ID,
 		&execution.Target.SessionID, &execution.Target.Kind, &execution.Target.Original,
-		&execution.Target.Value, &targetCreated, &execution.PluginID, &execution.Status, &taskCreated,
+		&execution.Target.Value, &execution.Target.Scope, &targetCreated, &execution.PluginID, &execution.Status, &taskCreated,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return model.TaskExecution{}, ErrNotFound

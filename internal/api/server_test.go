@@ -481,6 +481,47 @@ func TestRunRejectsUnsupportedTargetKindBeforeCreatingTasks(t *testing.T) {
 	}
 }
 
+func TestTargetLifecycleAPI(t *testing.T) {
+	server, database, taskRunner, cancel := newTestServer(t)
+	defer func() {
+		server.Close()
+		cancel()
+		taskRunner.Stop()
+		database.Close()
+	}()
+
+	session := requestJSON[model.Session](t, server.Client(), http.MethodPost, server.URL+"/api/v2/sessions", map[string]any{
+		"name": "Target review",
+	}, http.StatusCreated)
+	added := requestJSON[struct {
+		Created []model.Target `json:"created"`
+	}](t, server.Client(), http.MethodPost, server.URL+"/api/v2/sessions/"+session.ID+"/targets", map[string]any{
+		"targets": []string{"https://example.test/one", "https://other.test/", "example.test"},
+	}, http.StatusOK)
+	if len(added.Created) != 3 || !added.Created[0].Scope {
+		t.Fatalf("targets do not default to scope: %+v", added.Created)
+	}
+
+	targetID := added.Created[0].ID
+	updated := requestJSON[model.Target](t, server.Client(), http.MethodPatch, server.URL+"/api/v2/targets/"+targetID, map[string]any{
+		"scope": false,
+	}, http.StatusOK)
+	if updated.Scope {
+		t.Fatalf("target scope was not updated: %+v", updated)
+	}
+	result := requestJSON[model.TargetSearchResult](t, server.Client(), http.MethodGet,
+		server.URL+"/api/v2/sessions/"+session.ID+"/targets/search?search=EXAMPLE&kind=url&scope=false&limit=1&offset=0", nil, http.StatusOK)
+	if result.RecordsTotal != 3 || result.RecordsFiltered != 1 || len(result.Data) != 1 || result.Data[0].ID != targetID {
+		t.Fatalf("unexpected target search: %+v", result)
+	}
+	requestJSON[map[string]string](t, server.Client(), http.MethodGet,
+		server.URL+"/api/v2/sessions/"+session.ID+"/targets/search?scope=invalid", nil, http.StatusBadRequest)
+
+	requestNoContent(t, server.Client(), http.MethodDelete, server.URL+"/api/v2/sessions/"+session.ID)
+	requestJSON[map[string]string](t, server.Client(), http.MethodGet,
+		server.URL+"/api/v2/targets/"+targetID, nil, http.StatusNotFound)
+}
+
 func newTestServer(t *testing.T) (*httptest.Server, *store.Store, *runner.Runner, context.CancelFunc) {
 	t.Helper()
 	tempDir := t.TempDir()
@@ -563,4 +604,21 @@ func requestJSON[T any](t *testing.T, client *http.Client, method, url string, i
 		t.Fatal(err)
 	}
 	return output
+}
+
+func requestNoContent(t *testing.T, client *http.Client, method, url string) {
+	t.Helper()
+	request, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	response, err := client.Do(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusNoContent {
+		body, _ := io.ReadAll(response.Body)
+		t.Fatalf("%s %s status=%d, want %d: %s", method, url, response.StatusCode, http.StatusNoContent, body)
+	}
 }

@@ -60,7 +60,7 @@ Core model
 
 ``Target``
   A normalized URL, hostname, IP address, or CIDR. Duplicate values within an
-  session are rejected.
+  session are rejected. Scope is mutable review state; target identity is not.
 
 ``Plugin``
   A versioned manifest for one executable technique. IDs use the existing code
@@ -224,6 +224,13 @@ Feature parity means observable OWTF outcomes, not implementation parity. The
 removed account system, Python runtime, and unsupported installation paths are
 explicit non-goals and do not return through the parity work.
 
+The feature matrix is an inventory, not an implementation backlog. A
+``missing`` row records an old observable behavior so it can be judged rather
+than forgotten. It is implemented only when it remains useful to OWTF's target,
+plugin, worklist, proxy, evidence, or reporting workflows. Redundant UI-era
+plumbing, unsafe mutable state, and behavior already provided more simply by a
+retained workflow are marked ``removed`` or ``replaced`` instead.
+
 Implemented gates
 -----------------
 
@@ -258,11 +265,12 @@ and SOCKS5 upstream proxies. Basic and Digest target authentication is scoped
   phase gate.
 
 Phase 5 has a checked feature matrix, typed configuration shared by server and
-proxy startup, and deterministic named plugin profiles. Configuration
-validation, default/file/environment/flag precedence, bounded worker and proxy
-limits, secret redaction, profile validation, and persisted run ordering are
-covered by tests. The remaining matrix rows are not implied complete by this
-slice.
+proxy startup, deterministic named plugin profiles, target scope and bounded
+search, and complete session deletion. Configuration validation,
+default/file/environment/flag precedence, bounded worker and proxy limits,
+secret redaction, profile validation, persisted run ordering, deletion
+conflicts, and target pagination are covered by tests. The remaining matrix
+rows are not implied complete by this slice.
 
 API regression gate
 -------------------

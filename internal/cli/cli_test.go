@@ -31,6 +31,8 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 			writeTestJSON(t, w, map[string]any{"id": "ses_1", "name": "CLI session", "created_at": time.Now()})
 		case "GET /api/v2/sessions/ses_1":
 			writeTestJSON(t, w, map[string]any{"id": "ses_1", "name": "CLI session", "created_at": time.Now()})
+		case "DELETE /api/v2/sessions/ses_1":
+			w.WriteHeader(http.StatusNoContent)
 		case "GET /api/v2/sessions/ses_1/report":
 			writeTestJSON(t, w, map[string]any{"session": map[string]string{"id": "ses_1"}, "summary": map[string]int{"targets": 1}})
 		case "GET /api/v2/sessions/ses_1/export":
@@ -42,8 +44,25 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 			})
 		case "GET /api/v2/sessions/ses_1/targets":
 			writeTestJSON(t, w, []map[string]any{testTarget()})
+		case "GET /api/v2/sessions/ses_1/targets/search":
+			query := r.URL.Query()
+			if query.Get("search") != "example" || query.Get("kind") != "url" || query.Get("scope") != "false" || query.Get("limit") != "25" || query.Get("offset") != "5" {
+				t.Fatalf("unexpected target search query: %s", r.URL.RawQuery)
+			}
+			writeTestJSON(t, w, map[string]any{"records_total": 1, "records_filtered": 1, "data": []map[string]any{testTarget()}})
 		case "GET /api/v2/targets/tgt_1":
 			writeTestJSON(t, w, testTarget())
+		case "PATCH /api/v2/targets/tgt_1":
+			var input struct {
+				Scope bool `json:"scope"`
+			}
+			decodeTestJSON(t, r, &input)
+			if input.Scope {
+				t.Fatal("target scope was not false")
+			}
+			item := testTarget()
+			item["scope"] = false
+			writeTestJSON(t, w, item)
 		case "DELETE /api/v2/targets/tgt_1":
 			w.WriteHeader(http.StatusNoContent)
 		case "GET /api/v2/targets/tgt_1/report":
@@ -136,9 +155,12 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		{"sessions", "create", "--name", "CLI session"},
 		{"sessions", "show", "ses_1"},
 		{"sessions", "report", "ses_1"},
+		{"sessions", "delete", "ses_1"},
 		{"targets", "list", "--session", "ses_1"},
+		{"targets", "search", "--session", "ses_1", "--search", "example", "--kind", "url", "--scope", "false", "--limit", "25", "--offset", "5"},
 		{"targets", "add", "--session", "ses_1", "https://example.test/"},
 		{"targets", "show", "tgt_1"},
+		{"targets", "update", "--scope", "false", "tgt_1"},
 		{"targets", "report", "tgt_1"},
 		{"targets", "delete", "tgt_1"},
 		{"plugins", "list"},
@@ -213,8 +235,10 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 
 	for _, route := range []string{
 		"GET /debug/health", "GET /api/v2/sessions", "POST /api/v2/sessions",
+		"DELETE /api/v2/sessions/ses_1",
 		"GET /api/v2/sessions/ses_1/report", "GET /api/v2/sessions/ses_1/export",
-		"POST /api/v2/sessions/ses_1/targets", "GET /api/v2/sessions/ses_1/targets",
+		"POST /api/v2/sessions/ses_1/targets", "GET /api/v2/sessions/ses_1/targets", "GET /api/v2/sessions/ses_1/targets/search",
+		"PATCH /api/v2/targets/tgt_1",
 		"GET /api/v2/profiles", "GET /api/v2/profiles/default",
 		"POST /api/v2/runs", "GET /api/v2/runs", "GET /api/v2/runs/run_1", "GET /api/v2/tasks", "GET /api/v2/workers",
 		"GET /api/v2/tasks/tsk_1/events", "POST /api/v2/tasks/tsk_1/cancel",
@@ -246,7 +270,7 @@ func TestAPIErrorIsReturned(t *testing.T) {
 func testTarget() map[string]any {
 	return map[string]any{
 		"id": "tgt_1", "session_id": "ses_1", "kind": "url", "original": "https://example.test/",
-		"value": "https://example.test/", "created_at": time.Now(),
+		"value": "https://example.test/", "scope": true, "created_at": time.Now(),
 	}
 }
 

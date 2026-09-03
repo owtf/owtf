@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"path/filepath"
 	"testing"
 	"time"
@@ -57,6 +58,10 @@ INSERT INTO http_exchanges VALUES(1, 'txn_old', 1, 1, 'GET', 'https://example.te
 	artifact, err := database.GetArtifact(context.Background(), "art_old")
 	if err != nil || artifact.TargetID != "tgt_old" || artifact.TaskID != "tsk_old" {
 		t.Fatalf("artifact was not migrated: artifact=%+v err=%v", artifact, err)
+	}
+	migratedTarget, err := database.GetTarget(context.Background(), "tgt_old")
+	if err != nil || !migratedTarget.Scope {
+		t.Fatalf("target scope was not migrated: target=%+v err=%v", migratedTarget, err)
 	}
 	columns, err := database.tableColumns(context.Background(), "transactions")
 	if err != nil || !columns["source_artifact_id"] || !columns["request_body_artifact_id"] {
@@ -193,6 +198,7 @@ func TestDeleteTargetPrunesEmptyRun(t *testing.T) {
 	}
 	if _, _, err := database.CreateRun(ctx, session.ID, "", []TaskSpec{{
 		TargetID: added.Created[0].ID, PluginID: "OWTF-TEST-001-active", PluginVersion: "0.1.0", PluginSnapshot: "{}",
+		Status: model.TaskBlocked, Error: "not runnable",
 	}}); err != nil {
 		t.Fatal(err)
 	}
@@ -205,6 +211,85 @@ func TestDeleteTargetPrunesEmptyRun(t *testing.T) {
 	}
 	if count != 0 {
 		t.Fatalf("empty run survived target deletion: %d", count)
+	}
+}
+
+func TestTargetScopeSearchAndSessionDelete(t *testing.T) {
+	database, err := Open(filepath.Join(t.TempDir(), "owtf.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	ctx := context.Background()
+	session, err := database.CreateSession(ctx, "Target review")
+	if err != nil {
+		t.Fatal(err)
+	}
+	values := []string{"https://example.test/one", "https://other.test/", "example.test"}
+	normalized := make([]target.Normalized, 0, len(values))
+	for _, value := range values {
+		item, normalizeErr := target.Normalize(value)
+		if normalizeErr != nil {
+			t.Fatal(normalizeErr)
+		}
+		normalized = append(normalized, item)
+	}
+	added, err := database.AddTargets(ctx, session.ID, normalized)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(added.Created) != 3 || !added.Created[0].Scope {
+		t.Fatalf("unexpected targets: %+v", added.Created)
+	}
+	updated, err := database.UpdateTargetScope(ctx, added.Created[0].ID, false)
+	if err != nil || updated.Scope {
+		t.Fatalf("scope update failed: target=%+v err=%v", updated, err)
+	}
+	out := false
+	result, err := database.SearchTargets(ctx, session.ID, TargetFilter{
+		Search: "EXAMPLE", Kind: "url", Scope: &out, Limit: 1,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.RecordsTotal != 3 || result.RecordsFiltered != 1 || len(result.Data) != 1 || result.Data[0].ID != updated.ID {
+		t.Fatalf("unexpected target search: %+v", result)
+	}
+	if err := database.DeleteSession(ctx, session.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := database.GetTarget(ctx, updated.ID); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("session target survived deletion: %v", err)
+	}
+}
+
+func TestDeleteRejectsActiveWork(t *testing.T) {
+	database, err := Open(filepath.Join(t.TempDir(), "owtf.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	ctx := context.Background()
+	session, _ := database.CreateSession(ctx, "Active")
+	normalized, _ := target.Normalize("https://example.test")
+	added, _ := database.AddTargets(ctx, session.ID, []target.Normalized{normalized})
+	_, tasks, err := database.CreateRun(ctx, session.ID, "", []TaskSpec{{
+		TargetID: added.Created[0].ID, PluginID: "OWTF-TEST-001-active", PluginVersion: "0.1.0", PluginSnapshot: "{}",
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := database.DeleteTarget(ctx, added.Created[0].ID); !errors.Is(err, ErrConflict) {
+		t.Fatalf("DeleteTarget() error = %v, want conflict", err)
+	}
+	if err := database.DeleteSession(ctx, session.ID); !errors.Is(err, ErrConflict) {
+		t.Fatalf("DeleteSession() error = %v, want conflict", err)
+	}
+	if _, err := database.CancelTask(ctx, tasks[0].ID); err != nil {
+		t.Fatal(err)
+	}
+	if err := database.DeleteSession(ctx, session.ID); err != nil {
+		t.Fatal(err)
 	}
 }
 

@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -124,7 +125,7 @@ func (a *app) profiles(ctx context.Context, args []string) error {
 
 func (a *app) sessions(ctx context.Context, args []string) error {
 	if len(args) == 0 {
-		return errors.New("sessions requires list, create, show, report, or export")
+		return errors.New("sessions requires list, create, show, report, export, or delete")
 	}
 	switch args[0] {
 	case "list":
@@ -174,6 +175,18 @@ func (a *app) sessions(ctx context.Context, args []string) error {
 			return err
 		}
 		return a.writeJSON(map[string]any{"session_id": id, "output": *output, "bytes": written})
+	case "delete":
+		if len(args) < 2 {
+			return errors.New("usage: owtf sessions delete SESSION_ID...")
+		}
+		deleted := make([]string, 0, len(args)-1)
+		for _, id := range args[1:] {
+			if err := a.request(ctx, http.MethodDelete, "/api/v2/sessions/"+pathSegment(id), nil, nil); err != nil {
+				return err
+			}
+			deleted = append(deleted, id)
+		}
+		return a.writeJSON(map[string]any{"deleted": deleted})
 	default:
 		return fmt.Errorf("unknown sessions command %q", args[0])
 	}
@@ -181,7 +194,7 @@ func (a *app) sessions(ctx context.Context, args []string) error {
 
 func (a *app) targets(ctx context.Context, args []string) error {
 	if len(args) == 0 {
-		return errors.New("targets requires list, add, show, delete, or report")
+		return errors.New("targets requires list, search, add, show, update, delete, or report")
 	}
 	switch args[0] {
 	case "list":
@@ -194,6 +207,38 @@ func (a *app) targets(ctx context.Context, args []string) error {
 			return errors.New("usage: owtf targets list --session SESSION_ID")
 		}
 		return a.proxyJSON(ctx, http.MethodGet, "/api/v2/sessions/"+pathSegment(*sessionID)+"/targets", nil)
+	case "search":
+		flags := a.flags("targets search")
+		sessionID := flags.String("session", "", "session ID")
+		search := flags.String("search", "", "target value substring")
+		kind := flags.String("kind", "", "target kind: url, hostname, ip, or cidr")
+		scope := flags.String("scope", "", "target scope: true or false")
+		limit := flags.Int("limit", 100, "maximum targets to return")
+		offset := flags.Int("offset", 0, "targets to skip")
+		if err := flags.Parse(args[1:]); err != nil {
+			return err
+		}
+		if *sessionID == "" || flags.NArg() != 0 {
+			return errors.New("usage: owtf targets search --session SESSION_ID [--search TEXT] [--kind KIND] [--scope BOOL] [--limit N] [--offset N]")
+		}
+		query := url.Values{
+			"limit":  {strconv.Itoa(*limit)},
+			"offset": {strconv.Itoa(*offset)},
+		}
+		if *search != "" {
+			query.Set("search", *search)
+		}
+		if *kind != "" {
+			query.Set("kind", *kind)
+		}
+		if *scope != "" {
+			if *scope != "true" && *scope != "false" {
+				return errors.New("--scope must be true or false")
+			}
+			query.Set("scope", *scope)
+		}
+		path := "/api/v2/sessions/" + pathSegment(*sessionID) + "/targets/search"
+		return a.proxyJSON(ctx, http.MethodGet, withQuery(path, query), nil)
 	case "add":
 		flags := a.flags("targets add")
 		sessionID := flags.String("session", "", "session ID")
@@ -214,6 +259,17 @@ func (a *app) targets(ctx context.Context, args []string) error {
 			path += "/report"
 		}
 		return a.proxyJSON(ctx, http.MethodGet, path, nil)
+	case "update":
+		flags := a.flags("targets update")
+		scope := flags.String("scope", "", "target scope: true or false")
+		if err := flags.Parse(args[1:]); err != nil {
+			return err
+		}
+		id, err := oneArg("targets update", flags.Args())
+		if err != nil || (*scope != "true" && *scope != "false") {
+			return errors.New("usage: owtf targets update --scope true|false TARGET_ID")
+		}
+		return a.proxyJSON(ctx, http.MethodPatch, "/api/v2/targets/"+pathSegment(id), map[string]any{"scope": *scope == "true"})
 	case "delete":
 		if len(args) < 2 {
 			return errors.New("usage: owtf targets delete TARGET_ID...")
@@ -751,9 +807,9 @@ Usage:
   owtf proxy [--config FILE] [--listen ADDRESS] [--api-listen ADDRESS]
   owtf proxy status|transactions|transaction|stats|clear|ca|repeat
   owtf [--url URL] health
-  owtf [--url URL] sessions list|create|show|report
+  owtf [--url URL] sessions list|create|show|report|delete
   owtf [--url URL] sessions export [--output FILE] ID
-  owtf [--url URL] targets list|add|show|delete|report
+  owtf [--url URL] targets list|search|add|show|update|delete|report
   owtf [--url URL] plugins list [--group GROUP] [--type TYPE]
   owtf [--url URL] profiles list|show
   owtf [--url URL] runs list --session ID

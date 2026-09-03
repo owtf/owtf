@@ -16,7 +16,8 @@ resulting evidence.
 
 ## Current capabilities
 
-- Durable sessions and normalized URL targets.
+- Durable session lifecycle and normalized URL, host, IP, and CIDR targets.
+- Persisted target scope plus bounded target search and pagination.
 - OWTF plugin manifests with established short technique codes.
 - OWTF plugin groups and types, including group launches and ``quiet`` mode.
 - Named OWTF profiles with deterministic plugin ordering recorded on each run.

@@ -75,7 +75,14 @@ An OWTF session is a named scan workspace, not an authenticated user session::
   owtf sessions list
   owtf targets add --session ses_ID https://example.test
   owtf targets list --session ses_ID
+  owtf targets search --session ses_ID --search example --kind url --scope true
+  owtf targets update --scope false tgt_ID
   owtf targets delete tgt_ID
+  owtf sessions delete ses_ID
+
+Target search returns ``records_total``, ``records_filtered``, and a bounded
+``data`` page. The default limit is 100 and the maximum is 1000. Target and
+session deletion reject queued or running work; cancel that work first.
 
 Launch plugins
 --------------

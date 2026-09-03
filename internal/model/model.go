@@ -34,7 +34,16 @@ type Target struct {
 	Kind      string    `json:"kind"`
 	Original  string    `json:"original"`
 	Value     string    `json:"value"`
+	Scope     bool      `json:"scope"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+// TargetSearchResult reports both session and filtered totals for one bounded
+// target query.
+type TargetSearchResult struct {
+	RecordsTotal    int      `json:"records_total"`
+	RecordsFiltered int      `json:"records_filtered"`
+	Data            []Target `json:"data"`
 }
 
 // Plugin is the indexed, operator-visible form of a plugin manifest.

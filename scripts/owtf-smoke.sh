@@ -258,9 +258,19 @@ HOST_TARGET_ID=$(jq -r '.created[] | select(.kind == "hostname") | .id' "${RESPO
 request GET "/api/v2/sessions/${SESSION_ID}/targets" 200
 assert_json 'length == 4' 'target list is incomplete'
 request GET "/api/v2/targets/${URL_TARGET_ID}" 200
-assert_json '.kind == "url" and .value == $target' 'normalized URL target is incorrect' --arg target "${BASE_URL}/debug/health"
+assert_json '.kind == "url" and .value == $target and .scope == true' 'normalized URL target is incorrect' --arg target "${BASE_URL}/debug/health"
+request PATCH "/api/v2/targets/${URL_TARGET_ID}" 200 '{"scope":false}'
+assert_json '.scope == false' 'target scope update was not persisted'
+request GET "/api/v2/sessions/${SESSION_ID}/targets/search?search=debug&kind=url&scope=false&limit=1&offset=0" 200
+assert_json '.records_total == 4 and .records_filtered == 1 and (.data | length) == 1 and .data[0].id == $target' 'target search is incorrect' --arg target "${URL_TARGET_ID}"
+request GET "/api/v2/sessions/${SESSION_ID}/targets/search?scope=maybe" 400
+assert_json '.error == "scope must be true or false"' 'invalid target search was accepted'
 cli_json targets list --session "${SESSION_ID}"
 jq -e 'length == 4' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI target list is incomplete'
+cli_json targets search --session "${SESSION_ID}" --search debug --kind url --scope false --limit 1 --offset 0
+jq -e --arg id "${URL_TARGET_ID}" '.records_total == 4 and .records_filtered == 1 and .data[0].id == $id' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI target search is incorrect'
+cli_json targets update --scope true "${URL_TARGET_ID}"
+jq -e '.scope == true' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI target scope update failed'
 cli_json targets show "${URL_TARGET_ID}"
 jq -e --arg id "${URL_TARGET_ID}" '.id == $id' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI could not show the target'
 
@@ -459,6 +469,13 @@ cli_json targets delete "${CLI_TARGET_ID}"
 jq -e --arg id "${CLI_TARGET_ID}" '.deleted == [$id]' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI target deletion is incorrect'
 cli_json sessions create --name 'CLI smoke session'
 jq -e '.name == "CLI smoke session"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI session creation failed'
+CLI_SESSION_ID=$(jq -r '.id' "${CLI_RESPONSE_FILE}")
+cli_json targets add --session "${CLI_SESSION_ID}" https://disposable.example
+CLI_SESSION_TARGET_ID=$(jq -r '.created[0].id' "${CLI_RESPONSE_FILE}")
+cli_json sessions delete "${CLI_SESSION_ID}"
+jq -e --arg id "${CLI_SESSION_ID}" '.deleted == [$id]' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI session deletion is incorrect'
+request GET "/api/v2/sessions/${CLI_SESSION_ID}" 404
+request GET "/api/v2/targets/${CLI_SESSION_TARGET_ID}" 404
 request GET "/api/v2/sessions/${SESSION_ID}/targets" 200
 TARGET_IDS=()
 while IFS= read -r target_id; do TARGET_IDS+=("${target_id}"); done < <(jq -r '.[].id' "${RESPONSE_FILE}")
@@ -472,6 +489,10 @@ request GET "/api/v2/tasks?session_id=${SESSION_ID}" 200
 assert_json 'length == 0' 'tasks survived target deletion'
 request GET "/api/v2/transactions?session_id=${SESSION_ID}" 200
 assert_json 'length == 0' 'transactions survived target deletion'
+request DELETE "/api/v2/sessions/${SESSION_ID}" 204
+request GET "/api/v2/sessions/${SESSION_ID}" 404
+request GET /api/v2/sessions 200
+assert_json 'length == 0' 'sessions survived deletion'
 
 printf '%s\n' 'Checking proxy traffic, proxy API, repeater, history, CA, and CLI...'
 if curl --silent --fail --max-time 1 "${PROXY_API_URL}/api/v2/health" >/dev/null 2>&1; then

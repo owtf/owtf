@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -66,11 +67,14 @@ func New(config Config) http.Handler {
 	mux.HandleFunc("GET /api/v2/sessions", server.listSessions)
 	mux.HandleFunc("POST /api/v2/sessions", server.createSession)
 	mux.HandleFunc("GET /api/v2/sessions/{sessionID}", server.getSession)
+	mux.HandleFunc("DELETE /api/v2/sessions/{sessionID}", server.deleteSession)
 	mux.HandleFunc("GET /api/v2/sessions/{sessionID}/report", server.sessionReport)
 	mux.HandleFunc("GET /api/v2/sessions/{sessionID}/export", server.sessionExport)
 	mux.HandleFunc("GET /api/v2/sessions/{sessionID}/targets", server.listTargets)
+	mux.HandleFunc("GET /api/v2/sessions/{sessionID}/targets/search", server.searchTargets)
 	mux.HandleFunc("POST /api/v2/sessions/{sessionID}/targets", server.addTargets)
 	mux.HandleFunc("GET /api/v2/targets/{targetID}", server.getTarget)
+	mux.HandleFunc("PATCH /api/v2/targets/{targetID}", server.updateTarget)
 	mux.HandleFunc("DELETE /api/v2/targets/{targetID}", server.deleteTarget)
 	mux.HandleFunc("GET /api/v2/targets/{targetID}/report", server.targetReport)
 	mux.HandleFunc("GET /api/v2/plugins", server.listPlugins)
@@ -175,6 +179,13 @@ func (s *Server) getSession(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, item)
 }
 
+func (s *Server) deleteSession(w http.ResponseWriter, r *http.Request) {
+	if s.handleStoreError(w, s.store.DeleteSession(r.Context(), r.PathValue("sessionID"))) {
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (s *Server) sessionReport(w http.ResponseWriter, r *http.Request) {
 	report, err := s.store.GetSessionReport(r.Context(), r.PathValue("sessionID"))
 	if s.handleStoreError(w, err) {
@@ -197,12 +208,28 @@ func (s *Server) sessionExport(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) listTargets(w http.ResponseWriter, r *http.Request) {
+	if _, err := s.store.GetSession(r.Context(), r.PathValue("sessionID")); s.handleStoreError(w, err) {
+		return
+	}
 	items, err := s.store.ListTargets(r.Context(), r.PathValue("sessionID"))
 	if err != nil {
 		s.internalError(w, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, items)
+}
+
+func (s *Server) searchTargets(w http.ResponseWriter, r *http.Request) {
+	filter, err := targetFilter(r)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	result, err := s.store.SearchTargets(r.Context(), r.PathValue("sessionID"), filter)
+	if s.handleStoreError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
 }
 
 type invalidTarget struct {
@@ -242,6 +269,24 @@ func (s *Server) addTargets(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) getTarget(w http.ResponseWriter, r *http.Request) {
 	item, err := s.store.GetTarget(r.Context(), r.PathValue("targetID"))
+	if s.handleStoreError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, item)
+}
+
+func (s *Server) updateTarget(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Scope *bool `json:"scope"`
+	}
+	if err := decodeJSON(w, r, &input); err != nil {
+		return
+	}
+	if input.Scope == nil {
+		writeError(w, http.StatusBadRequest, "scope is required")
+		return
+	}
+	item, err := s.store.UpdateTargetScope(r.Context(), r.PathValue("targetID"), *input.Scope)
 	if s.handleStoreError(w, err) {
 		return
 	}
@@ -727,8 +772,58 @@ func (s *Server) handleStoreError(w http.ResponseWriter, err error) bool {
 		writeError(w, http.StatusNotFound, "not found")
 		return true
 	}
+	if errors.Is(err, store.ErrConflict) {
+		writeError(w, http.StatusConflict, err.Error())
+		return true
+	}
 	s.internalError(w, err)
 	return true
+}
+
+func targetFilter(r *http.Request) (store.TargetFilter, error) {
+	query := r.URL.Query()
+	for key := range query {
+		switch key {
+		case "search", "kind", "scope", "limit", "offset":
+		default:
+			return store.TargetFilter{}, fmt.Errorf("unknown query parameter %q", key)
+		}
+		if len(query[key]) != 1 {
+			return store.TargetFilter{}, fmt.Errorf("query parameter %q must appear once", key)
+		}
+	}
+	filter := store.TargetFilter{
+		Search: strings.TrimSpace(query.Get("search")),
+		Kind:   strings.TrimSpace(query.Get("kind")),
+		Limit:  100,
+	}
+	if len(filter.Search) > 512 {
+		return store.TargetFilter{}, errors.New("search must not exceed 512 characters")
+	}
+	if filter.Kind != "" && filter.Kind != "url" && filter.Kind != "hostname" && filter.Kind != "ip" && filter.Kind != "cidr" {
+		return store.TargetFilter{}, errors.New("kind must be url, hostname, ip, or cidr")
+	}
+	if value := query.Get("scope"); value != "" {
+		if value != "true" && value != "false" {
+			return store.TargetFilter{}, errors.New("scope must be true or false")
+		}
+		parsed := value == "true"
+		filter.Scope = &parsed
+	}
+	var err error
+	if value := query.Get("limit"); value != "" {
+		filter.Limit, err = strconv.Atoi(value)
+		if err != nil || filter.Limit < 1 || filter.Limit > 1000 {
+			return store.TargetFilter{}, errors.New("limit must be between 1 and 1000")
+		}
+	}
+	if value := query.Get("offset"); value != "" {
+		filter.Offset, err = strconv.Atoi(value)
+		if err != nil || filter.Offset < 0 {
+			return store.TargetFilter{}, errors.New("offset must be zero or greater")
+		}
+	}
+	return filter, nil
 }
 
 func (s *Server) internalError(w http.ResponseWriter, err error) {

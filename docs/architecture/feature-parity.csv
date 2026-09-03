@@ -1,10 +1,10 @@
 area,legacy_capability,status,current_evidence,gap_or_decision,required_proof
 sessions,"create, list, inspect, and report a session",implemented,"internal/api/server.go; internal/cli/cli.go; scripts/owtf-smoke.sh","","curl and CLI lifecycle with persisted restart"
 sessions,"activate one process-global session",replaced,"all target and run operations require a session ID","explicit session selection avoids hidden global state","concurrent operations against two sessions remain isolated"
-sessions,"delete a session and its owned state",missing,"","no delete API or CLI command","delete cascade removes targets, runs, tasks, evidence, and artifacts"
+sessions,"delete a session and its owned state",implemented,"internal/store/store.go; internal/api/server.go; internal/cli/cli.go; scripts/owtf-smoke.sh","","delete cascade removes targets, runs, tasks, evidence, and artifact records after active work is cancelled"
 targets,"normalize, deduplicate, list, inspect, and delete URL, host, IP, and CIDR targets",implemented,"internal/target/normalize.go; internal/api/server.go; scripts/owtf-smoke.sh","","curl and CLI coverage for every target kind"
-targets,"edit target metadata and review severity",missing,"","target records are immutable and have no review fields","review updates persist without rewriting target identity"
-targets,"search, filter, and paginate target lists",missing,"","only session-scoped listing exists","bounded deterministic search and pagination through API and CLI"
+targets,"edit target scope",implemented,"internal/store/store.go; internal/api/server.go; internal/cli/cli.go; scripts/owtf-smoke.sh","","scope changes persist without rewriting target identity"
+targets,"search, filter, and paginate target lists",implemented,"internal/store/store.go; internal/api/server.go; internal/cli/cli.go; scripts/owtf-smoke.sh","","bounded deterministic search and pagination through API and CLI"
 urls,"retain and search URLs discovered below a target",missing,"","transactions retain request URLs but no discovered-URL model exists","plugin discovery output is deduplicated and queryable per target"
 techniques,"retain code, title, hint, priority, and reference metadata",partial,"plugin manifests retain code, title, and description","hint, priority, and reference are absent","catalog and reports expose preserved OWTF technique metadata"
 plugins,"discover and filter plugins with requirement availability",implemented,"internal/plugin/manifest.go; internal/api/server.go","","malformed catalogs fail startup and unavailable requirements stay visible"
