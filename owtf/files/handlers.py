@@ -2,13 +2,13 @@
 owtf.files.handlers
 ~~~~~~~~~~~~~~~~~~~
 """
+import collections
 import datetime
 import email.utils
 import hashlib
 import mimetypes
 import os
 import stat
-import subprocess
 import time
 
 import tornado
@@ -104,9 +104,15 @@ class OutputFileHandler(tornado.web.StaticFileHandler):
                     self.set_status(304)
                     return
 
-            no_of_lines = self.get_argument("lines", default="-1")
-            if no_of_lines != "-1":
-                data = subprocess.check_output(["tail", "-" + no_of_lines, abspath])
+            no_of_lines = self.get_argument("lines", default=None)
+            if no_of_lines is not None:
+                try:
+                    n = int(no_of_lines)
+                except ValueError:
+                    raise tornado.web.HTTPError(400)
+                n = max(1, min(n, 10000))
+                with open(abspath, "rb") as file:
+                    data = b"".join(collections.deque(file, maxlen=n))
             else:
                 with open(abspath, "rb") as file:
                     data = file.read()
