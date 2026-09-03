@@ -127,8 +127,21 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 				t.Fatalf("unexpected transaction query: %s", r.URL.RawQuery)
 			}
 			writeTestJSON(t, w, []map[string]any{{"id": "txn_1", "status_code": 200}})
+		case "GET /api/v2/transactions/search":
+			query := r.URL.Query()
+			if query.Get("session_id") != "ses_1" || query.Get("target_id") != "tgt_1" || query.Get("search") != "example" ||
+				query.Get("method") != "post" || query.Get("status_code") != "201" || query.Get("limit") != "25" || query.Get("offset") != "5" {
+				t.Fatalf("unexpected transaction search query: %s", r.URL.RawQuery)
+			}
+			writeTestJSON(t, w, map[string]any{"records_total": 1, "records_filtered": 1, "data": []map[string]any{{"id": "txn_1"}}})
 		case "GET /api/v2/targets/tgt_1/transactions":
 			writeTestJSON(t, w, []map[string]any{{"id": "txn_1", "target_id": "tgt_1", "status_code": 200}})
+		case "GET /api/v2/targets/tgt_1/transactions/search":
+			query := r.URL.Query()
+			if query.Get("search") != "example" || query.Get("limit") != "100" || query.Get("offset") != "0" || query.Get("session_id") != "" {
+				t.Fatalf("unexpected target transaction search query: %s", r.URL.RawQuery)
+			}
+			writeTestJSON(t, w, map[string]any{"records_total": 1, "records_filtered": 1, "data": []map[string]any{{"id": "txn_1"}}})
 		case "POST /api/v2/targets/tgt_1/transactions/import":
 			file, header, err := r.FormFile("har")
 			if err != nil {
@@ -188,6 +201,8 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		{"tasks", "cancel", "tsk_1"},
 		{"transactions", "list", "--session", "ses_1", "--target", "tgt_1"},
 		{"transactions", "list", "--target", "tgt_1"},
+		{"transactions", "search", "--session", "ses_1", "--target", "tgt_1", "--search", "example", "--method", "post", "--status", "201", "--limit", "25", "--offset", "5"},
+		{"transactions", "search", "--target", "tgt_1", "--search", "example"},
 		{"transactions", "import", "--target", "tgt_1", harPath},
 		{"transactions", "show", "--target", "tgt_1", "txn_1"},
 		{"transactions", "delete", "--target", "tgt_1", "txn_1"},
@@ -252,6 +267,7 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		"POST /api/v2/runs", "GET /api/v2/runs", "GET /api/v2/runs/run_1", "GET /api/v2/tasks", "GET /api/v2/workers",
 		"GET /api/v2/tasks/tsk_1/events", "POST /api/v2/tasks/tsk_1/cancel",
 		"GET /api/v2/transactions", "GET /api/v2/targets/tgt_1/transactions",
+		"GET /api/v2/transactions/search", "GET /api/v2/targets/tgt_1/transactions/search",
 		"POST /api/v2/targets/tgt_1/transactions/import",
 		"GET /api/v2/targets/tgt_1/transactions/txn_1", "DELETE /api/v2/targets/tgt_1/transactions/txn_1",
 		"GET /api/v2/artifacts/art_1",

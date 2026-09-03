@@ -276,11 +276,13 @@ and SOCKS5 upstream proxies. Basic and Digest target authentication is scoped
 
 Phase 5 has a checked feature matrix, typed configuration shared by server and
 proxy startup, deterministic named plugin profiles, target scope and bounded
-search, complete session deletion, and typed plugin inputs. Configuration validation,
+search, complete session deletion, typed plugin inputs, and bounded persisted
+transaction search. Configuration validation,
 default/file/environment/flag precedence, bounded worker and proxy limits,
 secret redaction, profile validation, persisted run ordering, deletion
-conflicts, target pagination, input validation, immutable snapshots, and
-shell-free argument expansion are covered by tests. The remaining matrix
+conflicts, target pagination, input validation, immutable snapshots, shell-free
+argument expansion, transaction ownership, filtering, and pagination are
+covered by tests. The remaining matrix
 rows are not implied complete by this slice.
 
 API regression gate

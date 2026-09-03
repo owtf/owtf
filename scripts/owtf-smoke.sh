@@ -382,6 +382,11 @@ done
 request GET /api/v2/artifacts/does-not-exist 404
 request GET "/api/v2/transactions?session_id=${SESSION_ID}" 200
 assert_json 'length == 2 and ([.[].status_code] | sort) == [200,201] and all(.[]; .target_id == $target)' 'transaction list is incorrect' --arg target "${URL_TARGET_ID}"
+request GET "/api/v2/transactions/search?session_id=${SESSION_ID}&target_id=${URL_TARGET_ID}&search=DEBUG&method=get&status_code=200&limit=1&offset=0" 200
+assert_json '.records_total == 2 and .records_filtered == 1 and (.data | length) == 1 and .data[0].method == "GET"' 'session transaction search is incorrect'
+request GET "/api/v2/targets/${URL_TARGET_ID}/transactions/search?search=debug&method=GET&status_code=200&limit=1&offset=0" 200
+assert_json '.records_total == 2 and .records_filtered == 1 and (.data | length) == 1' 'target transaction search is incorrect'
+request GET "/api/v2/transactions/search?session_id=${SESSION_ID}&status_code=99" 400
 request GET "/api/v2/runs?session_id=${SESSION_ID}" 200
 assert_json 'length == 1 and .[0].id == $run and .[0].profile == "default" and .[0].status == "succeeded"' 'run history is incorrect' --arg run "${GROUP_RUN_ID}"
 request GET "/api/v2/runs/${GROUP_RUN_ID}" 200
@@ -417,6 +422,8 @@ jq -e --arg output "${CLI_REPORT_ZIP}" '.output == $output and .bytes > 0' "${CL
 unzip -tqq "${CLI_REPORT_ZIP}" || fail 'CLI session export ZIP is invalid'
 cli_json transactions list --session "${SESSION_ID}" --target "${URL_TARGET_ID}"
 jq -e 'length == 2 and ([.[].status_code] | sort) == [200,201]' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI transactions are incomplete'
+cli_json transactions search --session "${SESSION_ID}" --target "${URL_TARGET_ID}" --search debug --method get --status 200 --limit 1 --offset 0
+jq -e '.records_total == 2 and .records_filtered == 1 and (.data | length) == 1 and .data[0].method == "GET"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI transaction search is incorrect'
 cli_json transactions show --target "${URL_TARGET_ID}" "${IMPORTED_TRANSACTION_ID}"
 jq -e --arg id "${IMPORTED_TRANSACTION_ID}" '.id == $id and .task_id == null' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI transaction detail is incorrect'
 CLI_ARTIFACT_FILE="${TMP_DIR}/cli-artifact"

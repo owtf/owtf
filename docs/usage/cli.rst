@@ -165,6 +165,8 @@ artifact metadata::
   owtf sessions report ses_ID
   owtf transactions list --session ses_ID --target tgt_ID
   owtf transactions list --target tgt_ID
+  owtf transactions search --session ses_ID --search login --method POST --status 401
+  owtf transactions search --target tgt_ID --limit 50 --offset 100
   owtf transactions import --target tgt_ID capture.har
   owtf transactions show --target tgt_ID txn_ID
   owtf transactions delete --target tgt_ID txn_ID
@@ -174,6 +176,13 @@ HAR import attaches transactions directly to the selected target. It does not
 create a plugin run, worklist task, or worker activity. OWTF retains the source
 HAR plus non-empty request and response bodies as downloadable files. A single
 import is limited to 64 MiB and 10,000 transactions.
+
+``transactions search`` matches URL, method, request headers, and response
+headers without loading retained bodies. Results include ``records_total``,
+``records_filtered``, and a deterministic newest-first page. The default page
+size is 100 and the maximum is 1,000. Captured transactions are immutable;
+send a modified request through ``owtf proxy repeat`` instead of rewriting
+source evidence.
 
 Export a complete session report for offline review. The ZIP contains JSON,
 an HTML report, a manifest, and the retained artifact files::

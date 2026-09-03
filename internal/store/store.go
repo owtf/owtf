@@ -1667,6 +1667,98 @@ func (s *Store) ListTransactions(ctx context.Context, sessionID, targetID string
 	return scanTransactions(rows)
 }
 
+// TransactionFilter is a bounded search over persisted HTTP transactions.
+type TransactionFilter struct {
+	Search     string
+	Method     string
+	StatusCode *int
+	Limit      int
+	Offset     int
+}
+
+// SearchTransactions returns a deterministic page scoped by session, target,
+// or both. Captured request and response bodies remain in the artifact store
+// and are not loaded for list searches.
+func (s *Store) SearchTransactions(ctx context.Context, sessionID, targetID string, filter TransactionFilter) (model.TransactionSearchResult, error) {
+	if sessionID == "" && targetID == "" {
+		return model.TransactionSearchResult{}, errors.New("transaction search requires a session or target")
+	}
+	if filter.Limit < 1 || filter.Limit > 1000 || filter.Offset < 0 {
+		return model.TransactionSearchResult{}, errors.New("invalid transaction search bounds")
+	}
+	if sessionID != "" {
+		if _, err := s.GetSession(ctx, sessionID); err != nil {
+			return model.TransactionSearchResult{}, err
+		}
+	}
+	if targetID != "" {
+		target, err := s.GetTarget(ctx, targetID)
+		if err != nil {
+			return model.TransactionSearchResult{}, err
+		}
+		if sessionID != "" && target.SessionID != sessionID {
+			return model.TransactionSearchResult{}, ErrNotFound
+		}
+	}
+
+	where := make([]string, 0, 7)
+	args := make([]any, 0, 12)
+	if sessionID != "" {
+		where = append(where, "s.public_id=?")
+		args = append(args, sessionID)
+	}
+	if targetID != "" {
+		where = append(where, "tg.public_id=?")
+		args = append(args, targetID)
+	}
+	basePredicate := strings.Join(where, " AND ")
+	result := model.TransactionSearchResult{Data: []model.Transaction{}}
+	if err := s.db.QueryRowContext(ctx, `
+SELECT COUNT(*) FROM transactions tr JOIN targets tg ON tg.id=tr.target_id
+JOIN sessions s ON s.id=tg.session_id WHERE `+basePredicate, args...).Scan(&result.RecordsTotal); err != nil {
+		return model.TransactionSearchResult{}, err
+	}
+	if filter.Search != "" {
+		where = append(where, `(instr(lower(tr.url), lower(?)) > 0 OR instr(lower(tr.method), lower(?)) > 0
+OR instr(lower(tr.request_headers), lower(?)) > 0 OR instr(lower(tr.response_headers), lower(?)) > 0)`)
+		args = append(args, filter.Search, filter.Search, filter.Search, filter.Search)
+	}
+	if filter.Method != "" {
+		where = append(where, "tr.method=?")
+		args = append(args, filter.Method)
+	}
+	if filter.StatusCode != nil {
+		where = append(where, "tr.status_code=?")
+		args = append(args, *filter.StatusCode)
+	}
+	predicate := strings.Join(where, " AND ")
+	if err := s.db.QueryRowContext(ctx, `
+SELECT COUNT(*) FROM transactions tr JOIN targets tg ON tg.id=tr.target_id
+JOIN sessions s ON s.id=tg.session_id WHERE `+predicate, args...).Scan(&result.RecordsFiltered); err != nil {
+		return model.TransactionSearchResult{}, err
+	}
+	queryArgs := append(append([]any(nil), args...), filter.Limit, filter.Offset)
+	rows, err := s.db.QueryContext(ctx, `
+SELECT tr.public_id, COALESCE(t.public_id,''), tg.public_id, tr.method, tr.url, tr.request_headers, tr.status_code,
+       tr.response_headers, COALESCE(source.public_id,''), COALESCE(request_body.public_id,''),
+       COALESCE(response_body.public_id,''), tr.duration_ms, tr.created_at
+FROM transactions tr LEFT JOIN tasks t ON t.id=tr.task_id JOIN targets tg ON tg.id=tr.target_id
+JOIN sessions s ON s.id=tg.session_id
+LEFT JOIN artifacts source ON source.id=tr.source_artifact_id
+LEFT JOIN artifacts request_body ON request_body.id=tr.request_body_artifact_id
+LEFT JOIN artifacts response_body ON response_body.id=tr.response_body_artifact_id
+WHERE `+predicate+` ORDER BY tr.id DESC LIMIT ? OFFSET ?`, queryArgs...)
+	if err != nil {
+		return model.TransactionSearchResult{}, err
+	}
+	defer rows.Close()
+	result.Data, err = scanTransactions(rows)
+	if err != nil {
+		return model.TransactionSearchResult{}, err
+	}
+	return result, nil
+}
+
 // GetTransaction returns one transaction owned by a target.
 func (s *Store) GetTransaction(ctx context.Context, targetID, transactionID string) (model.Transaction, error) {
 	row := s.db.QueryRowContext(ctx, `

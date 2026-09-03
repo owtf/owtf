@@ -163,6 +163,14 @@ type Transaction struct {
 	CreatedAt              time.Time `json:"created_at"`
 }
 
+// TransactionSearchResult reports unfiltered and filtered totals for one
+// bounded transaction query.
+type TransactionSearchResult struct {
+	RecordsTotal    int           `json:"records_total"`
+	RecordsFiltered int           `json:"records_filtered"`
+	Data            []Transaction `json:"data"`
+}
+
 // Observation is a tool-produced fact that has not been promoted to a finding.
 type Observation struct {
 	ID            string    `json:"id"`

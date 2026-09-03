@@ -83,6 +83,20 @@ func TestImportBrowseAndDeleteHARTransactions(t *testing.T) {
 	if len(targetTransactions) != 1 || targetTransactions[0].ID != transaction.ID {
 		t.Fatalf("unexpected target transactions: %+v", targetTransactions)
 	}
+	search := requestJSON[model.TransactionSearchResult](t, server.Client(), http.MethodGet,
+		server.URL+"/api/v2/transactions/search?session_id="+session.ID+"&target_id="+targetID+"&search=SUBMIT&method=post&status_code=201&limit=1&offset=0", nil, http.StatusOK)
+	if search.RecordsTotal != 1 || search.RecordsFiltered != 1 || len(search.Data) != 1 || search.Data[0].ID != transaction.ID {
+		t.Fatalf("unexpected transaction search: %+v", search)
+	}
+	targetSearch := requestJSON[model.TransactionSearchResult](t, server.Client(), http.MethodGet,
+		server.URL+"/api/v2/targets/"+targetID+"/transactions/search?search=submit", nil, http.StatusOK)
+	if targetSearch.RecordsTotal != 1 || targetSearch.RecordsFiltered != 1 || len(targetSearch.Data) != 1 {
+		t.Fatalf("unexpected target transaction search: %+v", targetSearch)
+	}
+	requestJSON[map[string]string](t, server.Client(), http.MethodGet,
+		server.URL+"/api/v2/transactions/search?session_id="+session.ID+"&status_code=99", nil, http.StatusBadRequest)
+	requestJSON[map[string]string](t, server.Client(), http.MethodGet,
+		server.URL+"/api/v2/targets/"+targetID+"/transactions/search?unknown=true", nil, http.StatusBadRequest)
 	for artifactID, want := range map[string]string{
 		result.SourceArtifact.ID: string(harData), transaction.RequestBodyArtifactID: "request body",
 		transaction.ResponseBodyArtifactID: "response body",

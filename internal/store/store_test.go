@@ -120,6 +120,72 @@ func TestImportAndDeleteTargetTransactions(t *testing.T) {
 	}
 }
 
+func TestSearchTransactions(t *testing.T) {
+	database, err := Open(filepath.Join(t.TempDir(), "owtf.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	ctx := context.Background()
+	session, _ := database.CreateSession(ctx, "Search")
+	otherSession, _ := database.CreateSession(ctx, "Other")
+	first := addTestTarget(t, database, session.ID, "https://one.example")
+	second := addTestTarget(t, database, session.ID, "https://two.example")
+	other := addTestTarget(t, database, otherSession.ID, "https://other.example")
+	now := time.Now().UTC()
+	if err := database.ImportTransactions(ctx, first, nil, []model.Transaction{
+		{ID: "txn_post", TargetID: first, Method: "POST", URL: "https://one.example/submit", RequestHeaders: `{"X-Test":"needle"}`, StatusCode: 201, ResponseHeaders: `{}`, CreatedAt: now},
+		{ID: "txn_get", TargetID: first, Method: "GET", URL: "https://one.example/missing", RequestHeaders: `{}`, StatusCode: 404, ResponseHeaders: `{}`, CreatedAt: now},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := database.ImportTransactions(ctx, second, nil, []model.Transaction{
+		{ID: "txn_second", TargetID: second, Method: "GET", URL: "https://two.example/needle", RequestHeaders: `{}`, StatusCode: 200, ResponseHeaders: `{}`, CreatedAt: now},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := database.ImportTransactions(ctx, other, nil, []model.Transaction{
+		{ID: "txn_other", TargetID: other, Method: "POST", URL: "https://other.example/needle", RequestHeaders: `{}`, StatusCode: 201, ResponseHeaders: `{}`, CreatedAt: now},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	status := 201
+	result, err := database.SearchTransactions(ctx, session.ID, "", TransactionFilter{
+		Search: "NEEDLE", Method: "POST", StatusCode: &status, Limit: 10,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.RecordsTotal != 3 || result.RecordsFiltered != 1 || len(result.Data) != 1 || result.Data[0].ID != "txn_post" {
+		t.Fatalf("unexpected session transaction search: %+v", result)
+	}
+	result, err = database.SearchTransactions(ctx, "", first, TransactionFilter{Method: "GET", Limit: 1})
+	if err != nil || result.RecordsTotal != 2 || result.RecordsFiltered != 1 || len(result.Data) != 1 || result.Data[0].ID != "txn_get" {
+		t.Fatalf("unexpected target transaction search: result=%+v err=%v", result, err)
+	}
+	result, err = database.SearchTransactions(ctx, "", first, TransactionFilter{Limit: 1, Offset: 1})
+	if err != nil || result.RecordsTotal != 2 || result.RecordsFiltered != 2 || len(result.Data) != 1 || result.Data[0].ID != "txn_post" {
+		t.Fatalf("unexpected target transaction page: result=%+v err=%v", result, err)
+	}
+	if _, err := database.SearchTransactions(ctx, otherSession.ID, first, TransactionFilter{Limit: 10}); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("cross-session target search error = %v, want not found", err)
+	}
+}
+
+func addTestTarget(t *testing.T, database *Store, sessionID, value string) string {
+	t.Helper()
+	normalized, err := target.Normalize(value)
+	if err != nil {
+		t.Fatal(err)
+	}
+	added, err := database.AddTargets(context.Background(), sessionID, []target.Normalized{normalized})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return added.Created[0].ID
+}
+
 func TestOpenMigratesPluginVariantToGroupAndType(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "owtf.db")
 	legacy, err := sql.Open("sqlite3", path)

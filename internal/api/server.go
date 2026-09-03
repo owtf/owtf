@@ -90,7 +90,9 @@ func New(config Config) http.Handler {
 	mux.HandleFunc("GET /api/v2/tasks/{taskID}/events", server.taskEvents)
 	mux.HandleFunc("POST /api/v2/tasks/{taskID}/cancel", server.cancelTask)
 	mux.HandleFunc("GET /api/v2/transactions", server.listTransactions)
+	mux.HandleFunc("GET /api/v2/transactions/search", server.searchTransactions)
 	mux.HandleFunc("GET /api/v2/targets/{targetID}/transactions", server.listTargetTransactions)
+	mux.HandleFunc("GET /api/v2/targets/{targetID}/transactions/search", server.searchTargetTransactions)
 	mux.HandleFunc("POST /api/v2/targets/{targetID}/transactions/import", server.importTransactions)
 	mux.HandleFunc("GET /api/v2/targets/{targetID}/transactions/{transactionID}", server.getTransaction)
 	mux.HandleFunc("DELETE /api/v2/targets/{targetID}/transactions/{transactionID}", server.deleteTransaction)
@@ -598,12 +600,43 @@ func (s *Server) listTransactions(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, items)
 }
 
+func (s *Server) searchTransactions(w http.ResponseWriter, r *http.Request) {
+	filter, err := transactionFilter(r, true)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	sessionID := r.URL.Query().Get("session_id")
+	if sessionID == "" {
+		writeError(w, http.StatusBadRequest, "session_id is required")
+		return
+	}
+	result, err := s.store.SearchTransactions(r.Context(), sessionID, r.URL.Query().Get("target_id"), filter)
+	if s.handleStoreError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
 func (s *Server) listTargetTransactions(w http.ResponseWriter, r *http.Request) {
 	items, err := s.store.ListTargetTransactions(r.Context(), r.PathValue("targetID"))
 	if s.handleStoreError(w, err) {
 		return
 	}
 	writeJSON(w, http.StatusOK, items)
+}
+
+func (s *Server) searchTargetTransactions(w http.ResponseWriter, r *http.Request) {
+	filter, err := transactionFilter(r, false)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	result, err := s.store.SearchTransactions(r.Context(), "", r.PathValue("targetID"), filter)
+	if s.handleStoreError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
 }
 
 const maxHARBytes = 64 << 20
@@ -838,6 +871,57 @@ func targetFilter(r *http.Request) (store.TargetFilter, error) {
 		filter.Offset, err = strconv.Atoi(value)
 		if err != nil || filter.Offset < 0 {
 			return store.TargetFilter{}, errors.New("offset must be zero or greater")
+		}
+	}
+	return filter, nil
+}
+
+func transactionFilter(r *http.Request, ownership bool) (store.TransactionFilter, error) {
+	query := r.URL.Query()
+	for key := range query {
+		allowed := key == "search" || key == "method" || key == "status_code" || key == "limit" || key == "offset"
+		allowed = allowed || (ownership && (key == "session_id" || key == "target_id"))
+		if !allowed {
+			return store.TransactionFilter{}, fmt.Errorf("unknown query parameter %q", key)
+		}
+		if len(query[key]) != 1 {
+			return store.TransactionFilter{}, fmt.Errorf("query parameter %q must appear once", key)
+		}
+	}
+	filter := store.TransactionFilter{
+		Search: strings.TrimSpace(query.Get("search")),
+		Method: strings.ToUpper(strings.TrimSpace(query.Get("method"))),
+		Limit:  100,
+	}
+	if len(filter.Search) > 512 {
+		return store.TransactionFilter{}, errors.New("search must not exceed 512 characters")
+	}
+	if len(filter.Method) > 32 {
+		return store.TransactionFilter{}, errors.New("method must not exceed 32 characters")
+	}
+	for _, char := range filter.Method {
+		if char < 'A' || char > 'Z' {
+			return store.TransactionFilter{}, errors.New("method must contain only ASCII letters")
+		}
+	}
+	if value := query.Get("status_code"); value != "" {
+		statusCode, err := strconv.Atoi(value)
+		if err != nil || statusCode < 100 || statusCode > 999 {
+			return store.TransactionFilter{}, errors.New("status_code must be between 100 and 999")
+		}
+		filter.StatusCode = &statusCode
+	}
+	var err error
+	if value := query.Get("limit"); value != "" {
+		filter.Limit, err = strconv.Atoi(value)
+		if err != nil || filter.Limit < 1 || filter.Limit > 1000 {
+			return store.TransactionFilter{}, errors.New("limit must be between 1 and 1000")
+		}
+	}
+	if value := query.Get("offset"); value != "" {
+		filter.Offset, err = strconv.Atoi(value)
+		if err != nil || filter.Offset < 0 {
+			return store.TransactionFilter{}, errors.New("offset must be zero or greater")
 		}
 	}
 	return filter, nil

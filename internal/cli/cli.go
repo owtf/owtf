@@ -586,7 +586,7 @@ func (a *app) tasks(ctx context.Context, args []string) error {
 
 func (a *app) transactions(ctx context.Context, args []string) error {
 	if len(args) == 0 {
-		return errors.New("transactions requires list, show, delete, or import")
+		return errors.New("transactions requires list, search, show, delete, or import")
 	}
 	switch args[0] {
 	case "list":
@@ -607,6 +607,50 @@ func (a *app) transactions(ctx context.Context, args []string) error {
 			query.Set("target_id", *targetID)
 		}
 		return a.proxyJSON(ctx, http.MethodGet, withQuery("/api/v2/transactions", query), nil)
+	case "search":
+		flags := a.flags("transactions search")
+		sessionID := flags.String("session", "", "session ID")
+		targetID := flags.String("target", "", "target ID")
+		search := flags.String("search", "", "URL, method, or header substring")
+		method := flags.String("method", "", "HTTP method")
+		statusCode := flags.Int("status", 0, "HTTP response status")
+		limit := flags.Int("limit", 100, "maximum transactions to return")
+		offset := flags.Int("offset", 0, "transactions to skip")
+		if err := flags.Parse(args[1:]); err != nil {
+			return err
+		}
+		if (*sessionID == "" && *targetID == "") || flags.NArg() != 0 {
+			return errors.New("usage: owtf transactions search (--session SESSION_ID | --target TARGET_ID) [--search TEXT] [--method METHOD] [--status CODE] [--limit N] [--offset N]")
+		}
+		if *statusCode != 0 && (*statusCode < 100 || *statusCode > 999) {
+			return errors.New("--status must be between 100 and 999")
+		}
+		if *limit < 1 || *limit > 1000 || *offset < 0 {
+			return errors.New("--limit must be between 1 and 1000 and --offset must be zero or greater")
+		}
+		query := url.Values{
+			"limit":  {strconv.Itoa(*limit)},
+			"offset": {strconv.Itoa(*offset)},
+		}
+		if *search != "" {
+			query.Set("search", *search)
+		}
+		if *method != "" {
+			query.Set("method", *method)
+		}
+		if *statusCode != 0 {
+			query.Set("status_code", strconv.Itoa(*statusCode))
+		}
+		path := "/api/v2/transactions/search"
+		if *sessionID != "" {
+			query.Set("session_id", *sessionID)
+			if *targetID != "" {
+				query.Set("target_id", *targetID)
+			}
+		} else {
+			path = "/api/v2/targets/" + pathSegment(*targetID) + "/transactions/search"
+		}
+		return a.proxyJSON(ctx, http.MethodGet, withQuery(path, query), nil)
 	case "show", "delete":
 		flags := a.flags("transactions " + args[0])
 		targetID := flags.String("target", "", "target ID")
@@ -859,15 +903,14 @@ Usage:
   owtf [--url URL] plugins list [--group GROUP] [--type TYPE]
   owtf [--url URL] profiles list|show
   owtf [--url URL] runs list --session ID
-  owtf [--url URL] runs create ... [--input PLUGIN_ID.NAME=VALUE]
-  owtf [--url URL] scan ... [--input PLUGIN_ID.NAME=VALUE] TARGET...
   owtf [--url URL] runs show ID
-  owtf [--url URL] runs create --session ID --target ID (--plugin ID | --group GROUP [--type TYPE] [--profile NAME])
-  owtf [--url URL] scan [--session ID] (--plugin ID | --group GROUP [--type TYPE] [--profile NAME]) TARGET...
+  owtf [--url URL] runs create --session ID --target ID (--plugin ID | --group GROUP [--type TYPE] [--profile NAME]) [--input PLUGIN_ID.NAME=VALUE]
+  owtf [--url URL] scan [--session ID] (--plugin ID | --group GROUP [--type TYPE] [--profile NAME]) [--input PLUGIN_ID.NAME=VALUE] TARGET...
   owtf [--url URL] worklist [--session ID] [--status STATUS]
   owtf [--url URL] workers
   owtf [--url URL] tasks show|logs|cancel ID
   owtf [--url URL] transactions list (--session ID | --target ID)
+  owtf [--url URL] transactions search (--session ID | --target ID) [--search TEXT] [--method METHOD] [--status CODE] [--limit N] [--offset N]
   owtf [--url URL] transactions show|delete --target TARGET_ID TRANSACTION_ID
   owtf [--url URL] transactions import --target TARGET_ID FILE.har
   owtf [--url URL] artifacts get [--output FILE] ID
