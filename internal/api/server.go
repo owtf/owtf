@@ -14,6 +14,7 @@ import (
 
 	"github.com/owtf/owtf/internal/artifact"
 	"github.com/owtf/owtf/internal/plugin"
+	reportoutput "github.com/owtf/owtf/internal/report"
 	"github.com/owtf/owtf/internal/runner"
 	"github.com/owtf/owtf/internal/store"
 	targetvalue "github.com/owtf/owtf/internal/target"
@@ -22,7 +23,7 @@ import (
 //go:embed ui/*
 var uiFiles embed.FS
 
-// Server owns HTTP handlers and their control-plane dependencies.
+// Server owns the OWTF HTTP handlers and application services.
 type Server struct {
 	store     *store.Store
 	artifacts *artifact.Store
@@ -36,9 +37,12 @@ func New(database *store.Store, artifacts *artifact.Store, catalog *plugin.Catal
 	server := &Server{store: database, artifacts: artifacts, catalog: catalog, runner: taskRunner}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /debug/health", server.health)
+	mux.HandleFunc("GET /api/v2/health", server.health)
 	mux.HandleFunc("GET /api/v2/sessions", server.listSessions)
 	mux.HandleFunc("POST /api/v2/sessions", server.createSession)
 	mux.HandleFunc("GET /api/v2/sessions/{sessionID}", server.getSession)
+	mux.HandleFunc("GET /api/v2/sessions/{sessionID}/report", server.sessionReport)
+	mux.HandleFunc("GET /api/v2/sessions/{sessionID}/export", server.sessionExport)
 	mux.HandleFunc("GET /api/v2/sessions/{sessionID}/targets", server.listTargets)
 	mux.HandleFunc("POST /api/v2/sessions/{sessionID}/targets", server.addTargets)
 	mux.HandleFunc("GET /api/v2/targets/{targetID}", server.getTarget)
@@ -46,6 +50,8 @@ func New(database *store.Store, artifacts *artifact.Store, catalog *plugin.Catal
 	mux.HandleFunc("GET /api/v2/targets/{targetID}/report", server.targetReport)
 	mux.HandleFunc("GET /api/v2/plugins", server.listPlugins)
 	mux.HandleFunc("POST /api/v2/runs", server.createRun)
+	mux.HandleFunc("GET /api/v2/runs", server.listRuns)
+	mux.HandleFunc("GET /api/v2/runs/{runID}", server.getRun)
 	mux.HandleFunc("GET /api/v2/workers", server.listWorkers)
 	mux.HandleFunc("GET /api/v2/tasks", server.listTasks)
 	mux.HandleFunc("GET /api/v2/tasks/{taskID}", server.getTask)
@@ -123,6 +129,27 @@ func (s *Server) getSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, item)
+}
+
+func (s *Server) sessionReport(w http.ResponseWriter, r *http.Request) {
+	report, err := s.store.GetSessionReport(r.Context(), r.PathValue("sessionID"))
+	if s.handleStoreError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, report)
+}
+
+func (s *Server) sessionExport(w http.ResponseWriter, r *http.Request) {
+	session, err := s.store.GetSessionReport(r.Context(), r.PathValue("sessionID"))
+	if s.handleStoreError(w, err) {
+		return
+	}
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="owtf-%s.zip"`, session.Session.ID))
+	w.Header().Set("Cache-Control", "no-store")
+	if err := reportoutput.WriteSessionArchive(w, session, s.artifacts); err != nil {
+		slog.Error("write session export", "session_id", session.Session.ID, "error", err)
+	}
 }
 
 func (s *Server) listTargets(w http.ResponseWriter, r *http.Request) {
@@ -269,6 +296,31 @@ func (s *Server) createRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusAccepted, map[string]any{"run": run, "tasks": tasks})
+}
+
+func (s *Server) listRuns(w http.ResponseWriter, r *http.Request) {
+	sessionID := r.URL.Query().Get("session_id")
+	if sessionID == "" {
+		writeError(w, http.StatusBadRequest, "session_id is required")
+		return
+	}
+	if _, err := s.store.GetSession(r.Context(), sessionID); s.handleStoreError(w, err) {
+		return
+	}
+	items, err := s.store.ListRuns(r.Context(), sessionID)
+	if err != nil {
+		s.internalError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, items)
+}
+
+func (s *Server) getRun(w http.ResponseWriter, r *http.Request) {
+	item, err := s.store.GetRun(r.Context(), r.PathValue("runID"))
+	if s.handleStoreError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, item)
 }
 
 func (s *Server) listTasks(w http.ResponseWriter, r *http.Request) {

@@ -17,7 +17,7 @@ import (
 	"github.com/owtf/owtf/internal/api"
 	"github.com/owtf/owtf/internal/artifact"
 	"github.com/owtf/owtf/internal/cli"
-	"github.com/owtf/owtf/internal/domain"
+	"github.com/owtf/owtf/internal/model"
 	"github.com/owtf/owtf/internal/plugin"
 	"github.com/owtf/owtf/internal/runner"
 	"github.com/owtf/owtf/internal/store"
@@ -25,7 +25,7 @@ import (
 
 func main() {
 	if err := run(os.Args[1:], os.Stdout, os.Stderr); err != nil {
-		fmt.Fprintln(os.Stderr, "owtf-next:", err)
+		fmt.Fprintln(os.Stderr, "owtf:", err)
 		os.Exit(1)
 	}
 }
@@ -41,7 +41,7 @@ func run(args []string, stdout, stderr io.Writer) error {
 }
 
 func serve() error {
-	dataDir := env("OWTF_DATA_DIR", ".owtf-next")
+	dataDir := env("OWTF_DATA_DIR", ".owtf")
 	database, err := store.Open(filepath.Join(dataDir, "owtf.db"))
 	if err != nil {
 		return err
@@ -52,15 +52,15 @@ func serve() error {
 	if err != nil {
 		return err
 	}
-	catalog, err := plugin.Load(os.DirFS(env("OWTF_PLUGIN_DIR", "plugins-next")))
+	catalog, err := plugin.Load(os.DirFS(env("OWTF_PLUGIN_DIR", "plugins")))
 	if err != nil {
 		return fmt.Errorf("load plugins: %w", err)
 	}
 	catalog.RegisterBuiltin("http-collector", plugin.HTTPCollector(nil))
 	catalog.ResolveCommands()
-	plugins := make([]domain.Plugin, 0, len(catalog.Entries()))
+	plugins := make([]model.Plugin, 0, len(catalog.Entries()))
 	for _, entry := range catalog.Entries() {
-		plugins = append(plugins, entry.DomainPlugin())
+		plugins = append(plugins, entry.Plugin())
 	}
 	if err := database.ReplacePlugins(context.Background(), plugins); err != nil {
 		return fmt.Errorf("index plugins: %w", err)
@@ -87,7 +87,7 @@ func serve() error {
 		defer cancel()
 		_ = server.Shutdown(shutdownCtx)
 	}()
-	slog.Info("OWTF Next listening", "address", server.Addr, "workers", workerCount, "data", dataDir)
+	slog.Info("OWTF listening", "address", server.Addr, "workers", workerCount, "data", dataDir)
 	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}

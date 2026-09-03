@@ -13,8 +13,8 @@ testing harness. Discuss large changes in a GitHub issue or the OWASP Slack
 
    ```bash
    make lint
-   make test-next
-   make test-next-api
+   make test-unit
+   make test-api
    ```
 
 5. Submit a pull request with the behavior changed, verification performed, and
@@ -27,7 +27,7 @@ Docker for unit or end-to-end development checks.
 
 - Keep sessions, targets, plugin codes, worklist, workers, transactions, and
   reports as the operator-facing OWTF vocabulary.
-- Keep orchestration in the Go control plane and durable state in SQLite.
+- Keep plugin orchestration in the Go server and durable state in SQLite.
 - Run plugin commands as argument arrays. Do not interpolate target values into
   shell source.
 - Declare plugin requirements and artifacts in `plugin.yaml`.

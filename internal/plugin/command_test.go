@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/owtf/owtf/internal/domain"
+	"github.com/owtf/owtf/internal/model"
 )
 
 func TestCommandArgumentsDoNotInvokeAShell(t *testing.T) {
@@ -43,7 +43,7 @@ func TestCancellationKillsPluginProcessGroup(t *testing.T) {
 	done := make(chan error, 1)
 	go func() {
 		_, err := CommandExecutor(manifest, os.Args[0])(ctx, Request{
-			Target: domain.Target{Kind: "url", Value: "https://example.test/"},
+			Target: model.Target{Kind: "url", Value: "https://example.test/"},
 			Log: func(stream, message string) {
 				if stream == "stdout" && strings.HasPrefix(message, "processes=") {
 					parts := strings.Split(strings.TrimPrefix(message, "processes="), ",")

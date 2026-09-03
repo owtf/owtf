@@ -24,9 +24,9 @@ jobs:
       - name: Check formatting and static analysis
         run: make lint
       - name: Run unit and integration tests
-        run: make test-next
+        run: make test-unit
       - name: Run API and CLI smoke flow
-        run: make test-next-api
+        run: make test-api
 
   container:
     name: Build container
@@ -36,4 +36,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
       - name: Build the Go and SQLite image
-        run: docker build --file docker/Dockerfile.backend --tag owtf-next:ci .
+        run: docker build --file docker/Dockerfile.backend --tag owtf:ci .

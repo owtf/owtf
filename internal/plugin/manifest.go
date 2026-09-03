@@ -11,7 +11,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/owtf/owtf/internal/domain"
+	"github.com/owtf/owtf/internal/model"
 	"gopkg.in/yaml.v3"
 )
 
@@ -98,7 +98,7 @@ type Result struct {
 
 // Request provides the target and event logger available to an executor.
 type Request struct {
-	Target domain.Target
+	Target model.Target
 	Log    func(stream, message string)
 }
 
@@ -307,9 +307,9 @@ func (c *Catalog) Entries() []Entry {
 	return entries
 }
 
-// DomainPlugin returns the operator-visible catalog record for an entry.
-func (e Entry) DomainPlugin() domain.Plugin {
-	return domain.Plugin{
+// Plugin returns the operator-visible catalog record for an entry.
+func (e Entry) Plugin() model.Plugin {
+	return model.Plugin{
 		ID:           e.Manifest.Metadata.ID,
 		Version:      e.Manifest.Metadata.Version,
 		Title:        e.Manifest.Metadata.Title,

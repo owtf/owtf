@@ -8,15 +8,15 @@ OWTF_GO_PATH ?= /tmp/owtf-go
 OWTF_GO_CACHE ?= /tmp/owtf-go-cache
 OWTF_GO_ENV := GOPATH=$(OWTF_GO_PATH) GOMODCACHE=$(OWTF_GO_PATH)/pkg/mod GOCACHE=$(OWTF_GO_CACHE) GOMAXPROCS=2
 
-.PHONY: build check-compose clean fmt fmt-check lint local-down local-logs local-status local-up run test test-next test-next-api vet
+.PHONY: build check-compose clean fmt fmt-check lint local-down local-logs local-status local-up run test test-unit test-api vet
 
 build:
 	@echo "--> Building OWTF"
 	@mkdir -p build
-	@env $(OWTF_GO_ENV) go build -trimpath -o build/owtf-next ./cmd/owtf-next
+	@env $(OWTF_GO_ENV) go build -trimpath -o build/owtf ./cmd/owtf
 
 run:
-	@env $(OWTF_GO_ENV) go run ./cmd/owtf-next serve
+	@env $(OWTF_GO_ENV) go run ./cmd/owtf serve
 
 fmt:
 	@gofmt -w $$(find cmd internal -name '*.go' -type f)
@@ -30,15 +30,15 @@ vet:
 
 lint: fmt-check vet
 
-test-next:
+test-unit:
 	@echo "--> Testing OWTF"
 	@env $(OWTF_GO_ENV) go test -p=1 ./...
 
-test-next-api:
+test-api:
 	@echo "--> Exercising the API and CLI through a real local server"
-	@OWTF_SMOKE_GOPATH=$(OWTF_GO_PATH) OWTF_SMOKE_GOMODCACHE=$(OWTF_GO_PATH)/pkg/mod ./scripts/owtf-next-smoke.sh
+	@OWTF_SMOKE_GOPATH=$(OWTF_GO_PATH) OWTF_SMOKE_GOMODCACHE=$(OWTF_GO_PATH)/pkg/mod ./scripts/owtf-smoke.sh
 
-test: lint test-next test-next-api
+test: lint test-unit test-api
 
 check-compose:
 ifeq ($(strip $(DOCKER_COMPOSE_CMD)),)

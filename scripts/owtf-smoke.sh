@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/owtf-next-smoke.XXXXXX")
+TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/owtf-smoke.XXXXXX")
 ADDRESS=${OWTF_SMOKE_ADDR:-127.0.0.1:18109}
 BASE_URL="http://${ADDRESS}"
 RESPONSE_FILE="${TMP_DIR}/response"
@@ -55,7 +55,7 @@ assert_json() {
 }
 
 cli_json() {
-  OWTF_URL="${BASE_URL}" "${TMP_DIR}/owtf-next" "$@" >"${CLI_RESPONSE_FILE}"
+  OWTF_URL="${BASE_URL}" "${TMP_DIR}/owtf" "$@" >"${CLI_RESPONSE_FILE}"
   jq -e . "${CLI_RESPONSE_FILE}" >/dev/null || fail "CLI returned invalid JSON for: $*"
 }
 
@@ -82,12 +82,13 @@ command -v curl >/dev/null || fail "curl is required"
 command -v jq >/dev/null || fail "jq is required"
 command -v go >/dev/null || fail "Go is required"
 command -v sleep >/dev/null || fail "sleep is required"
+command -v unzip >/dev/null || fail "unzip is required"
 if curl --silent --fail --max-time 1 "${BASE_URL}/debug/health" >/dev/null 2>&1; then
   fail "${ADDRESS} is already serving OWTF; set OWTF_SMOKE_ADDR to an unused address"
 fi
 
 mkdir -p "${TMP_DIR}/plugins"
-cp -R "${ROOT_DIR}/plugins-next/." "${TMP_DIR}/plugins/"
+cp -R "${ROOT_DIR}/plugins/." "${TMP_DIR}/plugins/"
 mkdir -p "${TMP_DIR}/plugins/OWTF-SMOKE-001/active" "${TMP_DIR}/plugins/OWTF-SMOKE-002/active"
 cat >"${TMP_DIR}/plugins/OWTF-SMOKE-001/active/plugin.yaml" <<'YAML'
 apiVersion: owtf.dev/v1alpha1
@@ -127,18 +128,18 @@ spec:
       executable: owtf-command-that-does-not-exist
 YAML
 
-printf '%s\n' 'Building the bounded OWTF Next test server...'
+printf '%s\n' 'Building the bounded OWTF test server...'
 (
   cd "${ROOT_DIR}"
   GOPATH="${GO_PATH}" GOMODCACHE="${GO_MODULE_CACHE}" GOCACHE="${TMP_DIR}/go-cache" GOMAXPROCS=2 \
-    go build -o "${TMP_DIR}/owtf-next" ./cmd/owtf-next
+    go build -o "${TMP_DIR}/owtf" ./cmd/owtf
 )
 
 OWTF_ADDR="${ADDRESS}" \
 OWTF_DATA_DIR="${TMP_DIR}/data" \
 OWTF_PLUGIN_DIR="${TMP_DIR}/plugins" \
 OWTF_WORKERS=1 \
-  "${TMP_DIR}/owtf-next" >"${TMP_DIR}/server.log" 2>&1 &
+  "${TMP_DIR}/owtf" >"${TMP_DIR}/server.log" 2>&1 &
 SERVER_PID=$!
 
 for attempt in $(seq 1 100); do
@@ -155,13 +156,17 @@ done
 printf '%s\n' 'Checking health, routing, and strict request errors...'
 request GET /debug/health 200
 assert_json '.status == "ok"' 'health response is invalid'
+request GET /api/v2/health 200
+assert_json '.status == "ok"' 'API health response is invalid'
 cli_json health
 jq -e '.status == "ok"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI health response is invalid'
 request GET / 200
 request GET /assets/app.js 200
 request GET /assets/InterVariable.woff2 200
 request GET /api/v2/transactions 400
+request GET /api/v2/runs 400
 request GET /api/v2/targets/does-not-exist 404
+request GET /api/v2/runs/does-not-exist 404
 request GET /api/v2/tasks/does-not-exist 404
 request POST /api/v2/tasks/does-not-exist/cancel 404 '{}'
 request POST /api/v2/sessions 400 '{"name":"invalid","unexpected":true}'
@@ -216,6 +221,7 @@ printf '%s\n' 'Checking grouped execution, workers, logs, reports, and evidence.
 GROUP_RUN=$(jq -nc --arg session "${SESSION_ID}" --arg target "${URL_TARGET_ID}" '{session_id:$session,target_ids:[$target],plugin_ids:["OWTF-IG-004-semi-passive","OWTF-WSP-001-active"]}')
 request POST /api/v2/runs 202 "${GROUP_RUN}"
 assert_json '.tasks | length == 2' 'grouped run did not create two tasks'
+GROUP_RUN_ID=$(jq -r '.run.id' "${RESPONSE_FILE}")
 GROUP_TASK_IDS=()
 while IFS= read -r task_id; do GROUP_TASK_IDS+=("${task_id}"); done < <(jq -r '.tasks[].id' "${RESPONSE_FILE}")
 for task_id in "${GROUP_TASK_IDS[@]}"; do
@@ -239,6 +245,18 @@ done
 request GET /api/v2/artifacts/does-not-exist 404
 request GET "/api/v2/transactions?session_id=${SESSION_ID}" 200
 assert_json 'length == 1 and .[0].status_code == 200 and .[0].target_id == $target' 'transaction list is incorrect' --arg target "${URL_TARGET_ID}"
+request GET "/api/v2/runs?session_id=${SESSION_ID}" 200
+assert_json 'length == 1 and .[0].id == $run and .[0].status == "succeeded"' 'run history is incorrect' --arg run "${GROUP_RUN_ID}"
+request GET "/api/v2/runs/${GROUP_RUN_ID}" 200
+assert_json '.status == "succeeded" and .finished_at != null' 'run was not finalized'
+request GET "/api/v2/sessions/${SESSION_ID}/report" 200
+assert_json '.summary.targets == 4 and .summary.runs == 1 and .summary.tasks == 2 and .summary.succeeded == 2 and .summary.transactions == 1 and .summary.artifacts == 3 and .summary.observations == 2' 'session report summary is incorrect'
+request GET "/api/v2/sessions/${SESSION_ID}/export" 200
+SESSION_REPORT_ZIP="${TMP_DIR}/session-report.zip"
+cp "${RESPONSE_FILE}" "${SESSION_REPORT_ZIP}"
+unzip -tqq "${SESSION_REPORT_ZIP}" || fail 'session report ZIP is invalid'
+unzip -p "${SESSION_REPORT_ZIP}" report.json | jq -e --arg id "${SESSION_ID}" '.session.id == $id and .summary.tasks == 2' >/dev/null || fail 'session report JSON is incorrect'
+[[ $(unzip -Z1 "${SESSION_REPORT_ZIP}" | grep -c '^artifacts/') -eq 3 ]] || fail 'session report ZIP is missing artifacts'
 
 cli_json worklist --session "${SESSION_ID}"
 jq -e 'length == 2 and all(.[]; .status == "succeeded")' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI worklist is incorrect'
@@ -250,10 +268,20 @@ cli_json tasks logs "${GROUP_TASK_IDS[0]}"
 jq -e 'length >= 3' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI task logs are incomplete'
 cli_json targets report "${URL_TARGET_ID}"
 jq -e '.tasks | length == 2' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI target report is incomplete'
+cli_json runs list --session "${SESSION_ID}"
+jq -e --arg run "${GROUP_RUN_ID}" 'length == 1 and .[0].id == $run and .[0].status == "succeeded"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI run history is incorrect'
+cli_json runs show "${GROUP_RUN_ID}"
+jq -e '.status == "succeeded" and .finished_at != null' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI run state is incorrect'
+cli_json sessions report "${SESSION_ID}"
+jq -e '.summary.tasks == 2 and .summary.artifacts == 3' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI session report is incomplete'
+CLI_REPORT_ZIP="${TMP_DIR}/cli-session-report.zip"
+cli_json sessions export --output "${CLI_REPORT_ZIP}" "${SESSION_ID}"
+jq -e --arg output "${CLI_REPORT_ZIP}" '.output == $output and .bytes > 0' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI session export result is incorrect'
+unzip -tqq "${CLI_REPORT_ZIP}" || fail 'CLI session export ZIP is invalid'
 cli_json transactions list --session "${SESSION_ID}" --target "${URL_TARGET_ID}"
 jq -e 'length == 1 and .[0].status_code == 200' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI transactions are incomplete'
 CLI_ARTIFACT_FILE="${TMP_DIR}/cli-artifact"
-OWTF_URL="${BASE_URL}" "${TMP_DIR}/owtf-next" artifacts get --output "${CLI_ARTIFACT_FILE}" "${ARTIFACT_IDS[0]}"
+OWTF_URL="${BASE_URL}" "${TMP_DIR}/owtf" artifacts get --output "${CLI_ARTIFACT_FILE}" "${ARTIFACT_IDS[0]}"
 [[ -s "${CLI_ARTIFACT_FILE}" ]] || fail 'CLI artifact download is empty'
 
 cli_json runs create --session "${SESSION_ID}" --target "${URL_TARGET_ID}" --plugin OWTF-WSP-001-active

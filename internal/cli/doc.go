@@ -2,5 +2,5 @@
 //
 // Commands use the public HTTP API rather than opening SQLite or invoking the
 // runner directly. This keeps browser, CLI, and automation behavior on one
-// control-plane path.
+// server path.
 package cli

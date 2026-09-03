@@ -5,9 +5,9 @@
 [![Go](https://img.shields.io/badge/Go-1.24-00ADD8.svg)](https://go.dev/)
 
 OWTF is a penetration tester's harness for authorized security research,
-assessment execution, evidence capture, and vulnerability reporting. It keeps
+plugin execution, evidence capture, and vulnerability reporting. It keeps
 the established OWTF concepts of sessions, targets, plugin codes, worklist,
-workers, transactions, and reports while replacing the retired control plane
+workers, transactions, and reports while replacing the retired Python runtime
 with a small Go and SQLite core.
 
 OWTF is not a scanner and is not a substitute for operator judgment. Plugins
@@ -27,8 +27,8 @@ resulting evidence.
 - One API used by the CLI and the embedded proof UI.
 - No accounts, passwords, tokens, or user database.
 
-See [the architecture](docs/architecture/owtf-next.rst), [CLI
-reference](docs/usage/owtf-next-cli.rst), and [legacy technique
+See [the architecture](docs/architecture/overview.rst), [CLI
+reference](docs/usage/cli.rst), and [legacy technique
 inventory](docs/architecture/legacy-plugin-inventory.csv).
 
 ## Run locally
@@ -37,21 +37,21 @@ Install Go 1.24 or newer, then build and start OWTF:
 
 ```bash
 make build
-./build/owtf-next serve
+./build/owtf serve
 ```
 
 The API and embedded proof UI are available at `http://127.0.0.1:8009`.
 The CLI uses the same API:
 
 ```bash
-./build/owtf-next health
-./build/owtf-next sessions list
-./build/owtf-next scan --target https://example.com --plugin OWTF-WSP-001-active
-./build/owtf-next worklist
+./build/owtf health
+./build/owtf sessions list
+./build/owtf scan --target https://example.com --plugin OWTF-WSP-001-active
+./build/owtf worklist
 ```
 
 Set `OWTF_URL` when the server is not at its default address. Runtime state is
-stored under `.owtf-next/` unless `OWTF_DATA_DIR` is set.
+stored under `.owtf/` unless `OWTF_DATA_DIR` is set.
 
 ## Run with Docker
 
@@ -72,8 +72,8 @@ capacity for more.
 
 ```bash
 make lint
-make test-next
-make test-next-api
+make test-unit
+make test-api
 ```
 
 The smoke test starts an isolated one-worker server in a temporary directory,

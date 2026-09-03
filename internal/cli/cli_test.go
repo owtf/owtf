@@ -31,6 +31,11 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 			writeTestJSON(t, w, map[string]any{"id": "ses_1", "name": "CLI session", "created_at": time.Now()})
 		case "GET /api/v2/sessions/ses_1":
 			writeTestJSON(t, w, map[string]any{"id": "ses_1", "name": "CLI session", "created_at": time.Now()})
+		case "GET /api/v2/sessions/ses_1/report":
+			writeTestJSON(t, w, map[string]any{"session": map[string]string{"id": "ses_1"}, "summary": map[string]int{"targets": 1}})
+		case "GET /api/v2/sessions/ses_1/export":
+			w.Header().Set("Content-Type", "application/zip")
+			_, _ = io.WriteString(w, "portable report")
 		case "POST /api/v2/sessions/ses_1/targets":
 			writeTestJSON(t, w, map[string]any{
 				"created": []map[string]any{testTarget()}, "duplicates": []string{}, "invalid": []any{},
@@ -58,6 +63,13 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 			}
 			w.WriteHeader(http.StatusAccepted)
 			writeTestJSON(t, w, map[string]any{"run": map[string]string{"id": "run_1"}, "tasks": []map[string]string{{"id": "tsk_1"}}})
+		case "GET /api/v2/runs":
+			if r.URL.Query().Get("session_id") != "ses_1" {
+				t.Fatalf("unexpected runs query: %s", r.URL.RawQuery)
+			}
+			writeTestJSON(t, w, []map[string]string{{"id": "run_1", "session_id": "ses_1", "status": "succeeded"}})
+		case "GET /api/v2/runs/run_1":
+			writeTestJSON(t, w, map[string]string{"id": "run_1", "session_id": "ses_1", "status": "succeeded"})
 		case "GET /api/v2/tasks":
 			if r.URL.Query().Get("session_id") != "ses_1" || r.URL.Query().Get("status") != "queued" {
 				t.Fatalf("unexpected worklist query: %s", r.URL.RawQuery)
@@ -90,12 +102,15 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		{"sessions", "list"},
 		{"sessions", "create", "--name", "CLI session"},
 		{"sessions", "show", "ses_1"},
+		{"sessions", "report", "ses_1"},
 		{"targets", "list", "--session", "ses_1"},
 		{"targets", "add", "--session", "ses_1", "https://example.test/"},
 		{"targets", "show", "tgt_1"},
 		{"targets", "report", "tgt_1"},
 		{"targets", "delete", "tgt_1"},
 		{"plugins", "list"},
+		{"runs", "list", "--session", "ses_1"},
+		{"runs", "show", "run_1"},
 		{"runs", "create", "--session", "ses_1", "--target", "tgt_1", "--plugin", "OWTF-WSP-001-active"},
 		{"scan", "--session", "ses_1", "--plugin", "OWTF-WSP-001-active", "https://example.test/"},
 		{"worklist", "--session", "ses_1", "--status", "queued"},
@@ -131,10 +146,35 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		t.Fatalf("unexpected artifact: %q", data)
 	}
 
+	exportPath := filepath.Join(t.TempDir(), "reports", "session.zip")
+	var exportOutput bytes.Buffer
+	if err := Run(context.Background(), []string{"--url", server.URL, "sessions", "export", "--output", exportPath, "ses_1"}, &exportOutput, io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	exported, err := os.ReadFile(exportPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(exported) != "portable report" {
+		t.Fatalf("unexpected export: %q", exported)
+	}
+	var exportResult struct {
+		SessionID string `json:"session_id"`
+		Output    string `json:"output"`
+		Bytes     int64  `json:"bytes"`
+	}
+	if err := json.Unmarshal(exportOutput.Bytes(), &exportResult); err != nil {
+		t.Fatal(err)
+	}
+	if exportResult.SessionID != "ses_1" || exportResult.Output != exportPath || exportResult.Bytes != int64(len(exported)) {
+		t.Fatalf("unexpected export result: %+v", exportResult)
+	}
+
 	for _, route := range []string{
 		"GET /debug/health", "GET /api/v2/sessions", "POST /api/v2/sessions",
+		"GET /api/v2/sessions/ses_1/report", "GET /api/v2/sessions/ses_1/export",
 		"POST /api/v2/sessions/ses_1/targets", "GET /api/v2/sessions/ses_1/targets",
-		"POST /api/v2/runs", "GET /api/v2/tasks", "GET /api/v2/workers",
+		"POST /api/v2/runs", "GET /api/v2/runs", "GET /api/v2/runs/run_1", "GET /api/v2/tasks", "GET /api/v2/workers",
 		"GET /api/v2/tasks/tsk_1/events", "POST /api/v2/tasks/tsk_1/cancel",
 		"GET /api/v2/transactions", "GET /api/v2/artifacts/art_1",
 	} {

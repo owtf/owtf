@@ -1,5 +1,5 @@
 # OWTF runtime and build output
-.owtf-next/
+.owtf/
 .docker-data/
 build/
 coverage.out

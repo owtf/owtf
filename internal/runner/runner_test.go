@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/owtf/owtf/internal/artifact"
-	"github.com/owtf/owtf/internal/domain"
+	"github.com/owtf/owtf/internal/model"
 	"github.com/owtf/owtf/internal/plugin"
 	"github.com/owtf/owtf/internal/runner"
 	"github.com/owtf/owtf/internal/store"
@@ -50,7 +50,7 @@ func TestCancelStopsTaskAndReleasesWorker(t *testing.T) {
 		return plugin.Result{}, ctx.Err()
 	})
 	entry, _ := catalog.Get("OWTF-TEST-001-active")
-	if err := database.ReplacePlugins(context.Background(), []domain.Plugin{entry.DomainPlugin()}); err != nil {
+	if err := database.ReplacePlugins(context.Background(), []model.Plugin{entry.Plugin()}); err != nil {
 		t.Fatal(err)
 	}
 	session, err := database.CreateSession(context.Background(), "Cancellation")
@@ -96,7 +96,7 @@ func TestCancelStopsTaskAndReleasesWorker(t *testing.T) {
 
 	want(t, time.Second, func() bool {
 		task, err := database.GetTask(context.Background(), tasks[0].ID)
-		return err == nil && task.Status == domain.TaskCancelled
+		return err == nil && task.Status == model.TaskCancelled
 	}, "task did not become cancelled")
 	want(t, time.Second, func() bool {
 		worker := taskRunner.Workers()[0]

@@ -1,4 +1,4 @@
-package domain
+package model
 
 import "time"
 
@@ -156,9 +156,41 @@ type Finding struct {
 	CreatedAt     time.Time `json:"created_at"`
 }
 
+// ReportSummary contains truthful counts derived from persisted report records.
+type ReportSummary struct {
+	Targets      int `json:"targets"`
+	Runs         int `json:"runs"`
+	Tasks        int `json:"tasks"`
+	Queued       int `json:"queued"`
+	Blocked      int `json:"blocked"`
+	Running      int `json:"running"`
+	Succeeded    int `json:"succeeded"`
+	Failed       int `json:"failed"`
+	Cancelled    int `json:"cancelled"`
+	Transactions int `json:"transactions"`
+	Artifacts    int `json:"artifacts"`
+	Observations int `json:"observations"`
+	Findings     int `json:"findings"`
+}
+
 // TargetReport is the complete retained evidence view for one target.
 type TargetReport struct {
 	Target       Target         `json:"target"`
+	Tasks        []Task         `json:"tasks"`
+	Events       []TaskEvent    `json:"events"`
+	Artifacts    []Artifact     `json:"artifacts"`
+	Transactions []HTTPExchange `json:"transactions"`
+	Observations []Observation  `json:"observations"`
+	Findings     []Finding      `json:"findings"`
+}
+
+// SessionReport is the complete retained execution and evidence view for one
+// OWTF session.
+type SessionReport struct {
+	Session      Session        `json:"session"`
+	Summary      ReportSummary  `json:"summary"`
+	Targets      []Target       `json:"targets"`
+	Runs         []Run          `json:"runs"`
 	Tasks        []Task         `json:"tasks"`
 	Events       []TaskEvent    `json:"events"`
 	Artifacts    []Artifact     `json:"artifacts"`

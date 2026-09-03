@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/owtf/owtf/internal/artifact"
-	"github.com/owtf/owtf/internal/domain"
+	"github.com/owtf/owtf/internal/model"
 	"github.com/owtf/owtf/internal/plugin"
 	"github.com/owtf/owtf/internal/store"
 )
@@ -26,7 +26,7 @@ type Runner struct {
 	cancel    context.CancelFunc
 	wg        sync.WaitGroup
 	mu        sync.RWMutex
-	state     []domain.Worker
+	state     []model.Worker
 	cancels   map[string]context.CancelFunc
 }
 
@@ -43,7 +43,7 @@ func New(database *store.Store, artifacts *artifact.Store, catalog *plugin.Catal
 		workers: workers, timeout: timeout, queue: make(chan string, 256), cancels: make(map[string]context.CancelFunc),
 	}
 	for index := 0; index < workers; index++ {
-		runner.state = append(runner.state, domain.Worker{ID: fmt.Sprintf("worker-%d", index+1), Status: "idle"})
+		runner.state = append(runner.state, model.Worker{ID: fmt.Sprintf("worker-%d", index+1), Status: "idle"})
 	}
 	return runner
 }
@@ -79,14 +79,14 @@ func (r *Runner) Stop() {
 }
 
 // Workers returns a race-safe snapshot of current worker state.
-func (r *Runner) Workers() []domain.Worker {
+func (r *Runner) Workers() []model.Worker {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	return append([]domain.Worker(nil), r.state...)
+	return append([]model.Worker(nil), r.state...)
 }
 
 // Cancel records task cancellation and signals the active executor, if any.
-func (r *Runner) Cancel(ctx context.Context, taskID string) (domain.Task, error) {
+func (r *Runner) Cancel(ctx context.Context, taskID string) (model.Task, error) {
 	r.mu.RLock()
 	cancel := r.cancels[taskID]
 	r.mu.RUnlock()
@@ -156,11 +156,11 @@ func (r *Runner) execute(parent context.Context, workerIndex int, taskID string)
 	entry, ok := r.catalog.Get(execution.PluginID)
 	if !ok {
 		r.fail(parent, execution, logEvent, fmt.Errorf("plugin %s is not in the catalog", execution.PluginID))
-		return domain.TaskFailed
+		return model.TaskFailed
 	}
 	if entry.Availability != "ready" || entry.Executor == nil {
 		r.fail(parent, execution, logEvent, fmt.Errorf("plugin %s is unavailable: %s", execution.PluginID, entry.Reason))
-		return domain.TaskFailed
+		return model.TaskFailed
 	}
 
 	ctx, cancel := context.WithTimeout(taskCtx, r.timeout)
@@ -170,19 +170,19 @@ func (r *Runner) execute(parent context.Context, workerIndex int, taskID string)
 		if errors.Is(ctx.Err(), context.Canceled) && parent.Err() == nil {
 			logEvent("system", "task cancelled")
 			_, _ = r.store.CancelTask(parent, execution.ID)
-			return domain.TaskCancelled
+			return model.TaskCancelled
 		}
 		r.fail(parent, execution, logEvent, err)
-		return domain.TaskFailed
+		return model.TaskFailed
 	}
 
 	artifacts, artifactIDs, err := r.persistArtifacts(execution, result.Artifacts)
 	if err != nil {
 		r.fail(parent, execution, logEvent, err)
-		return domain.TaskFailed
+		return model.TaskFailed
 	}
 	now := time.Now().UTC()
-	exchanges := make([]domain.HTTPExchange, 0, len(result.Exchanges))
+	exchanges := make([]model.HTTPExchange, 0, len(result.Exchanges))
 	for _, item := range result.Exchanges {
 		artifactID := ""
 		if item.ResponseBodyArtifactName != "" {
@@ -190,26 +190,26 @@ func (r *Runner) execute(parent context.Context, workerIndex int, taskID string)
 			artifactID, found = artifactIDs[item.ResponseBodyArtifactName]
 			if !found {
 				r.fail(parent, execution, logEvent, fmt.Errorf("exchange references unknown artifact %q", item.ResponseBodyArtifactName))
-				return domain.TaskFailed
+				return model.TaskFailed
 			}
 		}
-		exchanges = append(exchanges, domain.HTTPExchange{
+		exchanges = append(exchanges, model.HTTPExchange{
 			ID: store.NewID("txn"), TaskID: execution.ID, TargetID: execution.TargetID,
 			Method: item.Method, URL: item.URL, RequestHeaders: item.RequestHeaders,
 			StatusCode: item.StatusCode, ResponseHeaders: item.ResponseHeaders,
 			ResponseBodyArtifactID: artifactID, DurationMS: item.DurationMS, CreatedAt: now,
 		})
 	}
-	observations := make([]domain.Observation, 0, len(result.Observations))
+	observations := make([]model.Observation, 0, len(result.Observations))
 	for _, item := range result.Observations {
-		observations = append(observations, domain.Observation{
+		observations = append(observations, model.Observation{
 			ID: store.NewID("obs"), TaskID: execution.ID, TargetID: execution.TargetID,
 			TechniqueCode: item.TechniqueCode, Kind: item.Kind, Data: item.Data, CreatedAt: now,
 		})
 	}
-	findings := make([]domain.Finding, 0, len(result.Findings))
+	findings := make([]model.Finding, 0, len(result.Findings))
 	for _, item := range result.Findings {
-		findings = append(findings, domain.Finding{
+		findings = append(findings, model.Finding{
 			ID: store.NewID("fnd"), TaskID: execution.ID, TargetID: execution.TargetID,
 			TechniqueCode: item.TechniqueCode, Title: item.Title, Severity: item.Severity,
 			Description: item.Description, CreatedAt: now,
@@ -217,13 +217,13 @@ func (r *Runner) execute(parent context.Context, workerIndex int, taskID string)
 	}
 	if err := r.store.CompleteTask(parent, execution, artifacts, exchanges, observations, findings); err != nil {
 		if errors.Is(err, store.ErrTaskNotRunning) {
-			return domain.TaskCancelled
+			return model.TaskCancelled
 		}
 		r.fail(parent, execution, logEvent, fmt.Errorf("persist plugin result: %w", err))
-		return domain.TaskFailed
+		return model.TaskFailed
 	}
 	logEvent("system", "task completed")
-	return domain.TaskSucceeded
+	return model.TaskSucceeded
 }
 
 func (r *Runner) begin(index int, taskID string) {
@@ -235,7 +235,7 @@ func (r *Runner) begin(index int, taskID string) {
 	r.mu.Unlock()
 }
 
-func (r *Runner) assign(index int, execution domain.TaskExecution) {
+func (r *Runner) assign(index int, execution model.TaskExecution) {
 	r.mu.Lock()
 	r.state[index].Status = "running"
 	r.state[index].TaskID = execution.ID
@@ -248,11 +248,11 @@ func (r *Runner) finish(index int, outcome string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	switch outcome {
-	case domain.TaskSucceeded:
+	case model.TaskSucceeded:
 		r.state[index].Completed++
-	case domain.TaskFailed:
+	case model.TaskFailed:
 		r.state[index].Failed++
-	case domain.TaskCancelled:
+	case model.TaskCancelled:
 		r.state[index].Cancelled++
 	}
 	r.state[index].Status = "idle"
@@ -262,8 +262,8 @@ func (r *Runner) finish(index int, outcome string) {
 	r.state[index].TaskStartedAt = nil
 }
 
-func (r *Runner) persistArtifacts(execution domain.TaskExecution, results []plugin.ArtifactResult) ([]domain.Artifact, map[string]string, error) {
-	items := make([]domain.Artifact, 0, len(results))
+func (r *Runner) persistArtifacts(execution model.TaskExecution, results []plugin.ArtifactResult) ([]model.Artifact, map[string]string, error) {
+	items := make([]model.Artifact, 0, len(results))
 	ids := make(map[string]string, len(results))
 	for _, result := range results {
 		if strings.TrimSpace(result.Name) == "" {
@@ -282,7 +282,7 @@ func (r *Runner) persistArtifacts(execution domain.TaskExecution, results []plug
 		}
 		id := store.NewID("art")
 		ids[result.Name] = id
-		items = append(items, domain.Artifact{
+		items = append(items, model.Artifact{
 			ID: id, TaskID: execution.ID, Name: result.Name, MediaType: mediaType,
 			Size: stored.Size, SHA256: stored.SHA256, Path: stored.Path, CreatedAt: time.Now().UTC(),
 		})
@@ -290,7 +290,7 @@ func (r *Runner) persistArtifacts(execution domain.TaskExecution, results []plug
 	return items, ids, nil
 }
 
-func (r *Runner) fail(ctx context.Context, execution domain.TaskExecution, logEvent func(string, string), taskError error) {
+func (r *Runner) fail(ctx context.Context, execution model.TaskExecution, logEvent func(string, string), taskError error) {
 	logEvent("stderr", taskError.Error())
 	if err := r.store.FailTask(ctx, execution, taskError); err != nil && ctx.Err() == nil {
 		slog.Error("fail task", "task_id", execution.ID, "error", err)

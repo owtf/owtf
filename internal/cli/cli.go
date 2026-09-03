@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/owtf/owtf/internal/domain"
+	"github.com/owtf/owtf/internal/model"
 	targetvalue "github.com/owtf/owtf/internal/target"
 )
 
@@ -43,7 +43,7 @@ func (values *stringList) Set(value string) error {
 
 // Run parses and executes one CLI request against an OWTF server.
 func Run(ctx context.Context, args []string, out, errOut io.Writer) error {
-	flags := flag.NewFlagSet("owtf-next", flag.ContinueOnError)
+	flags := flag.NewFlagSet("owtf", flag.ContinueOnError)
 	flags.SetOutput(errOut)
 	baseURL := flags.String("url", env("OWTF_URL", defaultURL), "OWTF server URL")
 	timeout := flags.Duration("timeout", 30*time.Second, "HTTP request timeout")
@@ -95,13 +95,13 @@ func Run(ctx context.Context, args []string, out, errOut io.Writer) error {
 		printUsage(out)
 		return nil
 	default:
-		return fmt.Errorf("unknown command %q; run owtf-next help", command)
+		return fmt.Errorf("unknown command %q; run owtf help", command)
 	}
 }
 
 func (a *app) sessions(ctx context.Context, args []string) error {
 	if len(args) == 0 {
-		return errors.New("sessions requires list, create, or show")
+		return errors.New("sessions requires list, create, show, report, or export")
 	}
 	switch args[0] {
 	case "list":
@@ -118,12 +118,39 @@ func (a *app) sessions(ctx context.Context, args []string) error {
 			return errors.New("sessions create accepts no positional arguments")
 		}
 		return a.proxyJSON(ctx, http.MethodPost, "/api/v2/sessions", map[string]any{"name": *name})
-	case "show":
-		id, err := oneArg("sessions show", args[1:])
+	case "show", "report":
+		id, err := oneArg("sessions "+args[0], args[1:])
 		if err != nil {
 			return err
 		}
-		return a.proxyJSON(ctx, http.MethodGet, "/api/v2/sessions/"+pathSegment(id), nil)
+		path := "/api/v2/sessions/" + pathSegment(id)
+		if args[0] == "report" {
+			path += "/report"
+		}
+		return a.proxyJSON(ctx, http.MethodGet, path, nil)
+	case "export":
+		flags := a.flags("sessions export")
+		output := flags.String("output", "", "output ZIP path; defaults to owtf-SESSION_ID.zip")
+		if err := flags.Parse(args[1:]); err != nil {
+			return err
+		}
+		id, err := oneArg("sessions export", flags.Args())
+		if err != nil {
+			return err
+		}
+		if *output == "" {
+			*output = "owtf-" + id + ".zip"
+		}
+		response, err := a.do(ctx, http.MethodGet, "/api/v2/sessions/"+pathSegment(id)+"/export", nil)
+		if err != nil {
+			return err
+		}
+		defer response.Body.Close()
+		written, err := writeResponseFile(response.Body, *output)
+		if err != nil {
+			return err
+		}
+		return a.writeJSON(map[string]any{"session_id": id, "output": *output, "bytes": written})
 	default:
 		return fmt.Errorf("unknown sessions command %q", args[0])
 	}
@@ -141,7 +168,7 @@ func (a *app) targets(ctx context.Context, args []string) error {
 			return err
 		}
 		if *sessionID == "" || flags.NArg() != 0 {
-			return errors.New("usage: owtf-next targets list --session SESSION_ID")
+			return errors.New("usage: owtf targets list --session SESSION_ID")
 		}
 		return a.proxyJSON(ctx, http.MethodGet, "/api/v2/sessions/"+pathSegment(*sessionID)+"/targets", nil)
 	case "add":
@@ -151,7 +178,7 @@ func (a *app) targets(ctx context.Context, args []string) error {
 			return err
 		}
 		if *sessionID == "" || flags.NArg() == 0 {
-			return errors.New("usage: owtf-next targets add --session SESSION_ID TARGET...")
+			return errors.New("usage: owtf targets add --session SESSION_ID TARGET...")
 		}
 		return a.proxyJSON(ctx, http.MethodPost, "/api/v2/sessions/"+pathSegment(*sessionID)+"/targets", map[string]any{"targets": flags.Args()})
 	case "show", "report":
@@ -166,7 +193,7 @@ func (a *app) targets(ctx context.Context, args []string) error {
 		return a.proxyJSON(ctx, http.MethodGet, path, nil)
 	case "delete":
 		if len(args) < 2 {
-			return errors.New("usage: owtf-next targets delete TARGET_ID...")
+			return errors.New("usage: owtf targets delete TARGET_ID...")
 		}
 		deleted := make([]string, 0, len(args)-1)
 		for _, id := range args[1:] {
@@ -183,31 +210,53 @@ func (a *app) targets(ctx context.Context, args []string) error {
 
 func (a *app) plugins(ctx context.Context, args []string) error {
 	if len(args) != 1 || args[0] != "list" {
-		return errors.New("usage: owtf-next plugins list")
+		return errors.New("usage: owtf plugins list")
 	}
 	return a.proxyJSON(ctx, http.MethodGet, "/api/v2/plugins", nil)
 }
 
 func (a *app) runs(ctx context.Context, args []string) error {
-	if len(args) == 0 || args[0] != "create" {
-		return errors.New("usage: owtf-next runs create --session SESSION_ID --target TARGET_ID --plugin PLUGIN_ID")
+	if len(args) == 0 {
+		return errors.New("runs requires list, show, or create")
 	}
-	flags := a.flags("runs create")
-	sessionID := flags.String("session", "", "session ID")
-	var targetIDs, pluginIDs stringList
-	flags.Var(&targetIDs, "target", "target ID (repeatable or comma-separated)")
-	flags.Var(&pluginIDs, "plugin", "plugin ID (repeatable or comma-separated)")
-	if err := flags.Parse(args[1:]); err != nil {
-		return err
+	switch args[0] {
+	case "list":
+		flags := a.flags("runs list")
+		sessionID := flags.String("session", "", "session ID")
+		if err := flags.Parse(args[1:]); err != nil {
+			return err
+		}
+		if *sessionID == "" || flags.NArg() != 0 {
+			return errors.New("usage: owtf runs list --session SESSION_ID")
+		}
+		query := url.Values{"session_id": {*sessionID}}
+		return a.proxyJSON(ctx, http.MethodGet, withQuery("/api/v2/runs", query), nil)
+	case "show":
+		id, err := oneArg("runs show", args[1:])
+		if err != nil {
+			return err
+		}
+		return a.proxyJSON(ctx, http.MethodGet, "/api/v2/runs/"+pathSegment(id), nil)
+	case "create":
+		flags := a.flags("runs create")
+		sessionID := flags.String("session", "", "session ID")
+		var targetIDs, pluginIDs stringList
+		flags.Var(&targetIDs, "target", "target ID (repeatable or comma-separated)")
+		flags.Var(&pluginIDs, "plugin", "plugin ID (repeatable or comma-separated)")
+		if err := flags.Parse(args[1:]); err != nil {
+			return err
+		}
+		if *sessionID == "" || len(targetIDs) == 0 || len(pluginIDs) == 0 || flags.NArg() != 0 {
+			return errors.New("usage: owtf runs create --session SESSION_ID --target TARGET_ID --plugin PLUGIN_ID")
+		}
+		return a.proxyJSON(ctx, http.MethodPost, "/api/v2/runs", map[string]any{
+			"session_id": *sessionID,
+			"target_ids": []string(targetIDs),
+			"plugin_ids": []string(pluginIDs),
+		})
+	default:
+		return fmt.Errorf("unknown runs command %q", args[0])
 	}
-	if *sessionID == "" || len(targetIDs) == 0 || len(pluginIDs) == 0 || flags.NArg() != 0 {
-		return errors.New("usage: owtf-next runs create --session SESSION_ID --target TARGET_ID --plugin PLUGIN_ID")
-	}
-	return a.proxyJSON(ctx, http.MethodPost, "/api/v2/runs", map[string]any{
-		"session_id": *sessionID,
-		"target_ids": []string(targetIDs),
-		"plugin_ids": []string(pluginIDs),
-	})
 }
 
 func (a *app) scan(ctx context.Context, args []string) error {
@@ -219,14 +268,14 @@ func (a *app) scan(ctx context.Context, args []string) error {
 		return err
 	}
 	if len(pluginIDs) == 0 || flags.NArg() == 0 {
-		return errors.New("usage: owtf-next scan [--session SESSION_ID] --plugin PLUGIN_ID TARGET...")
+		return errors.New("usage: owtf scan [--session SESSION_ID] --plugin PLUGIN_ID TARGET...")
 	}
 	resolvedSessionID, err := a.ensureSession(ctx, *sessionID)
 	if err != nil {
 		return err
 	}
 	var added struct {
-		Created []domain.Target `json:"created"`
+		Created []model.Target `json:"created"`
 		Invalid []struct {
 			Input string `json:"input"`
 			Error string `json:"error"`
@@ -258,14 +307,14 @@ func (a *app) ensureSession(ctx context.Context, id string) (string, error) {
 	if id != "" {
 		return id, nil
 	}
-	var sessions []domain.Session
+	var sessions []model.Session
 	if err := a.request(ctx, http.MethodGet, "/api/v2/sessions", nil, &sessions); err != nil {
 		return "", err
 	}
 	if len(sessions) > 0 {
 		return sessions[0].ID, nil
 	}
-	var session domain.Session
+	var session model.Session
 	if err := a.request(ctx, http.MethodPost, "/api/v2/sessions", map[string]any{"name": "Default session"}, &session); err != nil {
 		return "", err
 	}
@@ -281,7 +330,7 @@ func (a *app) resolveTargetIDs(ctx context.Context, sessionID string, inputs []s
 		}
 		wanted[normalized.Value] = true
 	}
-	var targets []domain.Target
+	var targets []model.Target
 	path := "/api/v2/sessions/" + pathSegment(sessionID) + "/targets"
 	if err := a.request(ctx, http.MethodGet, path, nil, &targets); err != nil {
 		return nil, err
@@ -348,7 +397,7 @@ func (a *app) tasks(ctx context.Context, args []string) error {
 
 func (a *app) transactions(ctx context.Context, args []string) error {
 	if len(args) == 0 || args[0] != "list" {
-		return errors.New("usage: owtf-next transactions list --session SESSION_ID [--target TARGET_ID]")
+		return errors.New("usage: owtf transactions list --session SESSION_ID [--target TARGET_ID]")
 	}
 	flags := a.flags("transactions list")
 	sessionID := flags.String("session", "", "session ID")
@@ -357,7 +406,7 @@ func (a *app) transactions(ctx context.Context, args []string) error {
 		return err
 	}
 	if *sessionID == "" || flags.NArg() != 0 {
-		return errors.New("usage: owtf-next transactions list --session SESSION_ID [--target TARGET_ID]")
+		return errors.New("usage: owtf transactions list --session SESSION_ID [--target TARGET_ID]")
 	}
 	query := url.Values{"session_id": {*sessionID}}
 	if *targetID != "" {
@@ -368,7 +417,7 @@ func (a *app) transactions(ctx context.Context, args []string) error {
 
 func (a *app) artifacts(ctx context.Context, args []string) error {
 	if len(args) == 0 || args[0] != "get" {
-		return errors.New("usage: owtf-next artifacts get [--output FILE] ARTIFACT_ID")
+		return errors.New("usage: owtf artifacts get [--output FILE] ARTIFACT_ID")
 	}
 	flags := a.flags("artifacts get")
 	output := flags.String("output", "", "write artifact to this file instead of stdout")
@@ -388,19 +437,36 @@ func (a *app) artifacts(ctx context.Context, args []string) error {
 		_, err = io.Copy(a.out, response.Body)
 		return err
 	}
-	if err := os.MkdirAll(filepath.Dir(*output), 0o750); err != nil && filepath.Dir(*output) != "." {
-		return err
+	_, err = writeResponseFile(response.Body, *output)
+	return err
+}
+
+func writeResponseFile(source io.Reader, output string) (int64, error) {
+	directory := filepath.Dir(output)
+	if err := os.MkdirAll(directory, 0o750); err != nil {
+		return 0, fmt.Errorf("create output directory: %w", err)
 	}
-	file, err := os.Create(*output)
+	temporary, err := os.CreateTemp(directory, "."+filepath.Base(output)+".tmp-*")
 	if err != nil {
-		return err
+		return 0, fmt.Errorf("create temporary output: %w", err)
 	}
-	_, copyErr := io.Copy(file, response.Body)
-	closeErr := file.Close()
+	temporaryName := temporary.Name()
+	defer os.Remove(temporaryName)
+	written, copyErr := io.Copy(temporary, source)
+	closeErr := temporary.Close()
 	if copyErr != nil {
-		return copyErr
+		return written, fmt.Errorf("write output: %w", copyErr)
 	}
-	return closeErr
+	if closeErr != nil {
+		return written, fmt.Errorf("close output: %w", closeErr)
+	}
+	if err := os.Chmod(temporaryName, 0o640); err != nil {
+		return written, fmt.Errorf("set output permissions: %w", err)
+	}
+	if err := os.Rename(temporaryName, output); err != nil {
+		return written, fmt.Errorf("publish output: %w", err)
+	}
+	return written, nil
 }
 
 func (a *app) flags(name string) *flag.FlagSet {
@@ -513,21 +579,24 @@ func env(key, fallback string) string {
 }
 
 func printUsage(output io.Writer) {
-	fmt.Fprint(output, `OWTF Next
+	fmt.Fprint(output, `OWTF
 
 Usage:
-  owtf-next serve
-  owtf-next [--url URL] health
-  owtf-next [--url URL] sessions list|create|show
-  owtf-next [--url URL] targets list|add|show|delete|report
-  owtf-next [--url URL] plugins list
-  owtf-next [--url URL] runs create --session ID --target ID --plugin ID
-  owtf-next [--url URL] scan [--session ID] --plugin ID TARGET...
-  owtf-next [--url URL] worklist [--session ID] [--status STATUS]
-  owtf-next [--url URL] workers
-  owtf-next [--url URL] tasks show|logs|cancel ID
-  owtf-next [--url URL] transactions list --session ID [--target ID]
-  owtf-next [--url URL] artifacts get [--output FILE] ID
+  owtf serve
+  owtf [--url URL] health
+  owtf [--url URL] sessions list|create|show|report
+  owtf [--url URL] sessions export [--output FILE] ID
+  owtf [--url URL] targets list|add|show|delete|report
+  owtf [--url URL] plugins list
+  owtf [--url URL] runs list --session ID
+  owtf [--url URL] runs show ID
+  owtf [--url URL] runs create --session ID --target ID --plugin ID
+  owtf [--url URL] scan [--session ID] --plugin ID TARGET...
+  owtf [--url URL] worklist [--session ID] [--status STATUS]
+  owtf [--url URL] workers
+  owtf [--url URL] tasks show|logs|cancel ID
+  owtf [--url URL] transactions list --session ID [--target ID]
+  owtf [--url URL] artifacts get [--output FILE] ID
 
 Repeat --target and --plugin, or pass comma-separated IDs.
 `)

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/owtf/owtf/internal/domain"
+	"github.com/owtf/owtf/internal/model"
 	"github.com/owtf/owtf/internal/target"
 )
 
@@ -18,10 +18,10 @@ func TestReplacePluginsRemovesStaleCatalogEntries(t *testing.T) {
 
 	first := plugin("OWTF-TEST-001-active")
 	second := plugin("OWTF-TEST-002-passive")
-	if err := database.ReplacePlugins(context.Background(), []domain.Plugin{first, second}); err != nil {
+	if err := database.ReplacePlugins(context.Background(), []model.Plugin{first, second}); err != nil {
 		t.Fatal(err)
 	}
-	if err := database.ReplacePlugins(context.Background(), []domain.Plugin{second}); err != nil {
+	if err := database.ReplacePlugins(context.Background(), []model.Plugin{second}); err != nil {
 		t.Fatal(err)
 	}
 	plugins, err := database.ListPlugins(context.Background())
@@ -66,8 +66,8 @@ func TestDeleteTargetPrunesEmptyRun(t *testing.T) {
 	}
 }
 
-func plugin(id string) domain.Plugin {
-	return domain.Plugin{
+func plugin(id string) model.Plugin {
+	return model.Plugin{
 		ID: id, Version: "0.1.0", Title: id, Variant: "active",
 		Techniques: []string{id}, RuntimeType: "builtin", Availability: "ready",
 	}

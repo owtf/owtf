@@ -2,11 +2,11 @@
 
 The maintained design and operator documentation is intentionally small:
 
-- `architecture/owtf-next.rst` defines the control-plane boundaries, plugin
+- `architecture/overview.rst` defines the OWTF server boundaries, plugin
   contract, task lifecycle, phase gates, and resource constraints.
 - `architecture/legacy-plugin-inventory.csv` records the legacy technique
   codes and metadata used to decide which plugins to reimplement.
-- `usage/owtf-next-cli.rst` documents the current CLI surface.
+- `usage/cli.rst` documents the current CLI surface.
 - `usage/access-model.rst` documents the deliberate absence of application
   authentication.
 

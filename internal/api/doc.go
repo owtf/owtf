@@ -1,2 +1,3 @@
-// Package api exposes the OWTF control plane over HTTP.
+// Package api exposes OWTF sessions, targets, plugins, worklist, workers,
+// transactions, artifacts, and reports over HTTP.
 package api

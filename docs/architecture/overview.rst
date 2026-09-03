@@ -1,10 +1,10 @@
-OWTF Next
+OWTF
 =========
 
 Purpose
 -------
 
-OWTF Next is a local-first harness for authorized security assessments. An
+OWTF is a local-first harness for authorized security testing. An
 operator defines targets, runs repeatable techniques, inspects live work and
 logs, preserves HTTP transactions and artifacts, and produces evidence-backed
 reports. AI may help organize and explain evidence, but it does not silently
@@ -13,7 +13,7 @@ expand scope or invent findings.
 Product decisions
 -----------------
 
-* One Go control-plane binary with bounded local workers.
+* One Go binary with bounded local workers.
 * SQLite for durable state and content-addressed files for artifacts.
 * No OWTF users, passwords, tokens, or authorization database. Deployments that
   need access control must put OWTF behind an authenticating reverse proxy such
@@ -23,14 +23,14 @@ Product decisions
   service; local Go execution remains available for development and tests.
 * Plugins remain a central product concept and retain OWTF technique codes.
 * The replacement is outcome-compatible, not implementation-compatible. There
-  is no shim around the legacy Python control plane.
+  is no shim around the legacy Python runtime.
 
 Plugin layout
 -------------
 
 Plugin source is organized by stable OWTF technique code and variant::
 
-  plugins-next/
+  plugins/
     OWTF-IG-004/
       semi-passive/
         plugin.yaml
@@ -166,12 +166,12 @@ termination signal.
 API regression gate
 -------------------
 
-Run ``make test-next-api`` to start an isolated one-worker server and exercise
+Run ``make test-api`` to start an isolated one-worker server and exercise
 the complete implemented HTTP surface with ``curl``. The same run invokes every
 CLI command category against the live server while curl independently verifies
 the resulting state. The test uses temporary plugins for deterministic
 cancellation and a missing requirement, removes its database and artifacts on
-exit, and does not start Docker or Colima. Run ``make clean-next-cache`` after
+exit, and does not start Docker or Colima. Run ``make clean`` after
 development to remove the bounded Go build cache under ``/tmp``.
 
 Resource discipline
