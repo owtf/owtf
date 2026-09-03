@@ -31,6 +31,8 @@ resulting evidence.
   HTTP/HTTPS/SOCKS5 proxy support.
 - Challenge-based Basic and Digest authentication for explicitly configured
   target hosts.
+- Priority-ordered static request and response interceptors with bounded URL,
+  header, body, and delay actions.
 - Target reports through the API and CLI.
 - One API used by the CLI and the embedded proof UI.
 - No accounts, passwords, tokens, or user database.

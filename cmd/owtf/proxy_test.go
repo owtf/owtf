@@ -17,6 +17,10 @@ import (
 
 func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 	upstream := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if request.Header.Get("X-OWTF") != "intercepted" {
+			http.Error(writer, "request was not intercepted", http.StatusInternalServerError)
+			return
+		}
 		writer.WriteHeader(http.StatusAccepted)
 		_, _ = writer.Write([]byte("captured"))
 	}))
@@ -26,6 +30,13 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 	outputPath := filepath.Join(directory, "capture.har")
 	certificatePath := filepath.Join(directory, "ca.crt")
 	keyPath := filepath.Join(directory, "ca.key")
+	interceptorPath := filepath.Join(directory, "interceptors.json")
+	if err := os.WriteFile(interceptorPath, []byte(`{"rules":[
+		{"name":"request","phase":"request","action":{"set_headers":{"X-OWTF":"intercepted"}}},
+		{"name":"response","phase":"response","action":{"body_replace":[{"pattern":"captured","replacement":"modified"}]}}
+	]}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
 	outputReader, outputWriter := io.Pipe()
 	defer outputReader.Close()
 
@@ -37,6 +48,7 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 			"--output", outputPath,
 			"--ca-cert", certificatePath,
 			"--ca-key", keyPath,
+			"--interceptor-file", interceptorPath,
 		}, outputWriter, io.Discard)
 		_ = outputWriter.Close()
 	}()
@@ -62,11 +74,11 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 		cancel()
 		t.Fatal(err)
 	}
-	_, _ = io.Copy(io.Discard, response.Body)
+	body, _ := io.ReadAll(response.Body)
 	response.Body.Close()
-	if response.StatusCode != http.StatusAccepted {
+	if response.StatusCode != http.StatusAccepted || string(body) != "modified" {
 		cancel()
-		t.Fatalf("status = %d", response.StatusCode)
+		t.Fatalf("status = %d, body = %q", response.StatusCode, body)
 	}
 
 	cancel()
@@ -88,7 +100,8 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 	if parseErr != nil {
 		t.Fatal(parseErr)
 	}
-	if len(transactions) != 1 || transactions[0].URL != upstream.URL+"/through-proxy" || transactions[0].StatusCode != http.StatusAccepted {
+	if len(transactions) != 1 || transactions[0].URL != upstream.URL+"/through-proxy" ||
+		transactions[0].StatusCode != http.StatusAccepted || string(transactions[0].ResponseBody) != "modified" {
 		t.Fatalf("transactions = %+v", transactions)
 	}
 }

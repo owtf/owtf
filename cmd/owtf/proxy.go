@@ -49,6 +49,7 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	cookieWhitelist := flags.String("cookie-whitelist", "", "comma-separated cookies allowed in cache identity")
 	upstream := flags.String("upstream", "", "optional HTTP, HTTPS, or SOCKS5 proxy URL")
 	httpAuthFile := flags.String("http-auth-file", "", "JSON file containing target-host HTTP credentials")
+	interceptorFile := flags.String("interceptor-file", "", "JSON file containing static interceptor rules")
 	insecureUpstream := flags.Bool("insecure-upstream", false, "allow invalid upstream TLS certificates")
 	var targetHosts stringFlags
 	flags.Var(&targetHosts, "target-host", "allowed target host; repeat to allow more than one")
@@ -101,10 +102,26 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	}
 
 	recorder := owtfproxy.NewRecorder(*maximumTransactions)
+	var interceptors *owtfproxy.Interceptors
+	if *interceptorFile != "" {
+		file, err := os.Open(*interceptorFile)
+		if err != nil {
+			return fmt.Errorf("open interceptor file: %w", err)
+		}
+		interceptors, err = owtfproxy.LoadInterceptors(file, *maximumBody)
+		closeErr := file.Close()
+		if err != nil {
+			return err
+		}
+		if closeErr != nil {
+			return fmt.Errorf("close interceptor file: %w", closeErr)
+		}
+	}
 	handler, err := owtfproxy.New(owtfproxy.Config{
 		Authority: authority, Recorder: recorder, Transport: roundTripper,
 		AllowedHosts: targetHosts, MaximumBody: *maximumBody,
-		ErrorLog: log.New(stderr, "proxy: ", log.LstdFlags),
+		Interceptors: interceptors,
+		ErrorLog:     log.New(stderr, "proxy: ", log.LstdFlags),
 	})
 	if err != nil {
 		return err

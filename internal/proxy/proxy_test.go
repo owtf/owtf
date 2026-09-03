@@ -128,14 +128,124 @@ func TestProxyRejectsHostOutsideScope(t *testing.T) {
 	}
 }
 
+func TestProxyAppliesInterceptorsAndRejectsScopeEscape(t *testing.T) {
+	upstream := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		body, _ := io.ReadAll(request.Body)
+		writer.Header().Set("Content-Type", "text/plain")
+		_, _ = writer.Write([]byte(request.URL.Path + ":" + request.Header.Get("X-Request") + ":" + string(body)))
+	}))
+	defer upstream.Close()
+	host := hostFromURL(t, upstream.URL)
+	interceptors, err := NewInterceptors([]InterceptorRule{
+		{
+			Name: "request", Phase: "request",
+			Action: InterceptorAction{
+				SetHeaders: map[string]string{"X-Request": "modified"},
+				BodyAppend: "+request", RewriteURL: &TextReplacement{Pattern: `/before`, Replacement: `/after`},
+			},
+		},
+		{
+			Name: "response", Phase: "response", Match: InterceptorMatch{ContentTypes: []string{"text/plain"}},
+			Action: InterceptorAction{BodyAppend: "+response"},
+		},
+	}, 1024)
+	if err != nil {
+		t.Fatal(err)
+	}
+	recorder := NewRecorder(10)
+	proxyServer := newTestProxyServerWithInterceptors(t, recorder, []string{host}, nil, interceptors)
+	defer proxyServer.Close()
+	client := proxyClient(t, proxyServer.URL, nil)
+	request, _ := http.NewRequest(http.MethodPost, upstream.URL+"/before", strings.NewReader("body"))
+	response, err := client.Do(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, _ := io.ReadAll(response.Body)
+	response.Body.Close()
+	if string(body) != "/after:modified:body+request+response" {
+		t.Fatalf("intercepted response = %q", body)
+	}
+
+	escape, _ := NewInterceptors([]InterceptorRule{{
+		Name: "escape", Phase: "request",
+		Action: InterceptorAction{RewriteURL: &TextReplacement{Pattern: `^.*?/before$`, Replacement: "http://outside.test/"}},
+	}}, 1024)
+	escapeProxy := newTestProxyServerWithInterceptors(t, NewRecorder(10), []string{host}, nil, escape)
+	defer escapeProxy.Close()
+	escapeClient := proxyClient(t, escapeProxy.URL, nil)
+	escapeResponse, err := escapeClient.Get(upstream.URL + "/before")
+	if err != nil {
+		t.Fatal(err)
+	}
+	escapeResponse.Body.Close()
+	if escapeResponse.StatusCode != http.StatusForbidden {
+		t.Fatalf("scope escape status = %d", escapeResponse.StatusCode)
+	}
+}
+
+func TestProxyDoesNotInterceptUpgradeResponse(t *testing.T) {
+	interceptors, err := NewInterceptors([]InterceptorRule{{
+		Name: "response", Phase: "response",
+		Action: InterceptorAction{SetHeaders: map[string]string{"X-Intercepted": "true"}, BodyAppend: "blocked"},
+	}}, 1024)
+	if err != nil {
+		t.Fatal(err)
+	}
+	transport := roundTripperFunc(func(request *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusSwitchingProtocols,
+			Status:     "101 Switching Protocols",
+			Proto:      "HTTP/1.1",
+			ProtoMajor: 1,
+			ProtoMinor: 1,
+			Header:     http.Header{"Connection": {"Upgrade"}, "Upgrade": {"websocket"}},
+			Body:       io.NopCloser(strings.NewReader("")),
+			Request:    request,
+		}, nil
+	})
+	directory := t.TempDir()
+	authority, err := LoadOrCreateAuthority(filepath.Join(directory, "ca.crt"), filepath.Join(directory, "ca.key"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	transactions := NewRecorder(10)
+	handler, err := New(Config{
+		Authority: authority, Recorder: transactions, Transport: transport,
+		AllowedHosts: []string{"example.test"}, Interceptors: interceptors,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	request := httptest.NewRequest(http.MethodGet, "http://example.test/socket", nil)
+	request.Header.Set("Connection", "Upgrade")
+	request.Header.Set("Upgrade", "websocket")
+	handler.ServeHTTP(httptest.NewRecorder(), request)
+
+	captured := transactions.Transactions()
+	if len(captured) != 1 {
+		t.Fatalf("captured %d upgrade transactions", len(captured))
+	}
+	if strings.Contains(captured[0].ResponseHeaders, "X-Intercepted") {
+		t.Fatalf("upgrade response was intercepted: %s", captured[0].ResponseHeaders)
+	}
+}
+
 func newTestProxyServer(t *testing.T, recorder *Recorder, hosts []string, transport http.RoundTripper) *httptest.Server {
+	return newTestProxyServerWithInterceptors(t, recorder, hosts, transport, nil)
+}
+
+func newTestProxyServerWithInterceptors(t *testing.T, recorder *Recorder, hosts []string, transport http.RoundTripper, interceptors *Interceptors) *httptest.Server {
 	t.Helper()
 	directory := t.TempDir()
 	authority, err := LoadOrCreateAuthority(filepath.Join(directory, "ca.crt"), filepath.Join(directory, "ca.key"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	handler, err := New(Config{Authority: authority, Recorder: recorder, AllowedHosts: hosts, Transport: transport})
+	handler, err := New(Config{
+		Authority: authority, Recorder: recorder, AllowedHosts: hosts,
+		Transport: transport, Interceptors: interceptors,
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

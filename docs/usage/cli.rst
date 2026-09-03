@@ -153,6 +153,49 @@ OWTF sends credentials only after a listed host returns a supported Basic or
 Digest challenge. The file must be regular, smaller than 64 KiB, and
 inaccessible to group and other users.
 
+Apply deterministic request and response transformations with a JSON rule
+file::
+
+  owtf proxy --interceptor-file interceptors.json
+
+Rules run from the lowest priority number to the highest. Omitted ``enabled``
+values default to true. Matches may constrain the request URL, method, and
+content type; actions may rewrite a request URL, set, add, or remove headers,
+replace, prepend, or append body text, and introduce a bounded delay::
+
+  {
+    "rules": [
+      {
+        "name": "mark-requests",
+        "priority": 10,
+        "phase": "request",
+        "match": {
+          "url_pattern": "example\\.test",
+          "methods": ["GET", "POST"]
+        },
+        "action": {
+          "set_headers": {"X-OWTF": "captured"}
+        }
+      },
+      {
+        "name": "redact-text",
+        "priority": 20,
+        "phase": "response",
+        "match": {"content_types": ["text/plain"]},
+        "action": {
+          "body_replace": [
+            {"pattern": "secret", "replacement": "[redacted]"}
+          ]
+        }
+      }
+    ]
+  }
+
+Configuration is capped at 1 MiB and 100 rules. Body changes use
+``--max-body`` as a hard limit, reject encoded content, and are not applied to
+WebSocket streams. Response rules are skipped for WebSocket upgrades. URL
+rewrites are checked against ``--target-host`` after transformation.
+
 Run ``owtf help`` for the compact command index. The CLI never opens the
 SQLite database or starts plugin processes itself; all state transitions pass
 through the server API.

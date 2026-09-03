@@ -33,6 +33,7 @@ type Config struct {
 	Transport    http.RoundTripper
 	AllowedHosts []string
 	MaximumBody  int64
+	Interceptors *Interceptors
 	ErrorLog     *log.Logger
 }
 
@@ -43,6 +44,7 @@ type Proxy struct {
 	transport    http.RoundTripper
 	allowedHosts map[string]bool
 	maximumBody  int64
+	interceptors *Interceptors
 	errorLog     *log.Logger
 }
 
@@ -74,7 +76,8 @@ func New(config Config) (*Proxy, error) {
 	}
 	return &Proxy{
 		authority: config.Authority, recorder: config.Recorder, transport: config.Transport,
-		allowedHosts: allowedHosts, maximumBody: config.MaximumBody, errorLog: config.ErrorLog,
+		allowedHosts: allowedHosts, maximumBody: config.MaximumBody,
+		interceptors: config.Interceptors, errorLog: config.ErrorLog,
 	}, nil
 }
 
@@ -107,7 +110,15 @@ func (p *Proxy) forward(writer http.ResponseWriter, request *http.Request, schem
 	}
 	outgoing.RequestURI = ""
 	outgoing.Header = request.Header.Clone()
-	upgrade := isUpgrade(request.Header)
+	if err := p.interceptors.InterceptRequest(request.Context(), outgoing); err != nil {
+		p.interceptionError(writer, "request", err)
+		return
+	}
+	if !p.hostAllowed(outgoing.URL.Hostname()) {
+		http.Error(writer, "interceptor rewrote request outside this proxy scope", http.StatusForbidden)
+		return
+	}
+	upgrade := isUpgrade(outgoing.Header)
 	if !upgrade {
 		removeHopHeaders(outgoing.Header)
 	} else {
@@ -125,10 +136,18 @@ func (p *Proxy) forward(writer http.ResponseWriter, request *http.Request, schem
 		return
 	}
 	defer response.Body.Close()
-
+	if response.Request == nil {
+		response.Request = outgoing
+	}
+	// An upgraded response body is the live bidirectional stream. Never pass it
+	// through body interceptors before handing ownership to the tunnel.
 	if response.StatusCode == http.StatusSwitchingProtocols && upgrade {
 		p.record(started, outgoing, response, requestBody.Bytes(), nil)
 		p.upgrade(writer, response)
+		return
+	}
+	if err := p.interceptors.InterceptResponse(request.Context(), response); err != nil {
+		p.interceptionError(writer, "response", err)
 		return
 	}
 	copyHeaders(writer.Header(), response.Header, false)
@@ -138,6 +157,18 @@ func (p *Proxy) forward(writer http.ResponseWriter, request *http.Request, schem
 		p.errorLog.Printf("proxy response %s: %v", outgoing.URL.Redacted(), err)
 	}
 	p.record(started, outgoing, response, requestBody.Bytes(), responseBody.Bytes())
+}
+
+func (p *Proxy) interceptionError(writer http.ResponseWriter, phase string, err error) {
+	p.errorLog.Printf("proxy %s interceptor: %v", phase, err)
+	status := http.StatusBadGateway
+	if phase == "request" {
+		status = http.StatusBadRequest
+	}
+	if errors.Is(err, ErrInterceptorBodyTooLarge) {
+		status = http.StatusRequestEntityTooLarge
+	}
+	http.Error(writer, phase+" interception failed", status)
 }
 
 func (p *Proxy) connect(writer http.ResponseWriter, request *http.Request) {
