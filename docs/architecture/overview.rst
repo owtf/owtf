@@ -132,8 +132,8 @@ Plugin execution
 
 The manifest is declarative. It identifies the plugin, version, OWTF technique
 metadata, group, type, runtime, requirements, supported target kinds, and
-optional operator inputs. Inputs use the small ``string``, ``integer``, and ``boolean``
-type set. String choices and integer bounds describe validation and provide the
+optional operator inputs. Inputs use the small ``string``, ``integer``,
+``boolean``, and ``wordlist`` type set. String choices and integer bounds describe validation and provide the
 same rendering contract to the CLI, API, and final UI.
 
 An ``external`` plugin contains bounded guidance and validated HTTP/S
@@ -176,16 +176,28 @@ temporary directory, and ``{{input:name}}`` resolves a validated, snapshotted
 operator input. Partial placeholders and undeclared names are rejected when the
 catalog loads.
 
-The retained optional web commands are Testssl.sh, WAFW00F, Gobuster,
-Metagoofil, WhatWeb, Nuclei, Nikto, and Wapiti. OWTF does not install or update
-them. Their manifests set conservative concurrency, request, or scan limits
-where the tool supports them, and retain fixed-name artifacts for reporting.
+Testssl.sh, WAFW00F, Gobuster, Metagoofil, WhatWeb, Nuclei, and Wapiti use an
+explicitly built Kali tools image. Nikto remains a trusted host command.
+Their manifests set conservative concurrency, request, or scan limits where
+the tool supports them, and retain fixed-name artifacts for reporting. Stable
+report formats have bounded decoders that extract factual observations,
+findings, and discovered URLs while preserving the raw reports.
+
+Wordlist inputs name files under ``plugins.wordlistDirectory``, never arbitrary
+host paths. OWTF validates UTF-8 content, byte and line limits, and copies the
+file before execution. Container inputs and artifacts use task-owned volumes,
+so execution also works with a remote Docker daemon. Artifact export accepts
+only declared regular files, capped at 10 MiB per file and 32 MiB per task.
+Images using inputs or artifacts must provide ``/bin/tar``. The volumes are
+not filesystem quotas: only trusted tool images should be used.
 
 Container plugins are the isolation boundary for third-party tools. They use a
 read-only filesystem, dropped capabilities, no-new-privileges, bounded memory,
 CPU, and process counts, and forced removal after success, failure, timeout, or
-cancellation. Container network access remains disabled by default. Networked
-container execution is deferred and is not part of the current delivery plan.
+cancellation. Container network access remains disabled by default; a manifest
+may explicitly request ``bridge`` for network scanners. Bridge mode is not
+target-scoped egress enforcement and does not transparently capture traffic.
+Proxy-enforced container networking remains deferred.
 
 Missing required executables make a plugin unavailable before a run starts. An
 unavailable plugin selected directly fails before a run is created. During a

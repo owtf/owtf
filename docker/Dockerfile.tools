@@ -1,0 +1,35 @@
+FROM kalilinux/kali-rolling AS nuclei-templates
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG NUCLEI_TEMPLATES_COMMIT=4f708d5ca2f3bd295d9d6a7fa41274e71d92a8c5
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates git \
+    && git init /src \
+    && git -C /src remote add origin https://github.com/projectdiscovery/nuclei-templates.git \
+    && git -C /src fetch --depth 1 origin "${NUCLEI_TEMPLATES_COMMIT}" \
+    && git -C /src checkout --detach FETCH_HEAD
+
+FROM kalilinux/kali-rolling
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       ca-certificates \
+       gobuster \
+       metagoofil \
+       nuclei \
+       testssl.sh \
+       wafw00f \
+       wapiti \
+       whatweb \
+    && rm -rf /var/lib/apt/lists/* \
+    && if command -v testssl >/dev/null 2>&1; then ln -s /usr/bin/testssl /usr/local/bin/testssl.sh; fi \
+    && mkdir -p /owtf/inputs \
+    && for command in testssl.sh wafw00f gobuster metagoofil nuclei wapiti whatweb; do command -v "$command" >/dev/null; done
+
+COPY --from=nuclei-templates /src/http/takeovers/ /opt/nuclei-templates/http/takeovers/
+
+LABEL org.opencontainers.image.title="OWTF Kali plugin tools" \
+      org.opencontainers.image.description="External scanners used by OWTF container plugins"

@@ -22,6 +22,7 @@ resulting evidence.
 - Structured OWTF technique titles, hints, priorities, and references retained
   in the plugin catalog, task history, and reports.
 - Typed, bounded plugin inputs with defaults recorded on every task.
+- Named, bounded wordlists copied into task-owned storage before execution.
 - OWTF plugin groups and types, including group launches and ``quiet`` mode.
 - Declarative external plugins that retain curated manual-testing guidance
   without contacting the target.
@@ -34,6 +35,8 @@ resulting evidence.
 - A bounded worklist with process-group cancellation and per-attempt history.
 - Worker state, task events, HTTP transactions, artifacts, observations, and
   findings stored in SQLite.
+- Execution metrics for task states, completed-attempt durations, retained
+  evidence, and the live worker pool.
 - HAR transaction import with retained source, request, and response files.
 - Per-target URL catalogs for plugin discoveries and retained traffic, with
   canonical deduplication, visited and scope classification, bounded search,
@@ -112,6 +115,22 @@ make local-down
 The default is one worker. Set `OWTF_WORKERS` deliberately if the host has
 capacity for more.
 
+### External scanner tools
+
+The retained Testssl.sh, WAFW00F, Gobuster, Metagoofil, WhatWeb, Nuclei, and
+Wapiti plugins use a separate Kali image. Build it explicitly once:
+
+```bash
+make tools-image
+./build/owtf serve
+```
+
+The server needs a working Docker CLI and context. OWTF never pulls images
+implicitly. The Compose server deliberately has no Docker socket or CLI;
+use the host server for this container-plugin workflow. Scanner containers
+receive bounded inputs and task-owned volumes, not host-directory mounts.
+Reports are exported before all task containers and volumes are removed.
+
 ## Verify changes
 
 ```bash
@@ -123,6 +142,12 @@ make test-api
 The smoke test starts an isolated one-worker server in a temporary directory,
 exercises the API with curl, exercises the CLI against that same server, and
 removes its state afterward. It does not start Docker.
+
+With the Kali image already built, run `make test-tools` for real scanner
+execution against temporary local HTTP/TLS fixtures. It checks reporting,
+metrics, cancellation, and container/volume cleanup without rebuilding the
+tools image. Metagoofil receives a startup check only; its search-provider
+workflow requires a separate authorized live test.
 
 ## Access control
 

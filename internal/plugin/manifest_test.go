@@ -140,7 +140,7 @@ func TestMissingRequirementIsVisible(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	catalog.ResolveCommands()
+	catalog.ResolveCommands(t.TempDir())
 	entry, _ := catalog.Get("OWTF-TEST-001-active")
 	if entry.Availability != "missing_requirements" || entry.Reason == "" || entry.Executor != nil {
 		t.Fatalf("missing command was not surfaced: %+v", entry)

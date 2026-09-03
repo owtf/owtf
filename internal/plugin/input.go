@@ -15,9 +15,11 @@ import (
 )
 
 const (
-	maxPluginInputs = 64
-	maxInputName    = 64
-	maxInputString  = 16 << 10
+	maxPluginInputs      = 64
+	maxInputName         = 64
+	maxInputString       = 16 << 10
+	maximumWordlistBytes = 10 << 20
+	maximumWordlistLines = 1_000_000
 )
 
 // TaskSnapshot is the immutable plugin definition and resolved input set saved
@@ -42,7 +44,23 @@ func validateInputs(inputs []model.PluginInput) (map[string]bool, error) {
 		}
 		switch input.Type {
 		case "string":
+			if input.MaximumBytes != 0 || input.MaximumLines != 0 {
+				return nil, fmt.Errorf("input %q wordlist bounds require wordlist type", input.Name)
+			}
+		case "wordlist":
+			if len(input.Choices) != 0 {
+				return nil, fmt.Errorf("input %q choices require string type", input.Name)
+			}
+			if input.MaximumBytes < 1 || input.MaximumBytes > maximumWordlistBytes {
+				return nil, fmt.Errorf("input %q maximumBytes must be between 1 and %d", input.Name, maximumWordlistBytes)
+			}
+			if input.MaximumLines < 1 || input.MaximumLines > maximumWordlistLines {
+				return nil, fmt.Errorf("input %q maximumLines must be between 1 and %d", input.Name, maximumWordlistLines)
+			}
 		case "integer", "boolean":
+			if input.MaximumBytes != 0 || input.MaximumLines != 0 {
+				return nil, fmt.Errorf("input %q wordlist bounds require wordlist type", input.Name)
+			}
 			if len(input.Choices) != 0 {
 				return nil, fmt.Errorf("input %q choices require string type", input.Name)
 			}
@@ -123,7 +141,7 @@ func (e Entry) ResolveInputs(provided map[string]any) (map[string]any, error) {
 
 func normalizeInput(input model.PluginInput, value any) (any, error) {
 	switch input.Type {
-	case "string":
+	case "string", "wordlist":
 		text, ok := value.(string)
 		if !ok {
 			return nil, errors.New("must be a string")
@@ -131,7 +149,7 @@ func normalizeInput(input model.PluginInput, value any) (any, error) {
 		if len(text) > maxInputString {
 			return nil, fmt.Errorf("exceeds %d bytes", maxInputString)
 		}
-		if len(input.Choices) != 0 {
+		if input.Type == "string" && len(input.Choices) != 0 {
 			for _, choice := range input.Choices {
 				if text == choice {
 					return text, nil

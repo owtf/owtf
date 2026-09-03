@@ -119,6 +119,10 @@ func Run(ctx context.Context, args []string, out, errOut io.Writer) error {
 		return application.worklist(ctx, commandArgs)
 	case "workers":
 		return application.workers(ctx, commandArgs)
+	case "metrics":
+		return noArgs(commandArgs, func() error {
+			return application.proxyJSON(ctx, http.MethodGet, "/api/v2/metrics", nil)
+		})
 	case "tasks":
 		return application.tasks(ctx, commandArgs)
 	case "transactions":
@@ -1072,6 +1076,7 @@ func printUsage(output io.Writer) {
   owtf [--url URL] worklist [--session ID] [--status STATUS]
   owtf [--url URL] worklist reorder --session ID TASK_ID...
   owtf [--url URL] workers
+  owtf [--url URL] metrics
   owtf [--url URL] tasks show|attempts|logs|cancel|pause|resume|remove ID
   owtf [--url URL] urls list --target TARGET_ID
   owtf [--url URL] urls search --target TARGET_ID [--search TEXT] [--visited BOOL] [--scope BOOL] [--limit N] [--offset N]

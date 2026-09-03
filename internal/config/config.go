@@ -47,6 +47,7 @@ type Server struct {
 type Plugins struct {
 	Directory         string `json:"directory" yaml:"directory"`
 	ProfilesDirectory string `json:"profiles_directory" yaml:"profilesDirectory"`
+	WordlistDirectory string `json:"wordlist_directory" yaml:"wordlistDirectory"`
 	DefaultProfile    string `json:"default_profile" yaml:"defaultProfile"`
 	ContainerEngine   string `json:"container_engine" yaml:"containerEngine"`
 }
@@ -83,7 +84,8 @@ func Default() Config {
 		},
 		Plugins: Plugins{
 			Directory: "plugins", ProfilesDirectory: "profiles",
-			DefaultProfile: "default", ContainerEngine: "docker",
+			WordlistDirectory: "wordlists",
+			DefaultProfile:    "default", ContainerEngine: "docker",
 		},
 		Proxy: Proxy{
 			ListenAddress: "127.0.0.1:8008", APIAddress: "127.0.0.1:8010",
@@ -180,6 +182,7 @@ func (config *Config) ApplyEnvironment(lookup func(string) (string, bool)) error
 		{"OWTF_DATA_DIR", &next.Server.DataDirectory},
 		{"OWTF_PLUGIN_DIR", &next.Plugins.Directory},
 		{"OWTF_PROFILE_DIR", &next.Plugins.ProfilesDirectory},
+		{"OWTF_WORDLIST_DIR", &next.Plugins.WordlistDirectory},
 		{"OWTF_PROFILE", &next.Plugins.DefaultProfile},
 		{"OWTF_CONTAINER_ENGINE", &next.Plugins.ContainerEngine},
 		{"OWTF_PROXY_LISTEN", &next.Proxy.ListenAddress},
@@ -282,6 +285,9 @@ func (config Config) Validate() error {
 		return err
 	}
 	if err := textValue("plugins.profilesDirectory", config.Plugins.ProfilesDirectory); err != nil {
+		return err
+	}
+	if err := textValue("plugins.wordlistDirectory", config.Plugins.WordlistDirectory); err != nil {
 		return err
 	}
 	if err := textValue("plugins.defaultProfile", config.Plugins.DefaultProfile); err != nil {

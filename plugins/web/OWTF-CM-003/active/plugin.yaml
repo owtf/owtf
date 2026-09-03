@@ -24,11 +24,11 @@ spec:
       default: 10
       minimum: 1
       maximum: 120
-  requirements:
-    commands: [wafw00f]
   runtime:
-    type: command
-    command:
+    type: container
+    container:
+      image: owtf/kali-tools:local
+      network: bridge
       executable: wafw00f
       args:
         - --no-colors
@@ -43,3 +43,4 @@ spec:
         - name: wafw00f.json
           mediaType: application/json
           required: true
+          decoder: wafw00f-json

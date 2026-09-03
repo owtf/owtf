@@ -8,7 +8,7 @@ OWTF_GO_PATH ?= /tmp/owtf-go
 OWTF_GO_CACHE ?= /tmp/owtf-go-cache
 OWTF_GO_ENV := GOPATH=$(OWTF_GO_PATH) GOMODCACHE=$(OWTF_GO_PATH)/pkg/mod GOCACHE=$(OWTF_GO_CACHE) GOMAXPROCS=2
 
-.PHONY: build check-compose clean fmt fmt-check lint local-down local-logs local-status local-up run test test-unit test-api vet
+.PHONY: build check-compose clean fmt fmt-check lint local-down local-logs local-status local-up run test test-unit test-api test-tools tools-image vet
 
 build:
 	@echo "--> Building OWTF"
@@ -37,6 +37,17 @@ test-unit:
 test-api:
 	@echo "--> Exercising the API and CLI through a real local server"
 	@OWTF_SMOKE_GOPATH=$(OWTF_GO_PATH) OWTF_SMOKE_GOMODCACHE=$(OWTF_GO_PATH)/pkg/mod ./scripts/owtf-smoke.sh
+
+tools-image:
+	@echo "--> Building the Kali plugin tools image"
+	@docker build --file docker/Dockerfile.tools --tag owtf/kali-tools:local .
+
+test-tools: check-compose
+	@echo "--> Exercising retained scanner tools against isolated fixtures"
+	@docker image inspect owtf/kali-tools:local >/dev/null 2>&1 || { \
+		echo "Missing owtf/kali-tools:local. Run: make tools-image"; exit 1; \
+	}
+	@./scripts/owtf-tools-smoke.sh
 
 test: lint test-unit test-api
 

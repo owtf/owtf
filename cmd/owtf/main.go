@@ -65,8 +65,8 @@ func serve(settings owtfconfig.Config) error {
 		return fmt.Errorf("load plugins: %w", err)
 	}
 	catalog.RegisterBuiltin("http-collector", plugin.HTTPCollector(nil))
-	catalog.ResolveCommands()
-	catalog.ResolveContainers(context.Background(), plugin.NewDockerEngine(settings.Plugins.ContainerEngine))
+	catalog.ResolveCommands(settings.Plugins.WordlistDirectory)
+	catalog.ResolveContainers(context.Background(), plugin.NewDockerEngine(settings.Plugins.ContainerEngine), settings.Plugins.WordlistDirectory)
 	profiles, err := profile.Load(os.DirFS(settings.Plugins.ProfilesDirectory))
 	if err != nil {
 		return fmt.Errorf("load profiles: %w", err)

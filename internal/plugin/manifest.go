@@ -127,6 +127,7 @@ type CommandSpec struct {
 type ContainerSpec struct {
 	Image      string            `yaml:"image" json:"image"`
 	Executable string            `yaml:"executable" json:"executable"`
+	Network    string            `yaml:"network,omitempty" json:"network,omitempty"`
 	Args       []string          `yaml:"args,omitempty" json:"args,omitempty"`
 	Artifacts  []CommandArtifact `yaml:"artifacts,omitempty" json:"artifacts,omitempty"`
 }
@@ -171,6 +172,7 @@ type CommandArtifact struct {
 	Name      string `yaml:"name" json:"name"`
 	MediaType string `yaml:"mediaType,omitempty" json:"mediaType,omitempty"`
 	Required  bool   `yaml:"required,omitempty" json:"required,omitempty"`
+	Decoder   string `yaml:"decoder,omitempty" json:"decoder,omitempty"`
 }
 
 // ArtifactResult is immutable evidence returned by a plugin execution.
@@ -493,6 +495,9 @@ func validateCommand(command *CommandSpec, inputs map[string]bool) error {
 		if !validArtifactName(artifact.Name) || artifacts[artifact.Name] {
 			return fmt.Errorf("invalid or duplicate command artifact name %q", artifact.Name)
 		}
+		if artifact.Decoder != "" && !validArtifactDecoder(artifact.Decoder) {
+			return fmt.Errorf("unsupported artifact decoder %q", artifact.Decoder)
+		}
 		artifacts[artifact.Name] = true
 	}
 	for _, arg := range command.Args {
@@ -519,6 +524,9 @@ func validateContainer(container *ContainerSpec, inputs map[string]bool) error {
 	}
 	if strings.TrimSpace(container.Image) == "" || strings.ContainsAny(container.Image, " \t\r\n") {
 		return fmt.Errorf("container runtime requires one image reference without whitespace")
+	}
+	if container.Network != "" && container.Network != "none" && container.Network != "bridge" {
+		return fmt.Errorf("container network must be none or bridge")
 	}
 	command := &CommandSpec{
 		Executable: container.Executable,
@@ -669,7 +677,7 @@ func (c *Catalog) RegisterBuiltin(name string, executor Executor) {
 
 // ResolveCommands checks command requirements and marks each command plugin as
 // ready, unsupported, or missing requirements.
-func (c *Catalog) ResolveCommands() {
+func (c *Catalog) ResolveCommands(wordlistDirectory string) {
 	for id, entry := range c.entries {
 		if entry.Manifest.Spec.Runtime.Type != "command" {
 			continue
@@ -695,7 +703,7 @@ func (c *Catalog) ResolveCommands() {
 			entry.Availability = "missing_requirements"
 			entry.Reason = "missing commands: " + strings.Join(unique(missing), ", ")
 		} else {
-			entry.Executor = CommandExecutor(entry.Manifest, resolved)
+			entry.Executor = CommandExecutor(entry.Manifest, resolved, wordlistDirectory)
 			entry.Availability = "ready"
 			entry.Reason = ""
 		}
@@ -705,7 +713,7 @@ func (c *Catalog) ResolveCommands() {
 
 // ResolveContainers checks local image availability without pulling or running
 // an image. Container plugins stay visible with an exact unavailable reason.
-func (c *Catalog) ResolveContainers(ctx context.Context, engine ContainerEngine) {
+func (c *Catalog) ResolveContainers(ctx context.Context, engine ContainerEngine, wordlistDirectory string) {
 	for id, entry := range c.entries {
 		if entry.Manifest.Spec.Runtime.Type != "container" {
 			continue
@@ -725,7 +733,7 @@ func (c *Catalog) ResolveContainers(ctx context.Context, engine ContainerEngine)
 			c.entries[id] = entry
 			continue
 		}
-		entry.Executor = ContainerExecutor(entry.Manifest, engine)
+		entry.Executor = ContainerExecutor(entry.Manifest, engine, wordlistDirectory)
 		entry.Availability = "ready"
 		entry.Reason = ""
 		c.entries[id] = entry

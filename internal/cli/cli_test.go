@@ -150,6 +150,8 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 			writeTestJSON(t, w, []map[string]string{{"id": "tsk_2"}, {"id": "tsk_1"}})
 		case "GET /api/v2/workers":
 			writeTestJSON(t, w, []map[string]string{{"id": "worker-1", "status": "idle"}})
+		case "GET /api/v2/metrics":
+			writeTestJSON(t, w, map[string]any{"tasks": map[string]int{"total": 1}, "workers": map[string]int{"total": 1}})
 		case "GET /api/v2/tasks/tsk_1":
 			writeTestJSON(t, w, map[string]string{"id": "tsk_1", "status": "running"})
 		case "GET /api/v2/tasks/tsk_1/attempts":
@@ -242,6 +244,7 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		{"worklist", "--session", "ses_1", "--status", "queued"},
 		{"worklist", "reorder", "--session", "ses_1", "tsk_2", "tsk_1"},
 		{"workers"},
+		{"metrics"},
 		{"tasks", "show", "tsk_1"},
 		{"tasks", "attempts", "tsk_1"},
 		{"tasks", "logs", "tsk_1"},
@@ -323,7 +326,7 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		"PATCH /api/v2/targets/tgt_1",
 		"GET /api/v2/tasks/tsk_1/review", "PATCH /api/v2/tasks/tsk_1/review",
 		"GET /api/v2/profiles", "GET /api/v2/profiles/default", "GET /api/v2/help",
-		"POST /api/v2/runs", "GET /api/v2/runs", "GET /api/v2/runs/run_1", "GET /api/v2/tasks", "GET /api/v2/workers",
+		"POST /api/v2/runs", "GET /api/v2/runs", "GET /api/v2/runs/run_1", "GET /api/v2/tasks", "GET /api/v2/workers", "GET /api/v2/metrics",
 		"GET /api/v2/tasks/tsk_1/attempts", "GET /api/v2/tasks/tsk_1/events",
 		"POST /api/v2/tasks/tsk_1/cancel", "POST /api/v2/tasks/tsk_1/pause", "POST /api/v2/tasks/tsk_1/resume",
 		"DELETE /api/v2/tasks/tsk_1", "PUT /api/v2/worklist/order",

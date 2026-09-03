@@ -47,11 +47,11 @@ spec:
       default: 10
       minimum: 1
       maximum: 120
-  requirements:
-    commands: [wapiti]
   runtime:
-    type: command
-    command:
+    type: container
+    container:
+      image: owtf/kali-tools:local
+      network: bridge
       executable: wapiti
       args:
         - -u
@@ -77,3 +77,4 @@ spec:
         - name: wapiti.json
           mediaType: application/json
           required: true
+          decoder: wapiti-json

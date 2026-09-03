@@ -66,14 +66,16 @@ type TargetSearchResult struct {
 
 // PluginInput describes one non-secret value accepted by a plugin launch.
 type PluginInput struct {
-	Name        string   `yaml:"name" json:"name"`
-	Type        string   `yaml:"type" json:"type"`
-	Description string   `yaml:"description,omitempty" json:"description,omitempty"`
-	Required    bool     `yaml:"required,omitempty" json:"required,omitempty"`
-	Default     any      `yaml:"default,omitempty" json:"default,omitempty"`
-	Choices     []string `yaml:"choices,omitempty" json:"choices,omitempty"`
-	Minimum     *int64   `yaml:"minimum,omitempty" json:"minimum,omitempty"`
-	Maximum     *int64   `yaml:"maximum,omitempty" json:"maximum,omitempty"`
+	Name         string   `yaml:"name" json:"name"`
+	Type         string   `yaml:"type" json:"type"`
+	Description  string   `yaml:"description,omitempty" json:"description,omitempty"`
+	Required     bool     `yaml:"required,omitempty" json:"required,omitempty"`
+	Default      any      `yaml:"default,omitempty" json:"default,omitempty"`
+	Choices      []string `yaml:"choices,omitempty" json:"choices,omitempty"`
+	Minimum      *int64   `yaml:"minimum,omitempty" json:"minimum,omitempty"`
+	Maximum      *int64   `yaml:"maximum,omitempty" json:"maximum,omitempty"`
+	MaximumBytes int64    `yaml:"maximumBytes,omitempty" json:"maximum_bytes,omitempty"`
+	MaximumLines int      `yaml:"maximumLines,omitempty" json:"maximum_lines,omitempty"`
 }
 
 // Technique is the OWTF test-group metadata shared by plugin type variants.
@@ -306,6 +308,7 @@ type ReportSummary struct {
 	Attempts     int `json:"attempts"`
 	Queued       int `json:"queued"`
 	Blocked      int `json:"blocked"`
+	Paused       int `json:"paused"`
 	Running      int `json:"running"`
 	Succeeded    int `json:"succeeded"`
 	Failed       int `json:"failed"`
@@ -315,6 +318,58 @@ type ReportSummary struct {
 	Artifacts    int `json:"artifacts"`
 	Observations int `json:"observations"`
 	Findings     int `json:"findings"`
+}
+
+// ExecutionMetrics is a database-wide accounting view derived from persisted
+// task, attempt, and output records plus the current bounded worker pool.
+type ExecutionMetrics struct {
+	Tasks    TaskMetrics    `json:"tasks"`
+	Attempts AttemptMetrics `json:"attempts"`
+	Outputs  OutputMetrics  `json:"outputs"`
+	Workers  WorkerMetrics  `json:"workers"`
+}
+
+// TaskMetrics counts tasks by their current persisted state.
+type TaskMetrics struct {
+	Total     int `json:"total"`
+	Queued    int `json:"queued"`
+	Blocked   int `json:"blocked"`
+	Paused    int `json:"paused"`
+	Running   int `json:"running"`
+	Succeeded int `json:"succeeded"`
+	Failed    int `json:"failed"`
+	Cancelled int `json:"cancelled"`
+}
+
+// AttemptMetrics counts executions and durations of completed attempts.
+type AttemptMetrics struct {
+	Total             int   `json:"total"`
+	Running           int   `json:"running"`
+	Succeeded         int   `json:"succeeded"`
+	Failed            int   `json:"failed"`
+	Cancelled         int   `json:"cancelled"`
+	TotalDurationMS   int64 `json:"total_duration_ms"`
+	AverageDurationMS int64 `json:"average_duration_ms"`
+	MaximumDurationMS int64 `json:"maximum_duration_ms"`
+}
+
+// OutputMetrics counts retained evidence records across all sessions.
+type OutputMetrics struct {
+	URLs         int `json:"urls"`
+	Transactions int `json:"transactions"`
+	Artifacts    int `json:"artifacts"`
+	Observations int `json:"observations"`
+	Findings     int `json:"findings"`
+}
+
+// WorkerMetrics describes the live pool; counters reset when the server restarts.
+type WorkerMetrics struct {
+	Total     int `json:"total"`
+	Idle      int `json:"idle"`
+	Running   int `json:"running"`
+	Completed int `json:"completed"`
+	Failed    int `json:"failed"`
+	Cancelled int `json:"cancelled"`
 }
 
 // TargetReport is the complete retained evidence view for one target.

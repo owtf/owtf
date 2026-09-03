@@ -110,7 +110,7 @@ func TestEveryLegacyPluginHasAReviewedDecision(t *testing.T) {
 	}
 }
 
-func TestCanonicalWebPluginRuntimesAreCommands(t *testing.T) {
+func TestCanonicalWebPluginRuntimesUseKaliContainers(t *testing.T) {
 	catalog, err := Load(os.DirFS("../../plugins"))
 	if err != nil {
 		t.Fatal(err)
@@ -131,9 +131,11 @@ func TestCanonicalWebPluginRuntimesAreCommands(t *testing.T) {
 		if !ok {
 			t.Fatalf("canonical plugin %q is missing", id)
 		}
-		command := entry.Manifest.Spec.Runtime.Command
-		if entry.Manifest.Spec.Runtime.Type != "command" || command == nil || command.Executable != executable {
-			t.Errorf("plugin %q must use the %q command runtime", id, executable)
+		container := entry.Manifest.Spec.Runtime.Container
+		if entry.Manifest.Spec.Runtime.Type != "container" || container == nil ||
+			container.Image != "owtf/kali-tools:local" || container.Network != "bridge" ||
+			container.Executable != executable {
+			t.Errorf("plugin %q must run %q through the Kali container", id, executable)
 		}
 	}
 }

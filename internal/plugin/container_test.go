@@ -3,6 +3,7 @@
 package plugin
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -29,13 +30,16 @@ func TestContainerExecutorPreservesArgumentsAndCollectsArtifacts(t *testing.T) {
 		if !reflect.DeepEqual(run.Args, wantArgs) {
 			t.Fatalf("args = %#v, want %#v", run.Args, wantArgs)
 		}
+		if !reflect.DeepEqual(run.Artifacts, []string{"result.json"}) {
+			t.Fatalf("artifacts = %#v", run.Artifacts)
+		}
 		if err := os.WriteFile(filepath.Join(run.ArtifactDir, "result.json"), []byte(`{"ok":true}`), 0o600); err != nil {
 			return err
 		}
 		return nil
 	}}
 	var events []string
-	result, err := ContainerExecutor(manifest, engine)(context.Background(), Request{
+	result, err := ContainerExecutor(manifest, engine, t.TempDir())(context.Background(), Request{
 		TaskID: "task-1", PluginID: manifest.Metadata.ID,
 		Target: model.Target{Kind: "url", Value: "https://example.test/; touch /tmp/injected"},
 		Log:    func(stream, message string) { events = append(events, stream+":"+message) },
@@ -51,18 +55,103 @@ func TestContainerExecutorPreservesArgumentsAndCollectsArtifacts(t *testing.T) {
 	}
 }
 
+func TestContainerArtifactArchiveRoundTrip(t *testing.T) {
+	source := t.TempDir()
+	want := []byte(`{"ok":true}`)
+	if err := os.WriteFile(filepath.Join(source, "result.json"), want, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	archive, err := archiveContainerInputs(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+	destination := t.TempDir()
+	if err := extractContainerArtifacts(bytes.NewReader(archive), destination, []string{"result.json"}); err != nil {
+		t.Fatal(err)
+	}
+	got, err := os.ReadFile(filepath.Join(destination, "result.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("artifact = %q, want %q", got, want)
+	}
+}
+
+func TestContainerArtifactArchiveRejectsUndeclaredFile(t *testing.T) {
+	source := t.TempDir()
+	if err := os.WriteFile(filepath.Join(source, "unexpected.json"), []byte("{}"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	archive, err := archiveContainerInputs(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = extractContainerArtifacts(bytes.NewReader(archive), t.TempDir(), []string{"result.json"})
+	if err == nil || !strings.Contains(err.Error(), "undeclared artifact") {
+		t.Fatalf("error = %v", err)
+	}
+}
+
+func TestContainerExecutorMaterializesWordlistAndDecodesArtifact(t *testing.T) {
+	manifest := containerManifest()
+	manifest.Spec.Inputs = []model.PluginInput{{
+		Name: "wordlist", Type: "wordlist", Required: true,
+		MaximumBytes: 64, MaximumLines: 2,
+	}}
+	manifest.Spec.Runtime.Container.Network = "bridge"
+	manifest.Spec.Runtime.Container.Args = []string{
+		"--wordlist", "{{input:wordlist}}", "--output", "{{artifact:urls.txt}}",
+	}
+	manifest.Spec.Runtime.Container.Artifacts = []CommandArtifact{{
+		Name: "urls.txt", MediaType: "text/plain", Required: true, Decoder: "url-list",
+	}}
+	wordlists := t.TempDir()
+	if err := os.WriteFile(filepath.Join(wordlists, "small.txt"), []byte("admin\napi\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	engine := &fakeContainerEngine{run: func(run ContainerRun) error {
+		if run.Network != "bridge" || run.InputDir == "" {
+			t.Fatalf("run network/input directory = %q/%q", run.Network, run.InputDir)
+		}
+		wantArgs := []string{"--wordlist", "/owtf/inputs/input-wordlist.txt", "--output", "/owtf/artifacts/urls.txt"}
+		if !reflect.DeepEqual(run.Args, wantArgs) {
+			t.Fatalf("args = %#v, want %#v", run.Args, wantArgs)
+		}
+		data, err := os.ReadFile(filepath.Join(run.InputDir, "input-wordlist.txt"))
+		if err != nil || string(data) != "admin\napi\n" {
+			t.Fatalf("materialized wordlist = %q, %v", data, err)
+		}
+		return os.WriteFile(filepath.Join(run.ArtifactDir, "urls.txt"), []byte("https://example.test/admin\n"), 0o600)
+	}}
+	result, err := ContainerExecutor(manifest, engine, wordlists)(context.Background(), Request{
+		TaskID: "task-1", PluginID: manifest.Metadata.ID,
+		Target: model.Target{Kind: "url", Value: "https://example.test/"},
+		Inputs: map[string]any{"wordlist": "small.txt"}, Log: func(string, string) {},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Artifacts) != 1 || len(result.URLs) != 1 || result.URLs[0].URL != "https://example.test/admin" {
+		t.Fatalf("result = %+v", result)
+	}
+	if got := result.Observations[len(result.Observations)-1].Kind; got != "container.completed" {
+		t.Fatalf("last observation kind = %q", got)
+	}
+}
+
 func TestResolveContainersReportsImageAvailability(t *testing.T) {
 	catalog, err := Load(fstest.MapFS{"plugin.yaml": &fstest.MapFile{Data: []byte(containerManifestYAML())}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	catalog.ResolveContainers(context.Background(), &fakeContainerEngine{available: errors.New("not found")})
+	catalog.ResolveContainers(context.Background(), &fakeContainerEngine{available: errors.New("not found")}, t.TempDir())
 	entry, _ := catalog.Get("OWTF-TEST-001-active")
 	if entry.Availability != "missing_requirements" || entry.Executor != nil || !strings.Contains(entry.Reason, "not found") {
 		t.Fatalf("entry = %+v", entry)
 	}
 
-	catalog.ResolveContainers(context.Background(), &fakeContainerEngine{})
+	catalog.ResolveContainers(context.Background(), &fakeContainerEngine{}, t.TempDir())
 	entry, _ = catalog.Get("OWTF-TEST-001-active")
 	if entry.Availability != "ready" || entry.Executor == nil || entry.Reason != "" {
 		t.Fatalf("entry = %+v", entry)
@@ -85,6 +174,7 @@ func TestDockerEngineForcesRemovalAfterCancellation(t *testing.T) {
 		done <- engine.Run(ctx, ContainerRun{
 			TaskID: "task-1", PluginID: "OWTF-TEST-001-active", Image: "plugin:test",
 			Executable: "/bin/plugin", Args: []string{"https://example.test"}, ArtifactDir: artifactDir,
+			Artifacts: []string{"result.json"},
 		}, os.Stdout, os.Stderr)
 	}()
 	waitForFileText(t, logPath, "start --attach container-id")
@@ -98,6 +188,7 @@ func TestDockerEngineForcesRemovalAfterCancellation(t *testing.T) {
 		t.Fatal("container run did not stop")
 	}
 	waitForFileText(t, logPath, "rm --force --volumes container-id")
+	waitForFileText(t, logPath, "volume rm --force volume-id")
 	data, err := os.ReadFile(logPath)
 	if err != nil {
 		t.Fatal(err)
@@ -113,6 +204,33 @@ func TestDockerEngineForcesRemovalAfterCancellation(t *testing.T) {
 			t.Fatalf("docker log does not contain %q:\n%s", want, log)
 		}
 	}
+}
+
+func TestDockerEngineRemovesInputHelperAfterCancellation(t *testing.T) {
+	logPath := filepath.Join(t.TempDir(), "docker.log")
+	engine := &DockerEngine{command: func(ctx context.Context, args ...string) *exec.Cmd {
+		helperArgs := append([]string{"-test.run=TestDockerCommandHelper", "--"}, args...)
+		command := exec.CommandContext(ctx, os.Args[0], helperArgs...)
+		command.Env = append(os.Environ(), "OWTF_DOCKER_LOG="+logPath)
+		return command
+	}}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	done := make(chan error, 1)
+	run := ContainerRun{TaskID: "task-1", Image: "plugin:test", InputDir: t.TempDir(), ArtifactDir: t.TempDir()}
+	go func() { done <- engine.Run(ctx, run, io.Discard, io.Discard) }()
+	waitForFileText(t, logPath, "start --attach --interactive container-id")
+	cancel()
+	select {
+	case err := <-done:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("Run error = %v", err)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("input helper did not stop")
+	}
+	waitForFileText(t, logPath, "rm --force --volumes container-id")
+	waitForFileText(t, logPath, "volume rm --force volume-id")
 }
 
 func TestDockerCommandHelper(t *testing.T) {
@@ -135,6 +253,11 @@ func TestDockerCommandHelper(t *testing.T) {
 	_, _ = fmt.Fprintln(file, strings.Join(args, " "))
 	_ = file.Close()
 	switch args[0] {
+	case "volume":
+		if args[1] == "create" {
+			fmt.Println("volume-id")
+		}
+		os.Exit(0)
 	case "create":
 		fmt.Println("container-id")
 		os.Exit(0)
@@ -165,6 +288,7 @@ func containerManifest() Manifest {
 	manifest.Metadata.ID = "OWTF-TEST-001-active"
 	manifest.Spec.Techniques = []TechniqueSpec{{Code: "OWTF-TEST-001", Title: "Test", Priority: 99}}
 	manifest.Spec.TargetKinds = []string{"url"}
+	manifest.Spec.Runtime.Type = "container"
 	manifest.Spec.Runtime.Container = &ContainerSpec{
 		Image: "example.test/owtf/plugin@sha256:abc", Executable: "/bin/plugin",
 		Args:      []string{"--url", "{{target}}", "{{artifact:result.json}}"},

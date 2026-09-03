@@ -18,6 +18,69 @@ import (
 	"github.com/owtf/owtf/internal/model"
 )
 
+func TestMaterializeWordlist(t *testing.T) {
+	directory := t.TempDir()
+	if err := os.WriteFile(filepath.Join(directory, "paths.txt"), []byte("admin\nbackup\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	workDir := t.TempDir()
+	spec := model.PluginInput{Name: "wordlist", Type: "wordlist", MaximumBytes: 32, MaximumLines: 2}
+	inputs, err := materializeWordlists([]model.PluginInput{spec}, map[string]any{"wordlist": "paths.txt"}, directory, workDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	path, ok := inputs["wordlist"].(string)
+	if !ok || filepath.Dir(path) != workDir {
+		t.Fatalf("wordlist path = %#v", inputs["wordlist"])
+	}
+	data, err := os.ReadFile(path)
+	if err != nil || string(data) != "admin\nbackup\n" {
+		t.Fatalf("wordlist = %q, %v", data, err)
+	}
+}
+
+func TestMaterializeWordlistRejectsUnsafeInput(t *testing.T) {
+	directory := t.TempDir()
+	if err := os.WriteFile(filepath.Join(directory, "large.txt"), []byte("one\ntwo\nthree\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	spec := model.PluginInput{Name: "wordlist", Type: "wordlist", MaximumBytes: 64, MaximumLines: 2}
+	for name, value := range map[string]string{
+		"absolute": filepath.Join(directory, "large.txt"),
+		"nested":   "nested/list.txt",
+		"lines":    "large.txt",
+	} {
+		t.Run(name, func(t *testing.T) {
+			if _, err := materializeWordlists([]model.PluginInput{spec}, map[string]any{"wordlist": value}, directory, t.TempDir()); err == nil {
+				t.Fatal("unsafe wordlist was accepted")
+			}
+		})
+	}
+}
+
+func TestWordlistContentLimits(t *testing.T) {
+	for name, test := range map[string]struct {
+		data  []byte
+		limit int64
+	}{
+		"bytes": {[]byte("admin\n"), 5},
+		"line":  {[]byte(strings.Repeat("x", maxWordlistLine+1)), maxWordlistLine + 1},
+		"nul":   {[]byte("admin\x00\n"), 64},
+		"utf8":  {[]byte{0xff, '\n'}, 64},
+	} {
+		t.Run(name, func(t *testing.T) {
+			directory := t.TempDir()
+			if err := os.WriteFile(filepath.Join(directory, "words.txt"), test.data, 0o600); err != nil {
+				t.Fatal(err)
+			}
+			spec := model.PluginInput{Name: "wordlist", Type: "wordlist", MaximumBytes: test.limit, MaximumLines: 2}
+			if _, err := copyWordlist(directory, "words.txt", t.TempDir(), spec); err == nil {
+				t.Fatal("invalid wordlist was accepted")
+			}
+		})
+	}
+}
+
 func TestCommandArgumentsDoNotInvokeAShell(t *testing.T) {
 	spec := &CommandSpec{
 		Args:      []string{"--url", "{{target}}", "--user-agent", "{{input:user_agent}}", "{{artifact:output}}"},
@@ -75,7 +138,7 @@ func TestCancellationKillsPluginProcessGroup(t *testing.T) {
 	processes := make(chan []int, 1)
 	done := make(chan error, 1)
 	go func() {
-		_, err := CommandExecutor(manifest, os.Args[0])(ctx, Request{
+		_, err := CommandExecutor(manifest, os.Args[0], t.TempDir())(ctx, Request{
 			Target: model.Target{Kind: "url", Value: "https://example.test/"},
 			Log: func(stream, message string) {
 				if stream == "stdout" && strings.HasPrefix(message, "processes=") {

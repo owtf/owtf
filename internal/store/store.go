@@ -1954,6 +1954,8 @@ func summarizeReport(report model.SessionReport) model.ReportSummary {
 			summary.Queued++
 		case model.TaskBlocked:
 			summary.Blocked++
+		case model.TaskPaused:
+			summary.Paused++
 		case model.TaskRunning:
 			summary.Running++
 		case model.TaskSucceeded:
@@ -1965,6 +1967,55 @@ func summarizeReport(report model.SessionReport) model.ReportSummary {
 		}
 	}
 	return summary
+}
+
+// ExecutionMetrics returns database-wide counters without deriving progress
+// from the configured worker count.
+func (s *Store) ExecutionMetrics(ctx context.Context) (model.ExecutionMetrics, error) {
+	var metrics model.ExecutionMetrics
+	err := s.db.QueryRowContext(ctx, `
+SELECT COUNT(*),
+       COALESCE(SUM(status=?),0), COALESCE(SUM(status=?),0),
+       COALESCE(SUM(status=?),0), COALESCE(SUM(status=?),0),
+       COALESCE(SUM(status=?),0), COALESCE(SUM(status=?),0),
+       COALESCE(SUM(status=?),0)
+FROM tasks`, model.TaskQueued, model.TaskBlocked, model.TaskPaused, model.TaskRunning,
+		model.TaskSucceeded, model.TaskFailed, model.TaskCancelled).Scan(
+		&metrics.Tasks.Total, &metrics.Tasks.Queued, &metrics.Tasks.Blocked,
+		&metrics.Tasks.Paused, &metrics.Tasks.Running, &metrics.Tasks.Succeeded,
+		&metrics.Tasks.Failed, &metrics.Tasks.Cancelled,
+	)
+	if err != nil {
+		return model.ExecutionMetrics{}, err
+	}
+	err = s.db.QueryRowContext(ctx, `
+SELECT COUNT(*),
+       COALESCE(SUM(status=?),0), COALESCE(SUM(status=?),0),
+       COALESCE(SUM(status=?),0), COALESCE(SUM(status=?),0),
+       COALESCE(CAST(ROUND(SUM(CASE WHEN ended_at IS NOT NULL THEN (julianday(ended_at)-julianday(started_at))*86400000 ELSE 0 END)) AS INTEGER),0),
+       COALESCE(CAST(ROUND(MAX(CASE WHEN ended_at IS NOT NULL THEN (julianday(ended_at)-julianday(started_at))*86400000 ELSE 0 END)) AS INTEGER),0)
+FROM attempts`, model.TaskRunning, model.TaskSucceeded, model.TaskFailed, model.TaskCancelled).Scan(
+		&metrics.Attempts.Total, &metrics.Attempts.Running, &metrics.Attempts.Succeeded,
+		&metrics.Attempts.Failed, &metrics.Attempts.Cancelled,
+		&metrics.Attempts.TotalDurationMS, &metrics.Attempts.MaximumDurationMS,
+	)
+	if err != nil {
+		return model.ExecutionMetrics{}, err
+	}
+	completed := metrics.Attempts.Succeeded + metrics.Attempts.Failed + metrics.Attempts.Cancelled
+	if completed != 0 {
+		metrics.Attempts.AverageDurationMS = metrics.Attempts.TotalDurationMS / int64(completed)
+	}
+	err = s.db.QueryRowContext(ctx, `
+SELECT (SELECT COUNT(*) FROM urls),
+       (SELECT COUNT(*) FROM transactions),
+       (SELECT COUNT(*) FROM artifacts),
+       (SELECT COUNT(*) FROM observations),
+       (SELECT COUNT(*) FROM findings)`).Scan(
+		&metrics.Outputs.URLs, &metrics.Outputs.Transactions, &metrics.Outputs.Artifacts,
+		&metrics.Outputs.Observations, &metrics.Outputs.Findings,
+	)
+	return metrics, err
 }
 
 func (s *Store) listSessionAttempts(ctx context.Context, sessionID string) ([]model.TaskAttempt, error) {

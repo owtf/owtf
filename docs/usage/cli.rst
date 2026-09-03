@@ -38,6 +38,7 @@ A minimal file may override only the required settings::
   plugins:
     directory: plugins
     profilesDirectory: profiles
+    wordlistDirectory: wordlists
     defaultProfile: default
     containerEngine: docker
   proxy:
@@ -49,7 +50,7 @@ Server flags are ``--addr``, ``--data-dir``, ``--workers``, ``--plugin-dir``,
 ``--profile-dir``, ``--profile``, ``--container-engine``, and
 ``--task-timeout``. Existing ``OWTF_ADDR``, ``OWTF_DATA_DIR``,
 ``OWTF_WORKERS``, ``OWTF_PLUGIN_DIR``, ``OWTF_PROFILE_DIR``, ``OWTF_PROFILE``,
-and ``OWTF_CONTAINER_ENGINE`` variables remain supported;
+``OWTF_WORDLIST_DIR``, and ``OWTF_CONTAINER_ENGINE`` variables remain supported;
 ``OWTF_TASK_TIMEOUT`` is an integer number of seconds. Proxy YAML fields
 correspond to the documented proxy flags. Their environment names use the
 ``OWTF_PROXY_`` prefix, such as ``OWTF_PROXY_LISTEN``,
@@ -148,14 +149,22 @@ This plugin requires ``nmap``. If the executable is absent, ``plugin list``
 keeps the plugin visible with ``missing_requirements`` and OWTF rejects an
 individual launch before creating work.
 
-Wordlist-based plugins require an explicit local path. The value is passed as
-one process argument and never interpreted as shell source::
+The retained Testssl.sh, WAFW00F, Gobuster, Metagoofil, WhatWeb, Nuclei, and
+Wapiti plugins use ``owtf/kali-tools:local``. Build it with ``make tools-image``
+before starting the host server with a working Docker CLI/context. OWTF does
+not pull the image automatically. The minimal Compose server does not receive
+the Docker socket and cannot launch these plugins itself.
+
+Wordlist-based plugins require a file name from the configured
+``plugins.wordlistDirectory``. OWTF bounds and copies the file into the task
+directory at execution time. Container inputs are transferred into a read-only
+task volume, and the copied path is passed as one argument without a shell::
 
   owtf runs create \
     --session ses_ID \
     --target tgt_ID \
     --plugin OWTF-CM-006-active \
-    --input OWTF-CM-006-active.wordlist=/opt/wordlists/content.txt \
+    --input OWTF-CM-006-active.wordlist=content.txt \
     --input OWTF-CM-006-active.threads=5
 
 The same input model is used by ``OWTF-IG-005-active`` for virtual-host names
@@ -219,6 +228,17 @@ run so the worklist retains a distinct task and clear execution provenance.
 Use ``tasks attempts`` to inspect execution history, including interrupted work
 recovered after a server restart; ``tasks logs`` keeps every event linked to
 its attempt ID.
+
+Inspect aggregate execution state::
+
+  owtf metrics
+  curl -s http://127.0.0.1:8009/api/v2/metrics
+
+Task, attempt, duration, and evidence totals come from retained records across
+all sessions. Worker counts describe the current pool; worker completion,
+failure, and cancellation counters reset on server restart. Duration averages
+exclude running attempts. These are separate counts, not an invented progress
+percentage based on worker capacity.
 
 Help links
 ----------

@@ -41,11 +41,11 @@ spec:
       default: 15
       minimum: 1
       maximum: 60
-  requirements:
-    commands: [metagoofil]
   runtime:
-    type: command
-    command:
+    type: container
+    container:
+      image: owtf/kali-tools:local
+      network: bridge
       executable: metagoofil
       args:
         - -d
@@ -64,3 +64,4 @@ spec:
         - name: document-links.txt
           mediaType: text/plain
           required: true
+          decoder: url-list

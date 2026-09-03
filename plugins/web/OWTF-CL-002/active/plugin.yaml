@@ -19,9 +19,11 @@ spec:
   targetKinds: [url]
   inputs:
     - name: wordlist
-      type: string
-      description: "Path to an operator-reviewed bucket-name wordlist."
+      type: wordlist
+      description: "Name of an operator-reviewed bucket-name wordlist."
       required: true
+      maximumBytes: 1048576
+      maximumLines: 10000
     - name: threads
       type: integer
       description: "Maximum concurrent requests."
@@ -39,11 +41,11 @@ spec:
       default: 5
       minimum: 0
       maximum: 20
-  requirements:
-    commands: [gobuster]
   runtime:
-    type: command
-    command:
+    type: container
+    container:
+      image: owtf/kali-tools:local
+      network: bridge
       executable: gobuster
       args:
         - gcs
@@ -53,7 +55,7 @@ spec:
         - "{{input:threads}}"
         - --delay
         - "{{input:delay}}"
-        - --max-files
+        - --maxfiles
         - "{{input:max_files}}"
         - --no-progress
         - --quiet
@@ -63,3 +65,5 @@ spec:
       artifacts:
         - name: gcs-buckets.txt
           mediaType: text/plain
+          required: true
+          decoder: gobuster-gcs

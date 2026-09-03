@@ -428,6 +428,69 @@ func TestDeleteRejectsActiveWork(t *testing.T) {
 	}
 }
 
+func TestExecutionMetrics(t *testing.T) {
+	database, err := Open(filepath.Join(t.TempDir(), "owtf.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	ctx := context.Background()
+	empty, err := database.ExecutionMetrics(ctx)
+	if err != nil || empty != (model.ExecutionMetrics{}) {
+		t.Fatalf("empty metrics = %+v, %v", empty, err)
+	}
+	session, err := database.CreateSession(ctx, "Metrics")
+	if err != nil {
+		t.Fatal(err)
+	}
+	targetID := addTestTarget(t, database, session.ID, "https://example.test/")
+	specs := make([]TaskSpec, 7)
+	for index := range specs {
+		specs[index] = TaskSpec{TargetID: targetID, PluginID: "OWTF-TEST-001-active", PluginVersion: "1.0.0", PluginSnapshot: "{}"}
+	}
+	specs[4].Status = model.TaskBlocked
+	specs[4].Error = "missing requirement"
+	_, tasks, err := database.CreateRun(ctx, session.ID, "", specs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for index := 0; index < 2; index++ {
+		execution, err := database.StartTask(ctx, tasks[index].ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if index == 0 {
+			err = database.CompleteTask(ctx, execution, nil, nil, nil, nil, nil)
+		} else {
+			err = database.FailTask(ctx, execution, errors.New("scanner failed"))
+		}
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := database.PauseTask(ctx, tasks[2].ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := database.CancelTask(ctx, tasks[3].ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := database.StartTask(ctx, tasks[5].ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := database.db.ExecContext(ctx, `UPDATE attempts SET started_at='2026-01-01T00:00:00Z', ended_at=CASE status WHEN 'succeeded' THEN '2026-01-01T00:00:02Z' ELSE '2026-01-01T00:00:01Z' END WHERE status != 'running'`); err != nil {
+		t.Fatal(err)
+	}
+	metrics, err := database.ExecutionMetrics(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantTasks := model.TaskMetrics{Total: 7, Queued: 1, Blocked: 1, Paused: 1, Running: 1, Succeeded: 1, Failed: 1, Cancelled: 1}
+	wantAttempts := model.AttemptMetrics{Total: 3, Running: 1, Succeeded: 1, Failed: 1, TotalDurationMS: 3000, AverageDurationMS: 1500, MaximumDurationMS: 2000}
+	if metrics.Tasks != wantTasks || metrics.Attempts != wantAttempts {
+		t.Fatalf("metrics = %+v", metrics)
+	}
+}
+
 func TestBlockedPluginRemainsVisibleInWorklistAndRun(t *testing.T) {
 	database, err := Open(filepath.Join(t.TempDir(), "owtf.db"))
 	if err != nil {

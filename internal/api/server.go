@@ -94,6 +94,7 @@ func New(config Config) http.Handler {
 	mux.HandleFunc("GET /api/v2/runs", server.listRuns)
 	mux.HandleFunc("GET /api/v2/runs/{runID}", server.getRun)
 	mux.HandleFunc("GET /api/v2/workers", server.listWorkers)
+	mux.HandleFunc("GET /api/v2/metrics", server.metrics)
 	mux.HandleFunc("GET /api/v2/tasks", server.listTasks)
 	mux.HandleFunc("GET /api/v2/tasks/{taskID}", server.getTask)
 	mux.HandleFunc("GET /api/v2/tasks/{taskID}/attempts", server.taskAttempts)
@@ -573,6 +574,26 @@ func (s *Server) listTasks(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) listWorkers(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, s.runner.Workers())
+}
+
+func (s *Server) metrics(w http.ResponseWriter, r *http.Request) {
+	metrics, err := s.store.ExecutionMetrics(r.Context())
+	if err != nil {
+		s.internalError(w, err)
+		return
+	}
+	for _, worker := range s.runner.Workers() {
+		metrics.Workers.Total++
+		if worker.Status == "running" {
+			metrics.Workers.Running++
+		} else {
+			metrics.Workers.Idle++
+		}
+		metrics.Workers.Completed += worker.Completed
+		metrics.Workers.Failed += worker.Failed
+		metrics.Workers.Cancelled += worker.Cancelled
+	}
+	writeJSON(w, http.StatusOK, metrics)
 }
 
 func (s *Server) getTask(w http.ResponseWriter, r *http.Request) {

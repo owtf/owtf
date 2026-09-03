@@ -1,9 +1,11 @@
 package plugin
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/url"
@@ -12,17 +14,21 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"unicode/utf8"
+
+	"github.com/owtf/owtf/internal/model"
 )
 
 const (
 	maxCommandOutput = 256 << 10
 	maxArtifactSize  = 10 << 20
 	maxLogEvents     = 1000
+	maxWordlistLine  = 4 << 10
 )
 
 // CommandExecutor returns an executor that invokes executable with a validated
 // argument array and an isolated temporary artifact directory.
-func CommandExecutor(manifest Manifest, executable string) Executor {
+func CommandExecutor(manifest Manifest, executable, wordlistDirectory string) Executor {
 	return func(ctx context.Context, request Request) (Result, error) {
 		if !supportsTarget(manifest.Spec.TargetKinds, request.Target.Kind) {
 			return Result{}, fmt.Errorf("plugin does not support %s targets", request.Target.Kind)
@@ -33,7 +39,11 @@ func CommandExecutor(manifest Manifest, executable string) Executor {
 		}
 		defer os.RemoveAll(workDir)
 
-		args, err := commandArgs(manifest.Spec.Runtime.Command, request.Target.Value, workDir, request.Inputs)
+		inputs, err := materializeWordlists(manifest.Spec.Inputs, request.Inputs, wordlistDirectory, workDir)
+		if err != nil {
+			return Result{}, err
+		}
+		args, err := commandArgs(manifest.Spec.Runtime.Command, request.Target.Value, workDir, inputs)
 		if err != nil {
 			return Result{}, err
 		}
@@ -56,6 +66,10 @@ func CommandExecutor(manifest Manifest, executable string) Executor {
 		if err != nil {
 			return Result{}, err
 		}
+		result, err := decodeArtifacts(manifest, request.Target, artifacts)
+		if err != nil {
+			return Result{}, err
+		}
 		artifactNames := make([]string, 0, len(artifacts))
 		for _, artifact := range artifacts {
 			artifactNames = append(artifactNames, artifact.Name)
@@ -63,13 +77,109 @@ func CommandExecutor(manifest Manifest, executable string) Executor {
 		observation, _ := json.Marshal(map[string]any{
 			"executable": filepath.Base(executable), "artifacts": artifactNames,
 		})
-		return Result{
-			Artifacts: artifacts,
-			Observations: []ObservationResult{{
-				TechniqueCode: manifest.Spec.Techniques[0].Code, Kind: "command.completed", Data: string(observation),
-			}},
-		}, nil
+		result.Artifacts = artifacts
+		result.Observations = append(result.Observations, ObservationResult{
+			TechniqueCode: manifest.Spec.Techniques[0].Code, Kind: "command.completed", Data: string(observation),
+		})
+		return result, nil
 	}
+}
+
+func materializeWordlists(specs []model.PluginInput, inputs map[string]any, directory, workDir string) (map[string]any, error) {
+	result := make(map[string]any, len(inputs))
+	for name, value := range inputs {
+		result[name] = value
+	}
+	for _, spec := range specs {
+		if spec.Type != "wordlist" {
+			continue
+		}
+		if _, ok := result[spec.Name]; !ok {
+			continue
+		}
+		name, ok := result[spec.Name].(string)
+		if !ok {
+			return nil, fmt.Errorf("wordlist input %q is not a string", spec.Name)
+		}
+		path, err := copyWordlist(directory, name, workDir, spec)
+		if err != nil {
+			return nil, fmt.Errorf("wordlist input %q: %w", spec.Name, err)
+		}
+		result[spec.Name] = path
+	}
+	return result, nil
+}
+
+func copyWordlist(directory, name, workDir string, spec model.PluginInput) (string, error) {
+	if name == "" || filepath.IsAbs(name) || filepath.Clean(name) != name || strings.Contains(name, string(filepath.Separator)) {
+		return "", errors.New("must name one file in the configured wordlist directory")
+	}
+	root, err := os.OpenRoot(directory)
+	if err != nil {
+		return "", fmt.Errorf("open wordlist directory: %w", err)
+	}
+	defer root.Close()
+	info, err := root.Lstat(name)
+	if err != nil {
+		return "", fmt.Errorf("inspect %q: %w", name, err)
+	}
+	if !info.Mode().IsRegular() {
+		return "", fmt.Errorf("%q is not a regular file", name)
+	}
+	input, err := root.Open(name)
+	if err != nil {
+		return "", fmt.Errorf("open %q: %w", name, err)
+	}
+	defer input.Close()
+	info, err = input.Stat()
+	if err != nil {
+		return "", fmt.Errorf("inspect %q: %w", name, err)
+	}
+	if !info.Mode().IsRegular() {
+		return "", fmt.Errorf("%q is not a regular file", name)
+	}
+	if info.Size() > spec.MaximumBytes {
+		return "", fmt.Errorf("%q exceeds %d bytes", name, spec.MaximumBytes)
+	}
+	data, err := io.ReadAll(io.LimitReader(input, spec.MaximumBytes+1))
+	if err != nil {
+		return "", fmt.Errorf("read %q: %w", name, err)
+	}
+	if int64(len(data)) > spec.MaximumBytes {
+		return "", fmt.Errorf("%q exceeds %d bytes", name, spec.MaximumBytes)
+	}
+	if !utf8.Valid(data) || bytes.IndexByte(data, 0) >= 0 {
+		return "", fmt.Errorf("%q must contain UTF-8 text without NUL bytes", name)
+	}
+	scanner := bufio.NewScanner(bytes.NewReader(data))
+	scanner.Buffer(make([]byte, 1024), maxWordlistLine+2)
+	lines := 0
+	for scanner.Scan() {
+		lines++
+		if lines > spec.MaximumLines {
+			return "", fmt.Errorf("%q exceeds %d lines", name, spec.MaximumLines)
+		}
+		if len(scanner.Bytes()) > maxWordlistLine {
+			return "", fmt.Errorf("%q contains a line exceeding %d bytes", name, maxWordlistLine)
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return "", fmt.Errorf("read %q: %w", name, err)
+	}
+	outputPath := filepath.Join(workDir, "input-"+spec.Name+".txt")
+	output, err := os.OpenFile(outputPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
+	if err != nil {
+		return "", fmt.Errorf("create task wordlist: %w", err)
+	}
+	_, writeErr := output.Write(data)
+	closeErr := output.Close()
+	if writeErr != nil {
+		return "", fmt.Errorf("copy %q: %w", name, writeErr)
+	}
+	if closeErr != nil {
+		return "", fmt.Errorf("close task wordlist: %w", closeErr)
+	}
+	return outputPath, nil
 }
 
 func commandArgs(spec *CommandSpec, target, workDir string, inputs map[string]any) ([]string, error) {

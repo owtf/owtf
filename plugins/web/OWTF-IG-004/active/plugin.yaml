@@ -29,11 +29,11 @@ spec:
       default: 4
       minimum: 1
       maximum: 20
-  requirements:
-    commands: [whatweb]
   runtime:
-    type: command
-    command:
+    type: container
+    container:
+      image: owtf/kali-tools:local
+      network: bridge
       executable: whatweb
       args:
         - --color
@@ -50,3 +50,4 @@ spec:
         - name: whatweb.json
           mediaType: application/json
           required: true
+          decoder: whatweb-json

@@ -17,11 +17,11 @@ spec:
   group: web
   type: active
   targetKinds: [url]
-  requirements:
-    commands: [testssl.sh]
   runtime:
-    type: command
-    command:
+    type: container
+    container:
+      image: owtf/kali-tools:local
+      network: bridge
       executable: testssl.sh
       args:
         - --quiet
@@ -34,3 +34,4 @@ spec:
         - name: testssl.json
           mediaType: application/json
           required: true
+          decoder: testssl-json

@@ -19,9 +19,11 @@ spec:
   targetKinds: [url]
   inputs:
     - name: wordlist
-      type: string
-      description: "Path to an operator-reviewed file discovery wordlist."
+      type: wordlist
+      description: "Name of an operator-reviewed file discovery wordlist."
       required: true
+      maximumBytes: 1048576
+      maximumLines: 10000
     - name: threads
       type: integer
       description: "Maximum concurrent requests."
@@ -38,11 +40,11 @@ spec:
       description: "Timeout for each HTTP request."
       default: 10s
       choices: [5s, 10s, 30s]
-  requirements:
-    commands: [gobuster]
   runtime:
-    type: command
-    command:
+    type: container
+    container:
+      image: owtf/kali-tools:local
+      network: bridge
       executable: gobuster
       args:
         - dir
@@ -65,3 +67,5 @@ spec:
       artifacts:
         - name: gobuster.txt
           mediaType: text/plain
+          required: true
+          decoder: gobuster-dir
