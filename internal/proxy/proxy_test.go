@@ -1,9 +1,16 @@
 package proxy
 
 import (
+	"bufio"
+	"bytes"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -228,6 +235,113 @@ func TestProxyDoesNotInterceptUpgradeResponse(t *testing.T) {
 	}
 	if strings.Contains(captured[0].ResponseHeaders, "X-Intercepted") {
 		t.Fatalf("upgrade response was intercepted: %s", captured[0].ResponseHeaders)
+	}
+}
+
+func TestProxyCapturesWebSocketFrames(t *testing.T) {
+	type upstreamResult struct {
+		frame []byte
+		err   error
+	}
+	result := make(chan upstreamResult, 1)
+	upstream := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {
+		hijacker, ok := writer.(http.Hijacker)
+		if !ok {
+			result <- upstreamResult{err: errors.New("upstream cannot hijack connection")}
+			return
+		}
+		connection, buffered, err := hijacker.Hijack()
+		if err != nil {
+			result <- upstreamResult{err: err}
+			return
+		}
+		defer connection.Close()
+		if _, err := buffered.WriteString("HTTP/1.1 101 Switching Protocols\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n"); err != nil {
+			result <- upstreamResult{err: err}
+			return
+		}
+		if err := buffered.Flush(); err != nil {
+			result <- upstreamResult{err: err}
+			return
+		}
+		frame := make([]byte, len(maskedFrame(1, []byte("hello"), [4]byte{1, 2, 3, 4})))
+		if _, err := io.ReadFull(buffered, frame); err != nil {
+			result <- upstreamResult{err: err}
+			return
+		}
+		if _, err := buffered.Write([]byte{0x81, 0x02, 'o', 'k'}); err != nil {
+			result <- upstreamResult{err: err}
+			return
+		}
+		result <- upstreamResult{frame: frame, err: buffered.Flush()}
+	}))
+	defer upstream.Close()
+
+	recorder := NewRecorder(10)
+	proxyServer := newTestProxyServer(t, recorder, []string{hostFromURL(t, upstream.URL)}, nil)
+	defer proxyServer.Close()
+	connection, err := net.DialTimeout("tcp", strings.TrimPrefix(proxyServer.URL, "http://"), time.Second)
+	if err != nil {
+		t.Fatal(err)
+	}
+	reader := bufio.NewReader(connection)
+	requestURL := upstream.URL + "/socket"
+	parsed, _ := url.Parse(upstream.URL)
+	if _, err := fmt.Fprintf(connection,
+		"GET %s HTTP/1.1\r\nHost: %s\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Key: dGVzdA==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+		requestURL, parsed.Host); err != nil {
+		connection.Close()
+		t.Fatal(err)
+	}
+	response, err := http.ReadResponse(reader, &http.Request{Method: http.MethodGet})
+	if err != nil {
+		connection.Close()
+		t.Fatal(err)
+	}
+	if response.StatusCode != http.StatusSwitchingProtocols {
+		connection.Close()
+		t.Fatalf("upgrade status = %d", response.StatusCode)
+	}
+	clientFrame := maskedFrame(1, []byte("hello"), [4]byte{1, 2, 3, 4})
+	if _, err := connection.Write(clientFrame); err != nil {
+		connection.Close()
+		t.Fatal(err)
+	}
+	serverFrame := make([]byte, 4)
+	if _, err := io.ReadFull(reader, serverFrame); err != nil {
+		connection.Close()
+		t.Fatal(err)
+	}
+	connection.Close()
+	if upstream := <-result; upstream.err != nil || !bytes.Equal(upstream.frame, clientFrame) {
+		t.Fatalf("upstream frame = %v, error = %v", upstream.frame, upstream.err)
+	}
+	if !bytes.Equal(serverFrame, []byte{0x81, 0x02, 'o', 'k'}) {
+		t.Fatalf("server frame = %v", serverFrame)
+	}
+
+	transaction := waitForTransaction(t, recorder)
+	if transaction.StatusCode != http.StatusSwitchingProtocols ||
+		transaction.ResponseMediaType != "application/vnd.owtf.websocket+json" {
+		t.Fatalf("upgrade transaction = %+v", transaction)
+	}
+	var transcript webSocketTranscript
+	if err := json.Unmarshal(transaction.ResponseBody, &transcript); err != nil {
+		t.Fatal(err)
+	}
+	if len(transcript.Frames) != 2 {
+		t.Fatalf("frames = %+v", transcript.Frames)
+	}
+	payloads := make(map[string]string)
+	for _, frame := range transcript.Frames {
+		payload, err := base64.StdEncoding.DecodeString(frame.PayloadBase64)
+		if err != nil {
+			t.Fatal(err)
+		}
+		payloads[frame.Direction] = string(payload)
+	}
+	if payloads["client_to_server"] != "hello" || payloads["server_to_client"] != "ok" {
+		t.Fatalf("payloads = %+v", payloads)
 	}
 }
 

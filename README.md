@@ -27,9 +27,9 @@ resulting evidence.
   findings stored in SQLite.
 - HAR transaction import with retained source, request, and response files.
 - An OWTF-owned HTTP/HTTPS interception proxy with a persistent CA, bounded HAR
-  capture and cache, retries, WebSocket tunneling, host scope, and outbound
-  HTTP/HTTPS/SOCKS5 proxy support.
-- A loopback proxy control API and CLI for transaction history, filtering,
+  capture and cache, retries, WebSocket tunneling and frame transcripts, host
+  scope, and outbound HTTP/HTTPS/SOCKS5 proxy support.
+- A loopback proxy API and CLI for transaction history, filtering,
   statistics, clearing, CA download, and binary-safe request replay.
 - Challenge-based Basic and Digest authentication for explicitly configured
   target hosts.

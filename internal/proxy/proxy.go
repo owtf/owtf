@@ -142,8 +142,8 @@ func (p *Proxy) forward(writer http.ResponseWriter, request *http.Request, schem
 	// An upgraded response body is the live bidirectional stream. Never pass it
 	// through body interceptors before handing ownership to the tunnel.
 	if response.StatusCode == http.StatusSwitchingProtocols && upgrade {
-		p.record(started, outgoing, response, requestBody.Bytes(), nil)
-		p.upgrade(writer, response)
+		transcript := p.upgrade(writer, response)
+		p.record(started, outgoing, response, requestBody.Bytes(), transcript)
 		return
 	}
 	if err := p.interceptors.InterceptResponse(request.Context(), response); err != nil {
@@ -237,50 +237,56 @@ func (p *Proxy) connect(writer http.ResponseWriter, request *http.Request) {
 	_ = server.Serve(listener)
 }
 
-func (p *Proxy) upgrade(writer http.ResponseWriter, response *http.Response) {
+func (p *Proxy) upgrade(writer http.ResponseWriter, response *http.Response) []byte {
 	upstream, ok := response.Body.(io.ReadWriteCloser)
 	if !ok {
 		http.Error(writer, "upstream upgrade is not bidirectional", http.StatusBadGateway)
-		return
+		return nil
 	}
 	hijacker, ok := writer.(http.Hijacker)
 	if !ok {
 		http.Error(writer, "client connection cannot be upgraded", http.StatusInternalServerError)
-		return
+		return nil
 	}
 	client, buffered, err := hijacker.Hijack()
 	if err != nil {
-		return
+		return nil
 	}
 	defer client.Close()
 	defer upstream.Close()
 	if _, err := fmt.Fprintf(buffered, "%s %s\r\n", response.Proto, response.Status); err != nil {
-		return
+		return nil
 	}
 	if err := response.Header.Write(buffered); err != nil {
-		return
+		return nil
 	}
 	if _, err := buffered.WriteString("\r\n"); err != nil {
-		return
+		return nil
 	}
 	if err := buffered.Flush(); err != nil {
-		return
+		return nil
 	}
 
+	capture := newWebSocketCapture(p.maximumBody)
+	clientFrames := capture.stream("client_to_server", true)
+	serverFrames := capture.stream("server_to_client", false)
 	clientStream := &bufferedReadWriter{Reader: buffered.Reader, Writer: client}
 	done := make(chan struct{}, 2)
 	go func() {
-		_, _ = io.Copy(upstream, clientStream)
+		_, _ = io.Copy(upstream, io.TeeReader(clientStream, clientFrames))
+		clientFrames.Close()
 		done <- struct{}{}
 	}()
 	go func() {
-		_, _ = io.Copy(clientStream, upstream)
+		_, _ = io.Copy(clientStream, io.TeeReader(upstream, serverFrames))
+		serverFrames.Close()
 		done <- struct{}{}
 	}()
 	<-done
 	_ = client.Close()
 	_ = upstream.Close()
 	<-done
+	return capture.bytes()
 }
 
 func (p *Proxy) record(started time.Time, request *http.Request, response *http.Response, requestBody, responseBody []byte) {
@@ -292,6 +298,9 @@ func (p *Proxy) record(started time.Time, request *http.Request, response *http.
 		StatusCode: response.StatusCode, ResponseHeaders: string(responseHeaders),
 		ResponseBody: responseBody, ResponseMediaType: response.Header.Get("Content-Type"),
 		DurationMS: time.Since(started).Milliseconds(), StartedAt: started,
+	}
+	if response.StatusCode == http.StatusSwitchingProtocols && len(responseBody) > 0 {
+		transaction.ResponseMediaType = "application/vnd.owtf.websocket+json"
 	}
 	if err := p.recorder.Record(transaction); err != nil {
 		p.errorLog.Printf("record proxy transaction: %v", err)
