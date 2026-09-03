@@ -589,6 +589,20 @@ func (a *app) resolveTargetIDs(ctx context.Context, sessionID string, inputs []s
 }
 
 func (a *app) worklist(ctx context.Context, args []string) error {
+	if len(args) != 0 && args[0] == "reorder" {
+		flags := a.flags("worklist reorder")
+		sessionID := flags.String("session", "", "session ID")
+		if err := flags.Parse(args[1:]); err != nil {
+			return err
+		}
+		if *sessionID == "" || flags.NArg() == 0 {
+			return errors.New("usage: owtf worklist reorder --session SESSION_ID TASK_ID...")
+		}
+		return a.proxyJSON(ctx, http.MethodPut, "/api/v2/worklist/order", map[string]any{
+			"session_id": *sessionID,
+			"task_ids":   flags.Args(),
+		})
+	}
 	flags := a.flags("worklist")
 	sessionID := flags.String("session", "", "session ID")
 	status := flags.String("status", "", "task status")
@@ -616,7 +630,7 @@ func (a *app) workers(ctx context.Context, args []string) error {
 
 func (a *app) tasks(ctx context.Context, args []string) error {
 	if len(args) == 0 {
-		return errors.New("tasks requires show, attempts, logs, or cancel")
+		return errors.New("tasks requires show, attempts, logs, cancel, pause, resume, or remove")
 	}
 	id, err := oneArg("tasks "+args[0], args[1:])
 	if err != nil {
@@ -632,6 +646,15 @@ func (a *app) tasks(ctx context.Context, args []string) error {
 		return a.proxyJSON(ctx, http.MethodGet, path+"/events", nil)
 	case "cancel":
 		return a.proxyJSON(ctx, http.MethodPost, path+"/cancel", map[string]any{})
+	case "pause":
+		return a.proxyJSON(ctx, http.MethodPost, path+"/pause", map[string]any{})
+	case "resume":
+		return a.proxyJSON(ctx, http.MethodPost, path+"/resume", map[string]any{})
+	case "remove":
+		if err := a.request(ctx, http.MethodDelete, path, nil, nil); err != nil {
+			return err
+		}
+		return a.writeJSON(map[string]any{"deleted": id})
 	default:
 		return fmt.Errorf("unknown tasks command %q", args[0])
 	}
@@ -1013,9 +1036,10 @@ Usage:
   owtf [--url URL] runs show ID
   owtf [--url URL] runs create --session ID --target ID (--plugin ID | --group GROUP [--type TYPE] [--profile NAME]) [--input PLUGIN_ID.NAME=VALUE]
   owtf [--url URL] scan [--session ID] (--plugin ID | --group GROUP [--type TYPE] [--profile NAME]) [--input PLUGIN_ID.NAME=VALUE] TARGET...
-  owtf [--url URL] worklist [--session ID] [--status STATUS]
-  owtf [--url URL] workers
-  owtf [--url URL] tasks show|attempts|logs|cancel ID
+	  owtf [--url URL] worklist [--session ID] [--status STATUS]
+	  owtf [--url URL] worklist reorder --session ID TASK_ID...
+	  owtf [--url URL] workers
+	  owtf [--url URL] tasks show|attempts|logs|cancel|pause|resume|remove ID
   owtf [--url URL] urls list --target TARGET_ID
   owtf [--url URL] urls search --target TARGET_ID [--search TEXT] [--visited BOOL] [--scope BOOL] [--limit N] [--offset N]
   owtf [--url URL] transactions list (--session ID | --target ID)

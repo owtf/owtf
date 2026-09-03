@@ -135,9 +135,10 @@ CREATE TABLE IF NOT EXISTS tasks (
     run_id INTEGER NOT NULL REFERENCES runs(id) ON DELETE CASCADE,
     target_id INTEGER NOT NULL REFERENCES targets(id) ON DELETE CASCADE,
     plugin_id TEXT NOT NULL,
-    plugin_version TEXT NOT NULL,
-    plugin_snapshot TEXT NOT NULL,
-    status TEXT NOT NULL,
+	    plugin_version TEXT NOT NULL,
+	    plugin_snapshot TEXT NOT NULL,
+	    position INTEGER NOT NULL DEFAULT 0,
+	    status TEXT NOT NULL,
     error TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL,
     started_at TEXT,
@@ -242,6 +243,9 @@ CREATE TABLE IF NOT EXISTS plugin_output_reviews (
 	if err := s.migrateRunColumns(ctx); err != nil {
 		return err
 	}
+	if err := s.migrateTaskColumns(ctx); err != nil {
+		return err
+	}
 	if err := s.migrateTransactionTables(ctx); err != nil {
 		return err
 	}
@@ -336,6 +340,25 @@ func (s *Store) migrateRunColumns(ctx context.Context) error {
 	}
 	if _, err := s.db.ExecContext(ctx, `ALTER TABLE runs ADD COLUMN profile TEXT NOT NULL DEFAULT ''`); err != nil {
 		return fmt.Errorf("add run profile column: %w", err)
+	}
+	return nil
+}
+
+func (s *Store) migrateTaskColumns(ctx context.Context) error {
+	columns, err := s.tableColumns(ctx, "tasks")
+	if err != nil {
+		return err
+	}
+	if !columns["position"] {
+		if _, err := s.db.ExecContext(ctx, `ALTER TABLE tasks ADD COLUMN position INTEGER NOT NULL DEFAULT 0`); err != nil {
+			return fmt.Errorf("add task position column: %w", err)
+		}
+		if _, err := s.db.ExecContext(ctx, `UPDATE tasks SET position=id`); err != nil {
+			return fmt.Errorf("backfill task positions: %w", err)
+		}
+	}
+	if _, err := s.db.ExecContext(ctx, `CREATE INDEX IF NOT EXISTS tasks_dispatch_idx ON tasks(status, position, id)`); err != nil {
+		return fmt.Errorf("index task positions: %w", err)
 	}
 	return nil
 }
@@ -573,7 +596,7 @@ func (s *Store) DeleteSession(ctx context.Context, id string) error {
 	var active int
 	if err := tx.QueryRowContext(ctx, `
 SELECT COUNT(*) FROM tasks t JOIN runs r ON r.id=t.run_id
-WHERE r.session_id=? AND t.status IN (?, ?)`, sessionPK, model.TaskQueued, model.TaskRunning).Scan(&active); err != nil {
+	WHERE r.session_id=? AND t.status IN (?, ?, ?)`, sessionPK, model.TaskQueued, model.TaskPaused, model.TaskRunning).Scan(&active); err != nil {
 		return err
 	}
 	if active != 0 {
@@ -746,7 +769,7 @@ func (s *Store) DeleteTarget(ctx context.Context, id string) error {
 	}
 	var active int
 	if err := tx.QueryRowContext(ctx, `
-SELECT COUNT(*) FROM tasks WHERE target_id=? AND status IN (?, ?)`, targetPK, model.TaskQueued, model.TaskRunning).
+	SELECT COUNT(*) FROM tasks WHERE target_id=? AND status IN (?, ?, ?)`, targetPK, model.TaskQueued, model.TaskPaused, model.TaskRunning).
 		Scan(&active); err != nil {
 		return err
 	}
@@ -898,6 +921,10 @@ func (s *Store) CreateRun(ctx context.Context, sessionID, profile string, specs 
 		return model.Run{}, nil, err
 	}
 	runPK, _ := result.LastInsertId()
+	var position int64
+	if err := tx.QueryRowContext(ctx, `SELECT COALESCE(MAX(position), 0) FROM tasks`).Scan(&position); err != nil {
+		return model.Run{}, nil, err
+	}
 	tasks := make([]model.Task, 0, len(specs))
 	for _, spec := range specs {
 		var targetPK int64
@@ -907,9 +934,10 @@ func (s *Store) CreateRun(ctx context.Context, sessionID, profile string, specs 
 			}
 			return model.Run{}, nil, err
 		}
+		position++
 		task := model.Task{
 			ID: newID("tsk"), RunID: run.ID, TargetID: spec.TargetID, PluginID: spec.PluginID,
-			Status: spec.Status, Error: spec.Error, CreatedAt: now,
+			Position: position, Status: spec.Status, Error: spec.Error, CreatedAt: now,
 		}
 		task.Inputs, task.Techniques, err = taskSnapshotDetails(spec.PluginSnapshot)
 		if err != nil {
@@ -919,9 +947,9 @@ func (s *Store) CreateRun(ctx context.Context, sessionID, profile string, specs 
 			task.EndedAt = &now
 		}
 		_, err := tx.ExecContext(ctx, `
-INSERT INTO tasks(public_id, run_id, target_id, plugin_id, plugin_version, plugin_snapshot, status, error, created_at, ended_at)
-VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, task.ID, runPK, targetPK, spec.PluginID, spec.PluginVersion,
-			spec.PluginSnapshot, task.Status, task.Error, formatTime(task.CreatedAt), nullableTime(task.EndedAt))
+		INSERT INTO tasks(public_id, run_id, target_id, plugin_id, plugin_version, plugin_snapshot, position, status, error, created_at, ended_at)
+		VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, task.ID, runPK, targetPK, spec.PluginID, spec.PluginVersion,
+			spec.PluginSnapshot, task.Position, task.Status, task.Error, formatTime(task.CreatedAt), nullableTime(task.EndedAt))
 		if err != nil {
 			return model.Run{}, nil, err
 		}
@@ -998,7 +1026,26 @@ UPDATE tasks SET status = ?, error = 'recovered after server restart', started_a
 WHERE status = ?`, model.TaskQueued, model.TaskRunning); err != nil {
 		return nil, err
 	}
-	rows, err := s.db.QueryContext(ctx, `SELECT public_id FROM tasks WHERE status = ? ORDER BY id`, model.TaskQueued)
+	rows, err := s.db.QueryContext(ctx, `SELECT public_id FROM tasks WHERE status = ? ORDER BY position, id`, model.TaskQueued)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	ids := make([]string, 0)
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
+}
+
+// ListQueuedTaskIDs returns the durable global dispatch order without changing
+// task state.
+func (s *Store) ListQueuedTaskIDs(ctx context.Context) ([]string, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT public_id FROM tasks WHERE status=? ORDER BY position, id`, model.TaskQueued)
 	if err != nil {
 		return nil, err
 	}
@@ -1027,7 +1074,7 @@ func (s *Store) StartTask(ctx context.Context, taskID string) (model.TaskExecuti
 	err = tx.QueryRowContext(ctx, `
 SELECT t.id, t.public_id, r.id, r.public_id, tg.id, tg.public_id, a.public_id,
        tg.kind, tg.original, tg.value, tg.scope, tg.created_at, t.plugin_id,
-       t.plugin_snapshot, t.status, t.created_at
+	       t.plugin_snapshot, t.position, t.status, t.created_at
 FROM tasks t
 JOIN runs r ON r.id = t.run_id
 JOIN targets tg ON tg.id = t.target_id
@@ -1036,7 +1083,7 @@ WHERE t.public_id = ?`, taskID).Scan(
 		&taskPK, &execution.ID, &runPK, &execution.RunID, &targetPK, &execution.Target.ID,
 		&execution.Target.SessionID, &execution.Target.Kind, &execution.Target.Original,
 		&execution.Target.Value, &execution.Target.Scope, &targetCreated, &execution.PluginID,
-		&execution.PluginSnapshot, &execution.Status, &taskCreated,
+		&execution.PluginSnapshot, &execution.Position, &execution.Status, &taskCreated,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return model.TaskExecution{}, ErrNotFound
@@ -1290,35 +1337,40 @@ WHERE t.public_id=? AND a.public_id=?`, execution.ID, execution.AttemptID).
 }
 
 func refreshRunStatus(ctx context.Context, tx *sql.Tx, runPK int64, now time.Time) error {
-	var pending, failed, cancelled, blocked int
+	var pending, paused, failed, cancelled, blocked int
 	if err := tx.QueryRowContext(ctx, `
-SELECT SUM(CASE WHEN status IN ('queued','running') THEN 1 ELSE 0 END),
-       SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END),
-       SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END),
-       SUM(CASE WHEN status = 'blocked' THEN 1 ELSE 0 END)
-FROM tasks WHERE run_id = ?`, runPK).Scan(&pending, &failed, &cancelled, &blocked); err != nil {
+SELECT COALESCE(SUM(CASE WHEN status IN ('queued','running') THEN 1 ELSE 0 END), 0),
+       COALESCE(SUM(CASE WHEN status = 'paused' THEN 1 ELSE 0 END), 0),
+       COALESCE(SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END), 0),
+       COALESCE(SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END), 0),
+       COALESCE(SUM(CASE WHEN status = 'blocked' THEN 1 ELSE 0 END), 0)
+FROM tasks WHERE run_id = ?`, runPK).Scan(&pending, &paused, &failed, &cancelled, &blocked); err != nil {
 		return err
 	}
 	if pending != 0 {
 		return nil
 	}
 	status := model.RunSucceeded
-	if failed > 0 {
+	finishedAt := any(formatTime(now))
+	if paused > 0 {
+		status = model.RunPaused
+		finishedAt = nil
+	} else if failed > 0 {
 		status = model.RunFailed
 	} else if cancelled > 0 {
 		status = model.RunCancelled
 	} else if blocked > 0 {
 		status = model.RunBlocked
 	}
-	_, err := tx.ExecContext(ctx, `UPDATE runs SET status=?, finished_at=? WHERE id=?`, status, formatTime(now), runPK)
+	_, err := tx.ExecContext(ctx, `UPDATE runs SET status=?, finished_at=? WHERE id=?`, status, finishedAt, runPK)
 	return err
 }
 
 // ListTasks returns worklist tasks, optionally filtered by session and status.
 func (s *Store) ListTasks(ctx context.Context, sessionID, status string) ([]model.Task, error) {
 	query := `
-SELECT t.public_id, r.public_id, tg.public_id, t.plugin_id, t.status, t.error,
-       t.plugin_snapshot, t.created_at, t.started_at, t.ended_at
+	SELECT t.public_id, r.public_id, tg.public_id, t.plugin_id, t.position, t.status, t.error,
+	       t.plugin_snapshot, t.created_at, t.started_at, t.ended_at
 FROM tasks t JOIN runs r ON r.id=t.run_id JOIN targets tg ON tg.id=t.target_id
 JOIN sessions s ON s.id=r.session_id WHERE 1=1`
 	var args []any
@@ -1330,7 +1382,7 @@ JOIN sessions s ON s.id=r.session_id WHERE 1=1`
 		query += ` AND t.status=?`
 		args = append(args, status)
 	}
-	query += ` ORDER BY t.id DESC`
+	query += ` ORDER BY t.position, t.id`
 	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
@@ -1350,7 +1402,7 @@ JOIN sessions s ON s.id=r.session_id WHERE 1=1`
 // GetTask returns one task by public ID.
 func (s *Store) GetTask(ctx context.Context, taskID string) (model.Task, error) {
 	row := s.db.QueryRowContext(ctx, `
-SELECT t.public_id, r.public_id, tg.public_id, t.plugin_id, t.status, t.error,
+	SELECT t.public_id, r.public_id, tg.public_id, t.plugin_id, t.position, t.status, t.error,
        t.plugin_snapshot, t.created_at, t.started_at, t.ended_at
 FROM tasks t JOIN runs r ON r.id=t.run_id JOIN targets tg ON tg.id=t.target_id
 WHERE t.public_id=?`, taskID)
@@ -1361,7 +1413,156 @@ WHERE t.public_id=?`, taskID)
 	return item, err
 }
 
-// CancelTask records operator cancellation for queued or running work.
+// PauseTask prevents queued work from being dispatched.
+func (s *Store) PauseTask(ctx context.Context, taskID string) (model.Task, error) {
+	return s.changePendingTaskStatus(ctx, taskID, model.TaskQueued, model.TaskPaused, "task paused")
+}
+
+// ResumeTask returns paused work to the dispatch queue.
+func (s *Store) ResumeTask(ctx context.Context, taskID string) (model.Task, error) {
+	return s.changePendingTaskStatus(ctx, taskID, model.TaskPaused, model.TaskQueued, "task resumed")
+}
+
+func (s *Store) changePendingTaskStatus(ctx context.Context, taskID, from, to, event string) (model.Task, error) {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return model.Task{}, err
+	}
+	defer tx.Rollback()
+	var taskPK, runPK int64
+	var status string
+	if err := tx.QueryRowContext(ctx, `SELECT id, run_id, status FROM tasks WHERE public_id=?`, taskID).Scan(&taskPK, &runPK, &status); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return model.Task{}, ErrNotFound
+		}
+		return model.Task{}, err
+	}
+	if status != from {
+		return model.Task{}, fmt.Errorf("%w: task is %s", ErrConflict, status)
+	}
+	now := time.Now().UTC()
+	if _, err := tx.ExecContext(ctx, `UPDATE tasks SET status=?, error='', ended_at=NULL WHERE id=?`, to, taskPK); err != nil {
+		return model.Task{}, err
+	}
+	if _, err := tx.ExecContext(ctx, `INSERT INTO task_events(task_id, stream, message, created_at) VALUES(?, 'lifecycle', ?, ?)`, taskPK, event, formatTime(now)); err != nil {
+		return model.Task{}, err
+	}
+	if to == model.TaskQueued {
+		if _, err := tx.ExecContext(ctx, `
+UPDATE runs SET status = CASE
+  WHEN EXISTS(SELECT 1 FROM tasks WHERE run_id=? AND status=?) THEN ?
+  ELSE ? END, finished_at=NULL WHERE id=?`, runPK, model.TaskRunning, model.RunRunning, model.RunQueued, runPK); err != nil {
+			return model.Task{}, err
+		}
+	} else if err := refreshRunStatus(ctx, tx, runPK, now); err != nil {
+		return model.Task{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return model.Task{}, err
+	}
+	return s.GetTask(ctx, taskID)
+}
+
+// ReorderTasks applies a complete order to queued and paused tasks in a session.
+func (s *Store) ReorderTasks(ctx context.Context, sessionID string, taskIDs []string) ([]model.Task, error) {
+	if strings.TrimSpace(sessionID) == "" || len(taskIDs) == 0 {
+		return nil, fmt.Errorf("%w: session_id and task_ids are required", ErrInvalid)
+	}
+	seen := make(map[string]bool, len(taskIDs))
+	for _, id := range taskIDs {
+		if strings.TrimSpace(id) == "" || seen[id] {
+			return nil, fmt.Errorf("%w: task_ids must be non-empty and unique", ErrInvalid)
+		}
+		seen[id] = true
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	var sessionPK int64
+	if err := tx.QueryRowContext(ctx, `SELECT id FROM sessions WHERE public_id=?`, sessionID).Scan(&sessionPK); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	rows, err := tx.QueryContext(ctx, `
+SELECT t.public_id, t.position FROM tasks t JOIN runs r ON r.id=t.run_id
+WHERE r.session_id=? AND t.status IN (?, ?) ORDER BY t.position, t.id`, sessionPK, model.TaskQueued, model.TaskPaused)
+	if err != nil {
+		return nil, err
+	}
+	positions := make([]int64, 0, len(taskIDs))
+	current := make(map[string]bool, len(taskIDs))
+	for rows.Next() {
+		var id string
+		var position int64
+		if err := rows.Scan(&id, &position); err != nil {
+			rows.Close()
+			return nil, err
+		}
+		current[id] = true
+		positions = append(positions, position)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if len(current) != len(taskIDs) {
+		return nil, fmt.Errorf("%w: task_ids must list every queued and paused task in the session", ErrConflict)
+	}
+	for _, id := range taskIDs {
+		if !current[id] {
+			return nil, fmt.Errorf("%w: task %s is not queued or paused in the session", ErrConflict, id)
+		}
+	}
+	for index, id := range taskIDs {
+		if _, err := tx.ExecContext(ctx, `UPDATE tasks SET position=? WHERE public_id=?`, positions[index], id); err != nil {
+			return nil, err
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	return s.ListTasks(ctx, sessionID, "")
+}
+
+// RemoveTask deletes work that has never started and prunes an empty run.
+func (s *Store) RemoveTask(ctx context.Context, taskID string) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	var taskPK, runPK int64
+	var status string
+	if err := tx.QueryRowContext(ctx, `SELECT id, run_id, status FROM tasks WHERE public_id=?`, taskID).Scan(&taskPK, &runPK, &status); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+		return err
+	}
+	if status != model.TaskQueued && status != model.TaskPaused && status != model.TaskBlocked {
+		return fmt.Errorf("%w: task is %s", ErrConflict, status)
+	}
+	if _, err := tx.ExecContext(ctx, `DELETE FROM tasks WHERE id=?`, taskPK); err != nil {
+		return err
+	}
+	var remaining int
+	if err := tx.QueryRowContext(ctx, `SELECT COUNT(*) FROM tasks WHERE run_id=?`, runPK).Scan(&remaining); err != nil {
+		return err
+	}
+	if remaining == 0 {
+		if _, err := tx.ExecContext(ctx, `DELETE FROM runs WHERE id=?`, runPK); err != nil {
+			return err
+		}
+	} else if err := refreshRunStatus(ctx, tx, runPK, time.Now().UTC()); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+// CancelTask records operator cancellation for queued, paused, or running work.
 func (s *Store) CancelTask(ctx context.Context, taskID string) (model.Task, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -1377,7 +1578,7 @@ func (s *Store) CancelTask(ctx context.Context, taskID string) (model.Task, erro
 		}
 		return model.Task{}, err
 	}
-	if status == model.TaskQueued || status == model.TaskRunning {
+	if status == model.TaskQueued || status == model.TaskPaused || status == model.TaskRunning {
 		now := time.Now().UTC()
 		if _, err := tx.ExecContext(ctx, `
 UPDATE tasks SET status=?, error='cancelled by operator', ended_at=? WHERE id=?`,
@@ -1403,7 +1604,7 @@ func scanTask(row rowScanner) (model.Task, error) {
 	var item model.Task
 	var snapshot, created string
 	var started, ended sql.NullString
-	err := row.Scan(&item.ID, &item.RunID, &item.TargetID, &item.PluginID, &item.Status, &item.Error,
+	err := row.Scan(&item.ID, &item.RunID, &item.TargetID, &item.PluginID, &item.Position, &item.Status, &item.Error,
 		&snapshot, &created, &started, &ended)
 	if err != nil {
 		return model.Task{}, err
@@ -1907,7 +2108,7 @@ WHERE s.public_id=? ORDER BY u.id DESC`, sessionID)
 
 func (s *Store) listTargetTasks(ctx context.Context, targetID string) ([]model.Task, error) {
 	rows, err := s.db.QueryContext(ctx, `
-SELECT t.public_id, r.public_id, tg.public_id, t.plugin_id, t.status, t.error,
+	SELECT t.public_id, r.public_id, tg.public_id, t.plugin_id, t.position, t.status, t.error,
        t.plugin_snapshot, t.created_at, t.started_at, t.ended_at
 FROM tasks t JOIN runs r ON r.id=t.run_id JOIN targets tg ON tg.id=t.target_id
 WHERE tg.public_id=? ORDER BY t.id DESC`, targetID)

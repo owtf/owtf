@@ -319,6 +319,11 @@ declarative grep plugins retain evidence-linked transaction matches. Operators
 can assign the established OWTF rank and notes to terminal plugin output; that
 mutable review remains separate from scanner evidence and appears in target,
 session, CLI, API, and portable reports.
+Queued work can be paused, resumed, reordered within its session, or removed.
+The dispatch order is persisted in SQLite and restored after restart. Removal
+is limited to work that has never started, so attempts, logs, observations, and
+artifacts cannot be erased through worklist cleanup. Both curl and the CLI prove
+the changed dispatch order against a live one-worker server.
 The legacy auxiliary variants have also received explicit first-pass decisions:
 the Selenium launcher is replaced by the retained Visit URL behavior, generic
 DoS and exploit launchers and the SMB transfer helper are rejected, and password

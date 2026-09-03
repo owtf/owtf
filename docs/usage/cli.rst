@@ -187,6 +187,16 @@ executor state::
   owtf tasks attempts tsk_ID
   owtf tasks logs tsk_ID
   owtf tasks cancel tsk_ID
+  owtf tasks pause tsk_ID
+  owtf tasks resume tsk_ID
+  owtf tasks remove tsk_ID
+  owtf worklist reorder --session ses_ID tsk_FIRST tsk_SECOND
+
+Only queued work can be paused. Resume returns paused work to the dispatch
+queue. Reorder must name every queued and paused task in the session and changes
+their durable dispatch order. Remove accepts only queued, paused, or blocked
+tasks; started and terminal work remains part of the report evidence. There is
+no retry command: create a new run when deliberate re-execution is appropriate.
 
 Failed and cancelled tasks are terminal. To repeat a technique, create a new
 run so the worklist retains a distinct task and clear execution provenance.

@@ -10,6 +10,7 @@ const (
 	// RunQueued indicates that a run still has work waiting for a worker.
 	RunQueued    = "queued"
 	RunBlocked   = "blocked"
+	RunPaused    = "paused"
 	RunRunning   = "running"
 	RunSucceeded = "succeeded"
 	RunFailed    = "failed"
@@ -17,6 +18,7 @@ const (
 
 	TaskQueued    = "queued"
 	TaskBlocked   = "blocked"
+	TaskPaused    = "paused"
 	TaskRunning   = "running"
 	TaskSucceeded = "succeeded"
 	TaskFailed    = "failed"
@@ -156,6 +158,7 @@ type Task struct {
 	PluginID   string         `json:"plugin_id"`
 	Techniques []Technique    `json:"techniques"`
 	Inputs     map[string]any `json:"inputs"`
+	Position   int64          `json:"position"`
 	Status     string         `json:"status"`
 	Error      string         `json:"error,omitempty"`
 	CreatedAt  time.Time      `json:"created_at"`

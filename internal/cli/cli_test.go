@@ -136,6 +136,16 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 				t.Fatalf("unexpected worklist query: %s", r.URL.RawQuery)
 			}
 			writeTestJSON(t, w, []map[string]string{{"id": "tsk_1", "status": "queued"}})
+		case "PUT /api/v2/worklist/order":
+			var input struct {
+				SessionID string   `json:"session_id"`
+				TaskIDs   []string `json:"task_ids"`
+			}
+			decodeTestJSON(t, r, &input)
+			if input.SessionID != "ses_1" || len(input.TaskIDs) != 2 || input.TaskIDs[0] != "tsk_2" || input.TaskIDs[1] != "tsk_1" {
+				t.Fatalf("unexpected worklist order: %+v", input)
+			}
+			writeTestJSON(t, w, []map[string]string{{"id": "tsk_2"}, {"id": "tsk_1"}})
 		case "GET /api/v2/workers":
 			writeTestJSON(t, w, []map[string]string{{"id": "worker-1", "status": "idle"}})
 		case "GET /api/v2/tasks/tsk_1":
@@ -146,6 +156,12 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 			writeTestJSON(t, w, []map[string]string{{"task_id": "tsk_1", "message": "task started"}})
 		case "POST /api/v2/tasks/tsk_1/cancel":
 			writeTestJSON(t, w, map[string]string{"id": "tsk_1", "status": "cancelled"})
+		case "POST /api/v2/tasks/tsk_1/pause":
+			writeTestJSON(t, w, map[string]string{"id": "tsk_1", "status": "paused"})
+		case "POST /api/v2/tasks/tsk_1/resume":
+			writeTestJSON(t, w, map[string]string{"id": "tsk_1", "status": "queued"})
+		case "DELETE /api/v2/tasks/tsk_1":
+			w.WriteHeader(http.StatusNoContent)
 		case "GET /api/v2/transactions":
 			if r.URL.Query().Get("session_id") != "ses_1" || r.URL.Query().Get("target_id") != "tgt_1" {
 				t.Fatalf("unexpected transaction query: %s", r.URL.RawQuery)
@@ -221,11 +237,15 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		{"runs", "create", "--session", "ses_1", "--target", "tgt_1", "--group", "web", "--type", "active", "--profile", "default"},
 		{"scan", "--session", "ses_1", "--group", "web", "--type", "active", "--profile", "default", "--input", "OWTF-WSP-001-active.request_label=browser,scan", "https://example.test/"},
 		{"worklist", "--session", "ses_1", "--status", "queued"},
+		{"worklist", "reorder", "--session", "ses_1", "tsk_2", "tsk_1"},
 		{"workers"},
 		{"tasks", "show", "tsk_1"},
 		{"tasks", "attempts", "tsk_1"},
 		{"tasks", "logs", "tsk_1"},
 		{"tasks", "cancel", "tsk_1"},
+		{"tasks", "pause", "tsk_1"},
+		{"tasks", "resume", "tsk_1"},
+		{"tasks", "remove", "tsk_1"},
 		{"urls", "list", "--target", "tgt_1"},
 		{"urls", "search", "--target", "tgt_1", "--search", "login", "--visited", "true", "--scope", "false", "--limit", "25", "--offset", "5"},
 		{"transactions", "list", "--session", "ses_1", "--target", "tgt_1"},
@@ -302,7 +322,8 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		"GET /api/v2/profiles", "GET /api/v2/profiles/default",
 		"POST /api/v2/runs", "GET /api/v2/runs", "GET /api/v2/runs/run_1", "GET /api/v2/tasks", "GET /api/v2/workers",
 		"GET /api/v2/tasks/tsk_1/attempts", "GET /api/v2/tasks/tsk_1/events",
-		"POST /api/v2/tasks/tsk_1/cancel",
+		"POST /api/v2/tasks/tsk_1/cancel", "POST /api/v2/tasks/tsk_1/pause", "POST /api/v2/tasks/tsk_1/resume",
+		"DELETE /api/v2/tasks/tsk_1", "PUT /api/v2/worklist/order",
 		"GET /api/v2/targets/tgt_1/urls", "GET /api/v2/targets/tgt_1/urls/search",
 		"GET /api/v2/transactions", "GET /api/v2/targets/tgt_1/transactions",
 		"GET /api/v2/transactions/search", "GET /api/v2/targets/tgt_1/transactions/search",

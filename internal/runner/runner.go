@@ -22,7 +22,7 @@ type Runner struct {
 	catalog   *plugin.Catalog
 	workers   int
 	timeout   time.Duration
-	queue     chan string
+	queue     *taskQueue
 	runCtx    context.Context
 	cancel    context.CancelFunc
 	wg        sync.WaitGroup
@@ -41,7 +41,7 @@ func New(database *store.Store, artifacts *artifact.Store, catalog *plugin.Catal
 	}
 	runner := &Runner{
 		store: database, artifacts: artifacts, catalog: catalog,
-		workers: workers, timeout: timeout, queue: make(chan string, 256), cancels: make(map[string]context.CancelFunc),
+		workers: workers, timeout: timeout, queue: newTaskQueue(), cancels: make(map[string]context.CancelFunc),
 	}
 	for index := 0; index < workers; index++ {
 		runner.state = append(runner.state, model.Worker{ID: fmt.Sprintf("worker-%d", index+1), Status: "idle"})
@@ -110,7 +110,53 @@ func (r *Runner) Cancel(ctx context.Context, taskID string) (model.Task, error) 
 	if cancel != nil {
 		cancel()
 	}
-	return r.store.CancelTask(ctx, taskID)
+	item, err := r.store.CancelTask(ctx, taskID)
+	if err == nil {
+		r.queue.remove(taskID)
+	}
+	return item, err
+}
+
+// Pause removes queued work from dispatch after persisting its paused state.
+func (r *Runner) Pause(ctx context.Context, taskID string) (model.Task, error) {
+	item, err := r.store.PauseTask(ctx, taskID)
+	if err == nil {
+		r.queue.remove(taskID)
+	}
+	return item, err
+}
+
+// Resume persists queued state before returning the task to dispatch.
+func (r *Runner) Resume(ctx context.Context, taskID string) (model.Task, error) {
+	item, err := r.store.ResumeTask(ctx, taskID)
+	if err != nil {
+		return item, err
+	}
+	r.queue.push([]string{taskID})
+	ordered, err := r.store.ListQueuedTaskIDs(ctx)
+	if err != nil {
+		return item, err
+	}
+	r.queue.reorder(ordered)
+	return item, nil
+}
+
+// Reorder changes both the durable and in-memory order for pending work.
+func (r *Runner) Reorder(ctx context.Context, sessionID string, taskIDs []string) ([]model.Task, error) {
+	items, err := r.store.ReorderTasks(ctx, sessionID, taskIDs)
+	if err == nil {
+		r.queue.reorder(taskIDs)
+	}
+	return items, err
+}
+
+// Remove deletes work that has never started and removes any queued dispatch.
+func (r *Runner) Remove(ctx context.Context, taskID string) error {
+	if err := r.store.RemoveTask(ctx, taskID); err != nil {
+		return err
+	}
+	r.queue.remove(taskID)
+	return nil
 }
 
 // Submit places durable task IDs on the bounded in-memory dispatch queue. The
@@ -122,27 +168,23 @@ func (r *Runner) Submit(taskIDs []string) error {
 	if ctx == nil {
 		return errors.New("runner is not started")
 	}
-	for _, taskID := range taskIDs {
-		select {
-		case r.queue <- taskID:
-		case <-ctx.Done():
-			return ctx.Err()
-		}
+	if err := ctx.Err(); err != nil {
+		return err
 	}
+	r.queue.push(taskIDs)
 	return nil
 }
 
 func (r *Runner) worker(ctx context.Context, index int) {
 	defer r.wg.Done()
 	for {
-		select {
-		case taskID := <-r.queue:
-			r.begin(index, taskID)
-			outcome := r.execute(ctx, index, taskID)
-			r.finish(index, outcome)
-		case <-ctx.Done():
+		taskID, ok := r.queue.pop(ctx)
+		if !ok {
 			return
 		}
+		r.begin(index, taskID)
+		outcome := r.execute(ctx, index, taskID)
+		r.finish(index, outcome)
 	}
 }
 

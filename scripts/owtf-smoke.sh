@@ -588,6 +588,60 @@ for attempt in $(seq 1 100); do
 done
 assert_json '.[0].status == "idle" and .[0].cancelled == 2' 'worker did not clean up after CLI cancellation'
 
+printf '%s\n' 'Checking worklist pause, resume, reorder, and removal...'
+request POST /api/v2/runs 202 "${CANCEL_RUN}"
+WORKLIST_BLOCKER_ID=$(jq -r '.tasks[0].id' "${RESPONSE_FILE}")
+wait_for_task_status "${WORKLIST_BLOCKER_ID}" running
+
+request POST /api/v2/runs 202 "${CANCEL_RUN}"
+WORKLIST_FIRST_ID=$(jq -r '.tasks[0].id' "${RESPONSE_FILE}")
+request POST /api/v2/runs 202 "${CANCEL_RUN}"
+WORKLIST_SECOND_ID=$(jq -r '.tasks[0].id' "${RESPONSE_FILE}")
+wait_for_task_status "${WORKLIST_FIRST_ID}" queued
+wait_for_task_status "${WORKLIST_SECOND_ID}" queued
+
+request POST "/api/v2/tasks/${WORKLIST_FIRST_ID}/pause" 200 '{}'
+assert_json '.status == "paused"' 'pause endpoint did not persist paused state'
+cli_json tasks pause "${WORKLIST_SECOND_ID}"
+jq -e '.status == "paused"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI pause did not persist paused state'
+request GET "/api/v2/tasks?session_id=${SESSION_ID}&status=paused" 200
+assert_json '([.[].id] | sort) == ([$first, $second] | sort)' 'paused worklist filter is incorrect' --arg first "${WORKLIST_FIRST_ID}" --arg second "${WORKLIST_SECOND_ID}"
+
+PARTIAL_ORDER=$(jq -nc --arg session "${SESSION_ID}" --arg task "${WORKLIST_FIRST_ID}" '{session_id:$session,task_ids:[$task]}')
+request PUT /api/v2/worklist/order 409 "${PARTIAL_ORDER}"
+assert_json '.error | contains("every queued and paused task")' 'partial worklist order was accepted'
+REVERSE_ORDER=$(jq -nc --arg session "${SESSION_ID}" --arg first "${WORKLIST_SECOND_ID}" --arg second "${WORKLIST_FIRST_ID}" '{session_id:$session,task_ids:[$first,$second]}')
+request PUT /api/v2/worklist/order 200 "${REVERSE_ORDER}"
+assert_json '[.[] | select(.id == $first or .id == $second) | .id] == [$first,$second]' 'API worklist order was not persisted' --arg first "${WORKLIST_SECOND_ID}" --arg second "${WORKLIST_FIRST_ID}"
+cli_json worklist reorder --session "${SESSION_ID}" "${WORKLIST_FIRST_ID}" "${WORKLIST_SECOND_ID}"
+jq -e --arg first "${WORKLIST_FIRST_ID}" --arg second "${WORKLIST_SECOND_ID}" \
+  '[.[] | select(.id == $first or .id == $second) | .id] == [$first,$second]' \
+  "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI worklist order was not persisted'
+
+request POST "/api/v2/tasks/${WORKLIST_SECOND_ID}/resume" 200 '{}'
+assert_json '.status == "queued"' 'resume endpoint did not return work to the queue'
+cli_json tasks resume "${WORKLIST_FIRST_ID}"
+jq -e '.status == "queued"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI resume did not return work to the queue'
+request POST "/api/v2/tasks/${WORKLIST_BLOCKER_ID}/cancel" 200 '{}'
+wait_for_task_status "${WORKLIST_FIRST_ID}" running
+request GET /api/v2/workers 200
+assert_json '.[0].status == "running" and .[0].task_id == $task' 'reordered task was not dispatched first' --arg task "${WORKLIST_FIRST_ID}"
+
+cli_json tasks remove "${WORKLIST_SECOND_ID}"
+jq -e --arg id "${WORKLIST_SECOND_ID}" '.deleted == $id' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI worklist removal failed'
+request GET "/api/v2/tasks/${WORKLIST_SECOND_ID}" 404
+request POST "/api/v2/tasks/${WORKLIST_FIRST_ID}/pause" 409 '{}'
+request DELETE "/api/v2/tasks/${WORKLIST_FIRST_ID}" 409
+request POST "/api/v2/tasks/${WORKLIST_FIRST_ID}/cancel" 200 '{}'
+for attempt in $(seq 1 100); do
+  request GET /api/v2/workers 200
+  if jq -e '.[0].status == "idle" and .[0].cancelled == 4' "${RESPONSE_FILE}" >/dev/null; then
+    break
+  fi
+  sleep 0.05
+done
+assert_json '.[0].status == "idle" and .[0].cancelled == 4' 'worker did not clean up after worklist cancellation'
+
 printf '%s\n' 'Checking external plugin guidance and no-traffic execution...'
 cli_json sessions create --name 'External plugin smoke session'
 EXTERNAL_SESSION_ID=$(jq -r '.id' "${CLI_RESPONSE_FILE}")

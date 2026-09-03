@@ -94,6 +94,10 @@ func New(config Config) http.Handler {
 	mux.HandleFunc("GET /api/v2/tasks/{taskID}/review", server.pluginOutputReview)
 	mux.HandleFunc("PATCH /api/v2/tasks/{taskID}/review", server.updatePluginOutputReview)
 	mux.HandleFunc("POST /api/v2/tasks/{taskID}/cancel", server.cancelTask)
+	mux.HandleFunc("POST /api/v2/tasks/{taskID}/pause", server.pauseTask)
+	mux.HandleFunc("POST /api/v2/tasks/{taskID}/resume", server.resumeTask)
+	mux.HandleFunc("DELETE /api/v2/tasks/{taskID}", server.removeTask)
+	mux.HandleFunc("PUT /api/v2/worklist/order", server.reorderWorklist)
 	mux.HandleFunc("GET /api/v2/transactions", server.listTransactions)
 	mux.HandleFunc("GET /api/v2/transactions/search", server.searchTransactions)
 	mux.HandleFunc("GET /api/v2/targets/{targetID}/transactions", server.listTargetTransactions)
@@ -574,6 +578,44 @@ func (s *Server) cancelTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, item)
+}
+
+func (s *Server) pauseTask(w http.ResponseWriter, r *http.Request) {
+	item, err := s.runner.Pause(r.Context(), r.PathValue("taskID"))
+	if s.handleStoreError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, item)
+}
+
+func (s *Server) resumeTask(w http.ResponseWriter, r *http.Request) {
+	item, err := s.runner.Resume(r.Context(), r.PathValue("taskID"))
+	if s.handleStoreError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, item)
+}
+
+func (s *Server) removeTask(w http.ResponseWriter, r *http.Request) {
+	if s.handleStoreError(w, s.runner.Remove(r.Context(), r.PathValue("taskID"))) {
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *Server) reorderWorklist(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		SessionID string   `json:"session_id"`
+		TaskIDs   []string `json:"task_ids"`
+	}
+	if err := decodeJSON(w, r, &input); err != nil {
+		return
+	}
+	items, err := s.runner.Reorder(r.Context(), strings.TrimSpace(input.SessionID), input.TaskIDs)
+	if s.handleStoreError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, items)
 }
 
 func (s *Server) taskAttempts(w http.ResponseWriter, r *http.Request) {

@@ -535,6 +535,89 @@ func TestRecoverTasksPreservesAttemptHistory(t *testing.T) {
 	}
 }
 
+func TestWorklistPauseReorderResumeAndRemove(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "owtf.db")
+	database, err := Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = database.Close() }()
+	ctx := context.Background()
+	session, _ := database.CreateSession(ctx, "Worklist")
+	normalized, _ := target.Normalize("https://example.test")
+	added, _ := database.AddTargets(ctx, session.ID, []target.Normalized{normalized})
+	run, tasks, err := database.CreateRun(ctx, session.ID, "", []TaskSpec{
+		{TargetID: added.Created[0].ID, PluginID: "OWTF-TEST-001-active", PluginVersion: "0.1.0", PluginSnapshot: "{}"},
+		{TargetID: added.Created[0].ID, PluginID: "OWTF-TEST-002-active", PluginVersion: "0.1.0", PluginSnapshot: "{}"},
+		{TargetID: added.Created[0].ID, PluginID: "OWTF-TEST-003-active", PluginVersion: "0.1.0", PluginSnapshot: "{}"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !(tasks[0].Position < tasks[1].Position && tasks[1].Position < tasks[2].Position) {
+		t.Fatalf("task positions are not increasing: %+v", tasks)
+	}
+	for _, task := range tasks {
+		if _, err := database.PauseTask(ctx, task.ID); err != nil {
+			t.Fatal(err)
+		}
+	}
+	pausedRun, err := database.GetRun(ctx, run.ID)
+	if err != nil || pausedRun.Status != model.RunPaused || pausedRun.FinishedAt != nil {
+		t.Fatalf("run did not become paused: run=%+v err=%v", pausedRun, err)
+	}
+	if _, err := database.ReorderTasks(ctx, session.ID, []string{tasks[2].ID, tasks[0].ID}); !errors.Is(err, ErrConflict) {
+		t.Fatalf("partial worklist order error = %v, want conflict", err)
+	}
+	reordered, err := database.ReorderTasks(ctx, session.ID, []string{tasks[2].ID, tasks[0].ID, tasks[1].ID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(reordered) != 3 || reordered[0].ID != tasks[2].ID || reordered[1].ID != tasks[0].ID || reordered[2].ID != tasks[1].ID {
+		t.Fatalf("unexpected worklist order: %+v", reordered)
+	}
+	if err := database.Close(); err != nil {
+		t.Fatal(err)
+	}
+	database, err = Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	reopened, err := database.ListTasks(ctx, session.ID, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(reopened) != 3 || reopened[0].ID != tasks[2].ID || reopened[1].ID != tasks[0].ID || reopened[2].ID != tasks[1].ID {
+		t.Fatalf("worklist order did not survive restart: %+v", reopened)
+	}
+	if _, err := database.ResumeTask(ctx, tasks[2].ID); err != nil {
+		t.Fatal(err)
+	}
+	queuedRun, err := database.GetRun(ctx, run.ID)
+	if err != nil || queuedRun.Status != model.RunQueued || queuedRun.FinishedAt != nil {
+		t.Fatalf("run did not return to queued: run=%+v err=%v", queuedRun, err)
+	}
+	if err := database.RemoveTask(ctx, tasks[1].ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := database.GetTask(ctx, tasks[1].ID); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("removed task still exists: %v", err)
+	}
+	execution, err := database.StartTask(ctx, tasks[2].ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := database.CompleteTask(ctx, execution, nil, nil, nil, nil, nil); err != nil {
+		t.Fatal(err)
+	}
+	if err := database.RemoveTask(ctx, tasks[2].ID); !errors.Is(err, ErrConflict) {
+		t.Fatalf("terminal task removal error = %v, want conflict", err)
+	}
+	if _, err := database.CancelTask(ctx, tasks[0].ID); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestPluginOutputReviewIsSeparateFromTerminalTaskEvidence(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "owtf.db")
 	database, err := Open(path)

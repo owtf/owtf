@@ -240,6 +240,92 @@ func TestGrepPluginReadsCapturedTransactionEvidence(t *testing.T) {
 	}
 }
 
+func TestPauseResumeAndReorderChangeDispatchOrder(t *testing.T) {
+	database, err := store.Open(filepath.Join(t.TempDir(), "owtf.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	artifacts, err := artifact.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	catalog, err := plugin.Load(fstest.MapFS{"plugin.yaml": {Data: []byte(blockingManifest)}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	started := make(chan string, 3)
+	catalog.RegisterBuiltin("blocking", func(ctx context.Context, request plugin.Request) (plugin.Result, error) {
+		started <- request.TaskID
+		<-ctx.Done()
+		return plugin.Result{}, ctx.Err()
+	})
+	entry, _ := catalog.Get("OWTF-TEST-001-active")
+	if err := database.ReplacePlugins(context.Background(), []model.Plugin{entry.Plugin()}); err != nil {
+		t.Fatal(err)
+	}
+	session, _ := database.CreateSession(context.Background(), "Worklist")
+	normalized, _ := target.Normalize("https://example.test")
+	added, _ := database.AddTargets(context.Background(), session.ID, []target.Normalized{normalized})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	taskRunner := runner.New(database, artifacts, catalog, 1, time.Minute)
+	if err := taskRunner.Start(ctx); err != nil {
+		t.Fatal(err)
+	}
+	defer taskRunner.Stop()
+	snapshot, _ := entry.Snapshot(nil)
+	_, tasks, err := database.CreateRun(context.Background(), session.ID, "", []store.TaskSpec{
+		{TargetID: added.Created[0].ID, PluginID: entry.Manifest.Metadata.ID, PluginVersion: entry.Manifest.Metadata.Version, PluginSnapshot: snapshot},
+		{TargetID: added.Created[0].ID, PluginID: entry.Manifest.Metadata.ID, PluginVersion: entry.Manifest.Metadata.Version, PluginSnapshot: snapshot},
+		{TargetID: added.Created[0].ID, PluginID: entry.Manifest.Metadata.ID, PluginVersion: entry.Manifest.Metadata.Version, PluginSnapshot: snapshot},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := taskRunner.Submit([]string{tasks[0].ID, tasks[1].ID, tasks[2].ID}); err != nil {
+		t.Fatal(err)
+	}
+	next := func() string {
+		t.Helper()
+		select {
+		case id := <-started:
+			return id
+		case <-time.After(time.Second):
+			t.Fatal("plugin did not start")
+			return ""
+		}
+	}
+	if id := next(); id != tasks[0].ID {
+		t.Fatalf("first task = %s, want %s", id, tasks[0].ID)
+	}
+	if _, err := taskRunner.Pause(context.Background(), tasks[1].ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := taskRunner.Reorder(context.Background(), session.ID, []string{tasks[1].ID, tasks[2].ID}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := taskRunner.Resume(context.Background(), tasks[1].ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := taskRunner.Cancel(context.Background(), tasks[0].ID); err != nil {
+		t.Fatal(err)
+	}
+	if id := next(); id != tasks[1].ID {
+		t.Fatalf("reordered task = %s, want %s", id, tasks[1].ID)
+	}
+	if _, err := taskRunner.Cancel(context.Background(), tasks[1].ID); err != nil {
+		t.Fatal(err)
+	}
+	if id := next(); id != tasks[2].ID {
+		t.Fatalf("last task = %s, want %s", id, tasks[2].ID)
+	}
+	if _, err := taskRunner.Cancel(context.Background(), tasks[2].ID); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func want(t *testing.T, timeout time.Duration, condition func() bool, message string) {
 	t.Helper()
 	deadline := time.Now().Add(timeout)
