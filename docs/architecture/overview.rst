@@ -195,11 +195,12 @@ Phase 4 is in progress. The import boundary accepts standard HAR files through
 both curl and the Go CLI, retains source, request, and response bodies, and
 creates no fake plugin work. The OWTF proxy handles HTTP and CONNECT/TLS,
 persists its CA, records bounded HAR captures, tunnels WebSockets, enforces an
-optional host scope, retries failures and HTTP 408/599 responses, caches bounded
-responses with cookie-key filtering, and supports authenticated HTTP, HTTPS,
-and SOCKS5 upstream proxies. Origin HTTP authentication, WebSocket frame
-artifacts, repeater, CA and history APIs, and static/live interceptors remain
-before the phase gate.
+  optional host scope, retries failures and HTTP 408/599 responses, caches bounded
+  responses with cookie-key filtering, and supports authenticated HTTP, HTTPS,
+  and SOCKS5 upstream proxies. Basic and Digest target authentication is scoped
+  to configured hosts and loaded from a private file. WebSocket frame artifacts,
+  repeater, CA and history APIs, and static/live interceptors remain before the
+  phase gate.
 
 API regression gate
 -------------------

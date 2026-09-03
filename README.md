@@ -29,6 +29,8 @@ resulting evidence.
 - An OWTF-owned HTTP/HTTPS interception proxy with a persistent CA, bounded HAR
   capture and cache, retries, WebSocket tunneling, host scope, and outbound
   HTTP/HTTPS/SOCKS5 proxy support.
+- Challenge-based Basic and Digest authentication for explicitly configured
+  target hosts.
 - Target reports through the API and CLI.
 - One API used by the CLI and the embedded proof UI.
 - No accounts, passwords, tokens, or user database.

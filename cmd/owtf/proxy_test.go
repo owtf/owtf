@@ -92,3 +92,23 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 		t.Fatalf("transactions = %+v", transactions)
 	}
 }
+
+func TestLoadHTTPCredentialsRequiresPrivateRegularFile(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "auth.json")
+	if err := os.WriteFile(path, []byte(`{"example.test":{"username":"operator","password":"secret"}}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	credentials, err := loadHTTPCredentials(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if credentials["example.test"].Username != "operator" {
+		t.Fatalf("credentials = %+v", credentials)
+	}
+	if err := os.Chmod(path, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := loadHTTPCredentials(path); err == nil {
+		t.Fatal("public credential file was accepted")
+	}
+}

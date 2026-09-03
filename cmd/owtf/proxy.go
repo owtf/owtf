@@ -48,6 +48,7 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	cookieBlacklist := flags.String("cookie-blacklist", "_ga,__utma,__utmb,__utmc,__utmz,__utmv", "comma-separated cookies excluded from cache identity")
 	cookieWhitelist := flags.String("cookie-whitelist", "", "comma-separated cookies allowed in cache identity")
 	upstream := flags.String("upstream", "", "optional HTTP, HTTPS, or SOCKS5 proxy URL")
+	httpAuthFile := flags.String("http-auth-file", "", "JSON file containing target-host HTTP credentials")
 	insecureUpstream := flags.Bool("insecure-upstream", false, "allow invalid upstream TLS certificates")
 	var targetHosts stringFlags
 	flags.Var(&targetHosts, "target-host", "allowed target host; repeat to allow more than one")
@@ -74,8 +75,19 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 			return err
 		}
 	}
+	var upstreamTransport http.RoundTripper = transport
+	if *httpAuthFile != "" {
+		credentials, err := loadHTTPCredentials(*httpAuthFile)
+		if err != nil {
+			return err
+		}
+		upstreamTransport, err = owtfproxy.NewOriginAuthTransport(upstreamTransport, credentials)
+		if err != nil {
+			return err
+		}
+	}
 	var roundTripper http.RoundTripper = owtfproxy.RetryTransport{
-		Next: transport, MaxAttempts: *maximumAttempts, Delay: 100 * time.Millisecond,
+		Next: upstreamTransport, MaxAttempts: *maximumAttempts, Delay: 100 * time.Millisecond,
 	}
 	if *cacheEntries > 0 {
 		cache, err := owtfproxy.NewResponseCache(owtfproxy.CacheOptions{
@@ -137,4 +149,42 @@ func splitNames(value string) []string {
 		}
 	}
 	return result
+}
+
+func loadHTTPCredentials(path string) (map[string]owtfproxy.Credentials, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("open HTTP authentication file: %w", err)
+	}
+	defer file.Close()
+	info, err := file.Stat()
+	if err != nil {
+		return nil, fmt.Errorf("inspect HTTP authentication file: %w", err)
+	}
+	if !info.Mode().IsRegular() {
+		return nil, errors.New("HTTP authentication file is not a regular file")
+	}
+	if info.Size() > 64<<10 {
+		return nil, errors.New("HTTP authentication file exceeds 64 KiB")
+	}
+	if info.Mode().Perm()&0o077 != 0 {
+		return nil, errors.New("HTTP authentication file must not be accessible by group or other users")
+	}
+	decoder := json.NewDecoder(io.LimitReader(file, 64<<10))
+	decoder.DisallowUnknownFields()
+	credentials := make(map[string]owtfproxy.Credentials)
+	if err := decoder.Decode(&credentials); err != nil {
+		return nil, fmt.Errorf("decode HTTP authentication file: %w", err)
+	}
+	if len(credentials) > 1000 {
+		return nil, errors.New("HTTP authentication file contains more than 1000 hosts")
+	}
+	var trailing any
+	if err := decoder.Decode(&trailing); !errors.Is(err, io.EOF) {
+		if err == nil {
+			return nil, errors.New("HTTP authentication file contains multiple JSON values")
+		}
+		return nil, fmt.Errorf("decode HTTP authentication file: %w", err)
+	}
+	return credentials, nil
 }

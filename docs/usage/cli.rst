@@ -134,6 +134,25 @@ Route outbound traffic through another proxy when required::
 HTTP, HTTPS, and SOCKS5 upstream URLs are supported. Credentials are supplied
 only through URL user information and are never interpolated into shell text.
 
+Target HTTP authentication is separate from OWTF access control. Put Basic or
+Digest credentials in a private JSON file and pass its path to the proxy::
+
+  chmod 600 target-auth.json
+  owtf proxy --http-auth-file target-auth.json
+
+The file maps target hosts to credentials::
+
+  {
+    "example.test": {
+      "username": "test-operator",
+      "password": "test-password"
+    }
+  }
+
+OWTF sends credentials only after a listed host returns a supported Basic or
+Digest challenge. The file must be regular, smaller than 64 KiB, and
+inaccessible to group and other users.
+
 Run ``owtf help`` for the compact command index. The CLI never opens the
 SQLite database or starts plugin processes itself; all state transitions pass
 through the server API.
