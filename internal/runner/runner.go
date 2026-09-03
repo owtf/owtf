@@ -222,6 +222,12 @@ func (r *Runner) execute(parent context.Context, workerIndex int, taskID string)
 		return model.TaskFailed
 	}
 	now := time.Now().UTC()
+	urls := make([]model.URL, 0, len(result.URLs))
+	for _, item := range result.URLs {
+		urls = append(urls, model.URL{
+			TargetID: execution.TargetID, URL: item.URL, Visited: item.Visited, CreatedAt: now,
+		})
+	}
 	transactions := make([]model.Transaction, 0, len(result.Transactions))
 	for _, item := range result.Transactions {
 		artifactID := ""
@@ -255,7 +261,7 @@ func (r *Runner) execute(parent context.Context, workerIndex int, taskID string)
 			Description: item.Description, CreatedAt: now,
 		})
 	}
-	if err := r.store.CompleteTask(parent, execution, artifacts, transactions, observations, findings); err != nil {
+	if err := r.store.CompleteTask(parent, execution, artifacts, urls, transactions, observations, findings); err != nil {
 		if errors.Is(err, store.ErrTaskNotRunning) {
 			return model.TaskCancelled
 		}

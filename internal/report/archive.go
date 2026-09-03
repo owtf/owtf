@@ -177,16 +177,21 @@ var sessionTemplate = template.Must(template.New("session-report").Funcs(templat
     <div class="stat"><strong>{{.Report.Summary.Targets}}</strong>Targets</div>
     <div class="stat"><strong>{{.Report.Summary.Runs}}</strong>Runs</div>
     <div class="stat"><strong>{{.Report.Summary.Tasks}}</strong>Tasks</div>
-	    <div class="stat"><strong>{{.Report.Summary.Attempts}}</strong>Attempts</div>
-	    <div class="stat"><strong>{{.Report.Summary.Succeeded}}</strong>Succeeded</div>
-	    <div class="stat"><strong>{{.Report.Summary.Failed}}</strong>Failed</div>
-	    <div class="stat"><strong>{{.Report.Summary.Transactions}}</strong>Transactions</div>
-	    <div class="stat"><strong>{{.Report.Summary.Artifacts}}</strong>Artifacts</div>
-	    <div class="stat"><strong>{{.Report.Summary.Findings}}</strong>Findings</div>
+    <div class="stat"><strong>{{.Report.Summary.Attempts}}</strong>Attempts</div>
+    <div class="stat"><strong>{{.Report.Summary.Succeeded}}</strong>Succeeded</div>
+    <div class="stat"><strong>{{.Report.Summary.Failed}}</strong>Failed</div>
+    <div class="stat"><strong>{{.Report.Summary.URLs}}</strong>URLs</div>
+    <div class="stat"><strong>{{.Report.Summary.Transactions}}</strong>Transactions</div>
+    <div class="stat"><strong>{{.Report.Summary.Artifacts}}</strong>Artifacts</div>
+    <div class="stat"><strong>{{.Report.Summary.Findings}}</strong>Findings</div>
   </section>
   <h2>Targets</h2>
   <table><thead><tr><th>ID</th><th>Kind</th><th>Target</th></tr></thead><tbody>
   {{range .Report.Targets}}<tr><td><code>{{.ID}}</code></td><td>{{.Kind}}</td><td>{{.Value}}</td></tr>{{else}}<tr><td colspan="3">No targets</td></tr>{{end}}
+  </tbody></table>
+  <h2>URLs</h2>
+  <table><thead><tr><th>Target</th><th>URL</th><th>Visited</th><th>Scope</th></tr></thead><tbody>
+  {{range .Report.URLs}}<tr><td><code>{{.TargetID}}</code></td><td><a href="{{.URL}}">{{.URL}}</a></td><td>{{.Visited}}</td><td>{{.Scope}}</td></tr>{{else}}<tr><td colspan="4">No URLs</td></tr>{{end}}
   </tbody></table>
   <h2>Tasks</h2>
   <table><thead><tr><th>ID</th><th>Target</th><th>Plugin</th><th>Technique</th><th>Status</th><th>Rank</th><th>Notes</th><th>Error</th></tr></thead><tbody>
@@ -209,7 +214,7 @@ var sessionTemplate = template.Must(template.New("session-report").Funcs(templat
   {{range .Report.Transactions}}<tr id="transaction-{{.ID}}"><td><code>{{.ID}}</code></td><td>{{.Method}}</td><td>{{.URL}}</td><td>{{.StatusCode}}</td><td>{{.DurationMS}} ms</td></tr>{{else}}<tr><td colspan="5">No transactions</td></tr>{{end}}
   </tbody></table>
   <h2>Artifacts</h2>
-	  <table><thead><tr><th>Name</th><th>Target</th><th>Task</th><th>Size</th><th>SHA-256</th></tr></thead><tbody>
-	  {{range .Report.Artifacts}}<tr><td><a href="{{index $.ArtifactFiles .ID}}">{{.Name}}</a></td><td><code>{{.TargetID}}</code></td><td><code>{{.TaskID}}</code></td><td>{{.Size}}</td><td><code>{{.SHA256}}</code></td></tr>{{else}}<tr><td colspan="5">No artifacts</td></tr>{{end}}
+  <table><thead><tr><th>Name</th><th>Target</th><th>Task</th><th>Size</th><th>SHA-256</th></tr></thead><tbody>
+  {{range .Report.Artifacts}}<tr><td><a href="{{index $.ArtifactFiles .ID}}">{{.Name}}</a></td><td><code>{{.TargetID}}</code></td><td><code>{{.TaskID}}</code></td><td>{{.Size}}</td><td><code>{{.SHA256}}</code></td></tr>{{else}}<tr><td colspan="5">No artifacts</td></tr>{{end}}
   </tbody></table>
 </main></body></html>`))

@@ -78,6 +78,10 @@ func (s *Store) Close() error { return s.db.Close() }
 
 func (s *Store) migrate(ctx context.Context) error {
 	const schema = `
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    name TEXT PRIMARY KEY,
+    applied_at TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS sessions (
     id INTEGER PRIMARY KEY,
     public_id TEXT NOT NULL UNIQUE,
@@ -189,6 +193,16 @@ CREATE TABLE IF NOT EXISTS transactions (
     duration_ms INTEGER NOT NULL,
     created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS urls (
+    id INTEGER PRIMARY KEY,
+    target_id INTEGER NOT NULL REFERENCES targets(id) ON DELETE CASCADE,
+    url TEXT NOT NULL,
+    visited INTEGER NOT NULL,
+    scope INTEGER NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(target_id, url)
+);
+CREATE INDEX IF NOT EXISTS urls_target_idx ON urls(target_id, id);
 CREATE TABLE IF NOT EXISTS observations (
     id INTEGER PRIMARY KEY,
     public_id TEXT NOT NULL UNIQUE,
@@ -231,10 +245,71 @@ CREATE TABLE IF NOT EXISTS plugin_output_reviews (
 	if err := s.migrateTransactionTables(ctx); err != nil {
 		return err
 	}
+	if err := s.migrateURLs(ctx); err != nil {
+		return err
+	}
 	if _, err := s.db.ExecContext(ctx, `DELETE FROM runs WHERE NOT EXISTS (SELECT 1 FROM tasks WHERE tasks.run_id=runs.id)`); err != nil {
 		return fmt.Errorf("prune empty runs: %w", err)
 	}
 	return nil
+}
+
+// migrateURLs gives databases from earlier rewrite phases the same URL catalog
+// as new transactions. The marker keeps startup work independent of database
+// size after the one-time backfill.
+func (s *Store) migrateURLs(ctx context.Context) error {
+	const migration = "url_catalog_v1"
+	var applied bool
+	if err := s.db.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE name=?)`, migration).Scan(&applied); err != nil {
+		return fmt.Errorf("inspect URL migration: %w", err)
+	}
+	if applied {
+		return nil
+	}
+	type record struct {
+		targetPK int64
+		target   model.Target
+		url      string
+		created  string
+	}
+	rows, err := s.db.QueryContext(ctx, `
+SELECT tg.id, tg.kind, tg.value, tr.url, MIN(tr.created_at)
+FROM transactions tr JOIN targets tg ON tg.id=tr.target_id
+GROUP BY tg.id, tg.kind, tg.value, tr.url
+ORDER BY MIN(tr.id)`)
+	if err != nil {
+		return fmt.Errorf("read URLs for migration: %w", err)
+	}
+	var records []record
+	for rows.Next() {
+		var item record
+		if err := rows.Scan(&item.targetPK, &item.target.Kind, &item.target.Value, &item.url, &item.created); err != nil {
+			rows.Close()
+			return fmt.Errorf("read URL migration row: %w", err)
+		}
+		records = append(records, item)
+	}
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return fmt.Errorf("read URLs for migration: %w", err)
+	}
+	if err := rows.Close(); err != nil {
+		return err
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	for _, item := range records {
+		if err := upsertURL(ctx, tx, item.targetPK, item.target, item.url, true, parseTime(item.created)); err != nil {
+			return fmt.Errorf("backfill URL %q: %w", item.url, err)
+		}
+	}
+	if _, err := tx.ExecContext(ctx, `INSERT INTO schema_migrations(name, applied_at) VALUES(?, ?)`, migration, formatTime(time.Now().UTC())); err != nil {
+		return fmt.Errorf("record URL migration: %w", err)
+	}
+	return tx.Commit()
 }
 
 func (s *Store) migrateTargetColumns(ctx context.Context) error {
@@ -1011,7 +1086,7 @@ WHERE t.public_id = ?`, stream, message, formatTime(time.Now().UTC()), attemptID
 
 // CompleteTask atomically stores structured output and marks a task successful.
 func (s *Store) CompleteTask(ctx context.Context, execution model.TaskExecution, artifacts []model.Artifact,
-	transactions []model.Transaction, observations []model.Observation, findings []model.Finding) error {
+	urls []model.URL, transactions []model.Transaction, observations []model.Observation, findings []model.Finding) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -1039,6 +1114,14 @@ WHERE t.public_id=? AND a.public_id=?`, execution.ID, execution.AttemptID).
 		}
 		artifactPKs[item.ID], _ = result.LastInsertId()
 	}
+	for _, item := range urls {
+		if item.TargetID != "" && item.TargetID != execution.TargetID {
+			return errors.New("invalid plugin URL ownership")
+		}
+		if err := upsertURL(ctx, tx, targetPK, execution.Target, item.URL, item.Visited, item.CreatedAt); err != nil {
+			return fmt.Errorf("retain plugin URL: %w", err)
+		}
+	}
 	for _, item := range transactions {
 		var artifactPK any
 		if item.ResponseBodyArtifactID != "" {
@@ -1051,6 +1134,9 @@ WHERE t.public_id=? AND a.public_id=?`, execution.ID, execution.AttemptID).
 			item.RequestHeaders, item.StatusCode, item.ResponseHeaders, artifactPK, item.DurationMS, formatTime(item.CreatedAt))
 		if err != nil {
 			return err
+		}
+		if err := upsertURL(ctx, tx, targetPK, execution.Target, item.URL, true, item.CreatedAt); err != nil {
+			return fmt.Errorf("retain transaction URL: %w", err)
 		}
 	}
 	for _, item := range observations {
@@ -1091,8 +1177,10 @@ func (s *Store) ImportTransactions(ctx context.Context, targetID string, artifac
 		return err
 	}
 	defer tx.Rollback()
+	target := model.Target{ID: targetID}
 	var targetPK int64
-	if err := tx.QueryRowContext(ctx, `SELECT id FROM targets WHERE public_id=?`, targetID).Scan(&targetPK); err != nil {
+	if err := tx.QueryRowContext(ctx, `SELECT id, kind, value FROM targets WHERE public_id=?`, targetID).
+		Scan(&targetPK, &target.Kind, &target.Value); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ErrNotFound
 		}
@@ -1137,8 +1225,25 @@ VALUES(?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, item.ID, targetPK, item.Metho
 		if err != nil {
 			return fmt.Errorf("import transaction %s: %w", item.ID, err)
 		}
+		if err := upsertURL(ctx, tx, targetPK, target, item.URL, true, item.CreatedAt); err != nil {
+			return fmt.Errorf("retain transaction URL %s: %w", item.ID, err)
+		}
 	}
 	return tx.Commit()
+}
+
+func upsertURL(ctx context.Context, tx *sql.Tx, targetPK int64, target model.Target, rawURL string, visited bool, createdAt time.Time) error {
+	canonical, err := targetvalue.NormalizeURL(rawURL)
+	if err != nil {
+		return err
+	}
+	scope := targetvalue.URLInScope(target.Kind, target.Value, canonical)
+	_, err = tx.ExecContext(ctx, `
+INSERT INTO urls(target_id, url, visited, scope, created_at) VALUES(?, ?, ?, ?, ?)
+ON CONFLICT(target_id, url) DO UPDATE SET
+visited=MAX(urls.visited, excluded.visited), scope=excluded.scope`,
+		targetPK, canonical, visited, scope, formatTime(createdAt))
+	return err
 }
 
 func importedArtifactPK(artifacts map[string]int64, id string) (any, error) {
@@ -1532,6 +1637,7 @@ func (s *Store) GetTargetReport(ctx context.Context, targetID string) (model.Tar
 		Target:              target,
 		Tasks:               []model.Task{},
 		PluginOutputReviews: []model.PluginOutputReview{},
+		URLs:                []model.URL{},
 		Attempts:            []model.TaskAttempt{},
 		Events:              []model.TaskEvent{},
 		Artifacts:           []model.Artifact{},
@@ -1561,6 +1667,9 @@ func (s *Store) GetTargetReport(ctx context.Context, targetID string) (model.Tar
 	if report.Transactions, err = s.listTransactions(ctx, targetID, 0); err != nil {
 		return model.TargetReport{}, err
 	}
+	if report.URLs, err = s.ListTargetURLs(ctx, targetID); err != nil {
+		return model.TargetReport{}, err
+	}
 	if report.Observations, err = s.listObservations(ctx, targetID); err != nil {
 		return model.TargetReport{}, err
 	}
@@ -1586,6 +1695,7 @@ func (s *Store) GetSessionReport(ctx context.Context, sessionID string) (model.S
 		Runs:                []model.Run{},
 		Tasks:               []model.Task{},
 		PluginOutputReviews: []model.PluginOutputReview{},
+		URLs:                []model.URL{},
 		Attempts:            []model.TaskAttempt{},
 		Events:              []model.TaskEvent{},
 		Artifacts:           []model.Artifact{},
@@ -1614,6 +1724,9 @@ func (s *Store) GetSessionReport(ctx context.Context, sessionID string) (model.S
 	if report.Transactions, err = s.ListTransactions(ctx, sessionID, ""); err != nil {
 		return model.SessionReport{}, err
 	}
+	if report.URLs, err = s.listSessionURLs(ctx, sessionID); err != nil {
+		return model.SessionReport{}, err
+	}
 	if report.Observations, err = s.listSessionObservations(ctx, sessionID); err != nil {
 		return model.SessionReport{}, err
 	}
@@ -1630,7 +1743,7 @@ func (s *Store) GetSessionReport(ctx context.Context, sessionID string) (model.S
 func summarizeReport(report model.SessionReport) model.ReportSummary {
 	summary := model.ReportSummary{
 		Targets: len(report.Targets), Runs: len(report.Runs), Tasks: len(report.Tasks),
-		Attempts:     len(report.Attempts),
+		Attempts: len(report.Attempts), URLs: len(report.URLs),
 		Transactions: len(report.Transactions), Artifacts: len(report.Artifacts),
 		Observations: len(report.Observations), Findings: len(report.Findings),
 	}
@@ -1780,6 +1893,18 @@ WHERE s.public_id=? ORDER BY t.id DESC`, model.PluginOutputRankUnranked, session
 	return scanPluginOutputReviews(rows)
 }
 
+func (s *Store) listSessionURLs(ctx context.Context, sessionID string) ([]model.URL, error) {
+	rows, err := s.db.QueryContext(ctx, `
+SELECT tg.public_id, u.url, u.visited, u.scope, u.created_at
+FROM urls u JOIN targets tg ON tg.id=u.target_id JOIN sessions s ON s.id=tg.session_id
+WHERE s.public_id=? ORDER BY u.id DESC`, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return scanURLs(rows)
+}
+
 func (s *Store) listTargetTasks(ctx context.Context, targetID string) ([]model.Task, error) {
 	rows, err := s.db.QueryContext(ctx, `
 SELECT t.public_id, r.public_id, tg.public_id, t.plugin_id, t.status, t.error,
@@ -1910,6 +2035,103 @@ func (s *Store) ListTransactions(ctx context.Context, sessionID, targetID string
 	}
 	defer rows.Close()
 	return scanTransactions(rows)
+}
+
+// ListTargetURLs returns the target's deduplicated URL catalog newest first.
+func (s *Store) ListTargetURLs(ctx context.Context, targetID string) ([]model.URL, error) {
+	if _, err := s.GetTarget(ctx, targetID); err != nil {
+		return nil, err
+	}
+	rows, err := s.db.QueryContext(ctx, `
+SELECT tg.public_id, u.url, u.visited, u.scope, u.created_at
+FROM urls u JOIN targets tg ON tg.id=u.target_id
+WHERE tg.public_id=? ORDER BY u.id DESC`, targetID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return scanURLs(rows)
+}
+
+// URLFilter is a bounded search over one target's URL catalog.
+type URLFilter struct {
+	Search  string
+	Visited *bool
+	Scope   *bool
+	Limit   int
+	Offset  int
+}
+
+// SearchURLs returns a deterministic page of URLs owned by one target.
+func (s *Store) SearchURLs(ctx context.Context, targetID string, filter URLFilter) (model.URLSearchResult, error) {
+	if filter.Limit < 1 || filter.Limit > 1000 || filter.Offset < 0 {
+		return model.URLSearchResult{}, errors.New("invalid URL search bounds")
+	}
+	if _, err := s.GetTarget(ctx, targetID); err != nil {
+		return model.URLSearchResult{}, err
+	}
+	where := []string{"tg.public_id=?"}
+	args := []any{targetID}
+	result := model.URLSearchResult{Data: []model.URL{}}
+	if err := s.db.QueryRowContext(ctx, `
+SELECT COUNT(*) FROM urls u JOIN targets tg ON tg.id=u.target_id
+WHERE tg.public_id=?`, targetID).Scan(&result.RecordsTotal); err != nil {
+		return model.URLSearchResult{}, err
+	}
+	if filter.Search != "" {
+		where = append(where, "instr(lower(u.url), lower(?)) > 0")
+		args = append(args, filter.Search)
+	}
+	if filter.Visited != nil {
+		where = append(where, "u.visited=?")
+		args = append(args, *filter.Visited)
+	}
+	if filter.Scope != nil {
+		where = append(where, "u.scope=?")
+		args = append(args, *filter.Scope)
+	}
+	predicate := strings.Join(where, " AND ")
+	if err := s.db.QueryRowContext(ctx, `
+SELECT COUNT(*) FROM urls u JOIN targets tg ON tg.id=u.target_id
+WHERE `+predicate, args...).Scan(&result.RecordsFiltered); err != nil {
+		return model.URLSearchResult{}, err
+	}
+	queryArgs := append(append([]any(nil), args...), filter.Limit, filter.Offset)
+	rows, err := s.db.QueryContext(ctx, `
+SELECT tg.public_id, u.url, u.visited, u.scope, u.created_at
+FROM urls u JOIN targets tg ON tg.id=u.target_id
+WHERE `+predicate+` ORDER BY u.id DESC LIMIT ? OFFSET ?`, queryArgs...)
+	if err != nil {
+		return model.URLSearchResult{}, err
+	}
+	defer rows.Close()
+	result.Data, err = scanURLs(rows)
+	if err != nil {
+		return model.URLSearchResult{}, err
+	}
+	return result, nil
+}
+
+func scanURL(row rowScanner) (model.URL, error) {
+	var item model.URL
+	var created string
+	if err := row.Scan(&item.TargetID, &item.URL, &item.Visited, &item.Scope, &created); err != nil {
+		return model.URL{}, err
+	}
+	item.CreatedAt = parseTime(created)
+	return item, nil
+}
+
+func scanURLs(rows *sql.Rows) ([]model.URL, error) {
+	items := make([]model.URL, 0)
+	for rows.Next() {
+		item, err := scanURL(rows)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	return items, rows.Err()
 }
 
 // TransactionFilter is a bounded search over persisted HTTP transactions.

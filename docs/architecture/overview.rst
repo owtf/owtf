@@ -293,7 +293,10 @@ and SOCKS5 upstream proxies. Basic and Digest target authentication is scoped
 Phase 5 has a checked feature matrix, typed configuration shared by server and
 proxy startup, deterministic named plugin profiles, target scope and bounded
 search, complete session deletion, typed plugin inputs, and bounded persisted
-transaction search. Tasks retain ordered attempt history for normal execution
+transaction search. Per-target URL catalogs canonically deduplicate plugin
+discoveries and retained traffic, preserve the established visited and scope
+fields, and support bounded search through the API and CLI. Tasks retain
+ordered attempt history for normal execution
 and restart recovery. Failed and cancelled tasks remain terminal; an operator
 creates a new run when a technique must be repeated. Declarative external
 plugins retain curated manual guidance without sending target traffic, and

@@ -186,12 +186,14 @@ Evidence and reports
 --------------------
 
 Target reports retain tasks, attempts, logs, observations, findings,
-transactions, plugin output reviews, and artifact metadata::
+URLs, transactions, plugin output reviews, and artifact metadata::
 
   owtf targets report tgt_ID
   owtf sessions report ses_ID
   owtf plugin review tsk_ID
   owtf plugin review --rank high --notes "Verified manually" tsk_ID
+  owtf urls list --target tgt_ID
+  owtf urls search --target tgt_ID --search login --visited true --scope true
   owtf transactions list --session ses_ID --target tgt_ID
   owtf transactions list --target tgt_ID
   owtf transactions search --session ses_ID --search login --method POST --status 401
@@ -206,6 +208,14 @@ scanner evidence. Valid ranks are ``unranked``, ``passing``,
 ``informational``, ``low``, ``medium``, ``high``, and ``critical``. Running
 ``plugin review`` without review flags reads the current value. ``--notes=``
 clears notes. Only completed, failed, or cancelled tasks can be reviewed.
+
+Plugins add discovered HTTP and HTTPS URLs to the owning target's URL catalog;
+retained transactions add their URLs automatically. Repeated discoveries are
+canonically deduplicated. ``visited`` records whether traffic was retained and
+``scope`` uses the target's exact host or IP network. Deleting a transaction
+does not erase its URL catalog entry; deleting the target does. URL search is
+case-insensitive and supports ``visited``, ``scope``, ``limit``, and ``offset``
+filters.
 
 HAR import attaches transactions directly to the selected target. It does not
 create a plugin run, worklist task, or worker activity. OWTF retains the source

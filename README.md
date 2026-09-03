@@ -35,6 +35,9 @@ resulting evidence.
 - Worker state, task events, HTTP transactions, artifacts, observations, and
   findings stored in SQLite.
 - HAR transaction import with retained source, request, and response files.
+- Per-target URL catalogs for plugin discoveries and retained traffic, with
+  canonical deduplication, visited and scope classification, bounded search,
+  and report inclusion.
 - Bounded search and pagination over persisted transaction metadata.
 - An OWTF-owned HTTP/HTTPS interception proxy with a persistent CA, bounded HAR
   capture and cache, retries, WebSocket tunneling and frame transcripts, host

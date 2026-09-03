@@ -255,6 +255,22 @@ type TransactionSearchResult struct {
 	Data            []Transaction `json:"data"`
 }
 
+// URL is one canonical URL retained below an OWTF target.
+type URL struct {
+	TargetID  string    `json:"target_id"`
+	URL       string    `json:"url"`
+	Visited   bool      `json:"visited"`
+	Scope     bool      `json:"scope"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// URLSearchResult reports target and filtered totals for one bounded query.
+type URLSearchResult struct {
+	RecordsTotal    int   `json:"records_total"`
+	RecordsFiltered int   `json:"records_filtered"`
+	Data            []URL `json:"data"`
+}
+
 // Observation is a tool-produced fact that has not been promoted to a finding.
 type Observation struct {
 	ID            string    `json:"id"`
@@ -290,6 +306,7 @@ type ReportSummary struct {
 	Succeeded    int `json:"succeeded"`
 	Failed       int `json:"failed"`
 	Cancelled    int `json:"cancelled"`
+	URLs         int `json:"urls"`
 	Transactions int `json:"transactions"`
 	Artifacts    int `json:"artifacts"`
 	Observations int `json:"observations"`
@@ -301,6 +318,7 @@ type TargetReport struct {
 	Target              Target               `json:"target"`
 	Tasks               []Task               `json:"tasks"`
 	PluginOutputReviews []PluginOutputReview `json:"plugin_output_reviews"`
+	URLs                []URL                `json:"urls"`
 	Attempts            []TaskAttempt        `json:"attempts"`
 	Events              []TaskEvent          `json:"events"`
 	Artifacts           []Artifact           `json:"artifacts"`
@@ -318,6 +336,7 @@ type SessionReport struct {
 	Runs                []Run                `json:"runs"`
 	Tasks               []Task               `json:"tasks"`
 	PluginOutputReviews []PluginOutputReview `json:"plugin_output_reviews"`
+	URLs                []URL                `json:"urls"`
 	Attempts            []TaskAttempt        `json:"attempts"`
 	Events              []TaskEvent          `json:"events"`
 	Artifacts           []Artifact           `json:"artifacts"`

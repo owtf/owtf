@@ -291,6 +291,12 @@ CURL_REQUEST_ARTIFACT_ID=$(jq -r '.transactions[0].request_body_artifact_id' "${
 CURL_RESPONSE_ARTIFACT_ID=$(jq -r '.transactions[0].response_body_artifact_id' "${RESPONSE_FILE}")
 request GET "/api/v2/targets/${URL_TARGET_ID}/transactions/${CURL_IMPORTED_TRANSACTION_ID}" 200
 assert_json '.task_id == null and .method == "POST" and .status_code == 201 and .duration_ms == 9' 'imported transaction detail is incorrect'
+request GET "/api/v2/targets/${URL_TARGET_ID}/urls" 200
+assert_json 'length == 1 and .[0].target_id == $target and .[0].url == $url and .[0].visited == true and .[0].scope == true' 'imported transaction URL is incorrect' --arg target "${URL_TARGET_ID}" --arg url "${BASE_URL}/debug/health"
+request GET "/api/v2/targets/${URL_TARGET_ID}/urls/search?search=DEBUG&visited=true&scope=true&limit=1&offset=0" 200
+assert_json '.records_total == 1 and .records_filtered == 1 and (.data | length) == 1' 'URL search is incorrect'
+request GET "/api/v2/targets/${URL_TARGET_ID}/urls/search?visited=maybe" 400
+assert_json '.error == "visited must be true or false"' 'invalid URL search was accepted'
 request GET "/api/v2/artifacts/${CURL_SOURCE_ARTIFACT_ID}" 200
 cmp -s "${HAR_FILE}" "${RESPONSE_FILE}" || fail 'source HAR artifact differs from upload'
 request GET "/api/v2/artifacts/${CURL_REQUEST_ARTIFACT_ID}" 200
@@ -300,7 +306,7 @@ request GET "/api/v2/artifacts/${CURL_RESPONSE_ARTIFACT_ID}" 200
 request DELETE "/api/v2/targets/${URL_TARGET_ID}/transactions/${CURL_IMPORTED_TRANSACTION_ID}" 204
 request GET "/api/v2/targets/${URL_TARGET_ID}/transactions/${CURL_IMPORTED_TRANSACTION_ID}" 404
 request GET "/api/v2/targets/${URL_TARGET_ID}/report" 200
-assert_json '(.tasks | length) == 0 and (.transactions | length) == 0 and (.artifacts | length) == 0' 'transaction deletion left report records'
+assert_json '(.tasks | length) == 0 and (.transactions | length) == 0 and (.artifacts | length) == 0 and (.urls | length) == 1' 'transaction deletion removed its URL catalog entry or left evidence records'
 
 cli_json transactions import --target "${URL_TARGET_ID}" "${HAR_FILE}"
 jq -e '.imported == 1 and (.transactions | length == 1)' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI HAR import is incorrect'
@@ -312,6 +318,10 @@ request GET "/api/v2/targets/${URL_TARGET_ID}/transactions/${IMPORTED_TRANSACTIO
 assert_json '.task_id == null and .source_artifact_id == $source' 'CLI-imported transaction was not persisted' --arg source "${IMPORTED_SOURCE_ARTIFACT_ID}"
 request GET "/api/v2/targets/${URL_TARGET_ID}/transactions" 200
 assert_json 'length == 1 and .[0].id == $transaction' 'target transaction list is incorrect' --arg transaction "${IMPORTED_TRANSACTION_ID}"
+cli_json urls list --target "${URL_TARGET_ID}"
+jq -e --arg url "${BASE_URL}/debug/health" 'length == 1 and .[0].url == $url and .[0].visited == true and .[0].scope == true' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI URL list is incorrect'
+cli_json urls search --target "${URL_TARGET_ID}" --search debug --visited true --scope true --limit 1 --offset 0
+jq -e '.records_total == 1 and .records_filtered == 1 and (.data | length) == 1' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI URL search is incorrect'
 
 printf '%s\n' 'Checking plugin discovery and preflight failures...'
 request GET /api/v2/plugins 200
@@ -385,6 +395,7 @@ assert_json '.tasks | length == 2' 'target report is missing tasks'
 assert_json '[.tasks[].techniques[].code] | sort == ["OWTF-IG-004","OWTF-WSP-001"]' 'target report is missing immutable technique metadata'
 assert_json '.attempts | length == 2' 'target report is missing attempts'
 assert_json '.transactions | length == 2' 'target report is missing imported or plugin transactions'
+assert_json '(.urls | length) == 1 and .urls[0].visited == true and .urls[0].scope == true' 'target report is missing the deduplicated URL catalog'
 assert_json '.observations | length == 2' 'target report is missing observations'
 assert_json '.artifacts | length == 6' 'target report is missing retained artifacts'
 assert_json '(.plugin_output_reviews | length) == 2 and any(.plugin_output_reviews[]; .task_id == $task and .rank == "high" and .notes == "Verified from retained transaction evidence.")' 'target report is missing the plugin output review' --arg task "${INPUT_TASK_ID}"
@@ -407,15 +418,16 @@ assert_json 'length == 1 and .[0].id == $run and .[0].profile == "default" and .
 request GET "/api/v2/runs/${GROUP_RUN_ID}" 200
 assert_json '.profile == "default" and .status == "succeeded" and .finished_at != null' 'run was not finalized'
 request GET "/api/v2/sessions/${SESSION_ID}/report" 200
-assert_json '.summary.targets == 4 and .summary.runs == 1 and .summary.tasks == 2 and .summary.attempts == 2 and .summary.succeeded == 2 and .summary.transactions == 2 and .summary.artifacts == 6 and .summary.observations == 2' 'session report summary is incorrect'
+assert_json '.summary.targets == 4 and .summary.runs == 1 and .summary.tasks == 2 and .summary.attempts == 2 and .summary.succeeded == 2 and .summary.urls == 1 and .summary.transactions == 2 and .summary.artifacts == 6 and .summary.observations == 2' 'session report summary is incorrect'
 assert_json '(.plugin_output_reviews | length) == 2 and any(.plugin_output_reviews[]; .task_id == $task and .rank == "high")' 'session report is missing the plugin output review' --arg task "${INPUT_TASK_ID}"
 request GET "/api/v2/sessions/${SESSION_ID}/export" 200
 SESSION_REPORT_ZIP="${TMP_DIR}/session-report.zip"
 cp "${RESPONSE_FILE}" "${SESSION_REPORT_ZIP}"
 unzip -tqq "${SESSION_REPORT_ZIP}" || fail 'session report ZIP is invalid'
-unzip -p "${SESSION_REPORT_ZIP}" report.json | jq -e --arg id "${SESSION_ID}" --arg task "${INPUT_TASK_ID}" '.session.id == $id and .summary.tasks == 2 and any(.plugin_output_reviews[]; .task_id == $task and .rank == "high")' >/dev/null || fail 'session report JSON is incorrect'
+unzip -p "${SESSION_REPORT_ZIP}" report.json | jq -e --arg id "${SESSION_ID}" --arg task "${INPUT_TASK_ID}" '.session.id == $id and .summary.tasks == 2 and .summary.urls == 1 and (.urls | length) == 1 and any(.plugin_output_reviews[]; .task_id == $task and .rank == "high")' >/dev/null || fail 'session report JSON is incorrect'
 unzip -p "${SESSION_REPORT_ZIP}" index.html | grep -q 'What is that site running?' || fail 'offline report is missing technique metadata'
 unzip -p "${SESSION_REPORT_ZIP}" index.html | grep -q 'Verified from retained transaction evidence.' || fail 'offline report is missing the plugin output review'
+unzip -p "${SESSION_REPORT_ZIP}" index.html | grep -q '>URLs<' || fail 'offline report is missing the URL catalog'
 [[ $(unzip -Z1 "${SESSION_REPORT_ZIP}" | grep -c '^artifacts/') -eq 6 ]] || fail 'session report ZIP is missing artifacts'
 
 cli_json worklist --session "${SESSION_ID}"
@@ -431,13 +443,13 @@ jq -e 'length == 1 and .[0].attempt_number == 1 and .[0].status == "succeeded"' 
 cli_json tasks logs "${GROUP_TASK_IDS[0]}"
 jq -e 'length >= 3' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI task logs are incomplete'
 cli_json targets report "${URL_TARGET_ID}"
-jq -e --arg task "${INPUT_TASK_ID}" '(.tasks | length == 2) and ([.tasks[].techniques[].code] | sort == ["OWTF-IG-004","OWTF-WSP-001"]) and any(.plugin_output_reviews[]; .task_id == $task and .rank == "high")' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI target report is incomplete'
+jq -e --arg task "${INPUT_TASK_ID}" '(.tasks | length == 2) and (.urls | length == 1) and ([.tasks[].techniques[].code] | sort == ["OWTF-IG-004","OWTF-WSP-001"]) and any(.plugin_output_reviews[]; .task_id == $task and .rank == "high")' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI target report is incomplete'
 cli_json runs list --session "${SESSION_ID}"
 jq -e --arg run "${GROUP_RUN_ID}" 'length == 1 and .[0].id == $run and .[0].status == "succeeded"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI run history is incorrect'
 cli_json runs show "${GROUP_RUN_ID}"
 jq -e '.status == "succeeded" and .finished_at != null' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI run state is incorrect'
 cli_json sessions report "${SESSION_ID}"
-jq -e --arg task "${INPUT_TASK_ID}" '.summary.tasks == 2 and .summary.transactions == 2 and .summary.artifacts == 6 and any(.plugin_output_reviews[]; .task_id == $task and .rank == "high")' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI session report is incomplete'
+jq -e --arg task "${INPUT_TASK_ID}" '.summary.tasks == 2 and .summary.urls == 1 and .summary.transactions == 2 and .summary.artifacts == 6 and any(.plugin_output_reviews[]; .task_id == $task and .rank == "high")' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI session report is incomplete'
 CLI_REPORT_ZIP="${TMP_DIR}/cli-session-report.zip"
 cli_json sessions export --output "${CLI_REPORT_ZIP}" "${SESSION_ID}"
 jq -e --arg output "${CLI_REPORT_ZIP}" '.output == $output and .bytes > 0' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI session export result is incorrect'
@@ -459,6 +471,8 @@ request GET "/api/v2/artifacts/${IMPORTED_REQUEST_ARTIFACT_ID}" 404
 request GET "/api/v2/artifacts/${IMPORTED_RESPONSE_ARTIFACT_ID}" 404
 request GET "/api/v2/transactions?session_id=${SESSION_ID}" 200
 assert_json 'length == 1 and .[0].status_code == 200' 'transaction deletion removed plugin traffic or retained imported traffic'
+request GET "/api/v2/targets/${URL_TARGET_ID}/urls" 200
+assert_json 'length == 1' 'transaction deletion removed the deduplicated URL catalog'
 
 cli_json runs create --session "${SESSION_ID}" --target "${URL_TARGET_ID}" --group web --type active --profile default
 [[ $(jq -r '.run.profile' "${CLI_RESPONSE_FILE}") == 'default' ]] || fail 'CLI run did not persist its profile'
@@ -576,6 +590,7 @@ done
 request GET "/api/v2/sessions/${SESSION_ID}/targets" 200
 assert_json 'length == 0' 'targets survived deletion'
 request GET "/api/v2/targets/${URL_TARGET_ID}/report" 404
+request GET "/api/v2/targets/${URL_TARGET_ID}/urls" 404
 request GET "/api/v2/tasks?session_id=${SESSION_ID}" 200
 assert_json 'length == 0' 'tasks survived target deletion'
 request GET "/api/v2/transactions?session_id=${SESSION_ID}" 200

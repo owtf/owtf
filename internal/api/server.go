@@ -78,6 +78,8 @@ func New(config Config) http.Handler {
 	mux.HandleFunc("PATCH /api/v2/targets/{targetID}", server.updateTarget)
 	mux.HandleFunc("DELETE /api/v2/targets/{targetID}", server.deleteTarget)
 	mux.HandleFunc("GET /api/v2/targets/{targetID}/report", server.targetReport)
+	mux.HandleFunc("GET /api/v2/targets/{targetID}/urls", server.listURLs)
+	mux.HandleFunc("GET /api/v2/targets/{targetID}/urls/search", server.searchURLs)
 	mux.HandleFunc("GET /api/v2/plugins", server.listPlugins)
 	mux.HandleFunc("GET /api/v2/profiles", server.listProfiles)
 	mux.HandleFunc("GET /api/v2/profiles/{profileName}", server.getProfile)
@@ -621,6 +623,27 @@ func (s *Server) updatePluginOutputReview(w http.ResponseWriter, r *http.Request
 	writeJSON(w, http.StatusOK, review)
 }
 
+func (s *Server) listURLs(w http.ResponseWriter, r *http.Request) {
+	items, err := s.store.ListTargetURLs(r.Context(), r.PathValue("targetID"))
+	if s.handleStoreError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, items)
+}
+
+func (s *Server) searchURLs(w http.ResponseWriter, r *http.Request) {
+	filter, err := urlFilter(r)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	result, err := s.store.SearchURLs(r.Context(), r.PathValue("targetID"), filter)
+	if s.handleStoreError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
 func (s *Server) listTransactions(w http.ResponseWriter, r *http.Request) {
 	sessionID := r.URL.Query().Get("session_id")
 	if sessionID == "" {
@@ -895,14 +918,10 @@ func targetFilter(r *http.Request) (store.TargetFilter, error) {
 	if filter.Kind != "" && filter.Kind != "url" && filter.Kind != "hostname" && filter.Kind != "ip" && filter.Kind != "cidr" {
 		return store.TargetFilter{}, errors.New("kind must be url, hostname, ip, or cidr")
 	}
-	if value := query.Get("scope"); value != "" {
-		if value != "true" && value != "false" {
-			return store.TargetFilter{}, errors.New("scope must be true or false")
-		}
-		parsed := value == "true"
-		filter.Scope = &parsed
-	}
 	var err error
+	if filter.Scope, err = optionalBoolean("scope", query.Get("scope")); err != nil {
+		return store.TargetFilter{}, err
+	}
 	if value := query.Get("limit"); value != "" {
 		filter.Limit, err = strconv.Atoi(value)
 		if err != nil || filter.Limit < 1 || filter.Limit > 1000 {
@@ -916,6 +935,55 @@ func targetFilter(r *http.Request) (store.TargetFilter, error) {
 		}
 	}
 	return filter, nil
+}
+
+func urlFilter(r *http.Request) (store.URLFilter, error) {
+	query := r.URL.Query()
+	for key := range query {
+		switch key {
+		case "search", "visited", "scope", "limit", "offset":
+		default:
+			return store.URLFilter{}, fmt.Errorf("unknown query parameter %q", key)
+		}
+		if len(query[key]) != 1 {
+			return store.URLFilter{}, fmt.Errorf("query parameter %q must appear once", key)
+		}
+	}
+	filter := store.URLFilter{Search: strings.TrimSpace(query.Get("search")), Limit: 100}
+	if len(filter.Search) > 512 {
+		return store.URLFilter{}, errors.New("search must not exceed 512 characters")
+	}
+	var err error
+	if filter.Visited, err = optionalBoolean("visited", query.Get("visited")); err != nil {
+		return store.URLFilter{}, err
+	}
+	if filter.Scope, err = optionalBoolean("scope", query.Get("scope")); err != nil {
+		return store.URLFilter{}, err
+	}
+	if value := query.Get("limit"); value != "" {
+		filter.Limit, err = strconv.Atoi(value)
+		if err != nil || filter.Limit < 1 || filter.Limit > 1000 {
+			return store.URLFilter{}, errors.New("limit must be between 1 and 1000")
+		}
+	}
+	if value := query.Get("offset"); value != "" {
+		filter.Offset, err = strconv.Atoi(value)
+		if err != nil || filter.Offset < 0 {
+			return store.URLFilter{}, errors.New("offset must be zero or greater")
+		}
+	}
+	return filter, nil
+}
+
+func optionalBoolean(name, value string) (*bool, error) {
+	if value == "" {
+		return nil, nil
+	}
+	if value != "true" && value != "false" {
+		return nil, fmt.Errorf("%s must be true or false", name)
+	}
+	parsed := value == "true"
+	return &parsed, nil
 }
 
 func transactionFilter(r *http.Request, ownership bool) (store.TransactionFilter, error) {

@@ -48,12 +48,18 @@ func TestImportBrowseAndDeleteHARTransactions(t *testing.T) {
 	defer server.Close()
 
 	ctx := context.Background()
-	session, _ := database.CreateSession(ctx, "Imported traffic")
+	session, err := database.CreateSession(ctx, "Imported traffic")
+	if err != nil {
+		t.Fatal(err)
+	}
 	normalized, err := targetvalue.Normalize("https://example.test")
 	if err != nil {
 		t.Fatal(err)
 	}
-	added, _ := database.AddTargets(ctx, session.ID, []targetvalue.Normalized{normalized})
+	added, err := database.AddTargets(ctx, session.ID, []targetvalue.Normalized{normalized})
+	if err != nil {
+		t.Fatal(err)
+	}
 	targetID := added.Created[0].ID
 	harData := []byte(`{"log":{"version":"1.2","entries":[{
   "startedDateTime":"2026-09-02T10:11:12Z","time":8.4,
@@ -112,11 +118,11 @@ func TestImportBrowseAndDeleteHARTransactions(t *testing.T) {
 		}
 	}
 	report := requestJSON[model.TargetReport](t, server.Client(), http.MethodGet, server.URL+"/api/v2/targets/"+targetID+"/report", nil, http.StatusOK)
-	if len(report.Tasks) != 0 || len(report.Transactions) != 1 || len(report.Artifacts) != 3 {
+	if len(report.Tasks) != 0 || len(report.URLs) != 1 || len(report.Transactions) != 1 || len(report.Artifacts) != 3 {
 		t.Fatalf("imported target report is incomplete: %+v", report)
 	}
 	sessionReport := requestJSON[model.SessionReport](t, server.Client(), http.MethodGet, server.URL+"/api/v2/sessions/"+session.ID+"/report", nil, http.StatusOK)
-	if sessionReport.Summary.Tasks != 0 || sessionReport.Summary.Attempts != 0 || sessionReport.Summary.Transactions != 1 || sessionReport.Summary.Artifacts != 3 {
+	if sessionReport.Summary.Tasks != 0 || sessionReport.Summary.Attempts != 0 || sessionReport.Summary.URLs != 1 || sessionReport.Summary.Transactions != 1 || sessionReport.Summary.Artifacts != 3 {
 		t.Fatalf("imported session report is incorrect: %+v", sessionReport.Summary)
 	}
 	deleteRequest, _ := http.NewRequest(http.MethodDelete,
@@ -130,7 +136,7 @@ func TestImportBrowseAndDeleteHARTransactions(t *testing.T) {
 		t.Fatalf("delete status=%d, want %d", deleteResponse.StatusCode, http.StatusNoContent)
 	}
 	report = requestJSON[model.TargetReport](t, server.Client(), http.MethodGet, server.URL+"/api/v2/targets/"+targetID+"/report", nil, http.StatusOK)
-	if len(report.Transactions) != 0 || len(report.Artifacts) != 0 {
+	if len(report.URLs) != 1 || len(report.Transactions) != 0 || len(report.Artifacts) != 0 {
 		t.Fatalf("deleted transaction remains in report: %+v", report)
 	}
 }
@@ -226,7 +232,9 @@ func TestTargetScanPersistsReportAndSupportsDeletion(t *testing.T) {
 	receivedInputs := make(chan map[string]any, 1)
 	catalog.RegisterBuiltin("http-collector", func(ctx context.Context, request plugin.Request) (plugin.Result, error) {
 		receivedInputs <- request.Inputs
-		return collector(ctx, request)
+		result, err := collector(ctx, request)
+		result.URLs = append(result.URLs, plugin.URLResult{URL: targetServer.URL + "/discovered", Visited: false})
+		return result, err
 	})
 	entries := catalog.Entries()
 	if err := database.ReplacePlugins(context.Background(), []model.Plugin{entries[0].Plugin()}); err != nil {
@@ -315,6 +323,18 @@ func TestTargetScanPersistsReportAndSupportsDeletion(t *testing.T) {
 
 	report := requestJSON[model.TargetReport](t, server.Client(), http.MethodGet, server.URL+"/api/v2/targets/"+target.ID+"/report", nil, http.StatusOK)
 	assertReport(t, report)
+	urls := requestJSON[[]model.URL](t, server.Client(), http.MethodGet, server.URL+"/api/v2/targets/"+target.ID+"/urls", nil, http.StatusOK)
+	if len(urls) != 2 || urls[0].TargetID != target.ID || !urls[0].Visited || !urls[0].Scope || urls[1].Visited || !urls[1].Scope {
+		t.Fatalf("unexpected URL catalog: %+v", urls)
+	}
+	urlSearch := requestJSON[model.URLSearchResult](t, server.Client(), http.MethodGet,
+		server.URL+"/api/v2/targets/"+target.ID+"/urls/search?search=discovered&visited=false&scope=true&limit=1&offset=0", nil, http.StatusOK)
+	if urlSearch.RecordsTotal != 2 || urlSearch.RecordsFiltered != 1 || len(urlSearch.Data) != 1 || urlSearch.Data[0].Visited {
+		t.Fatalf("unexpected URL search: %+v", urlSearch)
+	}
+	requestJSON[map[string]string](t, server.Client(), http.MethodGet, server.URL+"/api/v2/targets/"+target.ID+"/urls/search?scope=maybe", nil, http.StatusBadRequest)
+	requestJSON[map[string]string](t, server.Client(), http.MethodGet, server.URL+"/api/v2/targets/"+target.ID+"/urls/search?unknown=true", nil, http.StatusBadRequest)
+	requestJSON[map[string]string](t, server.Client(), http.MethodGet, server.URL+"/api/v2/targets/tgt_missing/urls", nil, http.StatusNotFound)
 	runs := requestJSON[[]model.Run](t, server.Client(), http.MethodGet, server.URL+"/api/v2/runs?session_id="+session.ID, nil, http.StatusOK)
 	if len(runs) != 1 || runs[0].ID != runResult.Run.ID || runs[0].Status != model.RunSucceeded {
 		t.Fatalf("unexpected run list: %+v", runs)
@@ -326,7 +346,7 @@ func TestTargetScanPersistsReportAndSupportsDeletion(t *testing.T) {
 	sessionReport := requestJSON[model.SessionReport](t, server.Client(), http.MethodGet, server.URL+"/api/v2/sessions/"+session.ID+"/report", nil, http.StatusOK)
 	if sessionReport.Summary.Targets != 1 || sessionReport.Summary.Runs != 1 || sessionReport.Summary.Tasks != 1 || sessionReport.Summary.Attempts != 1 ||
 		sessionReport.Summary.Succeeded != 1 || sessionReport.Summary.Transactions != 1 ||
-		sessionReport.Summary.Artifacts != 1 || sessionReport.Summary.Observations != 1 || len(sessionReport.PluginOutputReviews) != 1 ||
+		sessionReport.Summary.URLs != 2 || sessionReport.Summary.Artifacts != 1 || sessionReport.Summary.Observations != 1 || len(sessionReport.PluginOutputReviews) != 1 ||
 		sessionReport.PluginOutputReviews[0].Rank != model.PluginOutputRankHigh {
 		t.Fatalf("unexpected session report summary: %+v", sessionReport.Summary)
 	}
@@ -695,6 +715,9 @@ func assertReport(t *testing.T, report model.TargetReport) {
 	}
 	if len(report.Transactions) != 1 || report.Transactions[0].StatusCode != http.StatusCreated {
 		t.Fatalf("unexpected transactions: %+v", report.Transactions)
+	}
+	if len(report.URLs) != 2 || report.URLs[0].TargetID != report.Target.ID || report.URLs[0].URL != report.Transactions[0].URL || !report.URLs[0].Visited || !report.URLs[0].Scope || report.URLs[1].Visited || !report.URLs[1].Scope {
+		t.Fatalf("unexpected URLs: %+v", report.URLs)
 	}
 	if len(report.Artifacts) != 1 || len(report.Observations) != 1 {
 		t.Fatalf("missing evidence: artifacts=%d observations=%d", len(report.Artifacts), len(report.Observations))

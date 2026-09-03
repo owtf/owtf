@@ -87,6 +87,14 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 			}
 			pluginReviewRequests++
 			writeTestJSON(t, w, map[string]string{"task_id": "tsk_1", "rank": *input.Rank, "notes": *input.Notes})
+		case "GET /api/v2/targets/tgt_1/urls":
+			writeTestJSON(t, w, []map[string]any{{"target_id": "tgt_1", "url": "https://example.test/", "visited": true, "scope": true}})
+		case "GET /api/v2/targets/tgt_1/urls/search":
+			query := r.URL.Query()
+			if query.Get("search") != "login" || query.Get("visited") != "true" || query.Get("scope") != "false" || query.Get("limit") != "25" || query.Get("offset") != "5" {
+				t.Fatalf("unexpected URL search query: %s", r.URL.RawQuery)
+			}
+			writeTestJSON(t, w, map[string]any{"records_total": 1, "records_filtered": 1, "data": []map[string]any{}})
 		case "GET /api/v2/profiles":
 			writeTestJSON(t, w, []map[string]any{{"name": "default", "plugins": []string{"OWTF-WSP-001-active"}}})
 		case "GET /api/v2/profiles/default":
@@ -218,6 +226,8 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		{"tasks", "attempts", "tsk_1"},
 		{"tasks", "logs", "tsk_1"},
 		{"tasks", "cancel", "tsk_1"},
+		{"urls", "list", "--target", "tgt_1"},
+		{"urls", "search", "--target", "tgt_1", "--search", "login", "--visited", "true", "--scope", "false", "--limit", "25", "--offset", "5"},
 		{"transactions", "list", "--session", "ses_1", "--target", "tgt_1"},
 		{"transactions", "list", "--target", "tgt_1"},
 		{"transactions", "search", "--session", "ses_1", "--target", "tgt_1", "--search", "example", "--method", "post", "--status", "201", "--limit", "25", "--offset", "5"},
@@ -293,6 +303,7 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		"POST /api/v2/runs", "GET /api/v2/runs", "GET /api/v2/runs/run_1", "GET /api/v2/tasks", "GET /api/v2/workers",
 		"GET /api/v2/tasks/tsk_1/attempts", "GET /api/v2/tasks/tsk_1/events",
 		"POST /api/v2/tasks/tsk_1/cancel",
+		"GET /api/v2/targets/tgt_1/urls", "GET /api/v2/targets/tgt_1/urls/search",
 		"GET /api/v2/transactions", "GET /api/v2/targets/tgt_1/transactions",
 		"GET /api/v2/transactions/search", "GET /api/v2/targets/tgt_1/transactions/search",
 		"POST /api/v2/targets/tgt_1/transactions/import",

@@ -113,6 +113,8 @@ func Run(ctx context.Context, args []string, out, errOut io.Writer) error {
 		return application.tasks(ctx, commandArgs)
 	case "transactions":
 		return application.transactions(ctx, commandArgs)
+	case "urls":
+		return application.urls(ctx, commandArgs)
 	case "artifacts":
 		return application.artifacts(ctx, commandArgs)
 	case "help":
@@ -635,6 +637,58 @@ func (a *app) tasks(ctx context.Context, args []string) error {
 	}
 }
 
+func (a *app) urls(ctx context.Context, args []string) error {
+	if len(args) == 0 {
+		return errors.New("urls requires list or search")
+	}
+	switch args[0] {
+	case "list":
+		flags := a.flags("urls list")
+		targetID := flags.String("target", "", "target ID")
+		if err := flags.Parse(args[1:]); err != nil {
+			return err
+		}
+		if *targetID == "" || flags.NArg() != 0 {
+			return errors.New("usage: owtf urls list --target TARGET_ID")
+		}
+		return a.proxyJSON(ctx, http.MethodGet, "/api/v2/targets/"+pathSegment(*targetID)+"/urls", nil)
+	case "search":
+		flags := a.flags("urls search")
+		targetID := flags.String("target", "", "target ID")
+		search := flags.String("search", "", "URL substring")
+		visited := flags.String("visited", "", "visited filter: true or false")
+		scope := flags.String("scope", "", "scope filter: true or false")
+		limit := flags.Int("limit", 100, "maximum URLs to return")
+		offset := flags.Int("offset", 0, "URLs to skip")
+		if err := flags.Parse(args[1:]); err != nil {
+			return err
+		}
+		if *targetID == "" || flags.NArg() != 0 {
+			return errors.New("usage: owtf urls search --target TARGET_ID [--search TEXT] [--visited BOOL] [--scope BOOL] [--limit N] [--offset N]")
+		}
+		if (*visited != "" && *visited != "true" && *visited != "false") || (*scope != "" && *scope != "true" && *scope != "false") {
+			return errors.New("--visited and --scope must be true or false")
+		}
+		if *limit < 1 || *limit > 1000 || *offset < 0 {
+			return errors.New("--limit must be between 1 and 1000 and --offset must be zero or greater")
+		}
+		query := url.Values{"limit": {strconv.Itoa(*limit)}, "offset": {strconv.Itoa(*offset)}}
+		if *search != "" {
+			query.Set("search", *search)
+		}
+		if *visited != "" {
+			query.Set("visited", *visited)
+		}
+		if *scope != "" {
+			query.Set("scope", *scope)
+		}
+		path := "/api/v2/targets/" + pathSegment(*targetID) + "/urls/search"
+		return a.proxyJSON(ctx, http.MethodGet, withQuery(path, query), nil)
+	default:
+		return fmt.Errorf("unknown urls command %q", args[0])
+	}
+}
+
 func (a *app) transactions(ctx context.Context, args []string) error {
 	if len(args) == 0 {
 		return errors.New("transactions requires list, search, show, delete, or import")
@@ -961,6 +1015,8 @@ Usage:
   owtf [--url URL] worklist [--session ID] [--status STATUS]
   owtf [--url URL] workers
   owtf [--url URL] tasks show|attempts|logs|cancel ID
+  owtf [--url URL] urls list --target TARGET_ID
+  owtf [--url URL] urls search --target TARGET_ID [--search TEXT] [--visited BOOL] [--scope BOOL] [--limit N] [--offset N]
   owtf [--url URL] transactions list (--session ID | --target ID)
   owtf [--url URL] transactions search (--session ID | --target ID) [--search TEXT] [--method METHOD] [--status CODE] [--limit N] [--offset N]
   owtf [--url URL] transactions show|delete --target TARGET_ID TRANSACTION_ID

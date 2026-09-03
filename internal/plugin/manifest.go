@@ -174,6 +174,13 @@ type TransactionResult struct {
 	DurationMS               int64
 }
 
+// URLResult is one URL discovered by a plugin. Visited is true only when the
+// plugin fetched the URL; retained transactions set it automatically.
+type URLResult struct {
+	URL     string
+	Visited bool
+}
+
 // ObservationResult is a factual plugin output that is not yet a finding.
 type ObservationResult struct {
 	TechniqueCode string
@@ -192,6 +199,7 @@ type FindingResult struct {
 // Result contains all structured output produced by one plugin execution.
 type Result struct {
 	Artifacts    []ArtifactResult
+	URLs         []URLResult
 	Transactions []TransactionResult
 	Observations []ObservationResult
 	Findings     []FindingResult

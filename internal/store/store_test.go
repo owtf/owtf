@@ -52,6 +52,10 @@ INSERT INTO http_exchanges VALUES(1, 'txn_old', 1, 1, 'GET', 'https://example.te
 	if len(transactions) != 1 || transactions[0].ID != "txn_old" || transactions[0].TaskID != "tsk_old" || transactions[0].ResponseBodyArtifactID != "art_old" {
 		t.Fatalf("transaction was not migrated: %+v", transactions)
 	}
+	urls, err := database.ListTargetURLs(context.Background(), "tgt_old")
+	if err != nil || len(urls) != 1 || urls[0].URL != "https://example.test/" || !urls[0].Visited || !urls[0].Scope {
+		t.Fatalf("transaction URL was not migrated: urls=%+v err=%v", urls, err)
+	}
 	run, err := database.GetRun(context.Background(), "run_old")
 	if err != nil || run.Profile != "" {
 		t.Fatalf("run profile was not migrated: run=%+v err=%v", run, err)
@@ -116,6 +120,10 @@ func TestImportAndDeleteTargetTransactions(t *testing.T) {
 	if _, err := database.ListTargetTransactionsBounded(ctx, targetID, 0); err == nil {
 		t.Fatal("non-positive transaction bound was accepted")
 	}
+	urls, err := database.ListTargetURLs(ctx, targetID)
+	if err != nil || len(urls) != 1 || urls[0].URL != transaction.URL || !urls[0].Visited || !urls[0].Scope {
+		t.Fatalf("transaction URL was not retained: urls=%+v err=%v", urls, err)
+	}
 	if tasks, _ := database.ListTasks(ctx, session.ID, ""); len(tasks) != 0 {
 		t.Fatalf("transaction import created worklist tasks: %+v", tasks)
 	}
@@ -123,8 +131,50 @@ func TestImportAndDeleteTargetTransactions(t *testing.T) {
 		t.Fatal(err)
 	}
 	report, err = database.GetTargetReport(ctx, targetID)
-	if err != nil || len(report.Artifacts) != 0 || len(report.Transactions) != 0 {
+	if err != nil || len(report.Artifacts) != 0 || len(report.Transactions) != 0 || len(report.URLs) != 1 {
 		t.Fatalf("transaction deletion left imported records: report=%+v err=%v", report, err)
+	}
+}
+
+func TestSearchURLs(t *testing.T) {
+	database, err := Open(filepath.Join(t.TempDir(), "owtf.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	ctx := context.Background()
+	session, err := database.CreateSession(ctx, "URLs")
+	if err != nil {
+		t.Fatal(err)
+	}
+	targetID := addTestTarget(t, database, session.ID, "https://one.example/root")
+	now := time.Now().UTC()
+	transactions := []model.Transaction{
+		{ID: "txn_inside", TargetID: targetID, Method: "GET", URL: "HTTPS://ONE.EXAMPLE:443/path#first", RequestHeaders: `{}`, StatusCode: 200, ResponseHeaders: `{}`, CreatedAt: now},
+		{ID: "txn_duplicate", TargetID: targetID, Method: "GET", URL: "https://one.example/path#second", RequestHeaders: `{}`, StatusCode: 200, ResponseHeaders: `{}`, CreatedAt: now.Add(time.Second)},
+		{ID: "txn_outside", TargetID: targetID, Method: "GET", URL: "https://outside.example/path", RequestHeaders: `{}`, StatusCode: 200, ResponseHeaders: `{}`, CreatedAt: now.Add(2 * time.Second)},
+	}
+	if err := database.ImportTransactions(ctx, targetID, nil, transactions); err != nil {
+		t.Fatal(err)
+	}
+	urls, err := database.ListTargetURLs(ctx, targetID)
+	if err != nil || len(urls) != 2 || urls[0].URL != "https://outside.example/path" || urls[0].Scope || urls[1].URL != "https://one.example/path" || !urls[1].Scope {
+		t.Fatalf("unexpected URL catalog: urls=%+v err=%v", urls, err)
+	}
+	visited, scope := true, true
+	result, err := database.SearchURLs(ctx, targetID, URLFilter{Search: "PATH", Visited: &visited, Scope: &scope, Limit: 1})
+	if err != nil || result.RecordsTotal != 2 || result.RecordsFiltered != 1 || len(result.Data) != 1 || result.Data[0].URL != "https://one.example/path" {
+		t.Fatalf("unexpected URL search: result=%+v err=%v", result, err)
+	}
+	result, err = database.SearchURLs(ctx, targetID, URLFilter{Limit: 1, Offset: 1})
+	if err != nil || result.RecordsFiltered != 2 || len(result.Data) != 1 || result.Data[0].URL != "https://one.example/path" {
+		t.Fatalf("unexpected URL page: result=%+v err=%v", result, err)
+	}
+	if _, err := database.SearchURLs(ctx, targetID, URLFilter{}); err == nil {
+		t.Fatal("invalid URL search bounds were accepted")
+	}
+	if _, err := database.ListTargetURLs(ctx, "tgt_missing"); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("missing target URL list error = %v, want not found", err)
 	}
 }
 
@@ -412,7 +462,7 @@ func TestBlockedPluginRemainsVisibleInWorklistAndRun(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := database.CompleteTask(ctx, execution, nil, nil, nil, nil); err != nil {
+	if err := database.CompleteTask(ctx, execution, nil, nil, nil, nil, nil); err != nil {
 		t.Fatal(err)
 	}
 	finished, err := database.GetRun(ctx, run.ID)
@@ -465,7 +515,7 @@ func TestRecoverTasksPreservesAttemptHistory(t *testing.T) {
 	if second.AttemptNumber != 2 || second.AttemptID == first.AttemptID {
 		t.Fatalf("unexpected second attempt: %+v", second)
 	}
-	if err := database.CompleteTask(ctx, second, nil, nil, nil, nil); err != nil {
+	if err := database.CompleteTask(ctx, second, nil, nil, nil, nil, nil); err != nil {
 		t.Fatal(err)
 	}
 	attempts, err := database.ListTaskAttempts(ctx, tasks[0].ID)
@@ -529,7 +579,7 @@ func TestPluginOutputReviewIsSeparateFromTerminalTaskEvidence(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := database.CompleteTask(ctx, execution, nil, nil, nil, nil); err != nil {
+	if err := database.CompleteTask(ctx, execution, nil, nil, nil, nil, nil); err != nil {
 		t.Fatal(err)
 	}
 	invalid := "urgent"

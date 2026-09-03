@@ -42,7 +42,7 @@ func TestWriteSessionArchiveIncludesPortableEvidence(t *testing.T) {
 	}
 	session := model.SessionReport{
 		Session: model.Session{ID: "ses_1", Name: "Escaping <script>alert(1)</script>", CreatedAt: now},
-		Summary: model.ReportSummary{Targets: 1, Runs: 1, Tasks: 1, Attempts: 1, Succeeded: 1, Transactions: 1, Artifacts: 1, Observations: 2},
+		Summary: model.ReportSummary{Targets: 1, Runs: 1, Tasks: 1, Attempts: 1, Succeeded: 1, URLs: 1, Transactions: 1, Artifacts: 1, Observations: 2},
 		Targets: []model.Target{{ID: "tgt_1", SessionID: "ses_1", Kind: "url", Value: "https://example.test/?q=<script>", CreatedAt: now}},
 		Tasks: []model.Task{{
 			ID: "tsk_1", RunID: "run_1", TargetID: "tgt_1", PluginID: "OWTF-WSP-001-active",
@@ -52,6 +52,7 @@ func TestWriteSessionArchiveIncludesPortableEvidence(t *testing.T) {
 		PluginOutputReviews: []model.PluginOutputReview{{
 			TaskID: "tsk_1", Rank: model.PluginOutputRankHigh, Notes: "Verified manually <script>alert(2)</script>", UpdatedAt: &now,
 		}},
+		URLs: []model.URL{{TargetID: "tgt_1", URL: "https://example.test/path?q=<tag>", Visited: true, Scope: true, CreatedAt: now}},
 		Attempts: []model.TaskAttempt{{
 			ID: "att_1", TaskID: "tsk_1", AttemptNumber: 1, Status: model.TaskSucceeded, StartedAt: now, EndedAt: &now,
 		}},
@@ -122,11 +123,15 @@ func TestWriteSessionArchiveIncludesPortableEvidence(t *testing.T) {
 		strings.Contains(string(files["index.html"]), "Verified manually <script>") {
 		t.Fatal("offline report omitted or unsafely rendered plugin output review")
 	}
+	if !strings.Contains(string(files["index.html"]), "https://example.test/path?q=&lt;tag&gt;") ||
+		!strings.Contains(string(files["index.html"]), ">URLs</") {
+		t.Fatal("offline report omitted the URL catalog")
+	}
 	var decoded model.SessionReport
 	if err := json.Unmarshal(files["report.json"], &decoded); err != nil {
 		t.Fatal(err)
 	}
-	if decoded.Session.ID != session.Session.ID || len(decoded.Attempts) != 1 || len(decoded.PluginOutputReviews) != 1 || len(decoded.Artifacts) != 1 || len(decoded.Observations) != 2 || len(decoded.Transactions) != 1 {
+	if decoded.Session.ID != session.Session.ID || decoded.Summary.URLs != 1 || len(decoded.URLs) != 1 || len(decoded.Attempts) != 1 || len(decoded.PluginOutputReviews) != 1 || len(decoded.Artifacts) != 1 || len(decoded.Observations) != 2 || len(decoded.Transactions) != 1 {
 		t.Fatalf("unexpected JSON report: %+v", decoded)
 	}
 	var metadata manifest
