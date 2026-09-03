@@ -8,6 +8,7 @@ human-readable form.
 """
 import datetime
 import math
+import time
 
 from owtf.settings import DATE_TIME_FORMAT
 
@@ -31,6 +32,7 @@ class Timer(object):
         """
         self.timers[offset] = {}
         self.timers[offset]["start"] = self.get_current_date_time()
+        self.timers[offset]["monotonic_start"] = time.monotonic()
         return self.timers[offset]["start"]
 
     def get_current_date_time_as_str(self):
@@ -51,14 +53,18 @@ class Timer(object):
         return datetime.datetime.now()
 
     def get_elapsed_time(self, offset="0"):
-        """Gets the time elapsed between now and start of the timer in Unix epoch
+        """Gets the time elapsed since the timer was started.
+
+        Uses time.monotonic() so the result is unaffected by NTP steps,
+        DST transitions, or manual clock adjustments.
 
         :param offset: Timer index
         :type offset: `str`
         :return: Time difference
-        :rtype: `datetime`
+        :rtype: `datetime.timedelta`
         """
-        return datetime.datetime.now() - self.timers[offset]["start"]
+        elapsed_seconds = time.monotonic() - self.timers[offset]["monotonic_start"]
+        return datetime.timedelta(seconds=elapsed_seconds)
 
     def get_time_as_str(self, timedelta):
         """Get the time difference as a human readable string
