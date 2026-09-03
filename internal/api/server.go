@@ -20,6 +20,7 @@ import (
 
 	"github.com/owtf/owtf/internal/artifact"
 	"github.com/owtf/owtf/internal/har"
+	helpinfo "github.com/owtf/owtf/internal/help"
 	"github.com/owtf/owtf/internal/model"
 	"github.com/owtf/owtf/internal/plugin"
 	"github.com/owtf/owtf/internal/profile"
@@ -38,6 +39,7 @@ type Server struct {
 	artifacts      *artifact.Store
 	catalog        *plugin.Catalog
 	profiles       *profile.Catalog
+	help           *helpinfo.Catalog
 	defaultProfile string
 	runner         *runner.Runner
 }
@@ -48,6 +50,7 @@ type Config struct {
 	Artifacts      *artifact.Store
 	Plugins        *plugin.Catalog
 	Profiles       *profile.Catalog
+	Help           *helpinfo.Catalog
 	DefaultProfile string
 	Runner         *runner.Runner
 }
@@ -58,9 +61,12 @@ func New(config Config) http.Handler {
 	if config.Profiles == nil {
 		config.Profiles = profile.Empty()
 	}
+	if config.Help == nil {
+		config.Help = helpinfo.Default()
+	}
 	server := &Server{
 		store: config.Store, artifacts: config.Artifacts, catalog: config.Plugins,
-		profiles: config.Profiles, defaultProfile: config.DefaultProfile, runner: config.Runner,
+		profiles: config.Profiles, help: config.Help, defaultProfile: config.DefaultProfile, runner: config.Runner,
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /debug/health", server.health)
@@ -83,6 +89,7 @@ func New(config Config) http.Handler {
 	mux.HandleFunc("GET /api/v2/plugins", server.listPlugins)
 	mux.HandleFunc("GET /api/v2/profiles", server.listProfiles)
 	mux.HandleFunc("GET /api/v2/profiles/{profileName}", server.getProfile)
+	mux.HandleFunc("GET /api/v2/help", server.getHelp)
 	mux.HandleFunc("POST /api/v2/runs", server.createRun)
 	mux.HandleFunc("GET /api/v2/runs", server.listRuns)
 	mux.HandleFunc("GET /api/v2/runs/{runID}", server.getRun)
@@ -126,6 +133,10 @@ func (s *Server) getProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, item)
+}
+
+func (s *Server) getHelp(w http.ResponseWriter, _ *http.Request) {
+	writeJSON(w, http.StatusOK, s.help.Snapshot())
 }
 
 func (s *Server) middleware(next http.Handler) http.Handler {

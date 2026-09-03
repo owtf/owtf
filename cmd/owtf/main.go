@@ -17,6 +17,7 @@ import (
 	"github.com/owtf/owtf/internal/artifact"
 	"github.com/owtf/owtf/internal/cli"
 	owtfconfig "github.com/owtf/owtf/internal/config"
+	helpinfo "github.com/owtf/owtf/internal/help"
 	"github.com/owtf/owtf/internal/model"
 	"github.com/owtf/owtf/internal/plugin"
 	"github.com/owtf/owtf/internal/profile"
@@ -98,7 +99,7 @@ func serve(settings owtfconfig.Config) error {
 		Addr: settings.Server.Address,
 		Handler: api.New(api.Config{
 			Store: database, Artifacts: artifacts, Plugins: catalog,
-			Profiles: profiles, DefaultProfile: settings.Plugins.DefaultProfile, Runner: taskRunner,
+			Profiles: profiles, Help: helpinfo.Default(), DefaultProfile: settings.Plugins.DefaultProfile, Runner: taskRunner,
 		}),
 		ReadHeaderTimeout: 5 * time.Second,
 		IdleTimeout:       60 * time.Second,

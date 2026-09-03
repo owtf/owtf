@@ -1,0 +1,66 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Help
+metadata:
+  version: "2026-09-02"
+spec:
+  sections:
+    - id: exploitation
+      title: Exploitation
+      links:
+        - title: Hackvertor
+          url: https://github.com/hackvertor/hackvertor
+          description: Encoding, decoding, and transformation tools for testing payloads.
+        - title: Exploit Database
+          url: https://www.exploit-db.com/
+          description: Public exploit and proof-of-concept archive.
+    - id: methodology
+      title: Methodology
+      links:
+        - title: OWASP Web Security Testing Guide
+          url: https://owasp.org/www-project-web-security-testing-guide/stable/
+          description: Current stable OWASP web testing methodology.
+        - title: Penetration Testing Execution Standard
+          url: https://www.pentest-standard.org/index.php/Main_Page
+          description: Engagement phases from pre-engagement through reporting.
+        - title: OSSTMM 3
+          url: https://www.isecom.org/OSSTMM.3.pdf
+          description: Open Source Security Testing Methodology Manual.
+    - id: calculators
+      title: Calculators
+      links:
+        - title: NVD CVSS v4 Calculator
+          url: https://nvd.nist.gov/vuln-metrics/cvss/v4-calculator
+          description: NIST calculator for CVSS version 4 vectors and scores.
+        - title: NVD CVSS v3 Calculator
+          url: https://nvd.nist.gov/vuln-metrics/cvss/v3-calculator
+          description: NIST calculator for CVSS version 3.1 vectors and scores.
+    - id: test-learn
+      title: Test/Learn
+      links:
+        - title: OWASP Vulnerable Web Applications Directory
+          url: https://owasp.org/www-project-vulnerable-web-applications-directory/
+          description: Maintained directory of deliberately vulnerable applications.
+        - title: OWASP WebGoat
+          url: https://owasp.org/www-project-webgoat/
+          description: Deliberately insecure application for guided security training.
+        - title: OWASP Juice Shop
+          url: https://owasp.org/www-project-juice-shop/
+          description: Modern deliberately insecure web application and challenge set.
+    - id: owtf-help-links
+      title: OWTF Help Links
+      links:
+        - title: Documentation
+          url: https://owtf.readthedocs.io/
+          description: OWTF user and contributor documentation.
+        - title: GitHub Repository
+          url: https://github.com/owtf/owtf
+          description: Source code and contribution history.
+        - title: Issue Tracker
+          url: https://github.com/owtf/owtf/issues
+          description: Bugs, proposals, and retained feature decisions.
+        - title: Releases
+          url: https://github.com/owtf/owtf/releases
+          description: Published OWTF releases and release notes.
+        - title: Security Policy
+          url: https://github.com/owtf/owtf/security/policy
+          description: Private vulnerability reporting instructions.

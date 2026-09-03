@@ -99,6 +99,8 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 			writeTestJSON(t, w, []map[string]any{{"name": "default", "plugins": []string{"OWTF-WSP-001-active"}}})
 		case "GET /api/v2/profiles/default":
 			writeTestJSON(t, w, map[string]any{"name": "default", "plugins": []string{"OWTF-WSP-001-active"}})
+		case "GET /api/v2/help":
+			writeTestJSON(t, w, map[string]any{"version": "1", "sections": []map[string]any{{"id": "methodology", "links": []map[string]string{{"title": "OWASP", "url": "https://owasp.org/"}}}}})
 		case "POST /api/v2/runs":
 			var input struct {
 				SessionID    string                    `json:"session_id"`
@@ -231,6 +233,7 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		{"plugin", "review", "--rank", "high", "--notes", "CLI review", "tsk_1"},
 		{"profiles", "list"},
 		{"profiles", "show", "default"},
+		{"help", "list"},
 		{"runs", "list", "--session", "ses_1"},
 		{"runs", "show", "run_1"},
 		{"runs", "create", "--session", "ses_1", "--target", "tgt_1", "--plugin", "OWTF-WSP-001-active", "--input", "OWTF-WSP-001-active.request_label=CLI run"},
@@ -319,7 +322,7 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		"POST /api/v2/sessions/ses_1/targets", "GET /api/v2/sessions/ses_1/targets", "GET /api/v2/sessions/ses_1/targets/search",
 		"PATCH /api/v2/targets/tgt_1",
 		"GET /api/v2/tasks/tsk_1/review", "PATCH /api/v2/tasks/tsk_1/review",
-		"GET /api/v2/profiles", "GET /api/v2/profiles/default",
+		"GET /api/v2/profiles", "GET /api/v2/profiles/default", "GET /api/v2/help",
 		"POST /api/v2/runs", "GET /api/v2/runs", "GET /api/v2/runs/run_1", "GET /api/v2/tasks", "GET /api/v2/workers",
 		"GET /api/v2/tasks/tsk_1/attempts", "GET /api/v2/tasks/tsk_1/events",
 		"POST /api/v2/tasks/tsk_1/cancel", "POST /api/v2/tasks/tsk_1/pause", "POST /api/v2/tasks/tsk_1/resume",

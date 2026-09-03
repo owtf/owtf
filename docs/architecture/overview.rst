@@ -335,6 +335,10 @@ bounded service and exposure probes are retained. Obsolete EMC probing is
 rejected, while SNMP, DNS name discovery, and credential attacks remain deferred
 until their privilege, resource, authorization, and rate-limit requirements can
 be represented honestly.
+The original Help categories are retained as a versioned, non-executable
+catalog. Dead destinations are omitted, every retained link uses HTTPS, and the
+same immutable data is available through curl and ``owtf help list`` for a final
+UI to render later.
 Configuration validation, default/file/environment/flag precedence, bounded
 worker and proxy limits, secret redaction, profile validation, persisted run
 ordering, deletion conflicts, target pagination, input validation, immutable

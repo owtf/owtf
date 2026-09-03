@@ -204,6 +204,18 @@ Use ``tasks attempts`` to inspect execution history, including interrupted work
 recovered after a server restart; ``tasks logs`` keeps every event linked to
 its attempt ID.
 
+Help links
+----------
+
+List OWTF's curated exploitation, methodology, calculator, learning, and
+project references::
+
+  owtf help list
+
+The catalog is compiled into the OWTF binary, versioned separately from scan
+evidence, and never executed or fetched by the server. Invalid or non-HTTPS
+links fail catalog validation during tests.
+
 Evidence and reports
 --------------------
 

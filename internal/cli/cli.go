@@ -118,8 +118,14 @@ func Run(ctx context.Context, args []string, out, errOut io.Writer) error {
 	case "artifacts":
 		return application.artifacts(ctx, commandArgs)
 	case "help":
-		printUsage(out)
-		return nil
+		if len(commandArgs) == 0 {
+			printUsage(out)
+			return nil
+		}
+		if len(commandArgs) == 1 && commandArgs[0] == "list" {
+			return application.proxyJSON(ctx, http.MethodGet, "/api/v2/help", nil)
+		}
+		return errors.New("usage: owtf help list")
 	default:
 		return fmt.Errorf("unknown command %q; run owtf help", command)
 	}
@@ -1030,7 +1036,8 @@ Usage:
   owtf [--url URL] sessions export [--output FILE] ID
   owtf [--url URL] targets list|search|add|show|update|delete|report
   owtf [--url URL] plugin list [--group GROUP] [--type TYPE]
-  owtf [--url URL] plugin review [--rank RANK] [--notes TEXT] TASK_ID
+	  owtf [--url URL] plugin review [--rank RANK] [--notes TEXT] TASK_ID
+	  owtf [--url URL] help list
   owtf [--url URL] profiles list|show
   owtf [--url URL] runs list --session ID
   owtf [--url URL] runs show ID

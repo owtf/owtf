@@ -395,6 +395,11 @@ cli_json profiles list
 jq -e 'length == 1 and .[0].name == "default"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI profile catalog is incorrect'
 cli_json profiles show default
 jq -e '.plugins == ["OWTF-IG-001-semi_passive","OWTF-IG-004-semi_passive","OWTF-CM-008-semi_passive","OWTF-WSP-001-active"]' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI default profile is incorrect'
+request GET /api/v2/help 200
+assert_json '.version != "" and [.sections[].id] == ["exploitation","methodology","calculators","test-learn","owtf-help-links"] and all(.sections[].links[]; (.url | startswith("https://")))' 'Help catalog is incomplete or unsafe'
+assert_json 'any(.sections[]; .id == "methodology" and any(.links[]; .title == "OWASP Web Security Testing Guide"))' 'OWTF methodology links are missing'
+cli_json help list
+jq -e '[.sections[].id] == ["exploitation","methodology","calculators","test-learn","owtf-help-links"]' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI Help catalog is incomplete'
 
 UNSUPPORTED_RUN=$(jq -nc --arg session "${SESSION_ID}" --arg target "${HOST_TARGET_ID}" '{session_id:$session,target_ids:[$target],plugin_ids:["OWTF-WSP-001-active"]}')
 request POST /api/v2/runs 400 "${UNSUPPORTED_RUN}"
