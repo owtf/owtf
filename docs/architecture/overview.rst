@@ -445,8 +445,17 @@ server/database must not create another attempt. Evidence is retained under
 ``build/test-evidence/``. The full ``make test-tools`` run includes this gate.
 
 ``make test-tools`` also runs the unchanged production scanner manifests against
-nginx and vsftpd. Nmap must identify FTP and anonymous access, while a second
-probe must report a closed port. Nikto must produce unranked header findings
+nginx, vsftpd, Postfix, and Samba. Nmap must identify FTP and anonymous access,
+SMTP EHLO/HELP capabilities on port 25, and SMB2/SMB3 dialects and capabilities
+on port 445. The SMB probe runs against required signing and then optional
+signing; each new run must reflect the actual server configuration. FTP, SMTP,
+and SMB probes must also report a closed port without fabricated NSE results.
+SMTP and SMB server logs confirm protocol exchanges, each successful task has
+one attempt, and worklist/worker snapshots are retained. SMTP and SMB ports are
+not published on the host; Postfix rejects all recipient/relay delivery and
+its queue must stay empty. Samba has SMB1 disabled.
+
+Nikto must produce unranked header findings
 and affected URLs while retaining its XML.
 Gobuster must discover exactly one configured virtual host, preserve its port,
 and put it in the target URL catalog. Raw artifacts downloaded through the API
@@ -454,9 +463,13 @@ must match their offline ZIP entries byte for byte. Decoded Nmap and Nikto
 results must appear in API and CLI target reports and the offline JSON and HTML
 report. ``make test-api`` separately uses deliberately malformed XML to verify
 failed-task state, a single attempt, and raw artifact downloads and export.
-These error fixtures are not scanner parity evidence. Other Nmap protocol
-probes still require their own service fixtures; this FTP test does not prove
-SMTP, SMB, or other protocol-specific behavior.
+These error fixtures are not scanner parity evidence. Captured real SMTP/SMB
+XML is checked into the decoder regression suite, but fresh service interaction
+is proved only by the Kali gate. This does not prove Windows NTLM authentication,
+SMB1-specific scripts, non-default SMB ports, or other network protocols. Nmap's
+SMB library needs an explicit ``smbport`` script argument for non-default ports;
+the current plugin passes its port only to ``-p``. That routing gap remains open.
+VNC, X11, SQL Server, MSRPC, and RPC-over-HTTP still need service fixtures.
 
 Resource discipline
 -------------------

@@ -29,6 +29,10 @@ cleanup() {
   docker logs "${FIXTURE}" >"${EVIDENCE_DIR}/requests.log" 2>&1 || true
   docker cp "${FIXTURE}:/var/log/vsftpd.log" "${EVIDENCE_DIR}/ftp.log" >/dev/null 2>&1 || true
   docker cp "${FIXTURE}:/var/log/nginx/vhosts.log" "${EVIDENCE_DIR}/vhosts.log" >/dev/null 2>&1 || true
+  if [[ "${MODE}" == all ]]; then
+    docker cp "${FIXTURE}:/var/log/smtp.log" "${EVIDENCE_DIR}/smtp.log" >/dev/null 2>&1 || true
+    docker cp "${FIXTURE}:/var/log/samba" "${EVIDENCE_DIR}/samba-logs" >/dev/null 2>&1 || true
+  fi
   docker rm --force "${FIXTURE}" >/dev/null 2>&1 || true
   docker image rm --force "${FIXTURE_IMAGE}" >/dev/null 2>&1 || true
   rm -rf "${TMP_DIR}"
@@ -254,23 +258,77 @@ xferlog_enable=YES
 log_ftp_protocol=YES
 vsftpd_log_file=/var/log/vsftpd.log
 FTP
+cat >"${TMP_DIR}/fixture/postfix.cf" <<'SMTP'
+myhostname = smtp.owtf.test
+mydomain = owtf.test
+myorigin = $mydomain
+inet_interfaces = all
+inet_protocols = ipv4
+mynetworks = 127.0.0.0/8
+mydestination =
+relay_domains =
+smtpd_banner = $myhostname ESMTP Postfix
+smtpd_relay_restrictions = reject
+smtpd_recipient_restrictions = reject
+default_transport = error:mail delivery disabled in OWTF fixture
+relay_transport = error:mail relay disabled in OWTF fixture
+smtpd_sasl_auth_enable = no
+smtpd_tls_security_level = none
+disable_vrfy_command = yes
+SMTP
+cat >"${TMP_DIR}/fixture/smb.conf" <<'SMB'
+[global]
+server role = standalone server
+workgroup = OWTF
+netbios name = OWTFSMOKE
+server string = OWTF Samba fixture
+server min protocol = SMB2_02
+server max protocol = SMB3_11
+server signing = mandatory
+smb ports = 445
+disable netbios = yes
+load printers = no
+log level = 3
+log file = /var/log/samba/log.smbd
+max log size = 256
+SMB
 cat >"${TMP_DIR}/fixture/Dockerfile" <<'DOCKERFILE'
 FROM nginx:alpine
-RUN apk add --no-cache vsftpd
+ARG NETWORK_PACKAGES
+RUN apk add --no-cache vsftpd ${NETWORK_PACKAGES}
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY vsftpd.conf /etc/vsftpd/vsftpd.conf
+COPY postfix.cf /etc/postfix/main.cf
+COPY smb.conf /etc/samba/smb.conf
 COPY fixture.crt fixture.key /certs/
 COPY site/ /site/
 DOCKERFILE
 
-docker build --quiet --tag "${FIXTURE_IMAGE}" "${TMP_DIR}/fixture" >/dev/null
+NETWORK_PACKAGES=""
+[[ "${MODE}" != all ]] || NETWORK_PACKAGES="postfix samba-server samba-common-tools"
+docker build --quiet --build-arg "NETWORK_PACKAGES=${NETWORK_PACKAGES}" --tag "${FIXTURE_IMAGE}" "${TMP_DIR}/fixture" >/dev/null
 docker run --detach --name "${FIXTURE}" \
   --publish "127.0.0.1:${FIXTURE_HTTP_PORT}:80" \
   --publish "127.0.0.1:${FIXTURE_TLS_PORT}:443" \
   "${FIXTURE_IMAGE}" >/dev/null
 docker exec "${FIXTURE}" /usr/sbin/vsftpd /etc/vsftpd/vsftpd.conf
-FTP_HOST=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' "${FIXTURE}")
-[[ -n "${FTP_HOST}" ]] || fail 'fixture has no bridge IP address'
+NETWORK_HOST=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' "${FIXTURE}")
+[[ -n "${NETWORK_HOST}" ]] || fail 'fixture has no bridge IP address'
+if [[ "${MODE}" == all ]]; then
+  docker exec "${FIXTURE}" syslogd -O /var/log/smtp.log
+  docker exec "${FIXTURE}" postfix start
+  docker exec "${FIXTURE}" testparm --suppress-prompt >"${EVIDENCE_DIR}/smb-required-config.txt" 2>&1 || fail 'SMB fixture configuration validation failed'
+  docker exec "${FIXTURE}" smbd --daemon --no-process-group
+  for attempt in $(seq 1 50); do
+    if docker exec "${FIXTURE}" sh -c 'nc -z -w 1 127.0.0.1 25 && nc -z -w 1 127.0.0.1 445'; then
+      break
+    fi
+    sleep 0.1
+  done
+  docker exec "${FIXTURE}" sh -c 'nc -z -w 1 127.0.0.1 25 && nc -z -w 1 127.0.0.1 445' || fail 'SMTP/SMB fixture did not become ready'
+  docker exec "${FIXTURE}" postconf mail_version >"${EVIDENCE_DIR}/fixture-versions.txt"
+  docker exec "${FIXTURE}" smbd --version >>"${EVIDENCE_DIR}/fixture-versions.txt"
+fi
 
 cat >"${TMP_DIR}/config.yaml" <<YAML
 apiVersion: owtf.dev/v1alpha1
@@ -336,8 +394,8 @@ TLS_TARGET=$(jq -r --arg value "${TLS_URL}" '.created[] | select(.value == $valu
 [[ -n "${HTTP_TARGET}" && -n "${TLS_TARGET}" ]] || fail 'fixture targets were not created'
 
 if [[ "${MODE}" == all ]]; then
-  FTP_TARGET=$(request POST "/api/v2/sessions/${SESSION_ID}/targets" \
-    "$(jq -nc --arg host "${FTP_HOST}" '{targets:[$host]}')" | jq -r '.created[0].id')
+  NETWORK_TARGET=$(request POST "/api/v2/sessions/${SESSION_ID}/targets" \
+    "$(jq -nc --arg host "${NETWORK_HOST}" '{targets:[$host]}')" | jq -r '.created[0].id')
   printf '%s\n' 'Running retained scanners through the container executor...'
   TASKS=()
   TASKS+=("$(launch "${TLS_TARGET}" OWTF-CM-001-active)")
@@ -346,11 +404,23 @@ if [[ "${MODE}" == all ]]; then
   TASKS+=("$(launch "${HTTP_TARGET}" OWTF-IG-004-active '{"aggression":"1","threads":1}')")
   TASKS+=("$(launch "${HTTP_TARGET}" OWTF-ST-001-active '{"rate_limit":1,"concurrency":1,"request_timeout_seconds":5}')")
   TASKS+=("$(launch "${HTTP_TARGET}" OWTF-WVS-003-active '{"scope":"folder","max_scan_time_seconds":15,"max_attack_time_seconds":5,"max_files_per_directory":10,"request_timeout_seconds":5}')")
-  NMAP_TASK=$(launch "${FTP_TARGET}" PTES-001-active '{"port":21}')
-  NMAP_CLOSED_TASK=$(launch "${FTP_TARGET}" PTES-001-active '{"port":65000}')
+  NMAP_TASK=$(launch "${NETWORK_TARGET}" PTES-001-active '{"port":21}')
+  NMAP_CLOSED_TASK=$(launch "${NETWORK_TARGET}" PTES-001-active '{"port":65000}')
+  SMTP_TASK=$(launch "${NETWORK_TARGET}" PTES-002-active)
+  SMB_REQUIRED_TASK=$(launch "${NETWORK_TARGET}" PTES-009-active)
+  SMTP_CLOSED_TASK=$(launch "${NETWORK_TARGET}" PTES-002-active '{"port":65000}')
+  SMB_CLOSED_TASK=$(launch "${NETWORK_TARGET}" PTES-009-active '{"port":65000}')
   NIKTO_TASK=$(launch "${HTTP_TARGET}" OWTF-WVS-002-active '{"max_time_seconds":20,"request_timeout_seconds":5}')
   VHOST_TASK=$(launch "${HTTP_TARGET}" OWTF-IG-005-active '{"wordlist":"vhosts.txt","threads":1,"delay":"0s","request_timeout":"5s"}')
-  TASKS+=("${NMAP_TASK}" "${NMAP_CLOSED_TASK}" "${NIKTO_TASK}" "${VHOST_TASK}")
+  TASKS+=("${NMAP_TASK}" "${NMAP_CLOSED_TASK}" "${SMTP_TASK}" "${SMB_REQUIRED_TASK}" "${SMTP_CLOSED_TASK}" "${SMB_CLOSED_TASK}" "${NIKTO_TASK}" "${VHOST_TASK}")
+  request GET "/api/v2/tasks?session_id=${SESSION_ID}" >"${EVIDENCE_DIR}/worklist-during-scan.json"
+  request GET /api/v2/workers >"${EVIDENCE_DIR}/worker-during-scan.json"
+  wait_for_status "${SMB_REQUIRED_TASK}" succeeded
+  docker exec "${FIXTURE}" sed -i 's/server signing = mandatory/server signing = auto/' /etc/samba/smb.conf
+  docker exec "${FIXTURE}" smbcontrol all reload-config
+  docker exec "${FIXTURE}" testparm --suppress-prompt >"${EVIDENCE_DIR}/smb-optional-config.txt" 2>&1
+  SMB_OPTIONAL_TASK=$(launch "${NETWORK_TARGET}" PTES-009-active)
+  TASKS+=("${SMB_OPTIONAL_TASK}")
   mkdir -p "${EVIDENCE_DIR}/artifacts"
   for task_id in "${TASKS[@]}"; do
     wait_for_status "${task_id}" succeeded
@@ -359,15 +429,18 @@ if [[ "${MODE}" == all ]]; then
     jq -e \
       'any(.[]; .stream == "system" and (.message | startswith("container owtf/kali-tools:local")))' \
       "${EVIDENCE_DIR}/${task_id}-events.json" >/dev/null || fail "task ${task_id} is missing its container command log"
+    OWTF_URL="${BASE_URL}" "${TMP_DIR}/owtf" --json tasks attempts "${task_id}" >"${EVIDENCE_DIR}/${task_id}-attempts.json"
+    jq -e 'length == 1 and .[0].status == "succeeded" and .[0].attempt_number == 1' \
+      "${EVIDENCE_DIR}/${task_id}-attempts.json" >/dev/null || fail "task ${task_id} did not finish in one attempt"
   done
 
   HTTP_REPORT=$(request GET "/api/v2/targets/${HTTP_TARGET}/report")
   TLS_REPORT=$(request GET "/api/v2/targets/${TLS_TARGET}/report")
-  request GET "/api/v2/targets/${FTP_TARGET}/report" >"${EVIDENCE_DIR}/ftp-report.json"
+  request GET "/api/v2/targets/${NETWORK_TARGET}/report" >"${EVIDENCE_DIR}/network-report.json"
   printf '%s\n' "${HTTP_REPORT}" >"${EVIDENCE_DIR}/http-report.json"
   printf '%s\n' "${TLS_REPORT}" >"${EVIDENCE_DIR}/tls-report.json"
   jq -r '.artifacts[] | [.id,.task_id,.name] | @tsv' \
-    "${EVIDENCE_DIR}/http-report.json" "${EVIDENCE_DIR}/ftp-report.json" "${EVIDENCE_DIR}/tls-report.json" >"${EVIDENCE_DIR}/artifacts.tsv"
+    "${EVIDENCE_DIR}/http-report.json" "${EVIDENCE_DIR}/network-report.json" "${EVIDENCE_DIR}/tls-report.json" >"${EVIDENCE_DIR}/artifacts.tsv"
   while IFS=$'\t' read -r artifact_id task_id name; do
     request GET "/api/v2/artifacts/${artifact_id}" >"${EVIDENCE_DIR}/artifacts/${task_id}-${name}"
   done <"${EVIDENCE_DIR}/artifacts.tsv"
@@ -377,6 +450,19 @@ if [[ "${MODE}" == all ]]; then
   grep -q 'portid="21"' "${NMAP_XML}" && grep -q 'state="open"' "${NMAP_XML}" &&
     grep -q 'name="ftp"' "${NMAP_XML}" && grep -q 'Anonymous FTP login allowed' "${NMAP_XML}" || fail 'Nmap did not identify the FTP service and anonymous access'
   grep -q 'state="closed"' "${NMAP_CLOSED_XML}" || fail 'Nmap did not distinguish the closed port'
+  grep -q 'PIPELINING' "${EVIDENCE_DIR}/artifacts/${SMTP_TASK}-nmap.xml" || fail 'raw SMTP capabilities are missing'
+  grep -q 'Message signing enabled and required' "${EVIDENCE_DIR}/artifacts/${SMB_REQUIRED_TASK}-nmap.xml" || fail 'raw SMB required-signing evidence is missing'
+  grep -q 'Message signing enabled but not required' "${EVIDENCE_DIR}/artifacts/${SMB_OPTIONAL_TASK}-nmap.xml" || fail 'raw SMB optional-signing evidence is missing'
+  for task_id in "${SMTP_TASK}" "${SMB_REQUIRED_TASK}" "${SMB_OPTIONAL_TASK}"; do
+    jq -e 'any(.[]; .stream == "stdout" and (.message | test("smtp-commands|smb2-security-mode")))' \
+      "${EVIDENCE_DIR}/${task_id}-events.json" >/dev/null || fail "task ${task_id} did not retain actual scanner output"
+  done
+  docker cp "${FIXTURE}:/var/log/smtp.log" "${EVIDENCE_DIR}/smtp.log" >/dev/null
+  grep -q 'postfix/smtpd.*ehlo=' "${EVIDENCE_DIR}/smtp.log" || fail 'SMTP server did not log an EHLO session'
+  docker exec "${FIXTURE}" postqueue -p >"${EVIDENCE_DIR}/smtp-queue.txt"
+  grep -q 'Mail queue is empty' "${EVIDENCE_DIR}/smtp-queue.txt" || fail 'SMTP fixture accepted queued mail'
+  docker cp "${FIXTURE}:/var/log/samba/log.smbd" "${EVIDENCE_DIR}/smb.log" >/dev/null
+  grep -q 'Selected protocol SMB' "${EVIDENCE_DIR}/smb.log" || fail 'SMB server did not log protocol negotiation'
   grep -q '<niktoscan' "${NIKTO_XML}" && grep -q '<item ' "${NIKTO_XML}" &&
     grep -qi 'x-content-type-options' "${NIKTO_XML}" || fail 'Nikto XML did not retain the fixture header finding'
   if ! jq -e --arg vhost "http://admin.host.docker.internal:${FIXTURE_HTTP_PORT}/" '([.tasks[] | select(.status == "succeeded")] | length) == 7 and
@@ -426,27 +512,53 @@ if [[ "${MODE}" == all ]]; then
       any(.artifacts[]; .name == "nikto.xml" and .task_id == $task)
     ' "$1" >/dev/null || fail "structured Nikto findings are incomplete in $1"
   }
-  assert_nmap_results "${EVIDENCE_DIR}/ftp-report.json"
+  assert_network_results() {
+    jq -e --arg smtp "${SMTP_TASK}" --arg required "${SMB_REQUIRED_TASK}" --arg optional "${SMB_OPTIONAL_TASK}" \
+      --arg smtp_closed "${SMTP_CLOSED_TASK}" --arg smb_closed "${SMB_CLOSED_TASK}" '
+      def records($task; $kind): [.observations[] | select(.task_id == $task and .kind == $kind) | .data | fromjson];
+      def signing($task; $message): any(records($task; "network.script")[];
+        .id == "smb2-security-mode" and (.output | contains($message)));
+      def closed($task): any(records($task; "network.port")[]; .port == 65000 and .state == "closed") and
+        (records($task; "network.script") | length) == 0;
+      any(records($smtp; "network.port")[]; .port == 25 and .state == "open" and .service.name == "smtp") and
+      any(records($smtp; "network.script")[]; .id == "smtp-commands" and
+        (.output | contains("smtp.owtf.test") and contains("PIPELINING") and contains("SIZE"))) and
+      any(records($required; "network.port")[]; .port == 445 and .state == "open") and
+      any(records($required; "network.script")[]; .id == "smb-protocols" and
+        (.output | contains("2.0.2") and contains("3.1.1") and (contains("SMBv1") | not))) and
+      any(records($required; "network.script")[]; .id == "smb2-capabilities" and (.output | contains("Multi-credit operations"))) and
+      signing($required; "Message signing enabled and required") and
+      signing($optional; "Message signing enabled but not required") and
+      closed($smtp_closed) and closed($smb_closed) and
+      all(.findings[]; .task_id != $smtp and .task_id != $required and .task_id != $optional and
+        .task_id != $smtp_closed and .task_id != $smb_closed)
+    ' "$1" >/dev/null || fail "SMTP/SMB observations are incomplete in $1"
+  }
+  assert_nmap_results "${EVIDENCE_DIR}/network-report.json"
+  assert_network_results "${EVIDENCE_DIR}/network-report.json"
   assert_nikto_results "${EVIDENCE_DIR}/http-report.json"
   OWTF_URL="${BASE_URL}" "${TMP_DIR}/owtf" --json targets report "${HTTP_TARGET}" >"${EVIDENCE_DIR}/http-cli-report.json"
-  OWTF_URL="${BASE_URL}" "${TMP_DIR}/owtf" --json targets report "${FTP_TARGET}" >"${EVIDENCE_DIR}/ftp-cli-report.json"
-  assert_nmap_results "${EVIDENCE_DIR}/ftp-cli-report.json"
+  OWTF_URL="${BASE_URL}" "${TMP_DIR}/owtf" --json targets report "${NETWORK_TARGET}" >"${EVIDENCE_DIR}/network-cli-report.json"
+  assert_nmap_results "${EVIDENCE_DIR}/network-cli-report.json"
+  assert_network_results "${EVIDENCE_DIR}/network-cli-report.json"
   assert_nikto_results "${EVIDENCE_DIR}/http-cli-report.json"
   request GET /api/v2/metrics | jq -e '
-    .tasks.total == 10 and .tasks.succeeded == 10 and .attempts.succeeded == 10 and
+    .tasks.total == 15 and .tasks.succeeded == 15 and .attempts.succeeded == 15 and
     .workers.total == 1 and .workers.idle == 1 and .outputs.artifacts >= 5 and
     .outputs.observations > 0 and .outputs.findings > 0
   ' >/dev/null || fail 'tool execution metrics are incorrect'
   request GET "/api/v2/sessions/${SESSION_ID}/export" >"${EVIDENCE_DIR}/report.zip"
   unzip -tqq "${EVIDENCE_DIR}/report.zip" || fail 'offline report ZIP is invalid'
   unzip -p "${EVIDENCE_DIR}/report.zip" report.json | jq -e \
-    '.summary.succeeded == 10 and any(.artifacts[]; .name == "nmap.xml") and any(.artifacts[]; .name == "nikto.xml") and any(.artifacts[]; .name == "vhosts.txt")' \
+    '.summary.succeeded == 15 and any(.artifacts[]; .name == "nmap.xml") and any(.artifacts[]; .name == "nikto.xml") and any(.artifacts[]; .name == "vhosts.txt")' \
     >/dev/null || fail 'offline report is missing scanner evidence'
   unzip -p "${EVIDENCE_DIR}/report.zip" report.json >"${EVIDENCE_DIR}/export-report.json"
   assert_nmap_results "${EVIDENCE_DIR}/export-report.json"
+  assert_network_results "${EVIDENCE_DIR}/export-report.json"
   assert_nikto_results "${EVIDENCE_DIR}/export-report.json"
   unzip -p "${EVIDENCE_DIR}/report.zip" index.html >"${EVIDENCE_DIR}/report.html"
-  for text in network.port network.script vsftpd 'Anonymous FTP login allowed' 'Nikto:' x-content-type-options unranked; do
+  for text in network.port network.script vsftpd 'Anonymous FTP login allowed' 'Nikto:' x-content-type-options unranked \
+    smtp-commands PIPELINING smb-protocols smb2-capabilities 'Message signing enabled and required' 'Message signing enabled but not required'; do
     grep -Fq "${text}" "${EVIDENCE_DIR}/report.html" || fail "offline HTML is missing ${text}"
   done
   unzip -p "${EVIDENCE_DIR}/report.zip" manifest.json >"${EVIDENCE_DIR}/export-manifest.json"
@@ -457,6 +569,7 @@ if [[ "${MODE}" == all ]]; then
       || fail "offline report changed artifact ${name}"
   done <"${EVIDENCE_DIR}/artifacts.tsv"
   printf '%s\n' 'PASS: Nmap/Nikto structured results in API, CLI, and offline JSON/HTML; raw artifacts match byte for byte.'
+  printf '%s\n' 'PASS: SMTP capabilities, SMB2/SMB3 dialects and both signing modes, closed ports, server logs, and one attempt per scan.'
 fi
 
 printf '%s\n' 'Checking cancellation, crash, and timeout after real scanner activity...'
@@ -507,7 +620,7 @@ jq -e '.summary.failed == 2 and .summary.cancelled == 1 and .summary.attempts ==
   "${EVIDENCE_DIR}/report.json" >/dev/null || fail 'failure report is incomplete'
 
 if [[ "${MODE}" == all ]]; then
-  printf '%s\n' 'Kali compatibility passed for testssl.sh, WAFW00F, Gobuster dir/vhost, WhatWeb, Nuclei, Wapiti, Nmap FTP/closed port, and Nikto.'
+  printf '%s\n' 'Kali compatibility passed for testssl.sh, WAFW00F, Gobuster dir/vhost, WhatWeb, Nuclei, Wapiti, Nmap FTP/SMTP/SMB/closed ports, and Nikto.'
   printf '%s\n' 'Metagoofil startup passed; it has no deterministic local search-provider mode.'
 fi
 printf 'PASS: terminal states and single attempts survived restart. Evidence: %s\n' "${EVIDENCE_DIR}"

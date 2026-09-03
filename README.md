@@ -145,12 +145,16 @@ removes its state afterward. It does not start Docker: container plugins must
 remain blocked, without attempts or fabricated scanner artifacts.
 
 With the Kali image already built, run `make test-tools` for real scanner
-execution against temporary local HTTP/TLS and FTP fixtures. It checks Nmap
-service and NSE observations, closed-port handling, unranked Nikto findings,
+execution against temporary local HTTP/TLS, FTP, SMTP, and SMB fixtures. It checks
+Postfix capabilities, Samba SMB2/SMB3 dialects and required/optional signing,
+Nmap service and NSE observations, closed-port handling, unranked Nikto findings,
 affected URLs, and Gobuster virtual-host discoveries. API, CLI, and offline
 JSON/HTML reports must contain the decoded results; exported raw XML must match
 the API artifact bytes. The gate also checks metrics, cancellation,
-and container/volume cleanup without rebuilding the tools image.
+and container/volume cleanup without rebuilding the tools image. SMTP and SMB
+stay on the Docker bridge, without published host ports. The SMTP fixture
+rejects mail delivery. Captured XML regression fixtures also run in normal CI.
+Windows NTLM, SMB1, and non-default SMB ports remain outside this live coverage.
 Metagoofil receives a startup check only; its search-provider
 workflow requires a separate authorized live test.
 

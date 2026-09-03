@@ -94,6 +94,73 @@ func TestNiktoCapturedXML(t *testing.T) {
 	}
 }
 
+func TestNmapCapturedSMTPAndSMB(t *testing.T) {
+	for _, test := range []struct {
+		file      string
+		technique string
+		port      int
+		product   string
+		scripts   map[string][]string
+	}{
+		{"nmap-smtp.xml", "PTES-002", 25, "Postfix smtpd", map[string][]string{
+			"smtp-commands": {"smtp.owtf.test", "PIPELINING", "SIZE"},
+		}},
+		{"nmap-smb-required.xml", "PTES-009", 445, "Samba smbd", map[string][]string{
+			"smb-protocols":      {"2.0.2", "3.1.1"},
+			"smb2-capabilities":  {"Multi-credit operations"},
+			"smb2-security-mode": {"Message signing enabled and required"},
+		}},
+		{"nmap-smb-optional.xml", "PTES-009", 445, "Samba smbd", map[string][]string{
+			"smb-protocols":      {"2.0.2", "3.1.1"},
+			"smb2-capabilities":  {"Multi-credit operations"},
+			"smb2-security-mode": {"Message signing enabled but not required"},
+		}},
+	} {
+		t.Run(test.file, func(t *testing.T) {
+			result, err := decodeNmap(scannerXML(t, test.file), decodeContext{technique: test.technique})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(result.Findings) != 0 || len(result.Observations) != len(test.scripts)+2 {
+				t.Fatalf("unexpected findings or observations: %+v", result)
+			}
+			ports := 0
+			scripts := make(map[string]string)
+			for _, item := range result.Observations {
+				var record struct {
+					Port    int
+					State   string
+					Service *nmapService
+					ID      string
+					Output  string
+				}
+				if err := json.Unmarshal([]byte(item.Data), &record); err != nil || item.TechniqueCode != test.technique {
+					t.Fatalf("invalid observation: %+v, %v", item, err)
+				}
+				switch item.Kind {
+				case "network.port":
+					ports++
+					if record.Port != test.port || record.State != "open" || record.Service == nil || record.Service.Product != test.product {
+						t.Fatalf("missing service evidence: %s", item.Data)
+					}
+				case "network.script":
+					scripts[record.ID] = record.Output
+				}
+			}
+			if ports != 1 || len(scripts) != len(test.scripts) {
+				t.Fatalf("unexpected port/script counts: %d/%d", ports, len(scripts))
+			}
+			for id, markers := range test.scripts {
+				for _, marker := range markers {
+					if !strings.Contains(scripts[id], marker) {
+						t.Errorf("%s lost %q: %q", id, marker, scripts[id])
+					}
+				}
+			}
+		})
+	}
+}
+
 func TestNmapHostScriptsAndPortSummary(t *testing.T) {
 	data := nmapDocument(`<host><status state="up"/><address addr="::1" addrtype="ipv6"/><ports><extraports state="filtered" count="10"/></ports><hostscript><script id="smb-protocols" output="SMBv2&#xa;SMBv3"/></hostscript></host>`)
 	result, err := decodeNmap([]byte(data), decodeContext{})
