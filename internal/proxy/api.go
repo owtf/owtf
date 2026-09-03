@@ -31,6 +31,7 @@ type APIConfig struct {
 	Authority    *Authority
 	Recorder     *Recorder
 	RepeatClient httpDoer
+	Interceptors *Interceptors
 	MaximumBody  int64
 }
 
@@ -38,6 +39,7 @@ type apiServer struct {
 	authority    *Authority
 	recorder     *Recorder
 	repeatClient httpDoer
+	interceptors *Interceptors
 	maximumBody  int64
 }
 
@@ -52,12 +54,16 @@ func NewAPI(config APIConfig) (http.Handler, error) {
 	if config.RepeatClient == nil {
 		return nil, errors.New("proxy API repeat client is required")
 	}
+	if config.Interceptors == nil {
+		return nil, errors.New("proxy API interceptors are required")
+	}
 	if config.MaximumBody < 1 {
 		return nil, errors.New("proxy API maximum body must be positive")
 	}
 	server := &apiServer{
 		authority: config.Authority, recorder: config.Recorder,
-		repeatClient: config.RepeatClient, maximumBody: config.MaximumBody,
+		repeatClient: config.RepeatClient, interceptors: config.Interceptors,
+		maximumBody: config.MaximumBody,
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/v2/health", server.health)
@@ -67,6 +73,9 @@ func NewAPI(config APIConfig) (http.Handler, error) {
 	mux.HandleFunc("GET /api/v2/transactions/stats", server.stats)
 	mux.HandleFunc("GET /api/v2/transactions/{transactionID}", server.transaction)
 	mux.HandleFunc("POST /api/v2/repeater", server.repeat)
+	mux.HandleFunc("GET /api/v2/interceptors", server.listInterceptors)
+	mux.HandleFunc("PUT /api/v2/interceptors", server.replaceInterceptors)
+	mux.HandleFunc("PATCH /api/v2/interceptors", server.setInterceptorEnabled)
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		writer.Header().Set("Cache-Control", "no-store")
 		writer.Header().Set("X-Content-Type-Options", "nosniff")
@@ -124,10 +133,60 @@ func (c *apiServer) clear(writer http.ResponseWriter, _ *http.Request) {
 	writeAPIJSON(writer, http.StatusOK, map[string]int{"removed": c.recorder.Clear()})
 }
 
+func (c *apiServer) listInterceptors(writer http.ResponseWriter, _ *http.Request) {
+	writeAPIJSON(writer, http.StatusOK, c.interceptors.Config())
+}
+
+func (c *apiServer) replaceInterceptors(writer http.ResponseWriter, request *http.Request) {
+	if !requireAPIJSON(writer, request) {
+		return
+	}
+	var config *InterceptorConfig
+	if err := decodeAPIJSONBounded(request.Body, &config, maxInterceptorConfigBytes); err != nil {
+		writeAPIError(writer, http.StatusBadRequest, err)
+		return
+	}
+	if config == nil {
+		writeAPIError(writer, http.StatusBadRequest, errors.New("interceptor configuration object is required"))
+		return
+	}
+	if err := c.interceptors.Replace(config.Rules); err != nil {
+		writeAPIError(writer, http.StatusBadRequest, err)
+		return
+	}
+	writeAPIJSON(writer, http.StatusOK, c.interceptors.Config())
+}
+
+func (c *apiServer) setInterceptorEnabled(writer http.ResponseWriter, request *http.Request) {
+	if !requireAPIJSON(writer, request) {
+		return
+	}
+	var input struct {
+		Name    string `json:"name"`
+		Enabled *bool  `json:"enabled"`
+	}
+	if err := decodeAPIJSON(request.Body, &input); err != nil {
+		writeAPIError(writer, http.StatusBadRequest, err)
+		return
+	}
+	if input.Enabled == nil {
+		writeAPIError(writer, http.StatusBadRequest, errors.New("enabled is required"))
+		return
+	}
+	rule, err := c.interceptors.SetEnabled(input.Name, *input.Enabled)
+	if errors.Is(err, ErrInterceptorNotFound) {
+		writeAPIError(writer, http.StatusNotFound, err)
+		return
+	}
+	if err != nil {
+		writeAPIError(writer, http.StatusBadRequest, err)
+		return
+	}
+	writeAPIJSON(writer, http.StatusOK, rule)
+}
+
 func (c *apiServer) repeat(writer http.ResponseWriter, request *http.Request) {
-	mediaType, _, err := mime.ParseMediaType(request.Header.Get("Content-Type"))
-	if err != nil || mediaType != "application/json" {
-		writeAPIError(writer, http.StatusUnsupportedMediaType, errors.New("repeater requires application/json"))
+	if !requireAPIJSON(writer, request) {
 		return
 	}
 	var input RepeatRequest
@@ -329,12 +388,16 @@ func parseTransactionFilter(values url.Values) (TransactionFilter, error) {
 }
 
 func decodeAPIJSON(body io.Reader, destination any) error {
-	data, err := io.ReadAll(io.LimitReader(body, maximumAPIJSON+1))
+	return decodeAPIJSONBounded(body, destination, maximumAPIJSON)
+}
+
+func decodeAPIJSONBounded(body io.Reader, destination any, maximum int64) error {
+	data, err := io.ReadAll(io.LimitReader(body, maximum+1))
 	if err != nil {
 		return fmt.Errorf("read JSON: %w", err)
 	}
-	if len(data) > maximumAPIJSON {
-		return errors.New("JSON body exceeds 2 MiB")
+	if int64(len(data)) > maximum {
+		return fmt.Errorf("JSON body exceeds %d bytes", maximum)
 	}
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
@@ -346,6 +409,15 @@ func decodeAPIJSON(body io.Reader, destination any) error {
 		return errors.New("JSON body must contain one value")
 	}
 	return nil
+}
+
+func requireAPIJSON(writer http.ResponseWriter, request *http.Request) bool {
+	mediaType, _, err := mime.ParseMediaType(request.Header.Get("Content-Type"))
+	if err == nil && mediaType == "application/json" {
+		return true
+	}
+	writeAPIError(writer, http.StatusUnsupportedMediaType, errors.New("request requires application/json"))
+	return false
 }
 
 func forbiddenRepeaterHeader(name string) bool {

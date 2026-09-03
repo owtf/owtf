@@ -12,16 +12,22 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
 const (
 	maxInterceptorRules        = 100
 	maxInterceptorReplacements = 10_000
+	maxInterceptorConfigBytes  = 1 << 20
 )
 
-// ErrInterceptorBodyTooLarge means a body-modifying rule exceeded its bound.
-var ErrInterceptorBodyTooLarge = errors.New("interceptor body exceeds configured limit")
+var (
+	// ErrInterceptorBodyTooLarge means a body-modifying rule exceeded its bound.
+	ErrInterceptorBodyTooLarge = errors.New("interceptor body exceeds configured limit")
+	// ErrInterceptorNotFound means a named interceptor is not active.
+	ErrInterceptorNotFound = errors.New("interceptor not found")
+)
 
 // InterceptorConfig is the persisted static interceptor configuration.
 type InterceptorConfig struct {
@@ -64,8 +70,14 @@ type TextReplacement struct {
 	Replacement string `json:"replacement"`
 }
 
-// Interceptors is an immutable, priority-ordered static rule set.
+// Interceptors owns the active, priority-ordered rule set. Replacements are
+// compiled before one atomic swap, so in-flight requests keep a stable view.
 type Interceptors struct {
+	maximumBody int64
+	current     atomic.Pointer[interceptorSet]
+}
+
+type interceptorSet struct {
 	rules       []compiledInterceptorRule
 	maximumBody int64
 }
@@ -85,18 +97,21 @@ type compiledReplacement struct {
 
 // LoadInterceptors decodes and validates one JSON rule document.
 func LoadInterceptors(reader io.Reader, maximumBody int64) (*Interceptors, error) {
-	data, err := io.ReadAll(io.LimitReader(reader, (1<<20)+1))
+	data, err := io.ReadAll(io.LimitReader(reader, maxInterceptorConfigBytes+1))
 	if err != nil {
 		return nil, fmt.Errorf("read interceptors: %w", err)
 	}
-	if len(data) > 1<<20 {
+	if len(data) > maxInterceptorConfigBytes {
 		return nil, errors.New("interceptor configuration exceeds 1 MiB")
 	}
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	var config InterceptorConfig
+	var config *InterceptorConfig
 	if err := decoder.Decode(&config); err != nil {
 		return nil, fmt.Errorf("decode interceptors: %w", err)
+	}
+	if config == nil {
+		return nil, errors.New("decode interceptors: object is required")
 	}
 	var trailing any
 	if err := decoder.Decode(&trailing); !errors.Is(err, io.EOF) {
@@ -110,6 +125,16 @@ func LoadInterceptors(reader io.Reader, maximumBody int64) (*Interceptors, error
 
 // NewInterceptors validates and compiles static rules.
 func NewInterceptors(rules []InterceptorRule, maximumBody int64) (*Interceptors, error) {
+	set, err := compileInterceptors(rules, maximumBody)
+	if err != nil {
+		return nil, err
+	}
+	interceptors := &Interceptors{maximumBody: maximumBody}
+	interceptors.current.Store(set)
+	return interceptors, nil
+}
+
+func compileInterceptors(rules []InterceptorRule, maximumBody int64) (*interceptorSet, error) {
 	if maximumBody < 1 {
 		return nil, errors.New("interceptor maximum body must be positive")
 	}
@@ -119,6 +144,7 @@ func NewInterceptors(rules []InterceptorRule, maximumBody int64) (*Interceptors,
 	compiled := make([]compiledInterceptorRule, 0, len(rules))
 	names := make(map[string]bool, len(rules))
 	for index, rule := range rules {
+		rule = cloneInterceptorRule(rule)
 		if int64(len(rule.Action.BodyPrepend)) > maximumBody || int64(len(rule.Action.BodyAppend)) > maximumBody {
 			return nil, fmt.Errorf("interceptor rule %d: body prefix or suffix exceeds maximum body", index+1)
 		}
@@ -135,11 +161,81 @@ func NewInterceptors(rules []InterceptorRule, maximumBody int64) (*Interceptors,
 	sort.SliceStable(compiled, func(left, right int) bool {
 		return compiled[left].rule.Priority < compiled[right].rule.Priority
 	})
-	return &Interceptors{rules: compiled, maximumBody: maximumBody}, nil
+	return &interceptorSet{rules: compiled, maximumBody: maximumBody}, nil
+}
+
+// Config returns a detached copy of the active interceptor configuration.
+func (i *Interceptors) Config() InterceptorConfig {
+	set := i.snapshot()
+	if set == nil {
+		return InterceptorConfig{Rules: []InterceptorRule{}}
+	}
+	rules := make([]InterceptorRule, len(set.rules))
+	for index, item := range set.rules {
+		rules[index] = cloneInterceptorRule(item.rule)
+	}
+	return InterceptorConfig{Rules: rules}
+}
+
+// Replace validates and atomically activates a complete rule set.
+func (i *Interceptors) Replace(rules []InterceptorRule) error {
+	if i == nil {
+		return errors.New("interceptors are required")
+	}
+	set, err := compileInterceptors(rules, i.maximumBody)
+	if err != nil {
+		return err
+	}
+	i.current.Store(set)
+	return nil
+}
+
+// SetEnabled atomically changes one rule without exposing partial state.
+func (i *Interceptors) SetEnabled(name string, enabled bool) (InterceptorRule, error) {
+	if i == nil {
+		return InterceptorRule{}, errors.New("interceptors are required")
+	}
+	name = strings.TrimSpace(name)
+	for {
+		current := i.current.Load()
+		if current == nil {
+			return InterceptorRule{}, fmt.Errorf("%w: %q", ErrInterceptorNotFound, name)
+		}
+		rules := make([]InterceptorRule, len(current.rules))
+		found := -1
+		for index, item := range current.rules {
+			rules[index] = cloneInterceptorRule(item.rule)
+			if item.rule.Name == name {
+				found = index
+			}
+		}
+		if found < 0 {
+			return InterceptorRule{}, fmt.Errorf("%w: %q", ErrInterceptorNotFound, name)
+		}
+		rules[found].Enabled = boolPointer(enabled)
+		next, err := compileInterceptors(rules, i.maximumBody)
+		if err != nil {
+			return InterceptorRule{}, err
+		}
+		if i.current.CompareAndSwap(current, next) {
+			return cloneInterceptorRule(next.rules[found].rule), nil
+		}
+	}
+}
+
+func (i *Interceptors) snapshot() *interceptorSet {
+	if i == nil {
+		return nil
+	}
+	return i.current.Load()
 }
 
 // InterceptRequest applies all matching request rules.
 func (i *Interceptors) InterceptRequest(ctx context.Context, request *http.Request) error {
+	return i.snapshot().interceptRequest(ctx, request)
+}
+
+func (i *interceptorSet) interceptRequest(ctx context.Context, request *http.Request) error {
 	if i == nil {
 		return nil
 	}
@@ -194,6 +290,10 @@ func (i *Interceptors) InterceptRequest(ctx context.Context, request *http.Reque
 
 // InterceptResponse applies all matching response rules.
 func (i *Interceptors) InterceptResponse(ctx context.Context, response *http.Response) error {
+	return i.snapshot().interceptResponse(ctx, response)
+}
+
+func (i *interceptorSet) interceptResponse(ctx context.Context, response *http.Response) error {
 	if i == nil {
 		return nil
 	}
@@ -237,6 +337,36 @@ func (i *Interceptors) InterceptResponse(ctx context.Context, response *http.Res
 	}
 	return nil
 }
+
+func cloneInterceptorRule(rule InterceptorRule) InterceptorRule {
+	if rule.Enabled != nil {
+		rule.Enabled = boolPointer(*rule.Enabled)
+	}
+	rule.Match.Methods = append([]string(nil), rule.Match.Methods...)
+	rule.Match.ContentTypes = append([]string(nil), rule.Match.ContentTypes...)
+	rule.Action.SetHeaders = cloneStringMap(rule.Action.SetHeaders)
+	rule.Action.AddHeaders = cloneStringMap(rule.Action.AddHeaders)
+	rule.Action.RemoveHeaders = append([]string(nil), rule.Action.RemoveHeaders...)
+	rule.Action.BodyReplace = append([]TextReplacement(nil), rule.Action.BodyReplace...)
+	if rule.Action.RewriteURL != nil {
+		rewrite := *rule.Action.RewriteURL
+		rule.Action.RewriteURL = &rewrite
+	}
+	return rule
+}
+
+func cloneStringMap(source map[string]string) map[string]string {
+	if source == nil {
+		return nil
+	}
+	cloned := make(map[string]string, len(source))
+	for key, value := range source {
+		cloned[key] = value
+	}
+	return cloned
+}
+
+func boolPointer(value bool) *bool { return &value }
 
 func compileInterceptorRule(rule InterceptorRule) (compiledInterceptorRule, error) {
 	rule.Name = strings.TrimSpace(rule.Name)

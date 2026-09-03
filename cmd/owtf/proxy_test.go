@@ -85,6 +85,63 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 		cancel()
 		t.Fatalf("status = %d, body = %q", response.StatusCode, body)
 	}
+	apiURL := "http://" + status.API
+	var cliOutput bytes.Buffer
+	if err := runProxyCommand(context.Background(), []string{
+		"interceptors", "list", "--api", apiURL,
+	}, &cliOutput, io.Discard); err != nil {
+		cancel()
+		t.Fatal(err)
+	}
+	var interceptorConfig owtfproxy.InterceptorConfig
+	if err := json.Unmarshal(cliOutput.Bytes(), &interceptorConfig); err != nil || len(interceptorConfig.Rules) != 2 {
+		cancel()
+		t.Fatalf("CLI interceptors = %+v, error = %v", interceptorConfig, err)
+	}
+	cliOutput.Reset()
+	if err := runProxyCommand(context.Background(), []string{
+		"interceptors", "disable", "--api", apiURL, "response",
+	}, &cliOutput, io.Discard); err != nil {
+		cancel()
+		t.Fatal(err)
+	}
+	response, err = client.Get(upstream.URL + "/disabled")
+	if err != nil {
+		cancel()
+		t.Fatal(err)
+	}
+	body, _ = io.ReadAll(response.Body)
+	response.Body.Close()
+	if response.StatusCode != http.StatusAccepted || string(body) != "captured" {
+		cancel()
+		t.Fatalf("disabled interceptor status = %d, body = %q", response.StatusCode, body)
+	}
+	cliOutput.Reset()
+	if err := runProxyCommand(context.Background(), []string{
+		"interceptors", "enable", "--api", apiURL, "response",
+	}, &cliOutput, io.Discard); err != nil {
+		cancel()
+		t.Fatal(err)
+	}
+	runtimeInterceptorPath := filepath.Join(directory, "runtime-interceptors.json")
+	if err := os.WriteFile(runtimeInterceptorPath, []byte(`{"rules":[
+		{"name":"request","phase":"request","action":{"set_headers":{"X-OWTF":"intercepted"}}},
+		{"name":"response","phase":"response","action":{"body_replace":[{"pattern":"captured","replacement":"runtime"}]}}
+	]}`), 0o600); err != nil {
+		cancel()
+		t.Fatal(err)
+	}
+	cliOutput.Reset()
+	if err := runProxyCommand(context.Background(), []string{
+		"interceptors", "replace", "--api", apiURL, runtimeInterceptorPath,
+	}, &cliOutput, io.Discard); err != nil {
+		cancel()
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(cliOutput.Bytes(), &interceptorConfig); err != nil || len(interceptorConfig.Rules) != 2 {
+		cancel()
+		t.Fatalf("CLI replacement = %+v, error = %v", interceptorConfig, err)
+	}
 
 	repeatInput, _ := json.Marshal(owtfproxy.RepeatRequest{Method: http.MethodGet, URL: upstream.URL + "/repeat"})
 	repeatResponse, err := http.Post("http://"+status.API+"/api/v2/repeater", "application/json", bytes.NewReader(repeatInput))
@@ -100,12 +157,11 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 	}
 	repeatResponse.Body.Close()
 	repeatedBody, err := base64.StdEncoding.DecodeString(repeated.BodyBase64)
-	if err != nil || repeatResponse.StatusCode != http.StatusOK || repeated.StatusCode != http.StatusAccepted || string(repeatedBody) != "modified" {
+	if err != nil || repeatResponse.StatusCode != http.StatusOK || repeated.StatusCode != http.StatusAccepted || string(repeatedBody) != "runtime" {
 		cancel()
 		t.Fatalf("repeater HTTP status = %d, response = %+v, body = %q, error = %v", repeatResponse.StatusCode, repeated, repeatedBody, err)
 	}
-	apiURL := "http://" + status.API
-	var cliOutput bytes.Buffer
+	cliOutput.Reset()
 	if err := runProxyCommand(context.Background(), []string{
 		"repeat", "--api", apiURL, upstream.URL + "/cli-repeat",
 	}, &cliOutput, io.Discard); err != nil {
@@ -118,7 +174,7 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 		t.Fatal(err)
 	}
 	cliBody, err := base64.StdEncoding.DecodeString(cliRepeated.BodyBase64)
-	if err != nil || cliRepeated.StatusCode != http.StatusAccepted || string(cliBody) != "modified" {
+	if err != nil || cliRepeated.StatusCode != http.StatusAccepted || string(cliBody) != "runtime" {
 		cancel()
 		t.Fatalf("CLI repeat = %+v, body = %q, error = %v", cliRepeated, cliBody, err)
 	}
@@ -137,7 +193,7 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 		t.Fatal(err)
 	}
 	statsResponse.Body.Close()
-	if statsResponse.StatusCode != http.StatusOK || stats.Total != 3 {
+	if statsResponse.StatusCode != http.StatusOK || stats.Total != 4 {
 		cancel()
 		t.Fatalf("proxy stats status = %d, stats = %+v", statsResponse.StatusCode, stats)
 	}
@@ -192,10 +248,12 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 	if parseErr != nil {
 		t.Fatal(parseErr)
 	}
-	if len(transactions) != 3 || transactions[0].URL != upstream.URL+"/through-proxy" ||
-		transactions[1].URL != upstream.URL+"/repeat" || transactions[2].URL != upstream.URL+"/cli-repeat" ||
+	if len(transactions) != 4 || transactions[0].URL != upstream.URL+"/through-proxy" ||
+		transactions[1].URL != upstream.URL+"/disabled" || transactions[2].URL != upstream.URL+"/repeat" ||
+		transactions[3].URL != upstream.URL+"/cli-repeat" ||
 		transactions[0].StatusCode != http.StatusAccepted || string(transactions[0].ResponseBody) != "modified" ||
-		string(transactions[1].ResponseBody) != "modified" || string(transactions[2].ResponseBody) != "modified" {
+		string(transactions[1].ResponseBody) != "captured" || string(transactions[2].ResponseBody) != "runtime" ||
+		string(transactions[3].ResponseBody) != "runtime" {
 		t.Fatalf("transactions = %+v", transactions)
 	}
 }

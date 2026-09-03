@@ -284,10 +284,13 @@ responses with cookie-key filtering, and supports authenticated HTTP, HTTPS,
 and SOCKS5 upstream proxies. Basic and Digest target authentication is scoped
   to configured hosts and loaded from a private file. Priority-ordered static
   request and response interceptors provide bounded URL, header, body, and delay
-  actions. A separate loopback proxy API listener provides transaction history,
-  filters, statistics, clearing, CA download, and request replay through the
-  same proxy path. WebSocket traffic is forwarded unchanged and captured as a
-  bounded, binary-safe frame transcript. Live interceptors remain before the
+  actions. The same validated rule set can be listed, replaced, enabled, and
+  disabled atomically through the loopback API and CLI; an in-flight exchange
+  keeps one immutable rule snapshot. A separate loopback proxy API listener
+  provides transaction history, filters, statistics, clearing, CA download,
+  and request replay through the same proxy path. WebSocket traffic is
+  forwarded unchanged and captured as a bounded, binary-safe frame transcript.
+  Pausing and editing individual live requests or responses remains before the
   phase gate.
 
 Phase 5 has a checked feature matrix, typed configuration shared by server and

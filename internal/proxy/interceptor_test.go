@@ -2,9 +2,11 @@ package proxy
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -144,8 +146,100 @@ func TestInterceptorsRejectOversizedBody(t *testing.T) {
 }
 
 func TestLoadInterceptorsRejectsUnknownFields(t *testing.T) {
-	_, err := LoadInterceptors(strings.NewReader(`{"rules":[{"name":"bad","phase":"request","action":{},"unknown":true}]}`), 1024)
-	if err == nil {
-		t.Fatal("unknown interceptor field was accepted")
+	for name, input := range map[string]string{
+		"unknown field": `{"rules":[{"name":"bad","phase":"request","action":{},"unknown":true}]}`,
+		"null":          `null`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if _, err := LoadInterceptors(strings.NewReader(input), 1024); err == nil {
+				t.Fatal("invalid interceptor document was accepted")
+			}
+		})
+	}
+}
+
+func TestInterceptorsReplaceAndSetEnabled(t *testing.T) {
+	rules := []InterceptorRule{{
+		Name: "header", Phase: "request",
+		Action: InterceptorAction{SetHeaders: map[string]string{"X-OWTF": "initial"}},
+	}}
+	interceptors, err := NewInterceptors(rules, 1024)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rules[0].Action.SetHeaders["X-OWTF"] = "mutated"
+	config := interceptors.Config()
+	config.Rules[0].Action.SetHeaders["X-OWTF"] = "also-mutated"
+	if got := interceptors.Config().Rules[0].Action.SetHeaders["X-OWTF"]; got != "initial" {
+		t.Fatalf("active interceptor aliased caller state: %q", got)
+	}
+
+	if err := interceptors.Replace([]InterceptorRule{{Name: "broken", Phase: "request", Match: InterceptorMatch{URLPattern: "["}}}); err == nil {
+		t.Fatal("invalid replacement was accepted")
+	}
+	request, _ := http.NewRequest(http.MethodGet, "https://example.test", nil)
+	if err := interceptors.InterceptRequest(context.Background(), request); err != nil || request.Header.Get("X-OWTF") != "initial" {
+		t.Fatalf("failed replacement changed active rules: header=%q err=%v", request.Header.Get("X-OWTF"), err)
+	}
+
+	rule, err := interceptors.SetEnabled("header", false)
+	if err != nil || rule.Enabled == nil || *rule.Enabled {
+		t.Fatalf("disabled rule = %+v, error = %v", rule, err)
+	}
+	request, _ = http.NewRequest(http.MethodGet, "https://example.test", nil)
+	if err := interceptors.InterceptRequest(context.Background(), request); err != nil || request.Header.Get("X-OWTF") != "" {
+		t.Fatalf("disabled interceptor applied: header=%q err=%v", request.Header.Get("X-OWTF"), err)
+	}
+	if _, err := interceptors.SetEnabled("missing", true); !errors.Is(err, ErrInterceptorNotFound) {
+		t.Fatalf("missing rule error = %v", err)
+	}
+}
+
+func TestInterceptorsReplaceWhileMatching(t *testing.T) {
+	ruleSet := func(generation string) []InterceptorRule {
+		return []InterceptorRule{
+			{Name: "first", Priority: 1, Phase: "request", Action: InterceptorAction{SetHeaders: map[string]string{"X-First": generation}}},
+			{Name: "second", Priority: 2, Phase: "request", Action: InterceptorAction{SetHeaders: map[string]string{"X-Second": generation}}},
+		}
+	}
+	interceptors, err := NewInterceptors(ruleSet("a"), 1024)
+	if err != nil {
+		t.Fatal(err)
+	}
+	failures := make(chan string, 2)
+	var group sync.WaitGroup
+	group.Add(2)
+	go func() {
+		defer group.Done()
+		for index := range 1000 {
+			generation := "a"
+			if index%2 == 0 {
+				generation = "b"
+			}
+			if err := interceptors.Replace(ruleSet(generation)); err != nil {
+				failures <- err.Error()
+				return
+			}
+		}
+	}()
+	go func() {
+		defer group.Done()
+		for range 1000 {
+			request, _ := http.NewRequest(http.MethodGet, "https://example.test", nil)
+			if err := interceptors.InterceptRequest(context.Background(), request); err != nil {
+				failures <- err.Error()
+				return
+			}
+			if first, second := request.Header.Get("X-First"), request.Header.Get("X-Second"); first == "" || first != second {
+				failures <- "one request observed two interceptor generations"
+				return
+			}
+		}
+	}()
+	group.Wait()
+	select {
+	case failure := <-failures:
+		t.Fatal(failure)
+	default:
 	}
 }

@@ -333,6 +333,19 @@ Configuration is capped at 1 MiB and 100 rules. Body changes use
 WebSocket streams. Response rules are skipped for WebSocket upgrades. URL
 rewrites are checked against ``--target-host`` after transformation.
 
+Inspect or change the active rules without restarting the proxy::
+
+  owtf proxy interceptors list
+  owtf proxy interceptors disable redact-text
+  owtf proxy interceptors enable redact-text
+  owtf proxy interceptors replace interceptors.json
+
+Replacement validates and compiles the complete document before one atomic
+swap. Invalid documents leave the active rules unchanged, and an in-flight
+HTTP exchange uses one rule snapshot for both its request and response. Runtime
+changes are not written back to ``--interceptor-file`` and end when the proxy
+stops.
+
 Inspect and replay proxy traffic
 --------------------------------
 
@@ -366,6 +379,12 @@ The same operations are available directly for scripts::
   curl -sS -X POST -H 'Content-Type: application/json' \
     --data '{"method":"GET","url":"https://example.test/"}' \
     http://127.0.0.1:8010/api/v2/repeater
+  curl -sS http://127.0.0.1:8010/api/v2/interceptors
+  curl -sS -X PUT -H 'Content-Type: application/json' \
+    --data @interceptors.json http://127.0.0.1:8010/api/v2/interceptors
+  curl -sS -X PATCH -H 'Content-Type: application/json' \
+    --data '{"name":"redact-text","enabled":false}' \
+    http://127.0.0.1:8010/api/v2/interceptors
   curl -sS -X DELETE http://127.0.0.1:8010/api/v2/transactions
 
 Run ``owtf help`` for the compact command index. The CLI never opens the

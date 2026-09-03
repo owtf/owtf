@@ -89,7 +89,10 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	}
 
 	recorder := owtfproxy.NewRecorder(proxySettings.MaximumTransactions)
-	var interceptors *owtfproxy.Interceptors
+	interceptors, err := owtfproxy.NewInterceptors(nil, proxySettings.MaximumBody)
+	if err != nil {
+		return err
+	}
 	if proxySettings.InterceptorFile != "" {
 		file, err := os.Open(proxySettings.InterceptorFile)
 		if err != nil {
@@ -139,7 +142,8 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
 	}
 	apiHandler, err := owtfproxy.NewAPI(owtfproxy.APIConfig{
-		Authority: authority, Recorder: recorder, RepeatClient: repeatClient, MaximumBody: proxySettings.MaximumBody,
+		Authority: authority, Recorder: recorder, RepeatClient: repeatClient,
+		Interceptors: interceptors, MaximumBody: proxySettings.MaximumBody,
 	})
 	if err != nil {
 		listener.Close()

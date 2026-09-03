@@ -1001,6 +1001,7 @@ Usage:
   owtf config validate FILE
   owtf proxy [--config FILE] [--listen ADDRESS] [--api-listen ADDRESS]
   owtf proxy status|transactions|transaction|stats|clear|ca|repeat
+  owtf proxy interceptors list|replace|enable|disable
   owtf [--url URL] health
   owtf [--url URL] sessions list|create|show|report|delete
   owtf [--url URL] sessions export [--output FILE] ID

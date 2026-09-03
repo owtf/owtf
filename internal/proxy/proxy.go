@@ -100,6 +100,7 @@ func (p *Proxy) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 
 func (p *Proxy) forward(writer http.ResponseWriter, request *http.Request, scheme, authority string) {
 	started := time.Now().UTC()
+	interceptors := p.interceptors.snapshot()
 	outgoing := request.Clone(request.Context())
 	outgoing.URL = cloneURL(request)
 	if outgoing.URL.Scheme == "" {
@@ -110,7 +111,7 @@ func (p *Proxy) forward(writer http.ResponseWriter, request *http.Request, schem
 	}
 	outgoing.RequestURI = ""
 	outgoing.Header = request.Header.Clone()
-	if err := p.interceptors.InterceptRequest(request.Context(), outgoing); err != nil {
+	if err := interceptors.interceptRequest(request.Context(), outgoing); err != nil {
 		p.interceptionError(writer, "request", err)
 		return
 	}
@@ -146,7 +147,7 @@ func (p *Proxy) forward(writer http.ResponseWriter, request *http.Request, schem
 		p.record(started, outgoing, response, requestBody.Bytes(), transcript)
 		return
 	}
-	if err := p.interceptors.InterceptResponse(request.Context(), response); err != nil {
+	if err := interceptors.interceptResponse(request.Context(), response); err != nil {
 		p.interceptionError(writer, "response", err)
 		return
 	}

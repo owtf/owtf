@@ -19,6 +19,7 @@ PROXY_API_URL="http://${PROXY_API_ADDRESS}"
 PROXY_HAR="${TMP_DIR}/proxy.har"
 PROXY_CA="${TMP_DIR}/proxy-ca.crt"
 PROXY_KEY="${TMP_DIR}/proxy-ca.key"
+EMPTY_INTERCEPTORS="${TMP_DIR}/empty-interceptors.json"
 CONFIG_FILE="${TMP_DIR}/config.yaml"
 
 cleanup() {
@@ -624,12 +625,38 @@ curl --silent --show-error --fail --max-time 10 --noproxy '' --proxy "${PROXY_UR
   "${BASE_URL}/debug/health" >"${RESPONSE_FILE}"
 assert_json '.status == "ok"' 'curl traffic did not pass through the proxy'
 
+INTERCEPTOR_PAYLOAD=$(jq -nc '{rules:[{
+  name:"runtime-response", phase:"response",
+  match:{url_pattern:"debug/health",content_types:["application/json"]},
+  action:{body_replace:[{pattern:"\"ok\"",replacement:"\"intercepted\""}]}
+}]}')
+request_status=$(curl --silent --show-error --max-time 10 --request PUT \
+  --header 'Content-Type: application/json' --data "${INTERCEPTOR_PAYLOAD}" \
+  --output "${RESPONSE_FILE}" --write-out '%{http_code}' "${PROXY_API_URL}/api/v2/interceptors")
+[[ "${request_status}" == 200 ]] || fail "proxy interceptor replacement returned ${request_status}: $(cat "${RESPONSE_FILE}")"
+assert_json '(.rules | length) == 1 and .rules[0].name == "runtime-response"' 'runtime interceptor replacement is incorrect'
+proxy_cli_json interceptors list
+jq -e '(.rules | length) == 1 and .rules[0].name == "runtime-response"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy CLI interceptor list is incorrect'
+proxy_cli_json interceptors disable runtime-response
+jq -e '.name == "runtime-response" and .enabled == false' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy CLI did not disable the interceptor'
+proxy_cli_json interceptors enable runtime-response
+jq -e '.name == "runtime-response" and .enabled == true' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy CLI did not enable the interceptor'
+
 REPEAT_PAYLOAD=$(jq -nc --arg url "${BASE_URL}/debug/health" '{method:"GET",url:$url}')
 request_status=$(curl --silent --show-error --max-time 10 \
   --request POST --header 'Content-Type: application/json' --data "${REPEAT_PAYLOAD}" \
   --output "${RESPONSE_FILE}" --write-out '%{http_code}' "${PROXY_API_URL}/api/v2/repeater")
 [[ "${request_status}" == 200 ]] || fail "proxy repeater returned ${request_status}: $(cat "${RESPONSE_FILE}")"
-assert_json '.status_code == 200 and .truncated == false and (.body_base64 | @base64d | fromjson | .status == "ok")' 'proxy repeater response is incorrect'
+assert_json '.status_code == 200 and .truncated == false and (.body_base64 | @base64d | fromjson | .status == "intercepted")' 'runtime interceptor did not transform repeater traffic'
+request_status=$(curl --silent --show-error --max-time 10 --request PUT \
+  --header 'Content-Type: application/json' --data '{"rules":[{"name":"broken","phase":"request","match":{"url_pattern":"["},"action":{}}]}' \
+  --output "${RESPONSE_FILE}" --write-out '%{http_code}' "${PROXY_API_URL}/api/v2/interceptors")
+[[ "${request_status}" == 400 ]] || fail "invalid proxy interceptor replacement returned ${request_status}"
+curl --silent --show-error --fail --max-time 10 "${PROXY_API_URL}/api/v2/interceptors" >"${RESPONSE_FILE}"
+assert_json '(.rules | length) == 1 and .rules[0].name == "runtime-response" and .rules[0].enabled == true' 'invalid replacement changed active interceptors'
+printf '%s\n' '{"rules":[]}' >"${EMPTY_INTERCEPTORS}"
+proxy_cli_json interceptors replace "${EMPTY_INTERCEPTORS}"
+jq -e '(.rules | length) == 0' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy CLI did not replace interceptors'
 
 curl --silent --show-error --fail --max-time 10 \
   "${PROXY_API_URL}/api/v2/transactions?method=GET&status=200&url=debug%2Fhealth&limit=10" >"${RESPONSE_FILE}"

@@ -46,8 +46,9 @@ resulting evidence.
   statistics, clearing, CA download, and binary-safe request replay.
 - Challenge-based Basic and Digest authentication for explicitly configured
   target hosts.
-- Priority-ordered static request and response interceptors with bounded URL,
-  header, body, and delay actions.
+- Priority-ordered request and response interceptors with bounded URL, header,
+  body, and delay actions, plus atomic runtime management through the loopback
+  API and CLI.
 - Strict, versioned configuration shared by the server and proxy, with
   scriptable show and validation commands.
 - Target reports through the API and CLI.

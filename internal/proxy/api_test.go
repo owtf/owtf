@@ -38,7 +38,7 @@ func TestAPIServesCAHistoryStatsAndClear(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	authority, handler := newAPIForTest(t, recorder, doerFunc(func(*http.Request) (*http.Response, error) {
+	authority, _, handler := newAPIForTest(t, recorder, doerFunc(func(*http.Request) (*http.Response, error) {
 		return nil, context.Canceled
 	}), 1024)
 	server := httptest.NewServer(handler)
@@ -113,7 +113,7 @@ func TestAPIRepeaterUsesBoundedBinaryBodies(t *testing.T) {
 			Body: io.NopCloser(bytes.NewReader([]byte("12345"))),
 		}, nil
 	})
-	_, handler := newAPIForTest(t, NewRecorder(10), repeatClient, 4)
+	_, _, handler := newAPIForTest(t, NewRecorder(10), repeatClient, 4)
 	server := httptest.NewServer(handler)
 	defer server.Close()
 	input := RepeatRequest{
@@ -134,7 +134,7 @@ func TestAPIRepeaterUsesBoundedBinaryBodies(t *testing.T) {
 }
 
 func TestAPIRejectsInvalidFiltersAndRepeaterRequests(t *testing.T) {
-	_, handler := newAPIForTest(t, NewRecorder(10), doerFunc(func(*http.Request) (*http.Response, error) {
+	_, _, handler := newAPIForTest(t, NewRecorder(10), doerFunc(func(*http.Request) (*http.Response, error) {
 		t.Fatal("invalid repeater request reached client")
 		return nil, nil
 	}), 4)
@@ -165,20 +165,98 @@ func TestAPIRejectsInvalidFiltersAndRepeaterRequests(t *testing.T) {
 	}
 }
 
-func newAPIForTest(t *testing.T, recorder *Recorder, client httpDoer, maximumBody int64) (*Authority, http.Handler) {
+func TestAPIManagesInterceptorsAtomically(t *testing.T) {
+	_, interceptors, handler := newAPIForTest(t, NewRecorder(10), doerFunc(func(*http.Request) (*http.Response, error) {
+		return nil, context.Canceled
+	}), 1024)
+	if err := interceptors.Replace([]InterceptorRule{{Name: "initial", Phase: "request"}}); err != nil {
+		t.Fatal(err)
+	}
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	response, err := http.Get(server.URL + "/api/v2/interceptors")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var config InterceptorConfig
+	decodeTestResponse(t, response, http.StatusOK, &config)
+	if len(config.Rules) != 1 || config.Rules[0].Name != "initial" {
+		t.Fatalf("initial interceptor config = %+v", config)
+	}
+
+	replacement := InterceptorConfig{Rules: []InterceptorRule{{
+		Name: "runtime", Phase: "request",
+		Action: InterceptorAction{SetHeaders: map[string]string{"X-OWTF": "runtime"}},
+	}}}
+	response = proxyJSONRequest(t, http.MethodPut, server.URL+"/api/v2/interceptors", replacement)
+	decodeTestResponse(t, response, http.StatusOK, &config)
+	if len(config.Rules) != 1 || config.Rules[0].Name != "runtime" {
+		t.Fatalf("replacement interceptor config = %+v", config)
+	}
+
+	response = proxyJSONRequest(t, http.MethodPatch, server.URL+"/api/v2/interceptors", map[string]any{
+		"name": "runtime", "enabled": false,
+	})
+	var disabled InterceptorRule
+	decodeTestResponse(t, response, http.StatusOK, &disabled)
+	if disabled.Enabled == nil || *disabled.Enabled {
+		t.Fatalf("disabled interceptor = %+v", disabled)
+	}
+
+	response = proxyJSONRequest(t, http.MethodPut, server.URL+"/api/v2/interceptors", InterceptorConfig{Rules: []InterceptorRule{{
+		Name: "broken", Phase: "request", Match: InterceptorMatch{URLPattern: "["},
+	}}})
+	decodeTestResponse(t, response, http.StatusBadRequest, &map[string]string{})
+	response = proxyJSONRequest(t, http.MethodPut, server.URL+"/api/v2/interceptors", json.RawMessage("null"))
+	decodeTestResponse(t, response, http.StatusBadRequest, &map[string]string{})
+	if active := interceptors.Config(); len(active.Rules) != 1 || active.Rules[0].Name != "runtime" || active.Rules[0].Enabled == nil || *active.Rules[0].Enabled {
+		t.Fatalf("failed replacement changed active config: %+v", active)
+	}
+
+	response = proxyJSONRequest(t, http.MethodPatch, server.URL+"/api/v2/interceptors", map[string]any{
+		"name": "missing", "enabled": true,
+	})
+	decodeTestResponse(t, response, http.StatusNotFound, &map[string]string{})
+}
+
+func newAPIForTest(t *testing.T, recorder *Recorder, client httpDoer, maximumBody int64) (*Authority, *Interceptors, http.Handler) {
 	t.Helper()
 	directory := t.TempDir()
 	authority, err := LoadOrCreateAuthority(filepath.Join(directory, "ca.crt"), filepath.Join(directory, "ca.key"))
 	if err != nil {
 		t.Fatal(err)
 	}
+	interceptors, err := NewInterceptors(nil, maximumBody)
+	if err != nil {
+		t.Fatal(err)
+	}
 	handler, err := NewAPI(APIConfig{
-		Authority: authority, Recorder: recorder, RepeatClient: client, MaximumBody: maximumBody,
+		Authority: authority, Recorder: recorder, RepeatClient: client,
+		Interceptors: interceptors, MaximumBody: maximumBody,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	return authority, handler
+	return authority, interceptors, handler
+}
+
+func proxyJSONRequest(t *testing.T, method, endpoint string, input any) *http.Response {
+	t.Helper()
+	data, err := json.Marshal(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request, err := http.NewRequest(method, endpoint, bytes.NewReader(data))
+	if err != nil {
+		t.Fatal(err)
+	}
+	request.Header.Set("Content-Type", "application/json")
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return response
 }
 
 func decodeTestResponse(t *testing.T, response *http.Response, status int, destination any) {

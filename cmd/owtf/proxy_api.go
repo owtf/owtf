@@ -21,8 +21,9 @@ import (
 )
 
 const (
-	defaultProxyAPIURL = "http://127.0.0.1:8010"
-	maximumCLIDataFile = 16 << 20
+	defaultProxyAPIURL          = "http://127.0.0.1:8010"
+	maximumCLIDataFile          = 16 << 20
+	maximumInterceptorFileBytes = 1 << 20
 )
 
 type proxyAPIOptions struct {
@@ -80,8 +81,48 @@ func runProxyCommand(ctx context.Context, args []string, stdout, stderr io.Write
 		return runProxyCA(ctx, args[1:], stdout, stderr)
 	case "repeat", "repeater":
 		return runProxyRepeat(ctx, args[1:], stdout, stderr)
+	case "interceptors":
+		return runProxyInterceptors(ctx, args[1:], stdout, stderr)
 	default:
 		return fmt.Errorf("unknown proxy command %q", args[0])
+	}
+}
+
+func runProxyInterceptors(ctx context.Context, args []string, stdout, stderr io.Writer) error {
+	if len(args) == 0 {
+		return errors.New("proxy interceptors requires list, replace, enable, or disable")
+	}
+	flags, options := newProxyAPIFlags("owtf proxy interceptors "+args[0], stderr, 30*time.Second)
+	if err := flags.Parse(args[1:]); err != nil {
+		return err
+	}
+	client, err := newProxyAPIClient(options, stdout)
+	if err != nil {
+		return err
+	}
+	switch args[0] {
+	case "list":
+		if flags.NArg() != 0 {
+			return errors.New("proxy interceptors list accepts no positional arguments")
+		}
+		return client.writeJSON(ctx, http.MethodGet, "/api/v2/interceptors", nil)
+	case "replace":
+		if flags.NArg() != 1 {
+			return errors.New("proxy interceptors replace requires one JSON file")
+		}
+		config, err := readInterceptorFile(flags.Arg(0))
+		if err != nil {
+			return err
+		}
+		return client.writeJSON(ctx, http.MethodPut, "/api/v2/interceptors", config)
+	case "enable", "disable":
+		if flags.NArg() != 1 {
+			return fmt.Errorf("proxy interceptors %s requires one rule name", args[0])
+		}
+		input := map[string]any{"name": flags.Arg(0), "enabled": args[0] == "enable"}
+		return client.writeJSON(ctx, http.MethodPatch, "/api/v2/interceptors", input)
+	default:
+		return fmt.Errorf("unknown proxy interceptors command %q", args[0])
 	}
 }
 
@@ -356,6 +397,22 @@ func readProxyDataFile(path string) ([]byte, error) {
 		return nil, fmt.Errorf("repeater data file exceeds %d bytes", maximumCLIDataFile)
 	}
 	return data, nil
+}
+
+func readInterceptorFile(path string) (json.RawMessage, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("open interceptor file: %w", err)
+	}
+	defer file.Close()
+	data, err := io.ReadAll(io.LimitReader(file, maximumInterceptorFileBytes+1))
+	if err != nil {
+		return nil, fmt.Errorf("read interceptor file: %w", err)
+	}
+	if len(data) > maximumInterceptorFileBytes {
+		return nil, errors.New("interceptor file exceeds 1 MiB")
+	}
+	return json.RawMessage(data), nil
 }
 
 func writeProxyFile(path string, source io.Reader, mode os.FileMode) (int64, error) {
