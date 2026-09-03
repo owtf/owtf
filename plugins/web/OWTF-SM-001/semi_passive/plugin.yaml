@@ -5,18 +5,28 @@ metadata:
   id: OWTF-SM-001-semi_passive
   version: 0.1.0
   title: "Session Management Schema"
-  description: "Declares the retained Session Management Schema technique while its runtime is completed."
+  description: "Searches captured request and response headers for candidate session identifiers."
 
 spec:
   techniques:
     - code: OWTF-SM-001
       title: "Session Management Schema"
-      hint: "Review Session Management Schema and retain concrete evidence."
+      hint: "Which captured requests and responses exchange candidate session identifiers?"
       priority: 99
-      reference: https://owasp.org/www-project-web-security-testing-guide/stable/
+      reference: https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/06-Session_Management_Testing/README
   group: web
   type: semi_passive
   targetKinds: [url]
   runtime:
-    type: unavailable
-    reason: "Runtime migration pending. Session-management observations belong in the bounded native HTTP plugin without a duplicate resource wrapper."
+    type: grep
+    grep:
+      maxMatches: 100
+      rules:
+        - id: session-cookie-response
+          title: Candidate session cookie set by response
+          source: response_headers
+          pattern: '(?i)"set-cookie"\s*:\s*\[[^]]*(session|sessid|sid|auth|token|jwt)'
+        - id: session-cookie-request
+          title: Candidate session cookie sent by request
+          source: request_headers
+          pattern: '(?i)"cookie"\s*:\s*\[[^]]*(session|sessid|sid|auth|token|jwt)'
