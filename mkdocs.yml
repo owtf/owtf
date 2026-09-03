@@ -1,0 +1,141 @@
+# yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
+
+site_name: OWTF
+site_description: Guides and reference material for the Offensive Web Testing Framework.
+site_url: !ENV [READTHEDOCS_CANONICAL_URL, "https://docs.owtf.org/en/develop/"]
+repo_url: https://github.com/owtf/owtf
+repo_name: owtf/owtf
+edit_uri: edit/develop/docs/
+copyright: Copyright &copy; 2026 OWASP OWTF contributors
+use_directory_urls: false
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  language: en
+  font: false
+  icon:
+    logo: material/radar
+    repo: fontawesome/brands/github
+  palette:
+    scheme: owtf-light
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.path
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+nav:
+  - Home: index.md
+  - Get started:
+      - Overview: getting-started/index.md
+      - Install OWTF: getting-started/installation.md
+      - First assessment: getting-started/first-assessment.md
+      - Troubleshooting: getting-started/troubleshooting.md
+  - User guide:
+      - Targets and sessions: guides/targets-and-sessions.md
+      - Plugins: guides/plugins.md
+      - Workers and worklist: guides/workers-and-worklist.md
+      - Results and reporting: guides/results-and-reporting.md
+      - Authentication: guides/authentication.md
+  - Configuration:
+      - Overview: configuration/index.md
+      - Database: configuration/database.md
+      - Email: configuration/email.md
+  - Intercepting proxy:
+      - Overview: proxy/index.md
+      - HTTPS interception: proxy/https-interception.md
+  - Reference:
+      - Service ports: reference/ports.md
+      - Architecture: reference/architecture.md
+      - Codebase map: reference/codebase.md
+      - Community plugin security: reference/community-plugin-security.md
+  - Contribute:
+      - Documentation: contributing/documentation.md
+      - Project contributing guide: https://github.com/owtf/owtf/blob/develop/CONTRIBUTING.md
+      - Security policy: https://github.com/owtf/owtf/security/policy
+
+plugins:
+  - search
+  - redirects:
+      redirect_maps:
+        install.md: getting-started/installation.md
+        installation/methods.md: getting-started/installation.md
+        installation/advanced.md: getting-started/installation.md
+        troubleshooting.md: getting-started/troubleshooting.md
+        usage.md: getting-started/index.md
+        usage/starting.md: getting-started/first-assessment.md
+        usage/targets.md: guides/targets-and-sessions.md
+        usage/sessions.md: guides/targets-and-sessions.md
+        usage/plugins.md: guides/plugins.md
+        usage/workers.md: guides/workers-and-worklist.md
+        usage/worklist.md: guides/workers-and-worklist.md
+        usage/results.md: guides/results-and-reporting.md
+        usage/results/adv_filter.md: guides/results-and-reporting.md
+        usage/results/notes.md: guides/results-and-reporting.md
+        usage/results/plugin_report.md: guides/results-and-reporting.md
+        usage/results/transaction_log.md: guides/results-and-reporting.md
+        usage/authentication.md: guides/authentication.md
+        config.md: configuration/index.md
+        configuration/db.md: configuration/database.md
+        configuration/framework_config.md: configuration/index.md
+        configuration/smtp.md: configuration/email.md
+        ssl_interception.md: proxy/https-interception.md
+        community_plugin_trust_model.md: reference/community-plugin-security.md
+        modules.md: reference/codebase.md
+        owtf.md: reference/codebase.md
+        owtf.api.md: reference/codebase.md
+        owtf.api.handlers.md: reference/codebase.md
+        owtf.cli.md: reference/codebase.md
+        owtf.db.md: reference/codebase.md
+        owtf.filesrv.md: reference/codebase.md
+        owtf.http.md: reference/codebase.md
+        owtf.lib.md: reference/codebase.md
+        owtf.managers.md: reference/codebase.md
+        owtf.plugin.md: reference/codebase.md
+        owtf.protocols.md: reference/codebase.md
+        owtf.proxy.md: reference/codebase.md
+        owtf.shell.md: reference/codebase.md
+        owtf.utils.md: reference/codebase.md
+        help.md: getting-started/troubleshooting.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/owtf/owtf
+      name: OWTF on GitHub
+    - icon: fontawesome/brands/youtube
+      link: https://www.youtube.com/user/owtfproject
+      name: OWTF on YouTube

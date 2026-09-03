@@ -1,6 +1,5 @@
-# sphinx build folder
-_build
-*sphinx_build.log*
+# MkDocs build output
+site
 
 # OS generated files
 .DS_Store?

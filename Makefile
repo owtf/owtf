@@ -62,8 +62,8 @@ install-ui-requirements:
 	cd owtf/webapp && yarn
 
 install-docs-requirements:
-	@echo "--> Installing Sphinx dependencies"
-	pip3 install sphinx sphinx_rtd_theme
+	@echo "--> Installing documentation dependencies"
+	pip3 install -r requirements/docs.txt
 
 install-requirements: install-python-requirements install-ui-requirements install-docs-requirements
 
@@ -91,7 +91,7 @@ bootstrap:
 
 docs:
 	@echo "--> Building docs"
-	cd docs/ && make html
+	mkdocs build --strict
 
 ### DOCKER
 
@@ -103,13 +103,13 @@ docker-run:
 	@echo "--> Running the Docker development image"
 	docker run -it -p 8009:8009 -p 8008:8008 -p 8010:8010 -v $(current_dir):/owtf owtf/owtf /bin/bash
 
-### Options to allow docker to have permissive network capabilities, allowing it to run tools such as nmap
+### Development Compose stacks
 compose-safe:
-	@echo "--> Running the Docker Compose setup with network capabilties for container"
+	@echo "--> Running the split frontend/backend stack without extra Linux capabilities"
 	docker compose -f docker/docker-compose.dev.yml up --build
 
 compose-unsafe:
-	@echo "--> Running the Docker Compose setup without network capabilties for container"
+	@echo "--> Running the legacy stack with CAP_NET_RAW and CAP_NET_ADMIN"
 	docker compose -f docker/docker-compose.dev.unsafe.yml up --build
 
 ### DEBIAN PACKAGING
