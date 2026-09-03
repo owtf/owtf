@@ -4,10 +4,54 @@ import (
 	"encoding/csv"
 	"io"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"testing"
 )
+
+func TestPluginLayoutMatchesManifest(t *testing.T) {
+	const root = "../../plugins"
+	groups := map[string]bool{"web": true, "network": true, "auxiliary": true, "community": true}
+	manifests := 0
+	err := filepath.WalkDir(root, func(filePath string, entry os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if entry.IsDir() || entry.Name() != "plugin.yaml" {
+			return nil
+		}
+		relative, err := filepath.Rel(root, filePath)
+		if err != nil {
+			return err
+		}
+		parts := strings.Split(filepath.ToSlash(relative), "/")
+		if len(parts) != 4 || !groups[parts[0]] {
+			t.Fatalf("plugin manifest %q must use <group>/<code>/<type>/plugin.yaml", relative)
+		}
+		catalog, err := Load(os.DirFS(filepath.Dir(filePath)))
+		if err != nil {
+			t.Fatalf("load %s: %v", relative, err)
+		}
+		if len(catalog.entries) != 1 {
+			t.Fatalf("plugin directory %q produced %d catalog entries", relative, len(catalog.entries))
+		}
+		for _, plugin := range catalog.entries {
+			expectedID := parts[1] + "-" + parts[2]
+			if plugin.Manifest.Spec.Group != parts[0] || plugin.Manifest.Spec.Type != parts[2] || plugin.Manifest.Metadata.ID != expectedID {
+				t.Fatalf("plugin %q does not match path %q", plugin.Manifest.Metadata.ID, relative)
+			}
+		}
+		manifests++
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if manifests == 0 {
+		t.Fatal("plugin tree has no manifests")
+	}
+}
 
 func TestEveryLegacyPluginHasAReviewedDecision(t *testing.T) {
 	inventory := readCSV(t, "../../docs/architecture/legacy-plugin-inventory.csv", 8)

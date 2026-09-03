@@ -1,0 +1,36 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-AT-007-grep
+  version: 0.1.0
+  title: Logout and Browser Cache Management
+  description: Searches captured responses for browser cache protection directives.
+
+spec:
+  techniques:
+    - code: OWTF-AT-007
+      title: Logout and Browser Cache Management
+      hint: Which captured responses advertise controls against retaining sensitive content?
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/04-Authentication_Testing/06-Testing_for_Browser_Cache_Weaknesses
+  group: web
+  type: grep
+  targetKinds: [url]
+  runtime:
+    type: grep
+    grep:
+      maxMatches: 100
+      rules:
+        - id: cache-control
+          title: Cache-Control protection directive
+          source: response_headers
+          pattern: '(?i)"cache-control"\s*:\s*\[[^]]*(no-store|no-cache|private)'
+        - id: pragma-no-cache
+          title: Pragma no-cache directive
+          source: response_headers
+          pattern: '(?i)"pragma"\s*:\s*\[[^]]*no-cache'
+        - id: cache-control-meta
+          title: HTML cache-control metadata
+          source: response_body
+          pattern: '(?i)<meta[^>]+http-equiv\s*=\s*["'']cache-control["'']'

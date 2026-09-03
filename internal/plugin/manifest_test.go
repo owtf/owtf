@@ -23,6 +23,18 @@ func TestManifestUsesOWTFPluginGroupAndType(t *testing.T) {
 	}
 }
 
+func TestManifestAcceptsEstablishedPluginGroups(t *testing.T) {
+	manifest := commandManifest("executable: echo", "")
+	for _, group := range []string{"web", "network", "auxiliary", "community"} {
+		t.Run(group, func(t *testing.T) {
+			candidate := strings.Replace(manifest, "group: web", "group: "+group, 1)
+			if _, err := Load(fstest.MapFS{"plugin.yaml": {Data: []byte(candidate)}}); err != nil {
+				t.Fatalf("established plugin group %q was rejected: %v", group, err)
+			}
+		})
+	}
+}
+
 func TestEntriesByGroupType(t *testing.T) {
 	active := commandManifest("executable: echo", "")
 	passive := strings.ReplaceAll(active, "OWTF-TEST-001-active", "OWTF-TEST-002-passive")

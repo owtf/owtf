@@ -1,0 +1,32 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-AT-001-grep
+  version: 0.1.0
+  title: Credentials Transport over an Encrypted Channel
+  description: Searches captured transactions for explicit cleartext credential transport indicators.
+
+spec:
+  techniques:
+    - code: OWTF-AT-001
+      title: Credentials Transport over an Encrypted Channel
+      hint: Does captured content explicitly send credentials over cleartext HTTP?
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/04-Authentication_Testing/01-Testing_for_Credentials_Transported_over_an_Encrypted_Channel
+  group: web
+  type: grep
+  targetKinds: [url]
+  runtime:
+    type: grep
+    grep:
+      maxMatches: 100
+      rules:
+        - id: cleartext-password-form
+          title: Password form posts to cleartext HTTP
+          source: response_body
+          pattern: '(?is)<form[^>]*action\s*=\s*["'']http://[^"'']+["''][^>]*>.*?<input[^>]+type\s*=\s*["'']password["'']'
+        - id: credentials-in-query
+          title: Credential parameter in a cleartext URL
+          source: url
+          pattern: '(?i)^http://[^\s]*(?:[?&](?:user(?:name)?|email|login|pass(?:word)?|token|secret)=)'

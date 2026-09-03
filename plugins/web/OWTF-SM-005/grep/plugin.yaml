@@ -1,0 +1,32 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-SM-005-grep
+  version: 0.1.0
+  title: Testing for CSRF
+  description: Searches captured transactions for candidate anti-CSRF tokens without inferring protection.
+
+spec:
+  techniques:
+    - code: OWTF-SM-005
+      title: Testing for CSRF
+      hint: Which captured requests and forms contain candidate anti-CSRF tokens?
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/06-Session_Management_Testing/05-Testing_for_Cross_Site_Request_Forgery
+  group: web
+  type: grep
+  targetKinds: [url]
+  runtime:
+    type: grep
+    grep:
+      maxMatches: 100
+      rules:
+        - id: csrf-form-field
+          title: Candidate anti-CSRF form field
+          source: response_body
+          pattern: '(?i)<input[^>]+name\s*=\s*["''][^"'']*(csrf|xsrf|authenticity|request.?verification|nonce)[^"'']*["'']'
+        - id: csrf-request-header
+          title: Candidate anti-CSRF request header
+          source: request_headers
+          pattern: '(?i)"(x-csrf-token|x-xsrf-token|requestverificationtoken)"\s*:'

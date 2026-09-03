@@ -1,0 +1,28 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-DV-009-grep
+  version: 0.1.0
+  title: Testing for SSI Injection
+  description: Searches captured response bodies for server-side include directives.
+
+spec:
+  techniques:
+    - code: OWTF-DV-009
+      title: Testing for SSI Injection
+      hint: Do captured responses expose server-side include directives for review?
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/07-Input_Validation_Testing/08-Testing_for_SSI_Injection
+  group: web
+  type: grep
+  targetKinds: [url]
+  runtime:
+    type: grep
+    grep:
+      maxMatches: 100
+      rules:
+        - id: ssi-directive
+          title: Server-side include directive
+          source: response_body
+          pattern: '(?i)<!--\s*#(include|exec|echo|config|fsize|flastmod|printenv|set)\b'

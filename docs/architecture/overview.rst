@@ -28,21 +28,26 @@ Product decisions
 Plugin layout
 -------------
 
-Plugin source is organized by stable OWTF technique code and plugin type::
+Plugin source is organized first by the established OWTF plugin group, then by
+stable technique code and plugin type::
 
   plugins/
-    OWTF-IG-004/
-      semi_passive/
-        plugin.yaml
-    OWTF-WSP-001/
-      active/
-        plugin.yaml
+    auxiliary/
+    community/
+    network/
+      PTES-001/
+        active/
+          plugin.yaml
+    web/
+      OWTF-IG-004/
+        semi_passive/
+          plugin.yaml
 
 The manifest ID includes both parts, such as
 ``OWTF-IG-004-semi_passive``. Each manifest also declares its established OWTF
-plugin group (``web``, ``network``, or ``auxiliary``). The directory is for
-maintainers; the manifest remains the runtime source of truth and the catalog
-discovers it recursively.
+plugin group (``web``, ``network``, ``auxiliary``, or ``community``). The path,
+declared group, type, and ID must agree. The manifest remains the runtime source
+of truth and the catalog discovers it recursively.
 
 Named ordering profiles are separate versioned files::
 

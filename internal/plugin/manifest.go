@@ -446,7 +446,7 @@ func validateManifest(manifest Manifest) error {
 
 func validPluginGroup(group string) bool {
 	switch group {
-	case "web", "network", "auxiliary":
+	case "web", "network", "auxiliary", "community":
 		return true
 	default:
 		return false
