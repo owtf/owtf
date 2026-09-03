@@ -128,7 +128,20 @@ jobs:
 
       - name: Audit frontend dependencies
         working-directory: owtf/webapp
-        run: yarn audit --level critical
+        run: |
+          yarn audit --json > yarn-audit.json || true
+          node -e '
+            const fs = require("fs");
+            const entries = fs.readFileSync("yarn-audit.json", "utf8")
+              .trim()
+              .split("\n")
+              .map(JSON.parse);
+            const summary = entries.find((entry) => entry.type === "auditSummary");
+            if (!summary) throw new Error("Yarn did not return an audit summary");
+            const critical = summary.data.vulnerabilities.critical;
+            console.log("Critical dependency findings: " + critical);
+            if (critical > 0) process.exit(1);
+          '
 
   docker-build:
     name: Docker Build
