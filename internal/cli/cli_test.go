@@ -94,6 +94,24 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 				t.Fatalf("unexpected transaction query: %s", r.URL.RawQuery)
 			}
 			writeTestJSON(t, w, []map[string]any{{"id": "txn_1", "status_code": 200}})
+		case "GET /api/v2/targets/tgt_1/transactions":
+			writeTestJSON(t, w, []map[string]any{{"id": "txn_1", "target_id": "tgt_1", "status_code": 200}})
+		case "POST /api/v2/targets/tgt_1/transactions/import":
+			file, header, err := r.FormFile("har")
+			if err != nil {
+				t.Fatal(err)
+			}
+			data, _ := io.ReadAll(file)
+			file.Close()
+			if header.Filename != "capture.har" || !strings.Contains(string(data), `"entries"`) {
+				t.Fatalf("unexpected HAR upload: filename=%q data=%q", header.Filename, data)
+			}
+			w.WriteHeader(http.StatusCreated)
+			writeTestJSON(t, w, map[string]any{"imported": 1, "transactions": []map[string]string{{"id": "txn_1"}}})
+		case "GET /api/v2/targets/tgt_1/transactions/txn_1":
+			writeTestJSON(t, w, map[string]any{"id": "txn_1", "target_id": "tgt_1", "status_code": 200})
+		case "DELETE /api/v2/targets/tgt_1/transactions/txn_1":
+			w.WriteHeader(http.StatusNoContent)
 		case "GET /api/v2/artifacts/art_1":
 			w.Header().Set("Content-Type", "text/plain")
 			_, _ = io.WriteString(w, "captured evidence")
@@ -103,6 +121,10 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 	}))
 	defer server.Close()
 
+	harPath := filepath.Join(t.TempDir(), "capture.har")
+	if err := os.WriteFile(harPath, []byte(`{"log":{"entries":[]}}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
 	jsonCommands := [][]string{
 		{"health"},
 		{"sessions", "list"},
@@ -127,6 +149,10 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		{"tasks", "logs", "tsk_1"},
 		{"tasks", "cancel", "tsk_1"},
 		{"transactions", "list", "--session", "ses_1", "--target", "tgt_1"},
+		{"transactions", "list", "--target", "tgt_1"},
+		{"transactions", "import", "--target", "tgt_1", harPath},
+		{"transactions", "show", "--target", "tgt_1", "txn_1"},
+		{"transactions", "delete", "--target", "tgt_1", "txn_1"},
 	}
 	for _, command := range jsonCommands {
 		t.Run(strings.Join(command, " "), func(t *testing.T) {
@@ -184,7 +210,10 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		"POST /api/v2/sessions/ses_1/targets", "GET /api/v2/sessions/ses_1/targets",
 		"POST /api/v2/runs", "GET /api/v2/runs", "GET /api/v2/runs/run_1", "GET /api/v2/tasks", "GET /api/v2/workers",
 		"GET /api/v2/tasks/tsk_1/events", "POST /api/v2/tasks/tsk_1/cancel",
-		"GET /api/v2/transactions", "GET /api/v2/artifacts/art_1",
+		"GET /api/v2/transactions", "GET /api/v2/targets/tgt_1/transactions",
+		"POST /api/v2/targets/tgt_1/transactions/import",
+		"GET /api/v2/targets/tgt_1/transactions/txn_1", "DELETE /api/v2/targets/tgt_1/transactions/txn_1",
+		"GET /api/v2/artifacts/art_1",
 	} {
 		if requests[route] == 0 {
 			t.Errorf("CLI did not call %s", route)

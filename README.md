@@ -24,6 +24,7 @@ resulting evidence.
 - A bounded worklist with cancellation of the plugin process group.
 - Worker state, task events, HTTP transactions, artifacts, observations, and
   findings stored in SQLite.
+- HAR transaction import with retained source, request, and response files.
 - Target reports through the API and CLI.
 - One API used by the CLI and the embedded proof UI.
 - No accounts, passwords, tokens, or user database.
@@ -47,7 +48,7 @@ The CLI uses the same API:
 ```bash
 ./build/owtf health
 ./build/owtf sessions list
-./build/owtf scan --target https://example.com --plugin OWTF-WSP-001-active
+./build/owtf scan --plugin OWTF-WSP-001-active https://example.com
 ./build/owtf worklist
 ```
 

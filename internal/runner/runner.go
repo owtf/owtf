@@ -182,8 +182,8 @@ func (r *Runner) execute(parent context.Context, workerIndex int, taskID string)
 		return model.TaskFailed
 	}
 	now := time.Now().UTC()
-	exchanges := make([]model.HTTPExchange, 0, len(result.Exchanges))
-	for _, item := range result.Exchanges {
+	transactions := make([]model.Transaction, 0, len(result.Transactions))
+	for _, item := range result.Transactions {
 		artifactID := ""
 		if item.ResponseBodyArtifactName != "" {
 			var found bool
@@ -193,7 +193,7 @@ func (r *Runner) execute(parent context.Context, workerIndex int, taskID string)
 				return model.TaskFailed
 			}
 		}
-		exchanges = append(exchanges, model.HTTPExchange{
+		transactions = append(transactions, model.Transaction{
 			ID: store.NewID("txn"), TaskID: execution.ID, TargetID: execution.TargetID,
 			Method: item.Method, URL: item.URL, RequestHeaders: item.RequestHeaders,
 			StatusCode: item.StatusCode, ResponseHeaders: item.ResponseHeaders,
@@ -215,7 +215,7 @@ func (r *Runner) execute(parent context.Context, workerIndex int, taskID string)
 			Description: item.Description, CreatedAt: now,
 		})
 	}
-	if err := r.store.CompleteTask(parent, execution, artifacts, exchanges, observations, findings); err != nil {
+	if err := r.store.CompleteTask(parent, execution, artifacts, transactions, observations, findings); err != nil {
 		if errors.Is(err, store.ErrTaskNotRunning) {
 			return model.TaskCancelled
 		}
@@ -283,7 +283,7 @@ func (r *Runner) persistArtifacts(execution model.TaskExecution, results []plugi
 		id := store.NewID("art")
 		ids[result.Name] = id
 		items = append(items, model.Artifact{
-			ID: id, TaskID: execution.ID, Name: result.Name, MediaType: mediaType,
+			ID: id, TaskID: execution.ID, TargetID: execution.TargetID, Name: result.Name, MediaType: mediaType,
 			Size: stored.Size, SHA256: stored.SHA256, Path: stored.Path, CreatedAt: time.Now().UTC(),
 		})
 	}

@@ -417,11 +417,11 @@ function renderTransactions() {
   app.innerHTML = `
     <section class="page-head"><div><p class="eyebrow">${escapeHTML(
       state.session.name
-    )}</p><h1>Transactions</h1><p class="subtitle">HTTP exchanges captured by executed techniques.</p></div></section>
+    )}</p><h1>Transactions</h1><p class="subtitle">HTTP transactions captured by executed techniques or imported from HAR.</p></div></section>
     <section class="report-grid">
       <div class="report-stat"><strong>${
         state.transactions.length
-      }</strong><span class="muted">Captured exchanges</span></div>
+      }</strong><span class="muted">Transactions</span></div>
       <div class="report-stat"><strong>${targetCount}</strong><span class="muted">Targets represented</span></div>
       <div class="report-stat"><strong>${errors}</strong><span class="muted">HTTP errors</span></div>
     </section>
@@ -573,7 +573,7 @@ function renderReport() {
     <div class="report-columns">
       <div class="stack">
         <section class="panel">
-          <div class="panel-head"><div><h2>Transactions</h2><span class="panel-caption">Captured from executed techniques</span></div></div>
+          <div class="panel-head"><div><h2>Transactions</h2><span class="panel-caption">Captured by plugins or imported from HAR</span></div></div>
           <div class="panel-body">
             ${report.transactions
               .map(

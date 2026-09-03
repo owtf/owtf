@@ -155,7 +155,8 @@ CREATE INDEX IF NOT EXISTS task_events_task_idx ON task_events(task_id, id);
 CREATE TABLE IF NOT EXISTS artifacts (
     id INTEGER PRIMARY KEY,
     public_id TEXT NOT NULL UNIQUE,
-    task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    task_id INTEGER REFERENCES tasks(id) ON DELETE SET NULL,
+    target_id INTEGER NOT NULL REFERENCES targets(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     media_type TEXT NOT NULL,
     size INTEGER NOT NULL,
@@ -163,16 +164,18 @@ CREATE TABLE IF NOT EXISTS artifacts (
     path TEXT NOT NULL,
     created_at TEXT NOT NULL
 );
-CREATE TABLE IF NOT EXISTS http_exchanges (
+CREATE TABLE IF NOT EXISTS transactions (
     id INTEGER PRIMARY KEY,
     public_id TEXT NOT NULL UNIQUE,
-    task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    task_id INTEGER REFERENCES tasks(id) ON DELETE SET NULL,
     target_id INTEGER NOT NULL REFERENCES targets(id) ON DELETE CASCADE,
     method TEXT NOT NULL,
     url TEXT NOT NULL,
     request_headers TEXT NOT NULL,
     status_code INTEGER NOT NULL,
     response_headers TEXT NOT NULL,
+    source_artifact_id INTEGER REFERENCES artifacts(id) ON DELETE SET NULL,
+    request_body_artifact_id INTEGER REFERENCES artifacts(id) ON DELETE SET NULL,
     response_body_artifact_id INTEGER REFERENCES artifacts(id) ON DELETE SET NULL,
     duration_ms INTEGER NOT NULL,
     created_at TEXT NOT NULL
@@ -204,8 +207,132 @@ CREATE TABLE IF NOT EXISTS findings (
 	if err := s.migratePluginColumns(ctx); err != nil {
 		return err
 	}
+	if err := s.migrateTransactionTables(ctx); err != nil {
+		return err
+	}
 	if _, err := s.db.ExecContext(ctx, `DELETE FROM runs WHERE NOT EXISTS (SELECT 1 FROM tasks WHERE tasks.run_id=runs.id)`); err != nil {
 		return fmt.Errorf("prune empty runs: %w", err)
+	}
+	return nil
+}
+
+// migrateTransactionTables makes transactions and their files target-owned.
+// Older rewrite databases required a plugin task, which prevented importing
+// proxy traffic directly as OWTF transactions.
+func (s *Store) migrateTransactionTables(ctx context.Context) error {
+	columns, err := s.tableColumns(ctx, "artifacts")
+	if err != nil {
+		return err
+	}
+	if !columns["target_id"] {
+		if err := s.rebuildTransactionTables(ctx); err != nil {
+			return err
+		}
+	}
+	_, err = s.db.ExecContext(ctx, `
+CREATE INDEX IF NOT EXISTS artifacts_target_idx ON artifacts(target_id, id);
+CREATE INDEX IF NOT EXISTS transactions_target_idx ON transactions(target_id, id);`)
+	if err != nil {
+		return fmt.Errorf("index transaction tables: %w", err)
+	}
+	return nil
+}
+
+func (s *Store) tableColumns(ctx context.Context, table string) (map[string]bool, error) {
+	rows, err := s.db.QueryContext(ctx, `PRAGMA table_info(`+table+`)`)
+	if err != nil {
+		return nil, fmt.Errorf("inspect %s schema: %w", table, err)
+	}
+	defer rows.Close()
+	columns := make(map[string]bool)
+	for rows.Next() {
+		var index, notNull, primaryKey int
+		var name, columnType string
+		var defaultValue any
+		if err := rows.Scan(&index, &name, &columnType, &notNull, &defaultValue, &primaryKey); err != nil {
+			return nil, fmt.Errorf("inspect %s column: %w", table, err)
+		}
+		columns[name] = true
+	}
+	return columns, rows.Err()
+}
+
+func (s *Store) rebuildTransactionTables(ctx context.Context) (returnErr error) {
+	connection, err := s.db.Conn(ctx)
+	if err != nil {
+		return err
+	}
+	defer connection.Close()
+	if _, err := connection.ExecContext(ctx, `PRAGMA foreign_keys=OFF`); err != nil {
+		return fmt.Errorf("disable foreign keys for transaction migration: %w", err)
+	}
+	defer func() {
+		if _, err := connection.ExecContext(context.Background(), `PRAGMA foreign_keys=ON`); returnErr == nil && err != nil {
+			returnErr = fmt.Errorf("restore foreign keys after transaction migration: %w", err)
+		}
+	}()
+
+	tx, err := connection.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	statements := []string{
+		`DROP TABLE IF EXISTS transactions`,
+		`ALTER TABLE http_exchanges RENAME TO http_exchanges_legacy`,
+		`ALTER TABLE artifacts RENAME TO artifacts_legacy`,
+		`CREATE TABLE artifacts (
+    id INTEGER PRIMARY KEY,
+    public_id TEXT NOT NULL UNIQUE,
+    task_id INTEGER REFERENCES tasks(id) ON DELETE SET NULL,
+    target_id INTEGER NOT NULL REFERENCES targets(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    media_type TEXT NOT NULL,
+    size INTEGER NOT NULL,
+    sha256 TEXT NOT NULL,
+    path TEXT NOT NULL,
+    created_at TEXT NOT NULL
+)`,
+		`CREATE TABLE transactions (
+    id INTEGER PRIMARY KEY,
+    public_id TEXT NOT NULL UNIQUE,
+    task_id INTEGER REFERENCES tasks(id) ON DELETE SET NULL,
+    target_id INTEGER NOT NULL REFERENCES targets(id) ON DELETE CASCADE,
+    method TEXT NOT NULL,
+    url TEXT NOT NULL,
+    request_headers TEXT NOT NULL,
+    status_code INTEGER NOT NULL,
+    response_headers TEXT NOT NULL,
+    source_artifact_id INTEGER REFERENCES artifacts(id) ON DELETE SET NULL,
+    request_body_artifact_id INTEGER REFERENCES artifacts(id) ON DELETE SET NULL,
+    response_body_artifact_id INTEGER REFERENCES artifacts(id) ON DELETE SET NULL,
+    duration_ms INTEGER NOT NULL,
+    created_at TEXT NOT NULL
+)`,
+		`INSERT INTO artifacts(id, public_id, task_id, target_id, name, media_type, size, sha256, path, created_at)
+SELECT a.id, a.public_id, a.task_id, t.target_id, a.name, a.media_type, a.size, a.sha256, a.path, a.created_at
+FROM artifacts_legacy a JOIN tasks t ON t.id=a.task_id`,
+		`INSERT INTO transactions(id, public_id, task_id, target_id, method, url, request_headers, status_code,
+response_headers, source_artifact_id, request_body_artifact_id, response_body_artifact_id, duration_ms, created_at)
+SELECT id, public_id, task_id, target_id, method, url, request_headers, status_code,
+response_headers, NULL, NULL, response_body_artifact_id, duration_ms, created_at FROM http_exchanges_legacy`,
+		`DROP TABLE http_exchanges_legacy`,
+		`DROP TABLE artifacts_legacy`,
+	}
+	for _, statement := range statements {
+		if _, err := tx.ExecContext(ctx, statement); err != nil {
+			return fmt.Errorf("migrate transaction tables: %w", err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit transaction migration: %w", err)
+	}
+	var violations sql.NullString
+	if err := connection.QueryRowContext(ctx, `SELECT group_concat("table" || ':' || rowid) FROM pragma_foreign_key_check`).Scan(&violations); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("check migrated foreign keys: %w", err)
+	}
+	if violations.Valid {
+		return fmt.Errorf("transaction migration left invalid foreign keys: %s", violations.String)
 	}
 	return nil
 }
@@ -684,7 +811,7 @@ WHERE t.public_id = ?`, stream, message, formatTime(time.Now().UTC()), attemptID
 
 // CompleteTask atomically stores structured output and marks a task successful.
 func (s *Store) CompleteTask(ctx context.Context, execution model.TaskExecution, artifacts []model.Artifact,
-	exchanges []model.HTTPExchange, observations []model.Observation, findings []model.Finding) error {
+	transactions []model.Transaction, observations []model.Observation, findings []model.Finding) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -704,23 +831,23 @@ WHERE t.public_id=? AND a.public_id=?`, execution.ID, execution.AttemptID).
 	artifactPKs := make(map[string]int64)
 	for _, item := range artifacts {
 		result, err := tx.ExecContext(ctx, `
-INSERT INTO artifacts(public_id, task_id, name, media_type, size, sha256, path, created_at)
-VALUES(?, ?, ?, ?, ?, ?, ?, ?)`, item.ID, taskPK, item.Name, item.MediaType, item.Size, item.SHA256,
+		INSERT INTO artifacts(public_id, task_id, target_id, name, media_type, size, sha256, path, created_at)
+	VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)`, item.ID, taskPK, targetPK, item.Name, item.MediaType, item.Size, item.SHA256,
 			item.Path, formatTime(item.CreatedAt))
 		if err != nil {
 			return err
 		}
 		artifactPKs[item.ID], _ = result.LastInsertId()
 	}
-	for _, item := range exchanges {
+	for _, item := range transactions {
 		var artifactPK any
 		if item.ResponseBodyArtifactID != "" {
 			artifactPK = artifactPKs[item.ResponseBodyArtifactID]
 		}
 		_, err := tx.ExecContext(ctx, `
-INSERT INTO http_exchanges(public_id, task_id, target_id, method, url, request_headers, status_code,
-response_headers, response_body_artifact_id, duration_ms, created_at)
-VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, item.ID, taskPK, targetPK, item.Method, item.URL,
+			INSERT INTO transactions(public_id, task_id, target_id, method, url, request_headers, status_code,
+		response_headers, source_artifact_id, request_body_artifact_id, response_body_artifact_id, duration_ms, created_at)
+		VALUES(?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, ?)`, item.ID, taskPK, targetPK, item.Method, item.URL,
 			item.RequestHeaders, item.StatusCode, item.ResponseHeaders, artifactPK, item.DurationMS, formatTime(item.CreatedAt))
 		if err != nil {
 			return err
@@ -754,6 +881,75 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?)`, item.ID, taskPK, targetPK, item.TechniqueCode, 
 		return err
 	}
 	return tx.Commit()
+}
+
+// ImportTransactions atomically attaches proxy transactions and their retained
+// files to an existing target. It intentionally creates no run or worklist task.
+func (s *Store) ImportTransactions(ctx context.Context, targetID string, artifacts []model.Artifact, transactions []model.Transaction) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	var targetPK int64
+	if err := tx.QueryRowContext(ctx, `SELECT id FROM targets WHERE public_id=?`, targetID).Scan(&targetPK); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+		return err
+	}
+	artifactPKs := make(map[string]int64, len(artifacts))
+	for _, item := range artifacts {
+		if item.ID == "" || item.TaskID != "" || (item.TargetID != "" && item.TargetID != targetID) {
+			return errors.New("invalid imported artifact ownership")
+		}
+		result, err := tx.ExecContext(ctx, `
+INSERT INTO artifacts(public_id, task_id, target_id, name, media_type, size, sha256, path, created_at)
+VALUES(?, NULL, ?, ?, ?, ?, ?, ?, ?)`, item.ID, targetPK, item.Name, item.MediaType, item.Size,
+			item.SHA256, item.Path, formatTime(item.CreatedAt))
+		if err != nil {
+			return fmt.Errorf("import artifact %s: %w", item.ID, err)
+		}
+		artifactPKs[item.ID], _ = result.LastInsertId()
+	}
+	for _, item := range transactions {
+		if item.ID == "" || item.TaskID != "" || (item.TargetID != "" && item.TargetID != targetID) {
+			return errors.New("invalid imported transaction ownership")
+		}
+		sourcePK, err := importedArtifactPK(artifactPKs, item.SourceArtifactID)
+		if err != nil {
+			return err
+		}
+		requestBodyPK, err := importedArtifactPK(artifactPKs, item.RequestBodyArtifactID)
+		if err != nil {
+			return err
+		}
+		bodyPK, err := importedArtifactPK(artifactPKs, item.ResponseBodyArtifactID)
+		if err != nil {
+			return err
+		}
+		_, err = tx.ExecContext(ctx, `
+INSERT INTO transactions(public_id, task_id, target_id, method, url, request_headers, status_code,
+response_headers, source_artifact_id, request_body_artifact_id, response_body_artifact_id, duration_ms, created_at)
+VALUES(?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, item.ID, targetPK, item.Method, item.URL,
+			item.RequestHeaders, item.StatusCode, item.ResponseHeaders, sourcePK, requestBodyPK, bodyPK, item.DurationMS,
+			formatTime(item.CreatedAt))
+		if err != nil {
+			return fmt.Errorf("import transaction %s: %w", item.ID, err)
+		}
+	}
+	return tx.Commit()
+}
+
+func importedArtifactPK(artifacts map[string]int64, id string) (any, error) {
+	if id == "" {
+		return nil, nil
+	}
+	primaryKey, ok := artifacts[id]
+	if !ok {
+		return nil, fmt.Errorf("import references unknown artifact %s", id)
+	}
+	return primaryKey, nil
 }
 
 // FailTask records a terminal execution error and refreshes its parent run.
@@ -944,7 +1140,7 @@ func (s *Store) GetTargetReport(ctx context.Context, targetID string) (model.Tar
 		Tasks:        []model.Task{},
 		Events:       []model.TaskEvent{},
 		Artifacts:    []model.Artifact{},
-		Transactions: []model.HTTPExchange{},
+		Transactions: []model.Transaction{},
 		Observations: []model.Observation{},
 		Findings:     []model.Finding{},
 	}
@@ -962,7 +1158,7 @@ func (s *Store) GetTargetReport(ctx context.Context, targetID string) (model.Tar
 	if report.Artifacts, err = s.listArtifacts(ctx, targetID); err != nil {
 		return model.TargetReport{}, err
 	}
-	if report.Transactions, err = s.listExchanges(ctx, targetID); err != nil {
+	if report.Transactions, err = s.listTransactions(ctx, targetID); err != nil {
 		return model.TargetReport{}, err
 	}
 	if report.Observations, err = s.listObservations(ctx, targetID); err != nil {
@@ -988,7 +1184,7 @@ func (s *Store) GetSessionReport(ctx context.Context, sessionID string) (model.S
 		Tasks:        []model.Task{},
 		Events:       []model.TaskEvent{},
 		Artifacts:    []model.Artifact{},
-		Transactions: []model.HTTPExchange{},
+		Transactions: []model.Transaction{},
 		Observations: []model.Observation{},
 		Findings:     []model.Finding{},
 	}
@@ -1007,7 +1203,7 @@ func (s *Store) GetSessionReport(ctx context.Context, sessionID string) (model.S
 	if report.Artifacts, err = s.listSessionArtifacts(ctx, sessionID); err != nil {
 		return model.SessionReport{}, err
 	}
-	if report.Transactions, err = s.ListHTTPExchanges(ctx, sessionID, ""); err != nil {
+	if report.Transactions, err = s.ListTransactions(ctx, sessionID, ""); err != nil {
 		return model.SessionReport{}, err
 	}
 	if report.Observations, err = s.listSessionObservations(ctx, sessionID); err != nil {
@@ -1073,12 +1269,12 @@ WHERE s.public_id=? ORDER BY e.id`, sessionID)
 
 func (s *Store) listSessionArtifacts(ctx context.Context, sessionID string) ([]model.Artifact, error) {
 	rows, err := s.db.QueryContext(ctx, `
-SELECT a.public_id, t.public_id, a.name, a.media_type, a.size, a.sha256, a.path, a.created_at
-FROM artifacts a
-JOIN tasks t ON t.id=a.task_id
-JOIN runs r ON r.id=t.run_id
-JOIN sessions s ON s.id=r.session_id
-WHERE s.public_id=? ORDER BY a.id DESC`, sessionID)
+	SELECT a.public_id, COALESCE(t.public_id,''), tg.public_id, a.name, a.media_type, a.size, a.sha256, a.path, a.created_at
+	FROM artifacts a
+	LEFT JOIN tasks t ON t.id=a.task_id
+	JOIN targets tg ON tg.id=a.target_id
+	JOIN sessions s ON s.id=tg.session_id
+	WHERE s.public_id=? ORDER BY a.id DESC`, sessionID)
 	if err != nil {
 		return nil, err
 	}
@@ -1087,7 +1283,7 @@ WHERE s.public_id=? ORDER BY a.id DESC`, sessionID)
 	for rows.Next() {
 		var item model.Artifact
 		var created string
-		if err := rows.Scan(&item.ID, &item.TaskID, &item.Name, &item.MediaType, &item.Size, &item.SHA256, &item.Path, &created); err != nil {
+		if err := rows.Scan(&item.ID, &item.TaskID, &item.TargetID, &item.Name, &item.MediaType, &item.Size, &item.SHA256, &item.Path, &created); err != nil {
 			return nil, err
 		}
 		item.CreatedAt = parseTime(created)
@@ -1170,9 +1366,9 @@ WHERE tg.public_id=? ORDER BY t.id DESC`, targetID)
 
 func (s *Store) listArtifacts(ctx context.Context, targetID string) ([]model.Artifact, error) {
 	rows, err := s.db.QueryContext(ctx, `
-SELECT a.public_id, t.public_id, a.name, a.media_type, a.size, a.sha256, a.path, a.created_at
-FROM artifacts a JOIN tasks t ON t.id=a.task_id JOIN targets tg ON tg.id=t.target_id
-WHERE tg.public_id=? ORDER BY a.id DESC`, targetID)
+	SELECT a.public_id, COALESCE(t.public_id,''), tg.public_id, a.name, a.media_type, a.size, a.sha256, a.path, a.created_at
+	FROM artifacts a LEFT JOIN tasks t ON t.id=a.task_id JOIN targets tg ON tg.id=a.target_id
+	WHERE tg.public_id=? ORDER BY a.id DESC`, targetID)
 	if err != nil {
 		return nil, err
 	}
@@ -1181,7 +1377,7 @@ WHERE tg.public_id=? ORDER BY a.id DESC`, targetID)
 	for rows.Next() {
 		var item model.Artifact
 		var created string
-		if err := rows.Scan(&item.ID, &item.TaskID, &item.Name, &item.MediaType, &item.Size, &item.SHA256, &item.Path, &created); err != nil {
+		if err := rows.Scan(&item.ID, &item.TaskID, &item.TargetID, &item.Name, &item.MediaType, &item.Size, &item.SHA256, &item.Path, &created); err != nil {
 			return nil, err
 		}
 		item.CreatedAt = parseTime(created)
@@ -1195,9 +1391,10 @@ func (s *Store) GetArtifact(ctx context.Context, artifactID string) (model.Artif
 	var item model.Artifact
 	var created string
 	err := s.db.QueryRowContext(ctx, `
-SELECT a.public_id, t.public_id, a.name, a.media_type, a.size, a.sha256, a.path, a.created_at
-FROM artifacts a JOIN tasks t ON t.id=a.task_id WHERE a.public_id=?`, artifactID).
-		Scan(&item.ID, &item.TaskID, &item.Name, &item.MediaType, &item.Size, &item.SHA256, &item.Path, &created)
+	SELECT a.public_id, COALESCE(t.public_id,''), tg.public_id, a.name, a.media_type, a.size, a.sha256, a.path, a.created_at
+	FROM artifacts a LEFT JOIN tasks t ON t.id=a.task_id JOIN targets tg ON tg.id=a.target_id
+	WHERE a.public_id=?`, artifactID).
+		Scan(&item.ID, &item.TaskID, &item.TargetID, &item.Name, &item.MediaType, &item.Size, &item.SHA256, &item.Path, &created)
 	if errors.Is(err, sql.ErrNoRows) {
 		return model.Artifact{}, ErrNotFound
 	}
@@ -1208,58 +1405,123 @@ FROM artifacts a JOIN tasks t ON t.id=a.task_id WHERE a.public_id=?`, artifactID
 	return item, nil
 }
 
-func (s *Store) listExchanges(ctx context.Context, targetID string) ([]model.HTTPExchange, error) {
+func (s *Store) listTransactions(ctx context.Context, targetID string) ([]model.Transaction, error) {
 	rows, err := s.db.QueryContext(ctx, `
-SELECT e.public_id, t.public_id, tg.public_id, e.method, e.url, e.request_headers, e.status_code,
-       e.response_headers, COALESCE(a.public_id,''), e.duration_ms, e.created_at
-FROM http_exchanges e JOIN tasks t ON t.id=e.task_id JOIN targets tg ON tg.id=e.target_id
-LEFT JOIN artifacts a ON a.id=e.response_body_artifact_id
-WHERE tg.public_id=? ORDER BY e.id DESC`, targetID)
+		SELECT tr.public_id, COALESCE(t.public_id,''), tg.public_id, tr.method, tr.url, tr.request_headers, tr.status_code,
+		       tr.response_headers, COALESCE(source.public_id,''), COALESCE(request_body.public_id,''),
+		       COALESCE(response_body.public_id,''), tr.duration_ms, tr.created_at
+		FROM transactions tr LEFT JOIN tasks t ON t.id=tr.task_id JOIN targets tg ON tg.id=tr.target_id
+		LEFT JOIN artifacts source ON source.id=tr.source_artifact_id
+		LEFT JOIN artifacts request_body ON request_body.id=tr.request_body_artifact_id
+		LEFT JOIN artifacts response_body ON response_body.id=tr.response_body_artifact_id
+	WHERE tg.public_id=? ORDER BY tr.id DESC`, targetID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	return scanExchanges(rows)
+	return scanTransactions(rows)
 }
 
-// ListHTTPExchanges returns captured transactions for a session and optional
+// ListTargetTransactions returns all transactions for one target, newest first.
+func (s *Store) ListTargetTransactions(ctx context.Context, targetID string) ([]model.Transaction, error) {
+	if _, err := s.GetTarget(ctx, targetID); err != nil {
+		return nil, err
+	}
+	return s.listTransactions(ctx, targetID)
+}
+
+// ListTransactions returns captured transactions for a session and optional
 // target, newest first.
-func (s *Store) ListHTTPExchanges(ctx context.Context, sessionID, targetID string) ([]model.HTTPExchange, error) {
+func (s *Store) ListTransactions(ctx context.Context, sessionID, targetID string) ([]model.Transaction, error) {
 	query := `
-SELECT e.public_id, t.public_id, tg.public_id, e.method, e.url, e.request_headers, e.status_code,
-       e.response_headers, COALESCE(ar.public_id,''), e.duration_ms, e.created_at
-FROM http_exchanges e JOIN tasks t ON t.id=e.task_id JOIN targets tg ON tg.id=e.target_id
-JOIN sessions s ON s.id=tg.session_id
-LEFT JOIN artifacts ar ON ar.id=e.response_body_artifact_id
-WHERE s.public_id=?`
+		SELECT tr.public_id, COALESCE(t.public_id,''), tg.public_id, tr.method, tr.url, tr.request_headers, tr.status_code,
+		       tr.response_headers, COALESCE(source.public_id,''), COALESCE(request_body.public_id,''),
+		       COALESCE(response_body.public_id,''), tr.duration_ms, tr.created_at
+		FROM transactions tr LEFT JOIN tasks t ON t.id=tr.task_id JOIN targets tg ON tg.id=tr.target_id
+		JOIN sessions s ON s.id=tg.session_id
+		LEFT JOIN artifacts source ON source.id=tr.source_artifact_id
+		LEFT JOIN artifacts request_body ON request_body.id=tr.request_body_artifact_id
+		LEFT JOIN artifacts response_body ON response_body.id=tr.response_body_artifact_id
+	WHERE s.public_id=?`
 	args := []any{sessionID}
 	if targetID != "" {
 		query += ` AND tg.public_id=?`
 		args = append(args, targetID)
 	}
-	query += ` ORDER BY e.id DESC`
+	query += ` ORDER BY tr.id DESC`
 	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	return scanExchanges(rows)
+	return scanTransactions(rows)
 }
 
-func scanExchanges(rows *sql.Rows) ([]model.HTTPExchange, error) {
-	items := make([]model.HTTPExchange, 0)
+// GetTransaction returns one transaction owned by a target.
+func (s *Store) GetTransaction(ctx context.Context, targetID, transactionID string) (model.Transaction, error) {
+	row := s.db.QueryRowContext(ctx, `
+SELECT tr.public_id, COALESCE(t.public_id,''), tg.public_id, tr.method, tr.url, tr.request_headers, tr.status_code,
+       tr.response_headers, COALESCE(source.public_id,''), COALESCE(request_body.public_id,''),
+       COALESCE(response_body.public_id,''), tr.duration_ms, tr.created_at
+FROM transactions tr LEFT JOIN tasks t ON t.id=tr.task_id JOIN targets tg ON tg.id=tr.target_id
+LEFT JOIN artifacts source ON source.id=tr.source_artifact_id
+LEFT JOIN artifacts request_body ON request_body.id=tr.request_body_artifact_id
+LEFT JOIN artifacts response_body ON response_body.id=tr.response_body_artifact_id
+WHERE tg.public_id=? AND tr.public_id=?`, targetID, transactionID)
+	item, err := scanTransaction(row)
+	if errors.Is(err, sql.ErrNoRows) {
+		return model.Transaction{}, ErrNotFound
+	}
+	return item, err
+}
+
+// DeleteTransaction removes one transaction and unreferenced files imported
+// with it. Content-addressed bytes are retained for safe deduplication.
+func (s *Store) DeleteTransaction(ctx context.Context, targetID, transactionID string) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	result, err := tx.ExecContext(ctx, `
+DELETE FROM transactions
+WHERE public_id=? AND target_id=(SELECT id FROM targets WHERE public_id=?)`, transactionID, targetID)
+	if err != nil {
+		return err
+	}
+	if count, _ := result.RowsAffected(); count == 0 {
+		return ErrNotFound
+	}
+	if _, err := tx.ExecContext(ctx, `
+DELETE FROM artifacts
+WHERE task_id IS NULL AND target_id=(SELECT id FROM targets WHERE public_id=?)
+  AND NOT EXISTS (SELECT 1 FROM transactions WHERE source_artifact_id=artifacts.id
+                  OR request_body_artifact_id=artifacts.id OR response_body_artifact_id=artifacts.id)`, targetID); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func scanTransactions(rows *sql.Rows) ([]model.Transaction, error) {
+	items := make([]model.Transaction, 0)
 	for rows.Next() {
-		var item model.HTTPExchange
-		var created string
-		if err := rows.Scan(&item.ID, &item.TaskID, &item.TargetID, &item.Method, &item.URL,
-			&item.RequestHeaders, &item.StatusCode, &item.ResponseHeaders, &item.ResponseBodyArtifactID,
-			&item.DurationMS, &created); err != nil {
+		item, err := scanTransaction(rows)
+		if err != nil {
 			return nil, err
 		}
-		item.CreatedAt = parseTime(created)
 		items = append(items, item)
 	}
 	return items, rows.Err()
+}
+
+func scanTransaction(row rowScanner) (model.Transaction, error) {
+	var item model.Transaction
+	var created string
+	err := row.Scan(&item.ID, &item.TaskID, &item.TargetID, &item.Method, &item.URL,
+		&item.RequestHeaders, &item.StatusCode, &item.ResponseHeaders, &item.SourceArtifactID,
+		&item.RequestBodyArtifactID, &item.ResponseBodyArtifactID, &item.DurationMS, &created)
+	item.CreatedAt = parseTime(created)
+	return item, err
 }
 
 func (s *Store) listObservations(ctx context.Context, targetID string) ([]model.Observation, error) {

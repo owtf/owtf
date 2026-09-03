@@ -89,7 +89,16 @@ artifact metadata::
   owtf targets report tgt_ID
   owtf sessions report ses_ID
   owtf transactions list --session ses_ID --target tgt_ID
+  owtf transactions list --target tgt_ID
+  owtf transactions import --target tgt_ID capture.har
+  owtf transactions show --target tgt_ID txn_ID
+  owtf transactions delete --target tgt_ID txn_ID
   owtf artifacts get --output response-body.bin art_ID
+
+HAR import attaches transactions directly to the selected target. It does not
+create a plugin run, worklist task, or worker activity. OWTF retains the source
+HAR plus non-empty request and response bodies as downloadable files. A single
+import is limited to 64 MiB and 10,000 transactions.
 
 Export a complete session report for offline review. The ZIP contains JSON,
 an HTML report, a manifest, and the retained artifact files::

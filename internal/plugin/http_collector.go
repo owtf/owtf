@@ -43,7 +43,7 @@ func HTTPCollector(client *http.Client) Executor {
 		if err != nil {
 			return Result{}, fmt.Errorf("create request: %w", err)
 		}
-		req.Header.Set("User-Agent", "OWTF-Next/0.1")
+		req.Header.Set("User-Agent", "OWTF/0.1")
 		request.Log("system", "fetching "+targetURL.Redacted())
 		started := time.Now()
 		response, err := collectorClient.Do(req)
@@ -75,7 +75,7 @@ func HTTPCollector(client *http.Client) Executor {
 			Artifacts: []ArtifactResult{{
 				Name: "response-body", MediaType: response.Header.Get("Content-Type"), Data: body,
 			}},
-			Exchanges: []ExchangeResult{{
+			Transactions: []TransactionResult{{
 				Method:                   http.MethodGet,
 				URL:                      targetURL.String(),
 				RequestHeaders:           string(requestHeaders),

@@ -65,9 +65,11 @@ Core model
 ``Event``
   Ordered lifecycle, stdout, and stderr output attached to a task attempt.
 
-``HTTPExchange`` and ``Artifact``
-  Captured request/response metadata and immutable raw evidence. Artifacts are
-  addressed by SHA-256 rather than by mutable report paths.
+``Transaction`` and ``Artifact``
+  Captured request/response metadata and immutable raw evidence. Transactions
+  belong to targets; a task reference is present only when a plugin produced
+  the transaction. Artifacts are addressed by SHA-256 rather than by mutable
+  report paths.
 
 ``Observation`` and ``Finding``
   An observation is a tool fact. A finding is a reviewable security conclusion.
@@ -167,6 +169,18 @@ Phase 2 was exercised with the real ``curl`` command plugin
 visibility, non-shell argument handling, task cancellation, and termination of
 the complete plugin process group, including a child that ignores the initial
 termination signal.
+
+Phase 3 was exercised through the Go CLI against a live one-worker server. The
+gate covers sessions, targets, individual and grouped plugin launches, worklist,
+workers, ordered logs, cancellation, transactions, reports, artifact downloads,
+and portable ZIP export.
+
+Phase 4 is in progress. Its completed import boundary accepts standard HAR
+files through both curl and the Go CLI, retains the source HAR and
+request/response bodies, exposes imported transactions in target and session
+reports, verifies retrieval and deletion, and creates no fake plugin run or
+worklist task. Launching or configuring an external interception proxy remains
+unimplemented.
 
 API regression gate
 -------------------

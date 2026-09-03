@@ -71,11 +71,6 @@ a {
   background: var(--ink);
   font-size: 12px;
 }
-.edition {
-  color: var(--muted);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-}
 nav {
   display: flex;
   gap: 3px;

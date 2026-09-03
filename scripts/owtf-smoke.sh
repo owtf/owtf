@@ -47,6 +47,22 @@ request() {
   fi
 }
 
+upload_har() {
+  local target_id=$1
+  local file=$2
+  local expected=$3
+  local status
+  status=$(curl --silent --show-error --max-time 10 \
+    --request POST --form "har=@${file};filename=capture.har" \
+    --output "${RESPONSE_FILE}" --write-out '%{http_code}' \
+    "${BASE_URL}/api/v2/targets/${target_id}/transactions/import")
+  if [[ "${status}" != "${expected}" ]]; then
+    printf 'HAR import returned %s, expected %s\n' "${status}" "${expected}" >&2
+    cat "${RESPONSE_FILE}" >&2
+    exit 1
+  fi
+}
+
 assert_json() {
   local expression=$1
   local message=$2
@@ -79,6 +95,7 @@ wait_for_task_status() {
 }
 
 command -v curl >/dev/null || fail "curl is required"
+command -v cmp >/dev/null || fail "cmp is required"
 command -v jq >/dev/null || fail "jq is required"
 command -v go >/dev/null || fail "Go is required"
 command -v sleep >/dev/null || fail "sleep is required"
@@ -202,6 +219,45 @@ jq -e 'length == 4' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI target list i
 cli_json targets show "${URL_TARGET_ID}"
 jq -e --arg id "${URL_TARGET_ID}" '.id == $id' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI could not show the target'
 
+printf '%s\n' 'Checking HAR transaction import, retrieval, files, and deletion...'
+HAR_FILE="${TMP_DIR}/capture.har"
+cat >"${HAR_FILE}" <<JSON
+{"log":{"version":"1.2","entries":[{
+  "startedDateTime":"2026-09-02T10:11:12Z","time":9.4,
+  "request":{"method":"POST","url":"${BASE_URL}/debug/health","headers":[{"name":"X-OWTF","value":"smoke"}],"postData":{"mimeType":"text/plain","text":"imported request"}},
+  "response":{"status":201,"headers":[{"name":"Content-Type","value":"text/plain"}],"content":{"mimeType":"text/plain","text":"aW1wb3J0ZWQgcmVzcG9uc2U=","encoding":"base64"}}
+}]}}
+JSON
+upload_har "${URL_TARGET_ID}" "${HAR_FILE}" 201
+assert_json '.imported == 1 and (.source_artifact.task_id | not) and (.transactions | length == 1)' 'HAR import response is incorrect'
+CURL_IMPORTED_TRANSACTION_ID=$(jq -r '.transactions[0].id' "${RESPONSE_FILE}")
+CURL_SOURCE_ARTIFACT_ID=$(jq -r '.source_artifact.id' "${RESPONSE_FILE}")
+CURL_REQUEST_ARTIFACT_ID=$(jq -r '.transactions[0].request_body_artifact_id' "${RESPONSE_FILE}")
+CURL_RESPONSE_ARTIFACT_ID=$(jq -r '.transactions[0].response_body_artifact_id' "${RESPONSE_FILE}")
+request GET "/api/v2/targets/${URL_TARGET_ID}/transactions/${CURL_IMPORTED_TRANSACTION_ID}" 200
+assert_json '.task_id == null and .method == "POST" and .status_code == 201 and .duration_ms == 9' 'imported transaction detail is incorrect'
+request GET "/api/v2/artifacts/${CURL_SOURCE_ARTIFACT_ID}" 200
+cmp -s "${HAR_FILE}" "${RESPONSE_FILE}" || fail 'source HAR artifact differs from upload'
+request GET "/api/v2/artifacts/${CURL_REQUEST_ARTIFACT_ID}" 200
+[[ $(cat "${RESPONSE_FILE}") == 'imported request' ]] || fail 'request body artifact is incorrect'
+request GET "/api/v2/artifacts/${CURL_RESPONSE_ARTIFACT_ID}" 200
+[[ $(cat "${RESPONSE_FILE}") == 'imported response' ]] || fail 'response body artifact is incorrect'
+request DELETE "/api/v2/targets/${URL_TARGET_ID}/transactions/${CURL_IMPORTED_TRANSACTION_ID}" 204
+request GET "/api/v2/targets/${URL_TARGET_ID}/transactions/${CURL_IMPORTED_TRANSACTION_ID}" 404
+request GET "/api/v2/targets/${URL_TARGET_ID}/report" 200
+assert_json '(.tasks | length) == 0 and (.transactions | length) == 0 and (.artifacts | length) == 0' 'transaction deletion left report records'
+
+cli_json transactions import --target "${URL_TARGET_ID}" "${HAR_FILE}"
+jq -e '.imported == 1 and (.transactions | length == 1)' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI HAR import is incorrect'
+IMPORTED_TRANSACTION_ID=$(jq -r '.transactions[0].id' "${CLI_RESPONSE_FILE}")
+IMPORTED_SOURCE_ARTIFACT_ID=$(jq -r '.source_artifact.id' "${CLI_RESPONSE_FILE}")
+IMPORTED_REQUEST_ARTIFACT_ID=$(jq -r '.transactions[0].request_body_artifact_id' "${CLI_RESPONSE_FILE}")
+IMPORTED_RESPONSE_ARTIFACT_ID=$(jq -r '.transactions[0].response_body_artifact_id' "${CLI_RESPONSE_FILE}")
+request GET "/api/v2/targets/${URL_TARGET_ID}/transactions/${IMPORTED_TRANSACTION_ID}" 200
+assert_json '.task_id == null and .source_artifact_id == $source' 'CLI-imported transaction was not persisted' --arg source "${IMPORTED_SOURCE_ARTIFACT_ID}"
+request GET "/api/v2/targets/${URL_TARGET_ID}/transactions" 200
+assert_json 'length == 1 and .[0].id == $transaction' 'target transaction list is incorrect' --arg transaction "${IMPORTED_TRANSACTION_ID}"
+
 printf '%s\n' 'Checking plugin discovery and preflight failures...'
 request GET /api/v2/plugins 200
 assert_json 'length == 4' 'plugin catalog is incomplete'
@@ -238,9 +294,9 @@ request GET "/api/v2/workers" 200
 assert_json 'length == 1 and .[0].status == "idle" and .[0].completed == 2' 'worker state or accounting is incorrect'
 request GET "/api/v2/targets/${URL_TARGET_ID}/report" 200
 assert_json '.tasks | length == 2' 'target report is missing tasks'
-assert_json '.transactions | length == 1' 'target report is missing the builtin HTTP transaction'
+assert_json '.transactions | length == 2' 'target report is missing imported or plugin transactions'
 assert_json '.observations | length == 2' 'target report is missing observations'
-assert_json '.artifacts | length == 3' 'target report is missing retained artifacts'
+assert_json '.artifacts | length == 6' 'target report is missing retained artifacts'
 ARTIFACT_IDS=()
 while IFS= read -r artifact_id; do ARTIFACT_IDS+=("${artifact_id}"); done < <(jq -r '.artifacts[].id' "${RESPONSE_FILE}")
 for artifact_id in "${ARTIFACT_IDS[@]}"; do
@@ -249,19 +305,19 @@ for artifact_id in "${ARTIFACT_IDS[@]}"; do
 done
 request GET /api/v2/artifacts/does-not-exist 404
 request GET "/api/v2/transactions?session_id=${SESSION_ID}" 200
-assert_json 'length == 1 and .[0].status_code == 200 and .[0].target_id == $target' 'transaction list is incorrect' --arg target "${URL_TARGET_ID}"
+assert_json 'length == 2 and ([.[].status_code] | sort) == [200,201] and all(.[]; .target_id == $target)' 'transaction list is incorrect' --arg target "${URL_TARGET_ID}"
 request GET "/api/v2/runs?session_id=${SESSION_ID}" 200
 assert_json 'length == 1 and .[0].id == $run and .[0].status == "succeeded"' 'run history is incorrect' --arg run "${GROUP_RUN_ID}"
 request GET "/api/v2/runs/${GROUP_RUN_ID}" 200
 assert_json '.status == "succeeded" and .finished_at != null' 'run was not finalized'
 request GET "/api/v2/sessions/${SESSION_ID}/report" 200
-assert_json '.summary.targets == 4 and .summary.runs == 1 and .summary.tasks == 2 and .summary.succeeded == 2 and .summary.transactions == 1 and .summary.artifacts == 3 and .summary.observations == 2' 'session report summary is incorrect'
+assert_json '.summary.targets == 4 and .summary.runs == 1 and .summary.tasks == 2 and .summary.succeeded == 2 and .summary.transactions == 2 and .summary.artifacts == 6 and .summary.observations == 2' 'session report summary is incorrect'
 request GET "/api/v2/sessions/${SESSION_ID}/export" 200
 SESSION_REPORT_ZIP="${TMP_DIR}/session-report.zip"
 cp "${RESPONSE_FILE}" "${SESSION_REPORT_ZIP}"
 unzip -tqq "${SESSION_REPORT_ZIP}" || fail 'session report ZIP is invalid'
 unzip -p "${SESSION_REPORT_ZIP}" report.json | jq -e --arg id "${SESSION_ID}" '.session.id == $id and .summary.tasks == 2' >/dev/null || fail 'session report JSON is incorrect'
-[[ $(unzip -Z1 "${SESSION_REPORT_ZIP}" | grep -c '^artifacts/') -eq 3 ]] || fail 'session report ZIP is missing artifacts'
+[[ $(unzip -Z1 "${SESSION_REPORT_ZIP}" | grep -c '^artifacts/') -eq 6 ]] || fail 'session report ZIP is missing artifacts'
 
 cli_json worklist --session "${SESSION_ID}"
 jq -e 'length == 2 and all(.[]; .status == "succeeded")' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI worklist is incorrect'
@@ -278,16 +334,26 @@ jq -e --arg run "${GROUP_RUN_ID}" 'length == 1 and .[0].id == $run and .[0].stat
 cli_json runs show "${GROUP_RUN_ID}"
 jq -e '.status == "succeeded" and .finished_at != null' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI run state is incorrect'
 cli_json sessions report "${SESSION_ID}"
-jq -e '.summary.tasks == 2 and .summary.artifacts == 3' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI session report is incomplete'
+jq -e '.summary.tasks == 2 and .summary.transactions == 2 and .summary.artifacts == 6' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI session report is incomplete'
 CLI_REPORT_ZIP="${TMP_DIR}/cli-session-report.zip"
 cli_json sessions export --output "${CLI_REPORT_ZIP}" "${SESSION_ID}"
 jq -e --arg output "${CLI_REPORT_ZIP}" '.output == $output and .bytes > 0' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI session export result is incorrect'
 unzip -tqq "${CLI_REPORT_ZIP}" || fail 'CLI session export ZIP is invalid'
 cli_json transactions list --session "${SESSION_ID}" --target "${URL_TARGET_ID}"
-jq -e 'length == 1 and .[0].status_code == 200' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI transactions are incomplete'
+jq -e 'length == 2 and ([.[].status_code] | sort) == [200,201]' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI transactions are incomplete'
+cli_json transactions show --target "${URL_TARGET_ID}" "${IMPORTED_TRANSACTION_ID}"
+jq -e --arg id "${IMPORTED_TRANSACTION_ID}" '.id == $id and .task_id == null' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI transaction detail is incorrect'
 CLI_ARTIFACT_FILE="${TMP_DIR}/cli-artifact"
 OWTF_URL="${BASE_URL}" "${TMP_DIR}/owtf" artifacts get --output "${CLI_ARTIFACT_FILE}" "${ARTIFACT_IDS[0]}"
 [[ -s "${CLI_ARTIFACT_FILE}" ]] || fail 'CLI artifact download is empty'
+
+cli_json transactions delete --target "${URL_TARGET_ID}" "${IMPORTED_TRANSACTION_ID}"
+jq -e --arg id "${IMPORTED_TRANSACTION_ID}" '.deleted == $id' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI transaction deletion is incorrect'
+request GET "/api/v2/artifacts/${IMPORTED_SOURCE_ARTIFACT_ID}" 404
+request GET "/api/v2/artifacts/${IMPORTED_REQUEST_ARTIFACT_ID}" 404
+request GET "/api/v2/artifacts/${IMPORTED_RESPONSE_ARTIFACT_ID}" 404
+request GET "/api/v2/transactions?session_id=${SESSION_ID}" 200
+assert_json 'length == 1 and .[0].status_code == 200' 'transaction deletion removed plugin traffic or retained imported traffic'
 
 cli_json runs create --session "${SESSION_ID}" --target "${URL_TARGET_ID}" --group web --type active
 CLI_RUN_TASK_ID=$(jq -r '.tasks[0].id' "${CLI_RESPONSE_FILE}")

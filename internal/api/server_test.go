@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -21,7 +22,139 @@ import (
 	"github.com/owtf/owtf/internal/plugin"
 	"github.com/owtf/owtf/internal/runner"
 	"github.com/owtf/owtf/internal/store"
+	targetvalue "github.com/owtf/owtf/internal/target"
 )
+
+func TestImportBrowseAndDeleteHARTransactions(t *testing.T) {
+	tempDir := t.TempDir()
+	database, err := store.Open(filepath.Join(tempDir, "owtf.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	artifacts, err := artifact.New(filepath.Join(tempDir, "artifacts"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	catalog, err := plugin.Load(fstest.MapFS{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	taskRunner := runner.New(database, artifacts, catalog, 1, time.Second)
+	server := httptest.NewServer(api.New(database, artifacts, catalog, taskRunner))
+	defer server.Close()
+
+	ctx := context.Background()
+	session, _ := database.CreateSession(ctx, "Imported traffic")
+	normalized, err := targetvalue.Normalize("https://example.test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	added, _ := database.AddTargets(ctx, session.ID, []targetvalue.Normalized{normalized})
+	targetID := added.Created[0].ID
+	harData := []byte(`{"log":{"version":"1.2","entries":[{
+  "startedDateTime":"2026-09-02T10:11:12Z","time":8.4,
+  "request":{"method":"POST","url":"https://example.test/submit","headers":[{"name":"X-Test","value":"one"}],"postData":{"mimeType":"text/plain","text":"request body"}},
+  "response":{"status":201,"headers":[{"name":"Content-Type","value":"text/plain"}],"content":{"mimeType":"text/plain","text":"response body"}}
+}]}}`)
+
+	invalid := importHAR(t, server.Client(), server.URL+"/api/v2/targets/"+targetID+"/transactions/import", "broken.har", []byte(`{"log":`), http.StatusBadRequest)
+	if invalid.Imported != 0 {
+		t.Fatalf("invalid HAR imported transactions: %+v", invalid)
+	}
+	result := importHAR(t, server.Client(), server.URL+"/api/v2/targets/"+targetID+"/transactions/import", "../../capture.har", harData, http.StatusCreated)
+	if result.Imported != 1 || result.SourceArtifact.Name != "capture.har" || len(result.Transactions) != 1 {
+		t.Fatalf("unexpected import result: %+v", result)
+	}
+	transaction := result.Transactions[0]
+	if transaction.TaskID != "" || transaction.RequestBodyArtifactID == "" || transaction.ResponseBodyArtifactID == "" || transaction.SourceArtifactID != result.SourceArtifact.ID {
+		t.Fatalf("transaction ownership or files are incorrect: %+v", transaction)
+	}
+	stored := requestJSON[model.Transaction](t, server.Client(), http.MethodGet,
+		server.URL+"/api/v2/targets/"+targetID+"/transactions/"+transaction.ID, nil, http.StatusOK)
+	if stored.ID != transaction.ID || stored.StatusCode != http.StatusCreated {
+		t.Fatalf("unexpected stored transaction: %+v", stored)
+	}
+	targetTransactions := requestJSON[[]model.Transaction](t, server.Client(), http.MethodGet,
+		server.URL+"/api/v2/targets/"+targetID+"/transactions", nil, http.StatusOK)
+	if len(targetTransactions) != 1 || targetTransactions[0].ID != transaction.ID {
+		t.Fatalf("unexpected target transactions: %+v", targetTransactions)
+	}
+	for artifactID, want := range map[string]string{
+		result.SourceArtifact.ID: string(harData), transaction.RequestBodyArtifactID: "request body",
+		transaction.ResponseBodyArtifactID: "response body",
+	} {
+		response, getErr := server.Client().Get(server.URL + "/api/v2/artifacts/" + artifactID)
+		if getErr != nil {
+			t.Fatal(getErr)
+		}
+		body, _ := io.ReadAll(response.Body)
+		response.Body.Close()
+		if response.StatusCode != http.StatusOK || string(body) != want {
+			t.Fatalf("artifact %s: status=%d body=%q", artifactID, response.StatusCode, body)
+		}
+	}
+	report := requestJSON[model.TargetReport](t, server.Client(), http.MethodGet, server.URL+"/api/v2/targets/"+targetID+"/report", nil, http.StatusOK)
+	if len(report.Tasks) != 0 || len(report.Transactions) != 1 || len(report.Artifacts) != 3 {
+		t.Fatalf("imported target report is incomplete: %+v", report)
+	}
+	sessionReport := requestJSON[model.SessionReport](t, server.Client(), http.MethodGet, server.URL+"/api/v2/sessions/"+session.ID+"/report", nil, http.StatusOK)
+	if sessionReport.Summary.Tasks != 0 || sessionReport.Summary.Transactions != 1 || sessionReport.Summary.Artifacts != 3 {
+		t.Fatalf("imported session report is incorrect: %+v", sessionReport.Summary)
+	}
+	deleteRequest, _ := http.NewRequest(http.MethodDelete,
+		server.URL+"/api/v2/targets/"+targetID+"/transactions/"+transaction.ID, nil)
+	deleteResponse, err := server.Client().Do(deleteRequest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	deleteResponse.Body.Close()
+	if deleteResponse.StatusCode != http.StatusNoContent {
+		t.Fatalf("delete status=%d, want %d", deleteResponse.StatusCode, http.StatusNoContent)
+	}
+	report = requestJSON[model.TargetReport](t, server.Client(), http.MethodGet, server.URL+"/api/v2/targets/"+targetID+"/report", nil, http.StatusOK)
+	if len(report.Transactions) != 0 || len(report.Artifacts) != 0 {
+		t.Fatalf("deleted transaction remains in report: %+v", report)
+	}
+}
+
+type harImportResult struct {
+	Imported       int                 `json:"imported"`
+	SourceArtifact model.Artifact      `json:"source_artifact"`
+	Transactions   []model.Transaction `json:"transactions"`
+}
+
+func importHAR(t *testing.T, client *http.Client, endpoint, filename string, data []byte, status int) harImportResult {
+	t.Helper()
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	part, err := writer.CreateFormFile("har", filename)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := part.Write(data); err != nil {
+		t.Fatal(err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatal(err)
+	}
+	request, _ := http.NewRequest(http.MethodPost, endpoint, &body)
+	request.Header.Set("Content-Type", writer.FormDataContentType())
+	response, err := client.Do(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != status {
+		responseBody, _ := io.ReadAll(response.Body)
+		t.Fatalf("import status=%d, want %d: %s", response.StatusCode, status, responseBody)
+	}
+	var result harImportResult
+	if status != http.StatusNoContent {
+		_ = json.NewDecoder(response.Body).Decode(&result)
+	}
+	return result
+}
 
 const manifest = `apiVersion: owtf.dev/v1alpha1
 kind: Plugin
@@ -133,7 +266,7 @@ func TestTargetScanPersistsReportAndSupportsDeletion(t *testing.T) {
 		t.Fatalf("unexpected session report summary: %+v", sessionReport.Summary)
 	}
 	assertSessionArchive(t, server.Client(), server.URL+"/api/v2/sessions/"+session.ID+"/export", session.ID)
-	transactions := requestJSON[[]model.HTTPExchange](t, server.Client(), http.MethodGet, server.URL+"/api/v2/transactions?session_id="+session.ID, nil, http.StatusOK)
+	transactions := requestJSON[[]model.Transaction](t, server.Client(), http.MethodGet, server.URL+"/api/v2/transactions?session_id="+session.ID, nil, http.StatusOK)
 	if len(transactions) != 1 || transactions[0].TargetID != target.ID || transactions[0].StatusCode != http.StatusCreated {
 		t.Fatalf("unexpected transaction list: %+v", transactions)
 	}

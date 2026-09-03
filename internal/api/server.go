@@ -1,18 +1,23 @@
 package api
 
 import (
+	"bytes"
 	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"log/slog"
 	"mime"
 	"net/http"
+	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/owtf/owtf/internal/artifact"
+	"github.com/owtf/owtf/internal/har"
 	"github.com/owtf/owtf/internal/model"
 	"github.com/owtf/owtf/internal/plugin"
 	reportoutput "github.com/owtf/owtf/internal/report"
@@ -59,6 +64,10 @@ func New(database *store.Store, artifacts *artifact.Store, catalog *plugin.Catal
 	mux.HandleFunc("GET /api/v2/tasks/{taskID}/events", server.taskEvents)
 	mux.HandleFunc("POST /api/v2/tasks/{taskID}/cancel", server.cancelTask)
 	mux.HandleFunc("GET /api/v2/transactions", server.listTransactions)
+	mux.HandleFunc("GET /api/v2/targets/{targetID}/transactions", server.listTargetTransactions)
+	mux.HandleFunc("POST /api/v2/targets/{targetID}/transactions/import", server.importTransactions)
+	mux.HandleFunc("GET /api/v2/targets/{targetID}/transactions/{transactionID}", server.getTransaction)
+	mux.HandleFunc("DELETE /api/v2/targets/{targetID}/transactions/{transactionID}", server.deleteTransaction)
 	mux.HandleFunc("GET /api/v2/artifacts/{artifactID}", server.getArtifact)
 	staticFS, err := fs.Sub(uiFiles, "ui")
 	if err != nil {
@@ -469,12 +478,172 @@ func (s *Server) listTransactions(w http.ResponseWriter, r *http.Request) {
 	if _, err := s.store.GetSession(r.Context(), sessionID); s.handleStoreError(w, err) {
 		return
 	}
-	items, err := s.store.ListHTTPExchanges(r.Context(), sessionID, r.URL.Query().Get("target_id"))
+	items, err := s.store.ListTransactions(r.Context(), sessionID, r.URL.Query().Get("target_id"))
 	if err != nil {
 		s.internalError(w, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, items)
+}
+
+func (s *Server) listTargetTransactions(w http.ResponseWriter, r *http.Request) {
+	items, err := s.store.ListTargetTransactions(r.Context(), r.PathValue("targetID"))
+	if s.handleStoreError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, items)
+}
+
+const maxHARBytes = 64 << 20
+
+func (s *Server) importTransactions(w http.ResponseWriter, r *http.Request) {
+	targetID := r.PathValue("targetID")
+	if _, err := s.store.GetTarget(r.Context(), targetID); s.handleStoreError(w, err) {
+		return
+	}
+	data, filename, err := readHARUpload(w, r)
+	if err != nil {
+		var tooLarge *http.MaxBytesError
+		if errors.As(err, &tooLarge) || errors.Is(err, errHARTooLarge) {
+			writeError(w, http.StatusRequestEntityTooLarge, "HAR exceeds 64 MiB")
+		} else {
+			writeError(w, http.StatusBadRequest, err.Error())
+		}
+		return
+	}
+	parsed, err := har.Parse(bytes.NewReader(data))
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	now := time.Now().UTC()
+	storedSource, err := s.artifacts.Put(data)
+	if err != nil {
+		s.internalError(w, err)
+		return
+	}
+	source := model.Artifact{
+		ID: store.NewID("art"), TargetID: targetID, Name: safeUploadName(filename), MediaType: "application/json",
+		Size: storedSource.Size, SHA256: storedSource.SHA256, Path: storedSource.Path, CreatedAt: now,
+	}
+	artifacts := []model.Artifact{source}
+	transactions := make([]model.Transaction, 0, len(parsed))
+	for index, item := range parsed {
+		transaction := model.Transaction{
+			ID: store.NewID("txn"), TargetID: targetID, Method: item.Method, URL: item.URL,
+			RequestHeaders: item.RequestHeaders, StatusCode: item.StatusCode, ResponseHeaders: item.ResponseHeaders,
+			SourceArtifactID: source.ID, DurationMS: item.DurationMS, CreatedAt: item.StartedAt,
+		}
+		if len(item.RequestBody) != 0 {
+			body, putErr := s.artifacts.Put(item.RequestBody)
+			if putErr != nil {
+				s.internalError(w, putErr)
+				return
+			}
+			artifact := model.Artifact{
+				ID: store.NewID("art"), TargetID: targetID,
+				Name: fmt.Sprintf("transaction-%06d-request-body", index+1), MediaType: mediaTypeOrDefault(item.RequestMediaType),
+				Size: body.Size, SHA256: body.SHA256, Path: body.Path, CreatedAt: item.StartedAt,
+			}
+			artifacts = append(artifacts, artifact)
+			transaction.RequestBodyArtifactID = artifact.ID
+		}
+		if len(item.ResponseBody) != 0 {
+			body, putErr := s.artifacts.Put(item.ResponseBody)
+			if putErr != nil {
+				s.internalError(w, putErr)
+				return
+			}
+			artifact := model.Artifact{
+				ID: store.NewID("art"), TargetID: targetID,
+				Name: fmt.Sprintf("transaction-%06d-response-body", index+1), MediaType: mediaTypeOrDefault(item.ResponseMediaType),
+				Size: body.Size, SHA256: body.SHA256, Path: body.Path, CreatedAt: item.StartedAt,
+			}
+			artifacts = append(artifacts, artifact)
+			transaction.ResponseBodyArtifactID = artifact.ID
+		}
+		transactions = append(transactions, transaction)
+	}
+	if err := s.store.ImportTransactions(r.Context(), targetID, artifacts, transactions); s.handleStoreError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusCreated, map[string]any{
+		"imported": len(transactions), "source_artifact": source, "transactions": transactions,
+	})
+}
+
+var errHARTooLarge = errors.New("HAR is too large")
+
+func readHARUpload(w http.ResponseWriter, r *http.Request) ([]byte, string, error) {
+	r.Body = http.MaxBytesReader(w, r.Body, maxHARBytes+(1<<20))
+	reader, err := r.MultipartReader()
+	if err != nil {
+		return nil, "", errors.New("multipart form with a har file is required")
+	}
+	var data []byte
+	var filename string
+	for {
+		part, nextErr := reader.NextPart()
+		if errors.Is(nextErr, io.EOF) {
+			break
+		}
+		if nextErr != nil {
+			return nil, "", nextErr
+		}
+		if part.FormName() != "har" || part.FileName() == "" {
+			_, _ = io.Copy(io.Discard, part)
+			part.Close()
+			continue
+		}
+		if data != nil {
+			part.Close()
+			return nil, "", errors.New("only one har file may be imported")
+		}
+		data, err = io.ReadAll(io.LimitReader(part, maxHARBytes+1))
+		filename = part.FileName()
+		part.Close()
+		if err != nil {
+			return nil, "", fmt.Errorf("read HAR: %w", err)
+		}
+		if len(data) > maxHARBytes {
+			return nil, "", errHARTooLarge
+		}
+	}
+	if data == nil {
+		return nil, "", errors.New("multipart field har is required")
+	}
+	return data, filename, nil
+}
+
+func safeUploadName(name string) string {
+	name = path.Base(strings.ReplaceAll(name, `\`, "/"))
+	if name == "." || name == "/" || name == "" {
+		return "capture.har"
+	}
+	return name
+}
+
+func mediaTypeOrDefault(value string) string {
+	if value == "" {
+		return "application/octet-stream"
+	}
+	return value
+}
+
+func (s *Server) getTransaction(w http.ResponseWriter, r *http.Request) {
+	item, err := s.store.GetTransaction(r.Context(), r.PathValue("targetID"), r.PathValue("transactionID"))
+	if s.handleStoreError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, item)
+}
+
+func (s *Server) deleteTransaction(w http.ResponseWriter, r *http.Request) {
+	if s.handleStoreError(w, s.store.DeleteTransaction(r.Context(), r.PathValue("targetID"), r.PathValue("transactionID"))) {
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (s *Server) getArtifact(w http.ResponseWriter, r *http.Request) {

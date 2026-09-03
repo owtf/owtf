@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
@@ -446,23 +447,93 @@ func (a *app) tasks(ctx context.Context, args []string) error {
 }
 
 func (a *app) transactions(ctx context.Context, args []string) error {
-	if len(args) == 0 || args[0] != "list" {
-		return errors.New("usage: owtf transactions list --session SESSION_ID [--target TARGET_ID]")
+	if len(args) == 0 {
+		return errors.New("transactions requires list, show, delete, or import")
 	}
-	flags := a.flags("transactions list")
-	sessionID := flags.String("session", "", "session ID")
-	targetID := flags.String("target", "", "target ID")
-	if err := flags.Parse(args[1:]); err != nil {
+	switch args[0] {
+	case "list":
+		flags := a.flags("transactions list")
+		sessionID := flags.String("session", "", "session ID")
+		targetID := flags.String("target", "", "target ID")
+		if err := flags.Parse(args[1:]); err != nil {
+			return err
+		}
+		if (*sessionID == "" && *targetID == "") || flags.NArg() != 0 {
+			return errors.New("usage: owtf transactions list (--session SESSION_ID | --target TARGET_ID)")
+		}
+		if *sessionID == "" {
+			return a.proxyJSON(ctx, http.MethodGet, "/api/v2/targets/"+pathSegment(*targetID)+"/transactions", nil)
+		}
+		query := url.Values{"session_id": {*sessionID}}
+		if *targetID != "" {
+			query.Set("target_id", *targetID)
+		}
+		return a.proxyJSON(ctx, http.MethodGet, withQuery("/api/v2/transactions", query), nil)
+	case "show", "delete":
+		flags := a.flags("transactions " + args[0])
+		targetID := flags.String("target", "", "target ID")
+		if err := flags.Parse(args[1:]); err != nil {
+			return err
+		}
+		transactionID, err := oneArg("transactions "+args[0], flags.Args())
+		if err != nil || *targetID == "" {
+			return fmt.Errorf("usage: owtf transactions %s --target TARGET_ID TRANSACTION_ID", args[0])
+		}
+		path := "/api/v2/targets/" + pathSegment(*targetID) + "/transactions/" + pathSegment(transactionID)
+		if args[0] == "show" {
+			return a.proxyJSON(ctx, http.MethodGet, path, nil)
+		}
+		if err := a.request(ctx, http.MethodDelete, path, nil, nil); err != nil {
+			return err
+		}
+		return a.writeJSON(map[string]string{"deleted": transactionID})
+	case "import":
+		flags := a.flags("transactions import")
+		targetID := flags.String("target", "", "target ID")
+		if err := flags.Parse(args[1:]); err != nil {
+			return err
+		}
+		filename, err := oneArg("transactions import", flags.Args())
+		if err != nil || *targetID == "" {
+			return errors.New("usage: owtf transactions import --target TARGET_ID FILE.har")
+		}
+		return a.importTransactions(ctx, *targetID, filename)
+	default:
+		return fmt.Errorf("unknown transactions command %q", args[0])
+	}
+}
+
+func (a *app) importTransactions(ctx context.Context, targetID, filename string) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		return fmt.Errorf("open HAR: %w", err)
+	}
+	defer file.Close()
+	reader, writer := io.Pipe()
+	multipartWriter := multipart.NewWriter(writer)
+	contentType := multipartWriter.FormDataContentType()
+	go func() {
+		part, createErr := multipartWriter.CreateFormFile("har", filepath.Base(filename))
+		if createErr == nil {
+			_, createErr = io.Copy(part, file)
+		}
+		if closeErr := multipartWriter.Close(); createErr == nil {
+			createErr = closeErr
+		}
+		_ = writer.CloseWithError(createErr)
+	}()
+	defer reader.Close()
+	path := "/api/v2/targets/" + pathSegment(targetID) + "/transactions/import"
+	response, err := a.send(ctx, http.MethodPost, path, reader, contentType)
+	if err != nil {
 		return err
 	}
-	if *sessionID == "" || flags.NArg() != 0 {
-		return errors.New("usage: owtf transactions list --session SESSION_ID [--target TARGET_ID]")
+	defer response.Body.Close()
+	var result any
+	if err := json.NewDecoder(io.LimitReader(response.Body, 16<<20)).Decode(&result); err != nil {
+		return fmt.Errorf("decode transaction import response: %w", err)
 	}
-	query := url.Values{"session_id": {*sessionID}}
-	if *targetID != "" {
-		query.Set("target_id", *targetID)
-	}
-	return a.proxyJSON(ctx, http.MethodGet, withQuery("/api/v2/transactions", query), nil)
+	return a.writeJSON(result)
 }
 
 func (a *app) artifacts(ctx context.Context, args []string) error {
@@ -552,13 +623,19 @@ func (a *app) request(ctx context.Context, method, path string, body, destinatio
 
 func (a *app) do(ctx context.Context, method, path string, body any) (*http.Response, error) {
 	var reader io.Reader
+	contentType := ""
 	if body != nil {
 		encoded, err := json.Marshal(body)
 		if err != nil {
 			return nil, err
 		}
 		reader = bytes.NewReader(encoded)
+		contentType = "application/json"
 	}
+	return a.send(ctx, method, path, reader, contentType)
+}
+
+func (a *app) send(ctx context.Context, method, path string, body io.Reader, contentType string) (*http.Response, error) {
 	endpoint := *a.baseURL
 	endpoint.Path = strings.TrimRight(a.baseURL.Path, "/") + path
 	endpoint.RawQuery = ""
@@ -566,13 +643,13 @@ func (a *app) do(ctx context.Context, method, path string, body any) (*http.Resp
 		endpoint.Path = strings.TrimRight(a.baseURL.Path, "/") + path[:index]
 		endpoint.RawQuery = path[index+1:]
 	}
-	request, err := http.NewRequestWithContext(ctx, method, endpoint.String(), reader)
+	request, err := http.NewRequestWithContext(ctx, method, endpoint.String(), body)
 	if err != nil {
 		return nil, err
 	}
 	request.Header.Set("Accept", "application/json")
-	if body != nil {
-		request.Header.Set("Content-Type", "application/json")
+	if contentType != "" {
+		request.Header.Set("Content-Type", contentType)
 	}
 	response, err := a.client.Do(request)
 	if err != nil {
@@ -645,7 +722,9 @@ Usage:
   owtf [--url URL] worklist [--session ID] [--status STATUS]
   owtf [--url URL] workers
   owtf [--url URL] tasks show|logs|cancel ID
-  owtf [--url URL] transactions list --session ID [--target ID]
+  owtf [--url URL] transactions list (--session ID | --target ID)
+  owtf [--url URL] transactions show|delete --target TARGET_ID TRANSACTION_ID
+  owtf [--url URL] transactions import --target TARGET_ID FILE.har
   owtf [--url URL] artifacts get [--output FILE] ID
 
 Repeat --target and --plugin, or pass comma-separated IDs.

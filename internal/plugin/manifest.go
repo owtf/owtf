@@ -63,8 +63,8 @@ type ArtifactResult struct {
 	Data      []byte
 }
 
-// ExchangeResult is HTTP transaction metadata returned by a plugin.
-type ExchangeResult struct {
+// TransactionResult is HTTP transaction metadata returned by a plugin.
+type TransactionResult struct {
 	Method                   string
 	URL                      string
 	RequestHeaders           string
@@ -92,7 +92,7 @@ type FindingResult struct {
 // Result contains all structured output produced by one plugin execution.
 type Result struct {
 	Artifacts    []ArtifactResult
-	Exchanges    []ExchangeResult
+	Transactions []TransactionResult
 	Observations []ObservationResult
 	Findings     []FindingResult
 }

@@ -111,7 +111,8 @@ type Worker struct {
 // Artifact describes immutable evidence stored outside SQLite.
 type Artifact struct {
 	ID        string    `json:"id"`
-	TaskID    string    `json:"task_id"`
+	TaskID    string    `json:"task_id,omitempty"`
+	TargetID  string    `json:"target_id"`
 	Name      string    `json:"name"`
 	MediaType string    `json:"media_type"`
 	Size      int64     `json:"size"`
@@ -120,16 +121,18 @@ type Artifact struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-// HTTPExchange records request and response metadata captured by a plugin.
-type HTTPExchange struct {
+// Transaction records one HTTP request and response associated with a target.
+type Transaction struct {
 	ID                     string    `json:"id"`
-	TaskID                 string    `json:"task_id"`
+	TaskID                 string    `json:"task_id,omitempty"`
 	TargetID               string    `json:"target_id"`
 	Method                 string    `json:"method"`
 	URL                    string    `json:"url"`
 	RequestHeaders         string    `json:"request_headers"`
 	StatusCode             int       `json:"status_code"`
 	ResponseHeaders        string    `json:"response_headers"`
+	SourceArtifactID       string    `json:"source_artifact_id,omitempty"`
+	RequestBodyArtifactID  string    `json:"request_body_artifact_id,omitempty"`
 	ResponseBodyArtifactID string    `json:"response_body_artifact_id,omitempty"`
 	DurationMS             int64     `json:"duration_ms"`
 	CreatedAt              time.Time `json:"created_at"`
@@ -177,26 +180,26 @@ type ReportSummary struct {
 
 // TargetReport is the complete retained evidence view for one target.
 type TargetReport struct {
-	Target       Target         `json:"target"`
-	Tasks        []Task         `json:"tasks"`
-	Events       []TaskEvent    `json:"events"`
-	Artifacts    []Artifact     `json:"artifacts"`
-	Transactions []HTTPExchange `json:"transactions"`
-	Observations []Observation  `json:"observations"`
-	Findings     []Finding      `json:"findings"`
+	Target       Target        `json:"target"`
+	Tasks        []Task        `json:"tasks"`
+	Events       []TaskEvent   `json:"events"`
+	Artifacts    []Artifact    `json:"artifacts"`
+	Transactions []Transaction `json:"transactions"`
+	Observations []Observation `json:"observations"`
+	Findings     []Finding     `json:"findings"`
 }
 
 // SessionReport is the complete retained execution and evidence view for one
 // OWTF session.
 type SessionReport struct {
-	Session      Session        `json:"session"`
-	Summary      ReportSummary  `json:"summary"`
-	Targets      []Target       `json:"targets"`
-	Runs         []Run          `json:"runs"`
-	Tasks        []Task         `json:"tasks"`
-	Events       []TaskEvent    `json:"events"`
-	Artifacts    []Artifact     `json:"artifacts"`
-	Transactions []HTTPExchange `json:"transactions"`
-	Observations []Observation  `json:"observations"`
-	Findings     []Finding      `json:"findings"`
+	Session      Session       `json:"session"`
+	Summary      ReportSummary `json:"summary"`
+	Targets      []Target      `json:"targets"`
+	Runs         []Run         `json:"runs"`
+	Tasks        []Task        `json:"tasks"`
+	Events       []TaskEvent   `json:"events"`
+	Artifacts    []Artifact    `json:"artifacts"`
+	Transactions []Transaction `json:"transactions"`
+	Observations []Observation `json:"observations"`
+	Findings     []Finding     `json:"findings"`
 }
