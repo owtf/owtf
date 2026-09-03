@@ -1,0 +1,57 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-WVS-002-active
+  version: 0.1.0
+  title: Nikto Unauthenticated
+  description: Runs a bounded unauthenticated Nikto scan and retains its XML report.
+
+spec:
+  techniques:
+    - code: OWTF-WVS-002
+      title: Nikto Unauthenticated
+      hint: Which server and application issues does Nikto identify without credentials?
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/stable/
+  group: web
+  type: active
+  targetKinds: [url]
+  inputs:
+    - name: max_time_seconds
+      type: integer
+      description: Maximum time Nikto may test the target.
+      default: 20
+      minimum: 1
+      maximum: 86400
+    - name: request_timeout_seconds
+      type: integer
+      description: Maximum time Nikto may wait for one request.
+      default: 5
+      minimum: 1
+      maximum: 120
+  requirements:
+    commands: [nikto]
+  runtime:
+    type: command
+    command:
+      executable: nikto
+      args:
+        - -host
+        - "{{target}}"
+        - -ask
+        - "no"
+        - -nointeractive
+        - -nocheck
+        - -timeout
+        - "{{input:request_timeout_seconds}}"
+        - -maxtime
+        - "{{input:max_time_seconds}}"
+        - -Format
+        - xml
+        - -output
+        - "{{artifact:nikto.xml}}"
+      artifacts:
+        - name: nikto.xml
+          mediaType: application/xml
+          required: true

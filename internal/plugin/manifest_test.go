@@ -35,14 +35,36 @@ func TestManifestAcceptsEstablishedPluginGroups(t *testing.T) {
 	}
 }
 
+func TestUnavailableManifestRetainsReason(t *testing.T) {
+	manifest := strings.Replace(commandManifest("executable: echo", ""), `type: command
+    command:
+      executable: echo`, `type: unavailable
+    reason: Runtime migration is pending.`, 1)
+	catalog, err := Load(fstest.MapFS{"plugin.yaml": {Data: []byte(manifest)}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	entry, ok := catalog.Get("OWTF-TEST-001-active")
+	if !ok || entry.Availability != "unavailable" || entry.Reason != "Runtime migration is pending." || entry.Executor != nil {
+		t.Fatalf("unexpected unavailable plugin: %+v", entry)
+	}
+}
+
 func TestEntriesByGroupType(t *testing.T) {
 	active := commandManifest("executable: echo", "")
 	passive := strings.ReplaceAll(active, "OWTF-TEST-001-active", "OWTF-TEST-002-passive")
 	passive = strings.ReplaceAll(passive, "OWTF-TEST-001", "OWTF-TEST-002")
 	passive = strings.Replace(passive, "type: active", "type: passive", 1)
+	unavailable := strings.ReplaceAll(passive, "OWTF-TEST-002-passive", "OWTF-TEST-003-passive")
+	unavailable = strings.ReplaceAll(unavailable, "OWTF-TEST-002", "OWTF-TEST-003")
+	unavailable = strings.Replace(unavailable, `type: command
+    command:
+      executable: echo`, `type: unavailable
+    reason: Runtime migration is pending.`, 1)
 	catalog, err := Load(fstest.MapFS{
-		"active/plugin.yaml":  &fstest.MapFile{Data: []byte(active)},
-		"passive/plugin.yaml": &fstest.MapFile{Data: []byte(passive)},
+		"active/plugin.yaml":      &fstest.MapFile{Data: []byte(active)},
+		"passive/plugin.yaml":     &fstest.MapFile{Data: []byte(passive)},
+		"unavailable/plugin.yaml": &fstest.MapFile{Data: []byte(unavailable)},
 	})
 	if err != nil {
 		t.Fatal(err)

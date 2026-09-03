@@ -1,0 +1,26 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-IG-003-external
+  version: 0.1.0
+  title: "Identify application entry points"
+  description: "Provides manual OWTF guidance for Identify application entry points."
+
+spec:
+  techniques:
+    - code: OWTF-IG-003
+      title: "Identify application entry points"
+      hint: "Review Identify application entry points and retain concrete evidence."
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/stable/
+  group: web
+  type: external
+  targetKinds: [url]
+  runtime:
+    type: external
+    external:
+      guidance: "Follow the linked OWASP Web Security Testing Guide for Identify application entry points. Retain the requests, responses, and conclusion as OWTF evidence."
+      references:
+        - title: OWASP Web Security Testing Guide
+          url: https://owasp.org/www-project-web-security-testing-guide/stable/

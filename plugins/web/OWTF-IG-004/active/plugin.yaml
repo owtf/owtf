@@ -1,0 +1,24 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-IG-004-active
+  version: 0.1.0
+  title: "Web Application Fingerprint"
+  description: "Declares the retained Web Application Fingerprint technique while its runtime is completed."
+
+spec:
+  techniques:
+    - code: OWTF-IG-004
+      title: "Web Application Fingerprint"
+      hint: "What is that site running?"
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework
+  group: web
+  type: active
+  targetKinds: [url]
+  requirements:
+    commands: [whatweb]
+  runtime:
+    type: unavailable
+    reason: "Runtime migration pending. Retain active technology fingerprinting with a maintained fingerprint engine and structured evidence."

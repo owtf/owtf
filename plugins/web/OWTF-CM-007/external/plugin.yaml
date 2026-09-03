@@ -1,0 +1,26 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-CM-007-external
+  version: 0.1.0
+  title: "Testing for Admin Interfaces"
+  description: "Provides manual OWTF guidance for Testing for Admin Interfaces."
+
+spec:
+  techniques:
+    - code: OWTF-CM-007
+      title: "Testing for Admin Interfaces"
+      hint: "Review Testing for Admin Interfaces and retain concrete evidence."
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/stable/
+  group: web
+  type: external
+  targetKinds: [url]
+  runtime:
+    type: external
+    external:
+      guidance: "Follow the linked OWASP Web Security Testing Guide for Testing for Admin Interfaces. Retain the requests, responses, and conclusion as OWTF evidence."
+      references:
+        - title: OWASP Web Security Testing Guide
+          url: https://owasp.org/www-project-web-security-testing-guide/stable/

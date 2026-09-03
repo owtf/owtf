@@ -1,0 +1,26 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-DV-002-external
+  version: 0.1.0
+  title: "Stored Cross Site Scripting"
+  description: "Provides manual OWTF guidance for Stored Cross Site Scripting."
+
+spec:
+  techniques:
+    - code: OWTF-DV-002
+      title: "Stored Cross Site Scripting"
+      hint: "Review Stored Cross Site Scripting and retain concrete evidence."
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/stable/
+  group: web
+  type: external
+  targetKinds: [url]
+  runtime:
+    type: external
+    external:
+      guidance: "Follow the linked OWASP Web Security Testing Guide for Stored Cross Site Scripting. Retain the requests, responses, and conclusion as OWTF evidence."
+      references:
+        - title: OWASP Web Security Testing Guide
+          url: https://owasp.org/www-project-web-security-testing-guide/stable/

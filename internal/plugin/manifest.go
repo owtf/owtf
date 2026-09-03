@@ -104,6 +104,7 @@ type Manifest struct {
 		} `yaml:"requirements,omitempty" json:"requirements,omitempty"`
 		Runtime struct {
 			Type      string         `yaml:"type" json:"type"`
+			Reason    string         `yaml:"reason,omitempty" json:"reason,omitempty"`
 			Builtin   string         `yaml:"builtin,omitempty" json:"builtin,omitempty"`
 			Command   *CommandSpec   `yaml:"command,omitempty" json:"command,omitempty"`
 			Container *ContainerSpec `yaml:"container,omitempty" json:"container,omitempty"`
@@ -285,6 +286,9 @@ func Load(fsys fs.FS) (*Catalog, error) {
 			Manifest: manifest, Availability: "missing_runtime", Reason: "runtime is not registered",
 		}
 		switch manifest.Spec.Runtime.Type {
+		case "unavailable":
+			entry.Availability = "unavailable"
+			entry.Reason = manifest.Spec.Runtime.Reason
 		case "external":
 			entry.Availability = "ready"
 			entry.Reason = ""
@@ -308,6 +312,7 @@ func Load(fsys fs.FS) (*Catalog, error) {
 }
 
 func normalizeManifest(manifest *Manifest) {
+	manifest.Spec.Runtime.Reason = strings.TrimSpace(manifest.Spec.Runtime.Reason)
 	for index := range manifest.Spec.Techniques {
 		technique := &manifest.Spec.Techniques[index]
 		technique.Code = strings.TrimSpace(technique.Code)
@@ -386,6 +391,9 @@ func validateManifest(manifest Manifest) error {
 	if err != nil {
 		return err
 	}
+	if manifest.Spec.Runtime.Type != "unavailable" && manifest.Spec.Runtime.Reason != "" {
+		return fmt.Errorf("runtime reason is only valid for unavailable plugins")
+	}
 	switch manifest.Spec.Runtime.Type {
 	case "builtin":
 		if manifest.Spec.Runtime.Builtin == "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.Container != nil || manifest.Spec.Runtime.External != nil || manifest.Spec.Runtime.Grep != nil || manifest.Spec.Runtime.HTTP != nil {
@@ -437,6 +445,13 @@ func validateManifest(manifest Manifest) error {
 		}
 		if err := validateHTTP(manifest.Spec.Runtime.HTTP); err != nil {
 			return err
+		}
+	case "unavailable":
+		if manifest.Spec.Runtime.Reason == "" || len(manifest.Spec.Runtime.Reason) > 512 {
+			return fmt.Errorf("unavailable runtime requires a reason of at most 512 bytes")
+		}
+		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.Container != nil || manifest.Spec.Runtime.External != nil || manifest.Spec.Runtime.Grep != nil || manifest.Spec.Runtime.HTTP != nil {
+			return fmt.Errorf("unavailable runtime requires only a reason")
 		}
 	default:
 		return fmt.Errorf("runtime type %q is not implemented", manifest.Spec.Runtime.Type)
@@ -747,8 +762,9 @@ func (c *Catalog) Entries() []Entry {
 	return entries
 }
 
-// EntriesByGroupType returns plugins in an OWTF plugin group, optionally
-// limited to the supplied plugin types.
+// EntriesByGroupType returns launchable plugins in an OWTF plugin group,
+// optionally limited to the supplied plugin types. Catalog-only migration
+// entries remain visible through Entries but never create worklist tasks.
 func (c *Catalog) EntriesByGroupType(group string, pluginTypes []string) []Entry {
 	wantedTypes := make(map[string]bool, len(pluginTypes))
 	for _, pluginType := range pluginTypes {
@@ -756,6 +772,9 @@ func (c *Catalog) EntriesByGroupType(group string, pluginTypes []string) []Entry
 	}
 	entries := make([]Entry, 0)
 	for _, entry := range c.Entries() {
+		if entry.Manifest.Spec.Runtime.Type == "unavailable" {
+			continue
+		}
 		if entry.Manifest.Spec.Group != group {
 			continue
 		}

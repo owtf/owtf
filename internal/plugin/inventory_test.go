@@ -89,10 +89,8 @@ func TestEveryLegacyPluginHasAReviewedDecision(t *testing.T) {
 			if replacement == "" || status != "implemented" && status != "planned" {
 				t.Fatalf("replacement decision %s has invalid replacement or status", key)
 			}
-			if status == "implemented" {
-				if _, ok := catalog.Get(replacement); !ok {
-					t.Fatalf("implemented replacement %q for %s is not in the plugin catalog", replacement, key)
-				}
+			if _, ok := catalog.Get(replacement); !ok {
+				t.Fatalf("replacement %q for %s is not in the plugin catalog", replacement, key)
 			}
 		case "reject", "defer":
 			if replacement != "" || status != "reviewed" {

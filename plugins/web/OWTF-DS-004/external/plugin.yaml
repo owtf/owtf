@@ -1,0 +1,26 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-DS-004-external
+  version: 0.1.0
+  title: "DoS User Specified Object Allocation"
+  description: "Provides manual OWTF guidance for DoS User Specified Object Allocation."
+
+spec:
+  techniques:
+    - code: OWTF-DS-004
+      title: "DoS User Specified Object Allocation"
+      hint: "Review DoS User Specified Object Allocation and retain concrete evidence."
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/stable/
+  group: web
+  type: external
+  targetKinds: [url]
+  runtime:
+    type: external
+    external:
+      guidance: "Follow the linked OWASP Web Security Testing Guide for DoS User Specified Object Allocation. Retain the requests, responses, and conclusion as OWTF evidence."
+      references:
+        - title: OWASP Web Security Testing Guide
+          url: https://owasp.org/www-project-web-security-testing-guide/stable/

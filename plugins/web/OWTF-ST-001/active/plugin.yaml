@@ -1,0 +1,24 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-ST-001-active
+  version: 0.1.0
+  title: "Subdomain Takeover"
+  description: "Declares the retained Subdomain Takeover technique while its runtime is completed."
+
+spec:
+  techniques:
+    - code: OWTF-ST-001
+      title: "Subdomain Takeover"
+      hint: "Review Subdomain Takeover and retain concrete evidence."
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/stable/
+  group: web
+  type: active
+  targetKinds: [url]
+  requirements:
+    commands: [nuclei]
+  runtime:
+    type: unavailable
+    reason: "Runtime migration pending. Retain subdomain-takeover checks with a maintained detector and machine-readable evidence instead of the abandoned wrapper."

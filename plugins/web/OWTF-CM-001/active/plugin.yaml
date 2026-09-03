@@ -1,0 +1,24 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-CM-001-active
+  version: 0.1.0
+  title: "Testing for SSL-TLS"
+  description: "Declares the retained Testing for SSL-TLS technique while its runtime is completed."
+
+spec:
+  techniques:
+    - code: OWTF-CM-001
+      title: "Testing for SSL-TLS"
+      hint: "Does the response advertise a strict HTTPS transport policy?"
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/
+  group: web
+  type: active
+  targetKinds: [url]
+  requirements:
+    commands: [testssl.sh]
+  runtime:
+    type: unavailable
+    reason: "Runtime migration pending. Retain active TLS configuration analysis through a maintained scanner with machine-readable output."

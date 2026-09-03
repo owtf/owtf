@@ -1,0 +1,22 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-IG-002-semi_passive
+  version: 0.1.0
+  title: "Search engine discovery reconnaissance"
+  description: "Declares the retained Search engine discovery reconnaissance technique while its runtime is completed."
+
+spec:
+  techniques:
+    - code: OWTF-IG-002
+      title: "Search engine discovery reconnaissance"
+      hint: "Review Search engine discovery reconnaissance and retain concrete evidence."
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/stable/
+  group: web
+  type: semi_passive
+  targetKinds: [url]
+  runtime:
+    type: unavailable
+    reason: "Runtime migration pending. Retain metadata inspection with a maintained parser and bounded downloaded artifacts, not the legacy command template."

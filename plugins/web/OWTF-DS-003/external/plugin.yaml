@@ -1,0 +1,26 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-DS-003-external
+  version: 0.1.0
+  title: "Testing for DoS Buffer Overflows"
+  description: "Provides manual OWTF guidance for Testing for DoS Buffer Overflows."
+
+spec:
+  techniques:
+    - code: OWTF-DS-003
+      title: "Testing for DoS Buffer Overflows"
+      hint: "Review Testing for DoS Buffer Overflows and retain concrete evidence."
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/stable/
+  group: web
+  type: external
+  targetKinds: [url]
+  runtime:
+    type: external
+    external:
+      guidance: "Follow the linked OWASP Web Security Testing Guide for Testing for DoS Buffer Overflows. Retain the requests, responses, and conclusion as OWTF evidence."
+      references:
+        - title: OWASP Web Security Testing Guide
+          url: https://owasp.org/www-project-web-security-testing-guide/stable/

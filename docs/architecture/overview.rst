@@ -49,6 +49,18 @@ plugin group (``web``, ``network``, ``auxiliary``, or ``community``). The path,
 declared group, type, and ID must agree. The manifest remains the runtime source
 of truth and the catalog discovers it recursively.
 
+External commands are optional requirements, not bundled dependencies. For
+example, ``OWTF-WVS-002-active`` is visible but unavailable when ``nikto`` is
+not installed. OWTF invokes available commands directly with validated argument
+arrays, never through a shell, and retains only declared bounded artifacts.
+
+Every reviewed replacement has a YAML manifest. A retained technique whose
+runtime has not been implemented uses ``runtime.type: unavailable`` with a
+concrete reason and any already-selected command requirements. These entries
+remain visible in the catalog but are excluded from group launches until their
+runtime is replaced; rejected and safety-deferred legacy plugins have no
+manifest.
+
 Named ordering profiles are separate versioned files::
 
   profiles/

@@ -1,0 +1,26 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-AT-009-external
+  version: 0.1.0
+  title: "Multiple Factors Authentication"
+  description: "Provides manual OWTF guidance for Multiple Factors Authentication."
+
+spec:
+  techniques:
+    - code: OWTF-AT-009
+      title: "Multiple Factors Authentication"
+      hint: "Review Multiple Factors Authentication and retain concrete evidence."
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/stable/
+  group: web
+  type: external
+  targetKinds: [url]
+  runtime:
+    type: external
+    external:
+      guidance: "Follow the linked OWASP Web Security Testing Guide for Multiple Factors Authentication. Retain the requests, responses, and conclusion as OWTF evidence."
+      references:
+        - title: OWASP Web Security Testing Guide
+          url: https://owasp.org/www-project-web-security-testing-guide/stable/

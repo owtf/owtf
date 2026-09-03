@@ -1,0 +1,26 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-DS-008-external
+  version: 0.1.0
+  title: "Storing too Much Data in Session"
+  description: "Provides manual OWTF guidance for Storing too Much Data in Session."
+
+spec:
+  techniques:
+    - code: OWTF-DS-008
+      title: "Storing too Much Data in Session"
+      hint: "Review Storing too Much Data in Session and retain concrete evidence."
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/stable/
+  group: web
+  type: external
+  targetKinds: [url]
+  runtime:
+    type: external
+    external:
+      guidance: "Follow the linked OWASP Web Security Testing Guide for Storing too Much Data in Session. Retain the requests, responses, and conclusion as OWTF evidence."
+      references:
+        - title: OWASP Web Security Testing Guide
+          url: https://owasp.org/www-project-web-security-testing-guide/stable/
