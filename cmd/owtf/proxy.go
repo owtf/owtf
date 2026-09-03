@@ -15,58 +15,41 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
 
+	owtfconfig "github.com/owtf/owtf/internal/config"
 	owtfproxy "github.com/owtf/owtf/internal/proxy"
 )
 
-type stringFlags []string
+type stringFlags struct {
+	values  []string
+	changed bool
+}
 
-func (values *stringFlags) String() string { return strings.Join(*values, ",") }
+func (values *stringFlags) String() string { return strings.Join(values.values, ",") }
 func (values *stringFlags) Set(value string) error {
 	value = strings.TrimSpace(value)
 	if value == "" {
 		return errors.New("value cannot be empty")
 	}
-	*values = append(*values, value)
+	if !values.changed {
+		values.values = nil
+		values.changed = true
+	}
+	values.values = append(values.values, value)
 	return nil
 }
 
 func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) error {
-	flags := flag.NewFlagSet("owtf proxy", flag.ContinueOnError)
-	flags.SetOutput(stderr)
-	listenAddress := flags.String("listen", "127.0.0.1:8008", "proxy listen address")
-	apiAddress := flags.String("api-listen", "127.0.0.1:8010", "proxy API listen address")
-	outputPath := flags.String("output", filepath.Join(".owtf", "proxy", "capture.har"), "HAR output path")
-	certificatePath := flags.String("ca-cert", filepath.Join(".owtf", "proxy", "ca.crt"), "proxy CA certificate path")
-	keyPath := flags.String("ca-key", filepath.Join(".owtf", "proxy", "ca.key"), "proxy CA private key path")
-	maximumBody := flags.Int64("max-body", 1<<20, "maximum captured bytes per request or response body")
-	maximumTransactions := flags.Int("max-transactions", 10_000, "maximum retained transactions")
-	maximumAttempts := flags.Int("attempts", 3, "maximum attempts for transport failures and HTTP 408/599")
-	cacheEntries := flags.Int("cache-entries", 1000, "maximum cached responses; zero disables the cache")
-	cacheBody := flags.Int64("cache-max-body", 1<<20, "maximum response body bytes stored per cache entry")
-	cookieBlacklist := flags.String("cookie-blacklist", "_ga,__utma,__utmb,__utmc,__utmz,__utmv", "comma-separated cookies excluded from cache identity")
-	cookieWhitelist := flags.String("cookie-whitelist", "", "comma-separated cookies allowed in cache identity")
-	upstream := flags.String("upstream", "", "optional HTTP, HTTPS, or SOCKS5 proxy URL")
-	httpAuthFile := flags.String("http-auth-file", "", "JSON file containing target-host HTTP credentials")
-	interceptorFile := flags.String("interceptor-file", "", "JSON file containing static interceptor rules")
-	insecureUpstream := flags.Bool("insecure-upstream", false, "allow invalid upstream TLS certificates")
-	var targetHosts stringFlags
-	flags.Var(&targetHosts, "target-host", "allowed target host; repeat to allow more than one")
-	if err := flags.Parse(args); err != nil {
+	settings, err := proxyConfiguration(args, stderr)
+	if err != nil {
 		return err
 	}
-	if flags.NArg() != 0 {
-		return errors.New("proxy accepts no positional arguments")
-	}
-	if *maximumBody < 1 || *maximumTransactions < 1 || *maximumAttempts < 1 || *cacheEntries < 0 || *cacheBody < 1 {
-		return errors.New("proxy limits are invalid")
-	}
+	proxySettings := settings.Proxy
 
-	authority, err := owtfproxy.LoadOrCreateAuthority(*certificatePath, *keyPath)
+	authority, err := owtfproxy.LoadOrCreateAuthority(proxySettings.CACertificate, proxySettings.CAKey)
 	if err != nil {
 		return err
 	}
@@ -74,15 +57,15 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	defer transport.CloseIdleConnections()
 	transport.DisableCompression = true
 	transport.Proxy = nil
-	transport.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS12, InsecureSkipVerify: *insecureUpstream}
-	if *upstream != "" {
-		if err := owtfproxy.SetUpstream(transport, *upstream); err != nil {
+	transport.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS12, InsecureSkipVerify: proxySettings.InsecureUpstream}
+	if proxySettings.Upstream != "" {
+		if err := owtfproxy.SetUpstream(transport, proxySettings.Upstream); err != nil {
 			return err
 		}
 	}
 	var upstreamTransport http.RoundTripper = transport
-	if *httpAuthFile != "" {
-		credentials, err := loadHTTPCredentials(*httpAuthFile)
+	if proxySettings.HTTPAuthFile != "" {
+		credentials, err := loadHTTPCredentials(proxySettings.HTTPAuthFile)
 		if err != nil {
 			return err
 		}
@@ -92,12 +75,12 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 		}
 	}
 	var roundTripper http.RoundTripper = owtfproxy.RetryTransport{
-		Next: upstreamTransport, MaxAttempts: *maximumAttempts, Delay: 100 * time.Millisecond,
+		Next: upstreamTransport, MaxAttempts: proxySettings.Attempts, Delay: 100 * time.Millisecond,
 	}
-	if *cacheEntries > 0 {
+	if proxySettings.CacheEntries > 0 {
 		cache, err := owtfproxy.NewResponseCache(owtfproxy.CacheOptions{
-			MaximumEntries: *cacheEntries, MaximumBody: *cacheBody,
-			CookieBlacklist: splitNames(*cookieBlacklist), CookieWhitelist: splitNames(*cookieWhitelist),
+			MaximumEntries: proxySettings.CacheEntries, MaximumBody: proxySettings.CacheMaximumBody,
+			CookieBlacklist: proxySettings.CookieBlacklist, CookieWhitelist: proxySettings.CookieWhitelist,
 		})
 		if err != nil {
 			return err
@@ -105,14 +88,14 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 		roundTripper = cache.RoundTripper(roundTripper)
 	}
 
-	recorder := owtfproxy.NewRecorder(*maximumTransactions)
+	recorder := owtfproxy.NewRecorder(proxySettings.MaximumTransactions)
 	var interceptors *owtfproxy.Interceptors
-	if *interceptorFile != "" {
-		file, err := os.Open(*interceptorFile)
+	if proxySettings.InterceptorFile != "" {
+		file, err := os.Open(proxySettings.InterceptorFile)
 		if err != nil {
 			return fmt.Errorf("open interceptor file: %w", err)
 		}
-		interceptors, err = owtfproxy.LoadInterceptors(file, *maximumBody)
+		interceptors, err = owtfproxy.LoadInterceptors(file, proxySettings.MaximumBody)
 		closeErr := file.Close()
 		if err != nil {
 			return err
@@ -123,18 +106,18 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	}
 	handler, err := owtfproxy.New(owtfproxy.Config{
 		Authority: authority, Recorder: recorder, Transport: roundTripper,
-		AllowedHosts: targetHosts, MaximumBody: *maximumBody,
+		AllowedHosts: proxySettings.TargetHosts, MaximumBody: proxySettings.MaximumBody,
 		Interceptors: interceptors,
 		ErrorLog:     log.New(stderr, "proxy: ", log.LstdFlags),
 	})
 	if err != nil {
 		return err
 	}
-	listener, err := net.Listen("tcp", *listenAddress)
+	listener, err := net.Listen("tcp", proxySettings.ListenAddress)
 	if err != nil {
 		return fmt.Errorf("listen for proxy traffic: %w", err)
 	}
-	apiListener, err := net.Listen("tcp", *apiAddress)
+	apiListener, err := net.Listen("tcp", proxySettings.APIAddress)
 	if err != nil {
 		listener.Close()
 		return fmt.Errorf("listen for proxy API: %w", err)
@@ -156,7 +139,7 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
 	}
 	apiHandler, err := owtfproxy.NewAPI(owtfproxy.APIConfig{
-		Authority: authority, Recorder: recorder, RepeatClient: repeatClient, MaximumBody: *maximumBody,
+		Authority: authority, Recorder: recorder, RepeatClient: repeatClient, MaximumBody: proxySettings.MaximumBody,
 	})
 	if err != nil {
 		listener.Close()
@@ -175,7 +158,7 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	defer stop()
 	if err := json.NewEncoder(stdout).Encode(map[string]any{
 		"listen": listener.Addr().String(), "api": apiListener.Addr().String(),
-		"ca_certificate": *certificatePath, "output": *outputPath,
+		"ca_certificate": proxySettings.CACertificate, "output": proxySettings.Output,
 	}); err != nil {
 		listener.Close()
 		apiListener.Close()
@@ -210,7 +193,55 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 			runErr = errors.Join(runErr, fmt.Errorf("%s server: %w", result.name, result.err))
 		}
 	}
-	return errors.Join(runErr, shutdownErr, recorder.WriteHAR(*outputPath))
+	return errors.Join(runErr, shutdownErr, recorder.WriteHAR(proxySettings.Output))
+}
+
+func proxyConfiguration(args []string, stderr io.Writer) (owtfconfig.Config, error) {
+	path, err := configurationPath(args)
+	if err != nil {
+		return owtfconfig.Config{}, err
+	}
+	settings, err := effectiveConfiguration(path)
+	if err != nil {
+		return owtfconfig.Config{}, err
+	}
+	proxySettings := &settings.Proxy
+	flags := flag.NewFlagSet("owtf proxy", flag.ContinueOnError)
+	flags.SetOutput(stderr)
+	flags.String("config", path, "configuration file")
+	flags.StringVar(&proxySettings.ListenAddress, "listen", proxySettings.ListenAddress, "proxy listen address")
+	flags.StringVar(&proxySettings.APIAddress, "api-listen", proxySettings.APIAddress, "proxy API listen address")
+	flags.StringVar(&proxySettings.Output, "output", proxySettings.Output, "HAR output path")
+	flags.StringVar(&proxySettings.CACertificate, "ca-cert", proxySettings.CACertificate, "proxy CA certificate path")
+	flags.StringVar(&proxySettings.CAKey, "ca-key", proxySettings.CAKey, "proxy CA private key path")
+	flags.Int64Var(&proxySettings.MaximumBody, "max-body", proxySettings.MaximumBody, "maximum captured bytes per request or response body")
+	flags.IntVar(&proxySettings.MaximumTransactions, "max-transactions", proxySettings.MaximumTransactions, "maximum retained transactions")
+	flags.IntVar(&proxySettings.Attempts, "attempts", proxySettings.Attempts, "maximum attempts for transport failures and HTTP 408/599")
+	flags.IntVar(&proxySettings.CacheEntries, "cache-entries", proxySettings.CacheEntries, "maximum cached responses; zero disables the cache")
+	flags.Int64Var(&proxySettings.CacheMaximumBody, "cache-max-body", proxySettings.CacheMaximumBody, "maximum response body bytes stored per cache entry")
+	cookieBlacklist := strings.Join(proxySettings.CookieBlacklist, ",")
+	cookieWhitelist := strings.Join(proxySettings.CookieWhitelist, ",")
+	flags.StringVar(&cookieBlacklist, "cookie-blacklist", cookieBlacklist, "comma-separated cookies excluded from cache identity")
+	flags.StringVar(&cookieWhitelist, "cookie-whitelist", cookieWhitelist, "comma-separated cookies allowed in cache identity")
+	flags.StringVar(&proxySettings.Upstream, "upstream", proxySettings.Upstream, "optional HTTP, HTTPS, or SOCKS5 proxy URL")
+	flags.StringVar(&proxySettings.HTTPAuthFile, "http-auth-file", proxySettings.HTTPAuthFile, "JSON file containing target-host HTTP credentials")
+	flags.StringVar(&proxySettings.InterceptorFile, "interceptor-file", proxySettings.InterceptorFile, "JSON file containing static interceptor rules")
+	flags.BoolVar(&proxySettings.InsecureUpstream, "insecure-upstream", proxySettings.InsecureUpstream, "allow invalid upstream TLS certificates")
+	targetHosts := stringFlags{values: append([]string(nil), proxySettings.TargetHosts...)}
+	flags.Var(&targetHosts, "target-host", "allowed target host; repeat to allow more than one")
+	if err := flags.Parse(args); err != nil {
+		return owtfconfig.Config{}, err
+	}
+	if flags.NArg() != 0 {
+		return owtfconfig.Config{}, errors.New("proxy accepts no positional arguments")
+	}
+	proxySettings.CookieBlacklist = splitNames(cookieBlacklist)
+	proxySettings.CookieWhitelist = splitNames(cookieWhitelist)
+	proxySettings.TargetHosts = targetHosts.values
+	if err := settings.Validate(); err != nil {
+		return owtfconfig.Config{}, err
+	}
+	return settings, nil
 }
 
 func shutdownHTTPServers(ctx context.Context, servers ...*http.Server) error {

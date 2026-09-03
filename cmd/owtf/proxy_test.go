@@ -219,3 +219,30 @@ func TestLoadHTTPCredentialsRequiresPrivateRegularFile(t *testing.T) {
 		t.Fatal("public credential file was accepted")
 	}
 }
+
+func TestProxyConfigurationPrecedence(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yaml")
+	if err := os.WriteFile(path, []byte(`
+apiVersion: owtf.dev/v1alpha1
+kind: Config
+proxy:
+  attempts: 2
+  cacheEntries: 0
+  targetHosts: [file.example]
+`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("OWTF_PROXY_ATTEMPTS", "3")
+	settings, err := proxyConfiguration([]string{
+		"--config", path,
+		"--attempts", "4",
+		"--target-host", "flag.example",
+	}, io.Discard)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if settings.Proxy.Attempts != 4 || settings.Proxy.CacheEntries != 0 ||
+		len(settings.Proxy.TargetHosts) != 1 || settings.Proxy.TargetHosts[0] != "flag.example" {
+		t.Fatalf("proxy configuration = %+v", settings.Proxy)
+	}
+}

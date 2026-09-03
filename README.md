@@ -35,13 +35,17 @@ resulting evidence.
   target hosts.
 - Priority-ordered static request and response interceptors with bounded URL,
   header, body, and delay actions.
+- Strict, versioned configuration shared by the server and proxy, with
+  scriptable show and validation commands.
 - Target reports through the API and CLI.
 - One API used by the CLI and the embedded proof UI.
 - No accounts, passwords, tokens, or user database.
 
 See [the architecture](docs/architecture/overview.rst), [CLI
 reference](docs/usage/cli.rst), and [legacy technique
-inventory](docs/architecture/legacy-plugin-inventory.csv).
+inventory](docs/architecture/legacy-plugin-inventory.csv). The checked
+[feature-parity matrix](docs/architecture/feature-parity.csv) tracks what is
+implemented, partial, missing, intentionally replaced, removed, or deferred.
 
 ## Run locally
 
@@ -50,6 +54,14 @@ Install Go 1.24 or newer, then build and start OWTF:
 ```bash
 make build
 ./build/owtf serve
+```
+
+OWTF checks `.owtf/config.yaml` when present. Inspect the effective redacted
+settings or validate a file before startup:
+
+```bash
+./build/owtf config show
+./build/owtf config validate .owtf/config.yaml
 ```
 
 The API and embedded proof UI are available at `http://127.0.0.1:8009`.
@@ -64,7 +76,8 @@ The CLI uses the same API:
 ```
 
 Set `OWTF_URL` when the server is not at its default address. Runtime state is
-stored under `.owtf/` unless `OWTF_DATA_DIR` is set.
+stored under `.owtf/` unless configuration, `OWTF_DATA_DIR`, or `--data-dir`
+changes it.
 
 ## Run with Docker
 

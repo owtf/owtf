@@ -12,6 +12,14 @@ SERVER_PID=""
 PROXY_PID=""
 GO_PATH=${OWTF_SMOKE_GOPATH:-${TMPDIR:-/tmp}/owtf-go}
 GO_MODULE_CACHE=${OWTF_SMOKE_GOMODCACHE:-${GO_PATH}/pkg/mod}
+PROXY_ADDRESS=${OWTF_SMOKE_PROXY_ADDR:-127.0.0.1:18118}
+PROXY_API_ADDRESS=${OWTF_SMOKE_PROXY_API_ADDR:-127.0.0.1:18120}
+PROXY_URL="http://${PROXY_ADDRESS}"
+PROXY_API_URL="http://${PROXY_API_ADDRESS}"
+PROXY_HAR="${TMP_DIR}/proxy.har"
+PROXY_CA="${TMP_DIR}/proxy-ca.crt"
+PROXY_KEY="${TMP_DIR}/proxy-ca.key"
+CONFIG_FILE="${TMP_DIR}/config.yaml"
 
 cleanup() {
   if [[ -n "${PROXY_PID}" ]] && kill -0 "${PROXY_PID}" 2>/dev/null; then
@@ -157,6 +165,26 @@ spec:
       executable: owtf-command-that-does-not-exist
 YAML
 
+cat >"${CONFIG_FILE}" <<YAML
+apiVersion: owtf.dev/v1alpha1
+kind: Config
+server:
+  address: "${ADDRESS}"
+  dataDirectory: "${TMP_DIR}/data"
+  workers: 1
+  taskTimeoutSeconds: 30
+plugins:
+  directory: "${TMP_DIR}/plugins"
+  containerEngine: docker
+proxy:
+  listenAddress: "${PROXY_ADDRESS}"
+  apiAddress: "${PROXY_API_ADDRESS}"
+  output: "${PROXY_HAR}"
+  caCertificate: "${PROXY_CA}"
+  caKey: "${PROXY_KEY}"
+  targetHosts: [127.0.0.1]
+YAML
+
 printf '%s\n' 'Building the bounded OWTF test server...'
 (
   cd "${ROOT_DIR}"
@@ -164,11 +192,14 @@ printf '%s\n' 'Building the bounded OWTF test server...'
     go build -o "${TMP_DIR}/owtf" ./cmd/owtf
 )
 
-OWTF_ADDR="${ADDRESS}" \
-OWTF_DATA_DIR="${TMP_DIR}/data" \
-OWTF_PLUGIN_DIR="${TMP_DIR}/plugins" \
-OWTF_WORKERS=1 \
-  "${TMP_DIR}/owtf" >"${TMP_DIR}/server.log" 2>&1 &
+"${TMP_DIR}/owtf" config validate "${CONFIG_FILE}" >"${CLI_RESPONSE_FILE}"
+jq -e '.valid == true' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'configuration validation failed'
+"${TMP_DIR}/owtf" config show --config "${CONFIG_FILE}" >"${CLI_RESPONSE_FILE}"
+jq -e --arg address "${ADDRESS}" \
+  '.server.address == $address and .server.workers == 1 and .proxy.cache_entries == 1000' \
+  "${CLI_RESPONSE_FILE}" >/dev/null || fail 'effective configuration is incorrect'
+
+"${TMP_DIR}/owtf" serve --config "${CONFIG_FILE}" >"${TMP_DIR}/server.log" 2>&1 &
 SERVER_PID=$!
 
 for attempt in $(seq 1 100); do
@@ -430,23 +461,10 @@ request GET "/api/v2/transactions?session_id=${SESSION_ID}" 200
 assert_json 'length == 0' 'transactions survived target deletion'
 
 printf '%s\n' 'Checking proxy traffic, proxy API, repeater, history, CA, and CLI...'
-PROXY_ADDRESS=${OWTF_SMOKE_PROXY_ADDR:-127.0.0.1:18118}
-PROXY_API_ADDRESS=${OWTF_SMOKE_PROXY_API_ADDR:-127.0.0.1:18120}
-PROXY_URL="http://${PROXY_ADDRESS}"
-PROXY_API_URL="http://${PROXY_API_ADDRESS}"
-PROXY_HAR="${TMP_DIR}/proxy.har"
-PROXY_CA="${TMP_DIR}/proxy-ca.crt"
-PROXY_KEY="${TMP_DIR}/proxy-ca.key"
 if curl --silent --fail --max-time 1 "${PROXY_API_URL}/api/v2/health" >/dev/null 2>&1; then
   fail "${PROXY_API_ADDRESS} is already serving a proxy API"
 fi
-"${TMP_DIR}/owtf" proxy \
-  --listen "${PROXY_ADDRESS}" \
-  --api-listen "${PROXY_API_ADDRESS}" \
-  --target-host 127.0.0.1 \
-  --output "${PROXY_HAR}" \
-  --ca-cert "${PROXY_CA}" \
-  --ca-key "${PROXY_KEY}" \
+"${TMP_DIR}/owtf" proxy --config "${CONFIG_FILE}" \
   >"${TMP_DIR}/proxy-status.json" 2>"${TMP_DIR}/proxy.log" &
 PROXY_PID=$!
 for attempt in $(seq 1 100); do

@@ -709,8 +709,10 @@ func printUsage(output io.Writer) {
 	fmt.Fprint(output, `OWTF
 
 Usage:
-  owtf serve
-  owtf proxy [--listen ADDRESS] [--api-listen ADDRESS]
+  owtf serve [--config FILE] [--workers COUNT] [--task-timeout DURATION]
+  owtf config show [--config FILE]
+  owtf config validate FILE
+  owtf proxy [--config FILE] [--listen ADDRESS] [--api-listen ADDRESS]
   owtf proxy status|transactions|transaction|stats|clear|ca|repeat
   owtf [--url URL] health
   owtf [--url URL] sessions list|create|show|report

@@ -143,8 +143,8 @@ against the plugin's declared inputs and copied into the immutable task launch
 record. Plugin order and named launch selections remain OWTF profiles rather
 than becoming global settings.
 
-The feature-parity phase must add ``owtf config show`` and ``owtf config
-validate`` before adding configuration writes. A later configuration API may
+``owtf config show`` prints effective, redacted settings and ``owtf config
+validate`` checks a file without starting OWTF. A later configuration API may
 expose the same typed, non-secret values for the UI. Secrets are supplied by
 environment or private files, are redacted from output, and are never stored in
 SQLite. Legacy database, account, JWT, SMTP, Sentry, and separate UI-server
@@ -247,6 +247,11 @@ and SOCKS5 upstream proxies. Basic and Digest target authentication is scoped
   same proxy path. WebSocket traffic is forwarded unchanged and captured as a
   bounded, binary-safe frame transcript. Live interceptors remain before the
   phase gate.
+
+Phase 5 has a checked feature matrix and typed configuration shared by server
+and proxy startup. Configuration validation, default/file/environment/flag
+precedence, bounded worker and proxy limits, and secret redaction are covered by
+tests. The remaining matrix rows are not implied complete by this slice.
 
 API regression gate
 -------------------

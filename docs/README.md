@@ -6,6 +6,8 @@ The maintained design and operator documentation is intentionally small:
   contract, task lifecycle, phase gates, and resource constraints.
 - `architecture/legacy-plugin-inventory.csv` records the legacy technique
   codes and metadata used to decide which plugins to reimplement.
+- `architecture/feature-parity.csv` records implemented, partial, missing,
+  replaced, removed, and deferred legacy outcomes.
 - `usage/cli.rst` documents the current CLI surface.
 - `usage/access-model.rst` documents the deliberate absence of application
   authentication.

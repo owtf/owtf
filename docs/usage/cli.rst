@@ -10,6 +10,52 @@ Start the local OWTF server::
 
   owtf serve
 
+Configuration
+-------------
+
+OWTF reads ``.owtf/config.yaml`` when it exists. A different file may be
+selected with ``OWTF_CONFIG`` or ``--config``. Unknown fields and unsupported
+schema versions fail before a listener or worker starts::
+
+  owtf config validate .owtf/config.yaml
+  owtf config show --config .owtf/config.yaml
+
+``config show`` prints the effective configuration as JSON after environment
+overrides and redacts credentials. Startup precedence is command flags,
+environment variables, the configuration file, then compiled defaults.
+
+A minimal file may override only the required settings::
+
+  apiVersion: owtf.dev/v1alpha1
+  kind: Config
+  server:
+    address: 127.0.0.1:8009
+    dataDirectory: .owtf
+    workers: 1
+    taskTimeoutSeconds: 300
+  plugins:
+    directory: plugins
+    containerEngine: docker
+  proxy:
+    listenAddress: 127.0.0.1:8008
+    apiAddress: 127.0.0.1:8010
+    targetHosts: [example.test]
+
+Server flags are ``--addr``, ``--data-dir``, ``--workers``, ``--plugin-dir``,
+``--container-engine``, and ``--task-timeout``. Existing ``OWTF_ADDR``,
+``OWTF_DATA_DIR``, ``OWTF_WORKERS``, ``OWTF_PLUGIN_DIR``, and
+``OWTF_CONTAINER_ENGINE`` variables remain supported; ``OWTF_TASK_TIMEOUT`` is
+an integer number of seconds. Proxy YAML fields correspond to the documented
+proxy flags. Their environment names use the ``OWTF_PROXY_`` prefix, such as
+``OWTF_PROXY_LISTEN``, ``OWTF_PROXY_API_LISTEN``, ``OWTF_PROXY_MAX_BODY``, and
+``OWTF_PROXY_TARGET_HOSTS``. Comma-separated environment values are used for
+cookie lists and target hosts.
+
+Do not put credentials in YAML. Supply an authenticated upstream proxy through
+``OWTF_PROXY_UPSTREAM`` and target HTTP credentials through a private file.
+Configuration is startup-only in this phase; it is not stored in SQLite and
+does not pretend to hot-reload.
+
 Commands connect to ``http://127.0.0.1:8009`` by default. Set ``OWTF_URL`` or
 pass the global ``--url`` option when the server listens elsewhere::
 

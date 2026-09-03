@@ -10,13 +10,13 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/owtf/owtf/internal/api"
 	"github.com/owtf/owtf/internal/artifact"
 	"github.com/owtf/owtf/internal/cli"
+	owtfconfig "github.com/owtf/owtf/internal/config"
 	"github.com/owtf/owtf/internal/model"
 	"github.com/owtf/owtf/internal/plugin"
 	"github.com/owtf/owtf/internal/runner"
@@ -34,20 +34,20 @@ func run(args []string, stdout, stderr io.Writer) error {
 	if len(args) > 0 {
 		switch args[0] {
 		case "serve":
-			if len(args) > 1 {
-				return fmt.Errorf("serve accepts no arguments")
-			}
+			return runServe(args[1:], stdout, stderr)
 		case "proxy":
 			return runProxyCommand(context.Background(), args[1:], stdout, stderr)
+		case "config":
+			return runConfig(args[1:], stdout, stderr)
 		default:
 			return cli.Run(context.Background(), args, stdout, stderr)
 		}
 	}
-	return serve()
+	return runServe(nil, stdout, stderr)
 }
 
-func serve() error {
-	dataDir := env("OWTF_DATA_DIR", ".owtf")
+func serve(settings owtfconfig.Config) error {
+	dataDir := settings.Server.DataDirectory
 	database, err := store.Open(filepath.Join(dataDir, "owtf.db"))
 	if err != nil {
 		return err
@@ -58,13 +58,13 @@ func serve() error {
 	if err != nil {
 		return err
 	}
-	catalog, err := plugin.Load(os.DirFS(env("OWTF_PLUGIN_DIR", "plugins")))
+	catalog, err := plugin.Load(os.DirFS(settings.Plugins.Directory))
 	if err != nil {
 		return fmt.Errorf("load plugins: %w", err)
 	}
 	catalog.RegisterBuiltin("http-collector", plugin.HTTPCollector(nil))
 	catalog.ResolveCommands()
-	catalog.ResolveContainers(context.Background(), plugin.NewDockerEngine(env("OWTF_CONTAINER_ENGINE", "docker")))
+	catalog.ResolveContainers(context.Background(), plugin.NewDockerEngine(settings.Plugins.ContainerEngine))
 	plugins := make([]model.Plugin, 0, len(catalog.Entries()))
 	for _, entry := range catalog.Entries() {
 		plugins = append(plugins, entry.Plugin())
@@ -75,15 +75,16 @@ func serve() error {
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	workerCount := envInt("OWTF_WORKERS", 1)
-	taskRunner := runner.New(database, artifacts, catalog, workerCount, 30*time.Second)
+	workerCount := settings.Server.Workers
+	taskTimeout := time.Duration(settings.Server.TaskTimeoutSeconds) * time.Second
+	taskRunner := runner.New(database, artifacts, catalog, workerCount, taskTimeout)
 	if err := taskRunner.Start(ctx); err != nil {
 		return err
 	}
 	defer taskRunner.Stop()
 
 	server := &http.Server{
-		Addr:              env("OWTF_ADDR", ":8009"),
+		Addr:              settings.Server.Address,
 		Handler:           api.New(database, artifacts, catalog, taskRunner),
 		ReadHeaderTimeout: 5 * time.Second,
 		IdleTimeout:       60 * time.Second,
@@ -106,12 +107,4 @@ func env(key, fallback string) string {
 		return value
 	}
 	return fallback
-}
-
-func envInt(key string, fallback int) int {
-	value, err := strconv.Atoi(os.Getenv(key))
-	if err != nil || value < 1 {
-		return fallback
-	}
-	return value
 }
