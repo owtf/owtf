@@ -1,0 +1,28 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-CM-001-grep
+  version: 0.1.0
+  title: Testing for SSL-TLS
+  description: Searches captured responses for strict transport policy headers.
+
+spec:
+  techniques:
+    - code: OWTF-CM-001
+      title: Testing for SSL-TLS
+      hint: Does the response advertise a strict HTTPS transport policy?
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/
+  group: web
+  type: grep
+  targetKinds: [url]
+  runtime:
+    type: grep
+    grep:
+      maxMatches: 100
+      rules:
+        - id: strict-transport-security
+          title: Strict-Transport-Security header
+          source: response_headers
+          pattern: '(?i)"strict-transport-security"\s*:'

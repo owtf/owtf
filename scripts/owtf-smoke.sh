@@ -326,21 +326,21 @@ jq -e '.records_total == 1 and .records_filtered == 1 and (.data | length) == 1'
 
 printf '%s\n' 'Checking plugin discovery and preflight failures...'
 request GET /api/v2/plugins 200
-assert_json 'length == 8' 'plugin catalog is incomplete'
-assert_json '[.[] | select(.availability == "ready")] | length == 7' 'ready plugin count is incorrect'
+assert_json 'length == 13' 'plugin catalog is incomplete'
+assert_json '[.[] | select(.availability == "ready")] | length == 12' 'ready plugin count is incorrect'
 assert_json '[.[] | select(.id == "OWTF-SMOKE-002-active" and .availability == "missing_requirements" and (.reason | contains("owtf-command-that-does-not-exist")))] | length == 1' 'missing requirement is not visible'
 assert_json '[.[] | select(.group == "web" and (.type == "active" or .type == "semi_passive"))] | length == 4' 'OWTF plugin group and type metadata is incorrect'
 assert_json '[.[] | select(.id == "OWTF-IG-004-semi_passive" and (.inputs | map(.name)) == ["timeout_seconds","user_agent"])] | length == 1' 'plugin input schema is not visible'
 assert_json '[.[] | select(.id == "OWTF-IG-004-semi_passive" and .techniques[0].code == "OWTF-IG-004" and .techniques[0].hint == "What is that site running?" and .techniques[0].priority == 99)] | length == 1' 'plugin technique metadata is not visible'
 assert_json '[.[] | select(.runtime_type == "http" and .availability == "ready") | .id] | sort == ["OWTF-CM-008-semi_passive","OWTF-IG-001-semi_passive"]' 'HTTP plugins are unavailable'
 cli_json plugin list
-jq -e 'length == 8' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin catalog is incomplete'
+jq -e 'length == 13' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin catalog is incomplete'
 cli_json plugin list --group web --type active
 jq -e 'length == 1 and .[0].id == "OWTF-WSP-001-active"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin group/type filter is incorrect'
 cli_json plugin list --group web --type external
 jq -e 'length == 1 and .[0].id == "OWTF-IG-004-external" and .[0].runtime_type == "external" and .[0].availability == "ready"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI external plugin is unavailable'
 cli_json plugin list --group web --type grep
-jq -e 'length == 1 and .[0].id == "OWTF-IG-004-grep" and .[0].runtime_type == "grep" and .[0].availability == "ready"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI grep plugin is unavailable'
+jq -e 'length == 6 and all(.[]; .runtime_type == "grep" and .availability == "ready") and any(.[]; .id == "OWTF-IG-004-grep")' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI grep plugins are unavailable'
 request GET /api/v2/profiles 200
 assert_json 'length == 1 and .[0].name == "default" and .[0].plugins == ["OWTF-IG-001-semi_passive","OWTF-IG-004-semi_passive","OWTF-CM-008-semi_passive","OWTF-WSP-001-active"]' 'profile catalog is incorrect'
 request GET /api/v2/profiles/default 200
@@ -551,16 +551,28 @@ cat >"${GREP_HAR}" <<'JSON'
 {"log":{"version":"1.2","entries":[{
   "startedDateTime":"2026-09-02T10:11:12Z","time":4,
   "request":{"method":"GET","url":"https://grep.example.test/","headers":[]},
-  "response":{"status":200,"headers":[{"name":"Server","value":"Caddy"}],"content":{"mimeType":"text/html","text":"<meta name=\"generator\" content=\"OWTF\">"}}
+  "response":{"status":200,"headers":[
+    {"name":"Server","value":"Caddy"},
+    {"name":"X-Robots-Tag","value":"noindex"},
+    {"name":"X-Frame-Options","value":"DENY"},
+    {"name":"Content-Security-Policy","value":"default-src 'self'; frame-ancestors 'none'"},
+    {"name":"Access-Control-Allow-Origin","value":"https://client.example"},
+    {"name":"Set-Cookie","value":"session=test; Secure; HttpOnly; SameSite=Lax"},
+    {"name":"Strict-Transport-Security","value":"max-age=31536000"}
+  ],"content":{"mimeType":"text/html","text":"<meta name=\"generator\" content=\"OWTF\"><meta name=\"robots\" content=\"noindex\">"}}
 }]}}
 JSON
 upload_har "${GREP_TARGET_ID}" "${GREP_HAR}" 201
 GREP_TRANSACTION_ID=$(jq -r '.transactions[0].id' "${RESPONSE_FILE}")
-cli_json runs create --session "${GREP_SESSION_ID}" --target "${GREP_TARGET_ID}" --plugin OWTF-IG-004-grep
-GREP_TASK_ID=$(jq -r '.tasks[0].id' "${CLI_RESPONSE_FILE}")
-wait_for_task_status "${GREP_TASK_ID}" succeeded
+cli_json runs create --session "${GREP_SESSION_ID}" --target "${GREP_TARGET_ID}" --group web --type grep --profile default
+GREP_TASK_IDS=()
+while IFS= read -r task_id; do GREP_TASK_IDS+=("${task_id}"); done < <(jq -r '.tasks[].id' "${CLI_RESPONSE_FILE}")
+[[ ${#GREP_TASK_IDS[@]} -eq 6 ]] || fail 'grouped grep run did not create six tasks'
+for task_id in "${GREP_TASK_IDS[@]}"; do
+  wait_for_task_status "${task_id}" succeeded
+done
 request GET "/api/v2/targets/${GREP_TARGET_ID}/report" 200
-assert_json '(.tasks | length) == 1 and (.transactions | length) == 1 and (.observations | length) == 2 and all(.observations[]; .kind == "grep.matches" and ((.data | fromjson).transaction_ids == [$transaction]))' 'grep output is not linked to the captured transaction' --arg transaction "${GREP_TRANSACTION_ID}"
+assert_json '(.tasks | length) == 6 and (.transactions | length) == 1 and (.observations | length) == 9 and all(.observations[]; .kind == "grep.matches" and ((.data | fromjson).transaction_ids == [$transaction]))' 'grep output is not linked to the captured transaction' --arg transaction "${GREP_TRANSACTION_ID}"
 request GET "/api/v2/sessions/${GREP_SESSION_ID}/export" 200
 GREP_REPORT_ZIP="${TMP_DIR}/grep-report.zip"
 cp "${RESPONSE_FILE}" "${GREP_REPORT_ZIP}"

@@ -1,0 +1,28 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-WGP-002-grep
+  version: 0.1.0
+  title: Cross Origin Resource Sharing
+  description: Searches captured responses for CORS policy headers.
+
+spec:
+  techniques:
+    - code: OWTF-WGP-002
+      title: Cross Origin Resource Sharing
+      hint: What cross-origin access does the response advertise?
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/
+  group: web
+  type: grep
+  targetKinds: [url]
+  runtime:
+    type: grep
+    grep:
+      maxMatches: 100
+      rules:
+        - id: cors-headers
+          title: Cross-origin resource sharing headers
+          source: response_headers
+          pattern: '(?i)"access-control-allow-(origin|credentials|methods|headers)"\s*:'

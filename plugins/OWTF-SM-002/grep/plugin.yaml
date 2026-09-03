@@ -1,0 +1,28 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-SM-002-grep
+  version: 0.1.0
+  title: Cookies Attributes
+  description: Locates captured responses that set cookies for operator review.
+
+spec:
+  techniques:
+    - code: OWTF-SM-002
+      title: Cookies Attributes
+      hint: Which responses set cookies and which attributes do they use?
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/
+  group: web
+  type: grep
+  targetKinds: [url]
+  runtime:
+    type: grep
+    grep:
+      maxMatches: 100
+      rules:
+        - id: set-cookie
+          title: Set-Cookie headers
+          source: response_headers
+          pattern: '(?i)"set-cookie"\s*:'

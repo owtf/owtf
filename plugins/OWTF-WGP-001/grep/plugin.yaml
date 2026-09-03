@@ -1,0 +1,32 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-WGP-001-grep
+  version: 0.1.0
+  title: Clickjacking
+  description: Searches captured responses for framing protections.
+
+spec:
+  techniques:
+    - code: OWTF-WGP-001
+      title: Clickjacking
+      hint: Does the response restrict framing?
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/
+  group: web
+  type: grep
+  targetKinds: [url]
+  runtime:
+    type: grep
+    grep:
+      maxMatches: 100
+      rules:
+        - id: x-frame-options
+          title: X-Frame-Options header
+          source: response_headers
+          pattern: '(?i)"x-frame-options"\s*:'
+        - id: frame-ancestors
+          title: Content Security Policy frame-ancestors directive
+          source: response_headers
+          pattern: '(?i)"content-security-policy"\s*:\s*\[[^]]*frame-ancestors'
