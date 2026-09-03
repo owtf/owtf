@@ -16,26 +16,31 @@ def get_ips_from_hostname(hostname):
 
     :param hostname: Target hostname
     :type hostname: `str`
-    :return: IP addresses of the target hostname as a list
+    :return: IP addresses of the target hostname as a list (IPv4 and IPv6)
     :rtype: `list`
     """
-    ip = ""
-    # IP validation based on @marcwickenden's pull request, thanks!
+    # If the hostname is already a bare IP address, return it directly.
     for sck in [socket.AF_INET, socket.AF_INET6]:
         try:
             socket.inet_pton(sck, hostname)
-            ip = hostname
-            break
+            return [hostname]
         except socket.error:
             continue
-    if not ip:
-        try:
-            ip = socket.gethostbyname(hostname)
-        except socket.gaierror:
-            raise UnresolvableTargetException("Unable to resolve: '{!s}'".format(hostname))
 
-    ipchunks = ip.strip().split("\n")
-    return ipchunks
+    try:
+        results = socket.getaddrinfo(hostname, None)
+    except socket.gaierror:
+        raise UnresolvableTargetException("Unable to resolve: '{!s}'".format(hostname))
+
+    # Extract the address string from each result tuple, preserving order and
+    # removing duplicates (getaddrinfo may return the same IP for several
+    # socket-type/protocol combinations).
+    seen = []
+    for r in results:
+        addr = r[4][0]
+        if addr not in seen:
+            seen.append(addr)
+    return seen
 
 
 def get_ip_from_hostname(hostname):
