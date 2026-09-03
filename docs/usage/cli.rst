@@ -98,6 +98,14 @@ OWTF code, title, hint, priority, and reference. Each task snapshots that
 metadata so later manifest edits do not rewrite historical reports. There is no
 separate technique command.
 
+Run an external plugin to retain manual testing guidance without contacting the
+target::
+
+  owtf scan \
+    --session SESSION_ID \
+    --plugin OWTF-IG-004-external \
+    https://example.test
+
 List profiles or inspect their plugin order::
 
   owtf profiles list

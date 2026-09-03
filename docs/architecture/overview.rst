@@ -121,6 +121,11 @@ optional operator inputs. Inputs use the small ``string``, ``integer``, and ``bo
 type set. String choices and integer bounds describe validation and provide the
 same rendering contract to the CLI, API, and final UI.
 
+An ``external`` plugin contains bounded guidance and validated HTTP/S
+references. It records that material as a target observation without starting
+a process or sending traffic. This replaces the legacy Python wrappers around
+resource lists while retaining the ``external`` plugin type and short code.
+
 Launch input is non-secret because its resolved value is intentionally retained
 on every task and included in reports. Defaults are resolved once when the task
 is created. Unknown, missing, incorrectly typed, and out-of-bounds values fail
@@ -284,13 +289,14 @@ proxy startup, deterministic named plugin profiles, target scope and bounded
 search, complete session deletion, typed plugin inputs, and bounded persisted
 transaction search. Tasks retain ordered attempt history for normal execution
 and restart recovery. Failed and cancelled tasks remain terminal; an operator
-creates a new run when a technique must be repeated. Configuration validation,
-default/file/environment/flag precedence, bounded worker and proxy limits,
-secret redaction, profile validation, persisted run ordering, deletion
-conflicts, target pagination, input validation, immutable snapshots, shell-free
-argument expansion, transaction ownership, filtering, and pagination are
-covered by tests. The remaining matrix
-rows are not implied complete by this slice.
+creates a new run when a technique must be repeated. Declarative external
+plugins retain curated manual guidance without sending target traffic.
+Configuration validation, default/file/environment/flag precedence, bounded
+worker and proxy limits, secret redaction, profile validation, persisted run
+ordering, deletion conflicts, target pagination, input validation, immutable
+snapshots, shell-free argument expansion, transaction ownership, filtering,
+and pagination are covered by tests. The remaining matrix rows are not implied
+complete by this slice.
 
 API regression gate
 -------------------

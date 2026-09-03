@@ -109,8 +109,20 @@ func archiveArtifactPath(item model.Artifact) string {
 	return path.Join("artifacts", item.ID, name)
 }
 
+func externalOutput(observation model.Observation) *model.ExternalOutput {
+	if observation.Kind != model.ObservationKindExternalReferences {
+		return nil
+	}
+	var output model.ExternalOutput
+	if err := json.Unmarshal([]byte(observation.Data), &output); err != nil {
+		return nil
+	}
+	return &output
+}
+
 var sessionTemplate = template.Must(template.New("session-report").Funcs(template.FuncMap{
-	"time": func(value time.Time) string { return value.UTC().Format(time.RFC3339) },
+	"external": externalOutput,
+	"time":     func(value time.Time) string { return value.UTC().Format(time.RFC3339) },
 }).Parse(`<!doctype html>
 <html lang="en">
 <head>
@@ -133,6 +145,8 @@ var sessionTemplate = template.Must(template.New("session-report").Funcs(templat
     th { background: #f4f4f5; }
     code { font-size: 12px; }
     a { color: #075985; }
+    pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+    ul { margin: 6px 0 0; padding-left: 18px; }
   </style>
 </head>
 <body><main>
@@ -161,6 +175,10 @@ var sessionTemplate = template.Must(template.New("session-report").Funcs(templat
   <h2>Attempts</h2>
   <table><thead><tr><th>Task</th><th>Attempt</th><th>Status</th><th>Started</th><th>Error</th></tr></thead><tbody>
   {{range .Report.Attempts}}<tr><td><code>{{.TaskID}}</code></td><td>{{.AttemptNumber}}</td><td>{{.Status}}</td><td>{{time .StartedAt}}</td><td>{{.Error}}</td></tr>{{else}}<tr><td colspan="5">No attempts</td></tr>{{end}}
+  </tbody></table>
+  <h2>Observations</h2>
+  <table><thead><tr><th>Technique</th><th>Kind</th><th>Output</th></tr></thead><tbody>
+  {{range .Report.Observations}}<tr><td><code>{{.TechniqueCode}}</code></td><td>{{.Kind}}</td><td>{{$external := external .}}{{if $external}}<div>{{$external.Guidance}}</div><ul>{{range $external.References}}<li><a href="{{.URL}}">{{.Title}}</a></li>{{end}}</ul>{{else}}<pre>{{.Data}}</pre>{{end}}</td></tr>{{else}}<tr><td colspan="3">No observations</td></tr>{{end}}
   </tbody></table>
   <h2>Findings</h2>
   <table><thead><tr><th>Severity</th><th>Technique</th><th>Title</th><th>Description</th></tr></thead><tbody>

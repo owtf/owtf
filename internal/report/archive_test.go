@@ -23,9 +23,19 @@ func TestWriteSessionArchiveIncludesPortableEvidence(t *testing.T) {
 		t.Fatal(err)
 	}
 	now := time.Now().UTC().Truncate(time.Second)
+	externalData, err := json.Marshal(model.ExternalOutput{
+		Guidance: "Review <response> markers.",
+		References: []model.ExternalReference{
+			{Title: "OWASP guide", URL: "https://owasp.org/guide"},
+			{Title: "Unsafe <link>", URL: "javascript:alert(1)"},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
 	session := model.SessionReport{
 		Session: model.Session{ID: "ses_1", Name: "Escaping <script>alert(1)</script>", CreatedAt: now},
-		Summary: model.ReportSummary{Targets: 1, Runs: 1, Tasks: 1, Attempts: 1, Succeeded: 1, Artifacts: 1},
+		Summary: model.ReportSummary{Targets: 1, Runs: 1, Tasks: 1, Attempts: 1, Succeeded: 1, Artifacts: 1, Observations: 1},
 		Targets: []model.Target{{ID: "tgt_1", SessionID: "ses_1", Kind: "url", Value: "https://example.test/?q=<script>", CreatedAt: now}},
 		Tasks: []model.Task{{
 			ID: "tsk_1", RunID: "run_1", TargetID: "tgt_1", PluginID: "OWTF-WSP-001-active",
@@ -34,6 +44,10 @@ func TestWriteSessionArchiveIncludesPortableEvidence(t *testing.T) {
 		}},
 		Attempts: []model.TaskAttempt{{
 			ID: "att_1", TaskID: "tsk_1", AttemptNumber: 1, Status: model.TaskSucceeded, StartedAt: now, EndedAt: &now,
+		}},
+		Observations: []model.Observation{{
+			ID: "obs_1", TaskID: "tsk_1", TargetID: "tgt_1", TechniqueCode: "OWTF-WSP-001",
+			Kind: model.ObservationKindExternalReferences, Data: string(externalData), CreatedAt: now,
 		}},
 		Artifacts: []model.Artifact{{
 			ID: "art_1", TaskID: "tsk_1", Name: `..\..\evidence.txt`, MediaType: "text/plain",
@@ -78,11 +92,16 @@ func TestWriteSessionArchiveIncludesPortableEvidence(t *testing.T) {
 		!strings.Contains(string(files["index.html"]), "https://owtf.org") {
 		t.Fatal("offline report omitted technique metadata")
 	}
+	if !strings.Contains(string(files["index.html"]), "Review &lt;response&gt; markers.") ||
+		!strings.Contains(string(files["index.html"]), "https://owasp.org/guide") ||
+		!strings.Contains(string(files["index.html"]), "#ZgotmplZ") {
+		t.Fatal("offline report omitted or unsafely rendered external guidance")
+	}
 	var decoded model.SessionReport
 	if err := json.Unmarshal(files["report.json"], &decoded); err != nil {
 		t.Fatal(err)
 	}
-	if decoded.Session.ID != session.Session.ID || len(decoded.Attempts) != 1 || len(decoded.Artifacts) != 1 {
+	if decoded.Session.ID != session.Session.ID || len(decoded.Attempts) != 1 || len(decoded.Artifacts) != 1 || len(decoded.Observations) != 1 {
 		t.Fatalf("unexpected JSON report: %+v", decoded)
 	}
 	var metadata manifest

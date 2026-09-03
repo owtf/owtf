@@ -21,6 +21,8 @@ const (
 	TaskSucceeded = "succeeded"
 	TaskFailed    = "failed"
 	TaskCancelled = "cancelled"
+
+	ObservationKindExternalReferences = "external.references"
 )
 
 // Session is a named scan workspace containing targets and their execution
@@ -69,6 +71,19 @@ type Technique struct {
 	Hint      string `json:"hint,omitempty"`
 	Priority  int    `json:"priority"`
 	Reference string `json:"reference,omitempty"`
+}
+
+// ExternalReference is one curated resource emitted by an external plugin.
+type ExternalReference struct {
+	Title string `yaml:"title" json:"title"`
+	URL   string `yaml:"url" json:"url"`
+}
+
+// ExternalOutput is the stable observation payload produced by external
+// plugins. It contains guidance only; executing it never contacts the target.
+type ExternalOutput struct {
+	Guidance   string              `json:"guidance"`
+	References []ExternalReference `json:"references"`
 }
 
 // UnmarshalJSON accepts the code-only format used by early rewrite databases.

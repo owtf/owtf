@@ -1,0 +1,28 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: OWTF-IG-004-external
+  version: 0.1.0
+  title: Web Application Fingerprint
+  description: Curated guidance for manual web application fingerprinting.
+
+spec:
+  techniques:
+    - code: OWTF-IG-004
+      title: Web Application Fingerprint
+      hint: What is that site running?
+      priority: 99
+      reference: https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework
+  group: web
+  type: external
+  targetKinds: [url]
+  runtime:
+    type: external
+    external:
+      guidance: Review the collected response, identify server and framework markers, then verify versions against reliable vendor sources before reporting.
+      references:
+        - title: OWASP WSTG - Fingerprint Web Server
+          url: https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server
+        - title: OWASP WSTG - Fingerprint Web Application Framework
+          url: https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework

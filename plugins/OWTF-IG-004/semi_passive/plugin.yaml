@@ -13,7 +13,7 @@ spec:
       title: Web Application Fingerprint
       hint: What is that site running?
       priority: 99
-      reference: https://www.owasp.org/index.php/Testing_for_Web_Application_Fingerprint_(OWASP-IG-004)
+      reference: https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework
   group: web
   type: semi_passive
   targetKinds:

@@ -23,6 +23,8 @@ resulting evidence.
   in the plugin catalog, task history, and reports.
 - Typed, bounded plugin inputs with defaults recorded on every task.
 - OWTF plugin groups and types, including group launches and ``quiet`` mode.
+- Declarative external plugins that retain curated manual-testing guidance
+  without contacting the target.
 - Named OWTF profiles with deterministic plugin ordering recorded on each run.
 - A built-in HTTP collector, trusted host-command plugins, and isolated
   container plugins with forced cleanup.

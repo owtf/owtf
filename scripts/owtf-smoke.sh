@@ -315,16 +315,18 @@ assert_json 'length == 1 and .[0].id == $transaction' 'target transaction list i
 
 printf '%s\n' 'Checking plugin discovery and preflight failures...'
 request GET /api/v2/plugins 200
-assert_json 'length == 4' 'plugin catalog is incomplete'
-assert_json '[.[] | select(.availability == "ready")] | length == 3' 'ready plugin count is incorrect'
+assert_json 'length == 5' 'plugin catalog is incomplete'
+assert_json '[.[] | select(.availability == "ready")] | length == 4' 'ready plugin count is incorrect'
 assert_json '[.[] | select(.id == "OWTF-SMOKE-002-active" and .availability == "missing_requirements" and (.reason | contains("owtf-command-that-does-not-exist")))] | length == 1' 'missing requirement is not visible'
 assert_json '[.[] | select(.group == "web" and (.type == "active" or .type == "semi_passive"))] | length == 2' 'OWTF plugin group and type metadata is incorrect'
 assert_json '[.[] | select(.id == "OWTF-IG-004-semi_passive" and (.inputs | map(.name)) == ["timeout_seconds","user_agent"])] | length == 1' 'plugin input schema is not visible'
 assert_json '[.[] | select(.id == "OWTF-IG-004-semi_passive" and .techniques[0].code == "OWTF-IG-004" and .techniques[0].hint == "What is that site running?" and .techniques[0].priority == 99)] | length == 1' 'plugin technique metadata is not visible'
 cli_json plugins list
-jq -e 'length == 4' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin catalog is incomplete'
+jq -e 'length == 5' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin catalog is incomplete'
 cli_json plugins list --group web --type active
 jq -e 'length == 1 and .[0].id == "OWTF-WSP-001-active"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin group/type filter is incorrect'
+cli_json plugins list --group web --type external
+jq -e 'length == 1 and .[0].id == "OWTF-IG-004-external" and .[0].runtime_type == "external" and .[0].availability == "ready"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI external plugin is unavailable'
 request GET /api/v2/profiles 200
 assert_json 'length == 1 and .[0].name == "default" and .[0].plugins == ["OWTF-IG-004-semi_passive","OWTF-WSP-001-active"]' 'profile catalog is incorrect'
 request GET /api/v2/profiles/default 200
@@ -492,6 +494,24 @@ for attempt in $(seq 1 100); do
   sleep 0.05
 done
 assert_json '.[0].status == "idle" and .[0].cancelled == 2' 'worker did not clean up after CLI cancellation'
+
+printf '%s\n' 'Checking external plugin guidance and no-traffic execution...'
+cli_json sessions create --name 'External plugin smoke session'
+EXTERNAL_SESSION_ID=$(jq -r '.id' "${CLI_RESPONSE_FILE}")
+cli_json scan --session "${EXTERNAL_SESSION_ID}" --plugin OWTF-IG-004-external http://127.0.0.1:1/must-not-be-requested
+EXTERNAL_TASK_ID=$(jq -r '.tasks[0].id' "${CLI_RESPONSE_FILE}")
+wait_for_task_status "${EXTERNAL_TASK_ID}" succeeded
+request GET "/api/v2/sessions/${EXTERNAL_SESSION_ID}/targets" 200
+EXTERNAL_TARGET_ID=$(jq -r '.[0].id' "${RESPONSE_FILE}")
+request GET "/api/v2/targets/${EXTERNAL_TARGET_ID}/report" 200
+assert_json '(.tasks | length) == 1 and (.transactions | length) == 0 and (.artifacts | length) == 0 and (.observations | length) == 1 and .observations[0].kind == "external.references" and (.observations[0].data | fromjson | (.references | length) == 2 and (.guidance | contains("identify server and framework markers")))' 'external plugin did not retain its no-traffic guidance'
+request GET "/api/v2/sessions/${EXTERNAL_SESSION_ID}/export" 200
+EXTERNAL_REPORT_ZIP="${TMP_DIR}/external-report.zip"
+cp "${RESPONSE_FILE}" "${EXTERNAL_REPORT_ZIP}"
+unzip -tqq "${EXTERNAL_REPORT_ZIP}" || fail 'external plugin report ZIP is invalid'
+unzip -p "${EXTERNAL_REPORT_ZIP}" index.html | grep -q 'OWASP WSTG - Fingerprint Web Server' || fail 'external references are missing from the offline report'
+request DELETE "/api/v2/sessions/${EXTERNAL_SESSION_ID}" 204
+request GET "/api/v2/sessions/${EXTERNAL_SESSION_ID}" 404
 
 printf '%s\n' 'Checking destructive cleanup and final empty state...'
 cli_json targets add --session "${SESSION_ID}" 198.51.100.9

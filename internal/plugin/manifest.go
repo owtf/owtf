@@ -20,6 +20,13 @@ import (
 
 const defaultTechniquePriority = 99
 
+const (
+	maxExternalGuidance   = 4096
+	maxExternalReferences = 32
+	maxExternalTitle      = 256
+	maxExternalURL        = 2048
+)
+
 // TechniqueSpec preserves the OWTF test-group metadata referenced by a plugin.
 type TechniqueSpec struct {
 	Code      string `yaml:"code" json:"code"`
@@ -93,6 +100,7 @@ type Manifest struct {
 			Builtin   string         `yaml:"builtin,omitempty" json:"builtin,omitempty"`
 			Command   *CommandSpec   `yaml:"command,omitempty" json:"command,omitempty"`
 			Container *ContainerSpec `yaml:"container,omitempty" json:"container,omitempty"`
+			External  *ExternalSpec  `yaml:"external,omitempty" json:"external,omitempty"`
 		} `yaml:"runtime" json:"runtime"`
 	} `yaml:"spec" json:"spec"`
 }
@@ -111,6 +119,13 @@ type ContainerSpec struct {
 	Executable string            `yaml:"executable" json:"executable"`
 	Args       []string          `yaml:"args,omitempty" json:"args,omitempty"`
 	Artifacts  []CommandArtifact `yaml:"artifacts,omitempty" json:"artifacts,omitempty"`
+}
+
+// ExternalSpec contains static resources for an OWTF external plugin. It has
+// no executable component and never sends traffic to the target.
+type ExternalSpec struct {
+	Guidance   string                    `yaml:"guidance" json:"guidance"`
+	References []model.ExternalReference `yaml:"references" json:"references"`
 }
 
 // CommandArtifact declares a file a command plugin may emit in its assigned
@@ -221,9 +236,15 @@ func Load(fsys fs.FS) (*Catalog, error) {
 			return fmt.Errorf("plugin %q conflicts with metadata for technique %q", manifest.Metadata.ID, technique.Code)
 		}
 		techniques[technique.Code] = technique
-		catalog.entries[manifest.Metadata.ID] = Entry{
+		entry := Entry{
 			Manifest: manifest, Availability: "missing_runtime", Reason: "runtime is not registered",
 		}
+		if manifest.Spec.Runtime.Type == "external" {
+			entry.Availability = "ready"
+			entry.Reason = ""
+			entry.Executor = ExternalExecutor(manifest)
+		}
+		catalog.entries[manifest.Metadata.ID] = entry
 		return nil
 	})
 	if err != nil {
@@ -244,6 +265,13 @@ func normalizeManifest(manifest *Manifest) {
 		}
 		if technique.Priority == 0 {
 			technique.Priority = defaultTechniquePriority
+		}
+	}
+	if external := manifest.Spec.Runtime.External; external != nil {
+		external.Guidance = strings.TrimSpace(external.Guidance)
+		for index := range external.References {
+			external.References[index].Title = strings.TrimSpace(external.References[index].Title)
+			external.References[index].URL = strings.TrimSpace(external.References[index].URL)
 		}
 	}
 }
@@ -286,21 +314,31 @@ func validateManifest(manifest Manifest) error {
 	}
 	switch manifest.Spec.Runtime.Type {
 	case "builtin":
-		if manifest.Spec.Runtime.Builtin == "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.Container != nil {
+		if manifest.Spec.Runtime.Builtin == "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.Container != nil || manifest.Spec.Runtime.External != nil {
 			return fmt.Errorf("builtin runtime requires only a builtin name")
 		}
 	case "command":
-		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Container != nil {
+		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Container != nil || manifest.Spec.Runtime.External != nil {
 			return fmt.Errorf("command runtime requires only a command")
 		}
 		if err := validateCommand(manifest.Spec.Runtime.Command, inputNames); err != nil {
 			return err
 		}
 	case "container":
-		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Command != nil {
+		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.External != nil {
 			return fmt.Errorf("container runtime requires only a container")
 		}
 		if err := validateContainer(manifest.Spec.Runtime.Container, inputNames); err != nil {
+			return err
+		}
+	case "external":
+		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.Container != nil {
+			return fmt.Errorf("external runtime requires only external guidance")
+		}
+		if len(manifest.Spec.Requirements.Commands) != 0 {
+			return fmt.Errorf("external runtime cannot require commands")
+		}
+		if err := validateExternal(manifest.Spec.Runtime.External); err != nil {
 			return err
 		}
 	default:
@@ -377,6 +415,33 @@ func validateContainer(container *ContainerSpec, inputs map[string]bool) error {
 	}
 	if err := validateCommand(command, inputs); err != nil {
 		return fmt.Errorf("container %w", err)
+	}
+	return nil
+}
+
+func validateExternal(external *ExternalSpec) error {
+	if external == nil || external.Guidance == "" {
+		return fmt.Errorf("external runtime requires guidance")
+	}
+	if len(external.Guidance) > maxExternalGuidance {
+		return fmt.Errorf("external guidance exceeds %d bytes", maxExternalGuidance)
+	}
+	if len(external.References) == 0 || len(external.References) > maxExternalReferences {
+		return fmt.Errorf("external runtime requires 1 to %d references", maxExternalReferences)
+	}
+	seen := make(map[string]bool, len(external.References))
+	for _, reference := range external.References {
+		if reference.Title == "" || len(reference.Title) > maxExternalTitle {
+			return fmt.Errorf("external reference title must contain 1 to %d bytes", maxExternalTitle)
+		}
+		if len(reference.URL) == 0 || len(reference.URL) > maxExternalURL || seen[reference.URL] {
+			return fmt.Errorf("external reference %q has an invalid or duplicate URL", reference.Title)
+		}
+		parsed, err := url.Parse(reference.URL)
+		if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" || parsed.User != nil {
+			return fmt.Errorf("external reference %q has invalid URL %q", reference.Title, reference.URL)
+		}
+		seen[reference.URL] = true
 	}
 	return nil
 }
