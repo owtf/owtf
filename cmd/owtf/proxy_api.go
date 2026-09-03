@@ -21,21 +21,21 @@ import (
 )
 
 const (
-	defaultProxyControlURL = "http://127.0.0.1:8010"
-	maximumCLIDataFile     = 16 << 20
+	defaultProxyAPIURL = "http://127.0.0.1:8010"
+	maximumCLIDataFile = 16 << 20
 )
 
-type proxyControlOptions struct {
+type proxyAPIOptions struct {
 	address string
 	timeout time.Duration
 }
 
-func (options *proxyControlOptions) bind(flags *flag.FlagSet, timeout time.Duration) {
-	flags.StringVar(&options.address, "control", env("OWTF_PROXY_URL", defaultProxyControlURL), "proxy control API URL")
+func (options *proxyAPIOptions) bind(flags *flag.FlagSet, timeout time.Duration) {
+	flags.StringVar(&options.address, "api", env("OWTF_PROXY_API_URL", defaultProxyAPIURL), "proxy API URL")
 	flags.DurationVar(&options.timeout, "timeout", timeout, "HTTP request timeout")
 }
 
-type proxyControlClient struct {
+type proxyAPIClient struct {
 	baseURL *url.URL
 	client  *http.Client
 	output  io.Writer
@@ -86,14 +86,14 @@ func runProxyCommand(ctx context.Context, args []string, stdout, stderr io.Write
 }
 
 func runProxyStatus(ctx context.Context, args []string, stdout, stderr io.Writer) error {
-	flags, options := newProxyControlFlags("owtf proxy status", stderr, 30*time.Second)
+	flags, options := newProxyAPIFlags("owtf proxy status", stderr, 30*time.Second)
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
 	if flags.NArg() != 0 {
 		return errors.New("proxy status accepts no positional arguments")
 	}
-	client, err := newProxyControlClient(options, stdout)
+	client, err := newProxyAPIClient(options, stdout)
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func runProxyStatus(ctx context.Context, args []string, stdout, stderr io.Writer
 }
 
 func runProxyTransactions(ctx context.Context, args []string, stdout, stderr io.Writer) error {
-	flags, options := newProxyControlFlags("owtf proxy transactions", stderr, 30*time.Second)
+	flags, options := newProxyAPIFlags("owtf proxy transactions", stderr, 30*time.Second)
 	method := flags.String("method", "", "filter by HTTP method")
 	status := flags.Int("status", 0, "filter by response status")
 	urlText := flags.String("url", "", "filter by URL substring")
@@ -114,7 +114,7 @@ func runProxyTransactions(ctx context.Context, args []string, stdout, stderr io.
 	if flags.NArg() != 0 {
 		return errors.New("proxy transactions accepts no positional arguments")
 	}
-	client, err := newProxyControlClient(options, stdout)
+	client, err := newProxyAPIClient(options, stdout)
 	if err != nil {
 		return err
 	}
@@ -135,7 +135,7 @@ func runProxyTransactions(ctx context.Context, args []string, stdout, stderr io.
 }
 
 func runProxyTransaction(ctx context.Context, args []string, stdout, stderr io.Writer) error {
-	flags, options := newProxyControlFlags("owtf proxy transaction", stderr, 30*time.Second)
+	flags, options := newProxyAPIFlags("owtf proxy transaction", stderr, 30*time.Second)
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -146,7 +146,7 @@ func runProxyTransaction(ctx context.Context, args []string, stdout, stderr io.W
 	if err != nil || id == 0 {
 		return errors.New("proxy transaction ID must be a positive integer")
 	}
-	client, err := newProxyControlClient(options, stdout)
+	client, err := newProxyAPIClient(options, stdout)
 	if err != nil {
 		return err
 	}
@@ -154,14 +154,14 @@ func runProxyTransaction(ctx context.Context, args []string, stdout, stderr io.W
 }
 
 func runProxyStats(ctx context.Context, args []string, stdout, stderr io.Writer) error {
-	flags, options := newProxyControlFlags("owtf proxy stats", stderr, 30*time.Second)
+	flags, options := newProxyAPIFlags("owtf proxy stats", stderr, 30*time.Second)
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
 	if flags.NArg() != 0 {
 		return errors.New("proxy stats accepts no positional arguments")
 	}
-	client, err := newProxyControlClient(options, stdout)
+	client, err := newProxyAPIClient(options, stdout)
 	if err != nil {
 		return err
 	}
@@ -169,14 +169,14 @@ func runProxyStats(ctx context.Context, args []string, stdout, stderr io.Writer)
 }
 
 func runProxyClear(ctx context.Context, args []string, stdout, stderr io.Writer) error {
-	flags, options := newProxyControlFlags("owtf proxy clear", stderr, 30*time.Second)
+	flags, options := newProxyAPIFlags("owtf proxy clear", stderr, 30*time.Second)
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
 	if flags.NArg() != 0 {
 		return errors.New("proxy clear accepts no positional arguments")
 	}
-	client, err := newProxyControlClient(options, stdout)
+	client, err := newProxyAPIClient(options, stdout)
 	if err != nil {
 		return err
 	}
@@ -184,7 +184,7 @@ func runProxyClear(ctx context.Context, args []string, stdout, stderr io.Writer)
 }
 
 func runProxyCA(ctx context.Context, args []string, stdout, stderr io.Writer) error {
-	flags, options := newProxyControlFlags("owtf proxy ca", stderr, 30*time.Second)
+	flags, options := newProxyAPIFlags("owtf proxy ca", stderr, 30*time.Second)
 	output := flags.String("output", "owtf-proxy-ca.crt", "CA certificate output path")
 	if err := flags.Parse(args); err != nil {
 		return err
@@ -192,7 +192,7 @@ func runProxyCA(ctx context.Context, args []string, stdout, stderr io.Writer) er
 	if flags.NArg() != 0 {
 		return errors.New("proxy ca accepts no positional arguments")
 	}
-	client, err := newProxyControlClient(options, stdout)
+	client, err := newProxyAPIClient(options, stdout)
 	if err != nil {
 		return err
 	}
@@ -209,7 +209,7 @@ func runProxyCA(ctx context.Context, args []string, stdout, stderr io.Writer) er
 }
 
 func runProxyRepeat(ctx context.Context, args []string, stdout, stderr io.Writer) error {
-	flags, options := newProxyControlFlags("owtf proxy repeat", stderr, 2*time.Minute)
+	flags, options := newProxyAPIFlags("owtf proxy repeat", stderr, 2*time.Minute)
 	method := flags.String("method", http.MethodGet, "HTTP method")
 	data := flags.String("data", "", "request body text")
 	dataFile := flags.String("data-file", "", "request body file")
@@ -233,7 +233,7 @@ func runProxyRepeat(ctx context.Context, args []string, stdout, stderr io.Writer
 			return err
 		}
 	}
-	client, err := newProxyControlClient(options, stdout)
+	client, err := newProxyAPIClient(options, stdout)
 	if err != nil {
 		return err
 	}
@@ -257,29 +257,29 @@ func runProxyRepeat(ctx context.Context, args []string, stdout, stderr io.Writer
 	return writeIndentedJSON(stdout, result)
 }
 
-func newProxyControlFlags(name string, stderr io.Writer, timeout time.Duration) (*flag.FlagSet, *proxyControlOptions) {
+func newProxyAPIFlags(name string, stderr io.Writer, timeout time.Duration) (*flag.FlagSet, *proxyAPIOptions) {
 	flags := flag.NewFlagSet(name, flag.ContinueOnError)
 	flags.SetOutput(stderr)
-	options := new(proxyControlOptions)
+	options := new(proxyAPIOptions)
 	options.bind(flags, timeout)
 	return flags, options
 }
 
-func newProxyControlClient(options *proxyControlOptions, output io.Writer) (*proxyControlClient, error) {
+func newProxyAPIClient(options *proxyAPIOptions, output io.Writer) (*proxyAPIClient, error) {
 	if options.timeout <= 0 {
-		return nil, errors.New("proxy control timeout must be positive")
+		return nil, errors.New("proxy API timeout must be positive")
 	}
 	parsed, err := url.Parse(options.address)
 	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" {
-		return nil, fmt.Errorf("invalid proxy control URL %q", options.address)
+		return nil, fmt.Errorf("invalid proxy API URL %q", options.address)
 	}
 	parsed.Path = strings.TrimRight(parsed.Path, "/")
-	return &proxyControlClient{
+	return &proxyAPIClient{
 		baseURL: parsed, client: &http.Client{Timeout: options.timeout}, output: output,
 	}, nil
 }
 
-func (client *proxyControlClient) writeJSON(ctx context.Context, method, path string, body any) error {
+func (client *proxyAPIClient) writeJSON(ctx context.Context, method, path string, body any) error {
 	var value any
 	if err := client.requestJSON(ctx, method, path, body, &value); err != nil {
 		return err
@@ -287,7 +287,7 @@ func (client *proxyControlClient) writeJSON(ctx context.Context, method, path st
 	return writeIndentedJSON(client.output, value)
 }
 
-func (client *proxyControlClient) requestJSON(ctx context.Context, method, path string, body, destination any) error {
+func (client *proxyAPIClient) requestJSON(ctx context.Context, method, path string, body, destination any) error {
 	response, err := client.do(ctx, method, path, body)
 	if err != nil {
 		return err
@@ -295,12 +295,12 @@ func (client *proxyControlClient) requestJSON(ctx context.Context, method, path 
 	defer response.Body.Close()
 	decoder := json.NewDecoder(io.LimitReader(response.Body, 32<<20))
 	if err := decoder.Decode(destination); err != nil {
-		return fmt.Errorf("decode proxy control response: %w", err)
+		return fmt.Errorf("decode proxy API response: %w", err)
 	}
 	return nil
 }
 
-func (client *proxyControlClient) do(ctx context.Context, method, path string, body any) (*http.Response, error) {
+func (client *proxyAPIClient) do(ctx context.Context, method, path string, body any) (*http.Response, error) {
 	var source io.Reader
 	if body != nil {
 		data, err := json.Marshal(body)

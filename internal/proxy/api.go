@@ -19,43 +19,43 @@ import (
 const (
 	defaultHistoryLimit = 100
 	maximumHistoryLimit = 1000
-	maximumControlJSON  = 2 << 20
+	maximumAPIJSON      = 2 << 20
 )
 
 type httpDoer interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
-// ControlConfig defines the dependencies of the loopback proxy control API.
-type ControlConfig struct {
+// APIConfig defines the dependencies of the loopback proxy API.
+type APIConfig struct {
 	Authority    *Authority
 	Recorder     *Recorder
 	RepeatClient httpDoer
 	MaximumBody  int64
 }
 
-type control struct {
+type apiServer struct {
 	authority    *Authority
 	recorder     *Recorder
 	repeatClient httpDoer
 	maximumBody  int64
 }
 
-// NewControl returns the proxy history, CA, and repeater API.
-func NewControl(config ControlConfig) (http.Handler, error) {
+// NewAPI returns the proxy history, CA, and repeater API.
+func NewAPI(config APIConfig) (http.Handler, error) {
 	if config.Authority == nil {
-		return nil, errors.New("proxy control authority is required")
+		return nil, errors.New("proxy API authority is required")
 	}
 	if config.Recorder == nil {
-		return nil, errors.New("proxy control recorder is required")
+		return nil, errors.New("proxy API recorder is required")
 	}
 	if config.RepeatClient == nil {
-		return nil, errors.New("proxy control repeat client is required")
+		return nil, errors.New("proxy API repeat client is required")
 	}
 	if config.MaximumBody < 1 {
-		return nil, errors.New("proxy control maximum body must be positive")
+		return nil, errors.New("proxy API maximum body must be positive")
 	}
-	server := &control{
+	server := &apiServer{
 		authority: config.Authority, recorder: config.Recorder,
 		repeatClient: config.RepeatClient, maximumBody: config.MaximumBody,
 	}
@@ -74,21 +74,21 @@ func NewControl(config ControlConfig) (http.Handler, error) {
 	}), nil
 }
 
-func (c *control) health(writer http.ResponseWriter, _ *http.Request) {
-	writeControlJSON(writer, http.StatusOK, map[string]string{"status": "ok"})
+func (c *apiServer) health(writer http.ResponseWriter, _ *http.Request) {
+	writeAPIJSON(writer, http.StatusOK, map[string]string{"status": "ok"})
 }
 
-func (c *control) ca(writer http.ResponseWriter, _ *http.Request) {
+func (c *apiServer) ca(writer http.ResponseWriter, _ *http.Request) {
 	writer.Header().Set("Content-Type", "application/x-pem-file")
 	writer.Header().Set("Content-Disposition", `attachment; filename="owtf-proxy-ca.crt"`)
 	writer.WriteHeader(http.StatusOK)
 	_, _ = writer.Write(c.authority.CertificatePEM())
 }
 
-func (c *control) history(writer http.ResponseWriter, request *http.Request) {
+func (c *apiServer) history(writer http.ResponseWriter, request *http.Request) {
 	filter, err := parseTransactionFilter(request.URL.Query())
 	if err != nil {
-		writeControlError(writer, http.StatusBadRequest, err)
+		writeAPIError(writer, http.StatusBadRequest, err)
 		return
 	}
 	captured := c.recorder.History(filter)
@@ -96,78 +96,78 @@ func (c *control) history(writer http.ResponseWriter, request *http.Request) {
 	for index, transaction := range captured {
 		result[index] = presentTransactionSummary(transaction)
 	}
-	writeControlJSON(writer, http.StatusOK, result)
+	writeAPIJSON(writer, http.StatusOK, result)
 }
 
-func (c *control) transaction(writer http.ResponseWriter, request *http.Request) {
+func (c *apiServer) transaction(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.ParseUint(request.PathValue("transactionID"), 10, 64)
 	if err != nil || id == 0 {
-		writeControlError(writer, http.StatusBadRequest, errors.New("invalid transaction ID"))
+		writeAPIError(writer, http.StatusBadRequest, errors.New("invalid transaction ID"))
 		return
 	}
 	transaction, ok := c.recorder.Transaction(id)
 	if !ok {
-		writeControlError(writer, http.StatusNotFound, errors.New("transaction not found"))
+		writeAPIError(writer, http.StatusNotFound, errors.New("transaction not found"))
 		return
 	}
-	writeControlJSON(writer, http.StatusOK, presentTransaction(transaction))
+	writeAPIJSON(writer, http.StatusOK, presentTransaction(transaction))
 }
 
-func (c *control) stats(writer http.ResponseWriter, _ *http.Request) {
+func (c *apiServer) stats(writer http.ResponseWriter, _ *http.Request) {
 	stats := c.recorder.Stats()
-	writeControlJSON(writer, http.StatusOK, transactionStats{
+	writeAPIJSON(writer, http.StatusOK, transactionStats{
 		Total: stats.Total, Methods: stats.Methods, Statuses: stats.Statuses,
 	})
 }
 
-func (c *control) clear(writer http.ResponseWriter, _ *http.Request) {
-	writeControlJSON(writer, http.StatusOK, map[string]int{"removed": c.recorder.Clear()})
+func (c *apiServer) clear(writer http.ResponseWriter, _ *http.Request) {
+	writeAPIJSON(writer, http.StatusOK, map[string]int{"removed": c.recorder.Clear()})
 }
 
-func (c *control) repeat(writer http.ResponseWriter, request *http.Request) {
+func (c *apiServer) repeat(writer http.ResponseWriter, request *http.Request) {
 	mediaType, _, err := mime.ParseMediaType(request.Header.Get("Content-Type"))
 	if err != nil || mediaType != "application/json" {
-		writeControlError(writer, http.StatusUnsupportedMediaType, errors.New("repeater requires application/json"))
+		writeAPIError(writer, http.StatusUnsupportedMediaType, errors.New("repeater requires application/json"))
 		return
 	}
 	var input RepeatRequest
-	if err := decodeControlJSON(request.Body, &input); err != nil {
-		writeControlError(writer, http.StatusBadRequest, err)
+	if err := decodeAPIJSON(request.Body, &input); err != nil {
+		writeAPIError(writer, http.StatusBadRequest, err)
 		return
 	}
 	outgoing, err := c.repeatRequest(request.Context(), input)
 	if err != nil {
-		writeControlError(writer, http.StatusBadRequest, err)
+		writeAPIError(writer, http.StatusBadRequest, err)
 		return
 	}
 	started := time.Now()
 	response, err := c.repeatClient.Do(outgoing)
 	if err != nil {
-		writeControlError(writer, http.StatusBadGateway, fmt.Errorf("repeat request: %w", err))
+		writeAPIError(writer, http.StatusBadGateway, fmt.Errorf("repeat request: %w", err))
 		return
 	}
 	if response == nil || response.Body == nil {
-		writeControlError(writer, http.StatusBadGateway, errors.New("repeat client returned an empty response"))
+		writeAPIError(writer, http.StatusBadGateway, errors.New("repeat client returned an empty response"))
 		return
 	}
 	defer response.Body.Close()
 	body, err := io.ReadAll(io.LimitReader(response.Body, c.maximumBody+1))
 	if err != nil {
-		writeControlError(writer, http.StatusBadGateway, fmt.Errorf("read repeated response: %w", err))
+		writeAPIError(writer, http.StatusBadGateway, fmt.Errorf("read repeated response: %w", err))
 		return
 	}
 	truncated := int64(len(body)) > c.maximumBody
 	if truncated {
 		body = body[:c.maximumBody]
 	}
-	writeControlJSON(writer, http.StatusOK, RepeatResponse{
+	writeAPIJSON(writer, http.StatusOK, RepeatResponse{
 		StatusCode: response.StatusCode, Headers: response.Header.Clone(),
 		BodyBase64: base64.StdEncoding.EncodeToString(body), Truncated: truncated,
 		DurationMS: time.Since(started).Milliseconds(),
 	})
 }
 
-func (c *control) repeatRequest(ctx context.Context, input RepeatRequest) (*http.Request, error) {
+func (c *apiServer) repeatRequest(ctx context.Context, input RepeatRequest) (*http.Request, error) {
 	method := strings.ToUpper(strings.TrimSpace(input.Method))
 	if method == "" {
 		method = http.MethodGet
@@ -328,12 +328,12 @@ func parseTransactionFilter(values url.Values) (TransactionFilter, error) {
 	return filter, nil
 }
 
-func decodeControlJSON(body io.Reader, destination any) error {
-	data, err := io.ReadAll(io.LimitReader(body, maximumControlJSON+1))
+func decodeAPIJSON(body io.Reader, destination any) error {
+	data, err := io.ReadAll(io.LimitReader(body, maximumAPIJSON+1))
 	if err != nil {
 		return fmt.Errorf("read JSON: %w", err)
 	}
-	if len(data) > maximumControlJSON {
+	if len(data) > maximumAPIJSON {
 		return errors.New("JSON body exceeds 2 MiB")
 	}
 	decoder := json.NewDecoder(bytes.NewReader(data))
@@ -358,12 +358,12 @@ func forbiddenRepeaterHeader(name string) bool {
 	}
 }
 
-func writeControlJSON(writer http.ResponseWriter, status int, value any) {
+func writeAPIJSON(writer http.ResponseWriter, status int, value any) {
 	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(status)
 	_ = json.NewEncoder(writer).Encode(value)
 }
 
-func writeControlError(writer http.ResponseWriter, status int, err error) {
-	writeControlJSON(writer, status, map[string]string{"error": err.Error()})
+func writeAPIError(writer http.ResponseWriter, status int, err error) {
+	writeAPIJSON(writer, status, map[string]string{"error": err.Error()})
 }

@@ -39,7 +39,7 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	flags := flag.NewFlagSet("owtf proxy", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	listenAddress := flags.String("listen", "127.0.0.1:8008", "proxy listen address")
-	controlAddress := flags.String("control-listen", "127.0.0.1:8010", "proxy control API listen address")
+	apiAddress := flags.String("api-listen", "127.0.0.1:8010", "proxy API listen address")
 	outputPath := flags.String("output", filepath.Join(".owtf", "proxy", "capture.har"), "HAR output path")
 	certificatePath := flags.String("ca-cert", filepath.Join(".owtf", "proxy", "ca.crt"), "proxy CA certificate path")
 	keyPath := flags.String("ca-key", filepath.Join(".owtf", "proxy", "ca.key"), "proxy CA private key path")
@@ -134,16 +134,16 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	if err != nil {
 		return fmt.Errorf("listen for proxy traffic: %w", err)
 	}
-	controlListener, err := net.Listen("tcp", *controlAddress)
+	apiListener, err := net.Listen("tcp", *apiAddress)
 	if err != nil {
 		listener.Close()
-		return fmt.Errorf("listen for proxy control: %w", err)
+		return fmt.Errorf("listen for proxy API: %w", err)
 	}
 	proxyURL := &url.URL{Scheme: "http", Host: listener.Addr().String()}
 	roots := x509.NewCertPool()
 	if !roots.AppendCertsFromPEM(authority.CertificatePEM()) {
 		listener.Close()
-		controlListener.Close()
+		apiListener.Close()
 		return errors.New("load proxy CA for repeater")
 	}
 	repeatTransport := http.DefaultTransport.(*http.Transport).Clone()
@@ -155,30 +155,30 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 		Transport: repeatTransport, Timeout: 2 * time.Minute,
 		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
 	}
-	controlHandler, err := owtfproxy.NewControl(owtfproxy.ControlConfig{
+	apiHandler, err := owtfproxy.NewAPI(owtfproxy.APIConfig{
 		Authority: authority, Recorder: recorder, RepeatClient: repeatClient, MaximumBody: *maximumBody,
 	})
 	if err != nil {
 		listener.Close()
-		controlListener.Close()
+		apiListener.Close()
 		return err
 	}
 	server := &http.Server{
 		Handler: handler, ReadHeaderTimeout: 10 * time.Second, IdleTimeout: 60 * time.Second,
 		ErrorLog: log.New(stderr, "proxy: ", log.LstdFlags),
 	}
-	controlServer := &http.Server{
-		Handler: controlHandler, ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 30 * time.Second,
-		ErrorLog: log.New(stderr, "proxy control: ", log.LstdFlags),
+	apiServer := &http.Server{
+		Handler: apiHandler, ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 30 * time.Second,
+		ErrorLog: log.New(stderr, "proxy API: ", log.LstdFlags),
 	}
 	ctx, stop := signal.NotifyContext(parent, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	if err := json.NewEncoder(stdout).Encode(map[string]any{
-		"listen": listener.Addr().String(), "control": controlListener.Addr().String(),
+		"listen": listener.Addr().String(), "api": apiListener.Addr().String(),
 		"ca_certificate": *certificatePath, "output": *outputPath,
 	}); err != nil {
 		listener.Close()
-		controlListener.Close()
+		apiListener.Close()
 		return fmt.Errorf("write proxy status: %w", err)
 	}
 	type serverResult struct {
@@ -187,7 +187,7 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	}
 	results := make(chan serverResult, 2)
 	go func() { results <- serverResult{name: "proxy", err: server.Serve(listener)} }()
-	go func() { results <- serverResult{name: "proxy control", err: controlServer.Serve(controlListener)} }()
+	go func() { results <- serverResult{name: "proxy API", err: apiServer.Serve(apiListener)} }()
 
 	received := 0
 	var runErr error
@@ -202,7 +202,7 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	stop()
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	shutdownErr := shutdownHTTPServers(shutdownCtx, server, controlServer)
+	shutdownErr := shutdownHTTPServers(shutdownCtx, server, apiServer)
 	for received < 2 {
 		result := <-results
 		received++

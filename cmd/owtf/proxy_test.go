@@ -48,7 +48,7 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 	go func() {
 		done <- runProxy(ctx, []string{
 			"--listen", "127.0.0.1:0",
-			"--control-listen", "127.0.0.1:0",
+			"--api-listen", "127.0.0.1:0",
 			"--output", outputPath,
 			"--ca-cert", certificatePath,
 			"--ca-key", keyPath,
@@ -58,8 +58,8 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 	}()
 
 	var status struct {
-		Listen  string `json:"listen"`
-		Control string `json:"control"`
+		Listen string `json:"listen"`
+		API    string `json:"api"`
 	}
 	if err := json.NewDecoder(outputReader).Decode(&status); err != nil {
 		cancel()
@@ -87,7 +87,7 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 	}
 
 	repeatInput, _ := json.Marshal(owtfproxy.RepeatRequest{Method: http.MethodGet, URL: upstream.URL + "/repeat"})
-	repeatResponse, err := http.Post("http://"+status.Control+"/api/v2/repeater", "application/json", bytes.NewReader(repeatInput))
+	repeatResponse, err := http.Post("http://"+status.API+"/api/v2/repeater", "application/json", bytes.NewReader(repeatInput))
 	if err != nil {
 		cancel()
 		t.Fatal(err)
@@ -104,10 +104,10 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 		cancel()
 		t.Fatalf("repeater HTTP status = %d, response = %+v, body = %q, error = %v", repeatResponse.StatusCode, repeated, repeatedBody, err)
 	}
-	controlURL := "http://" + status.Control
+	apiURL := "http://" + status.API
 	var cliOutput bytes.Buffer
 	if err := runProxyCommand(context.Background(), []string{
-		"repeat", "--control", controlURL, upstream.URL + "/cli-repeat",
+		"repeat", "--api", apiURL, upstream.URL + "/cli-repeat",
 	}, &cliOutput, io.Discard); err != nil {
 		cancel()
 		t.Fatal(err)
@@ -123,7 +123,7 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 		t.Fatalf("CLI repeat = %+v, body = %q, error = %v", cliRepeated, cliBody, err)
 	}
 
-	statsResponse, err := http.Get("http://" + status.Control + "/api/v2/transactions/stats")
+	statsResponse, err := http.Get("http://" + status.API + "/api/v2/transactions/stats")
 	if err != nil {
 		cancel()
 		t.Fatal(err)
@@ -144,7 +144,7 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 
 	cliOutput.Reset()
 	if err := runProxyCommand(context.Background(), []string{
-		"transactions", "--control", controlURL, "--url", "/cli-repeat", "--limit", "1",
+		"transactions", "--api", apiURL, "--url", "/cli-repeat", "--limit", "1",
 	}, &cliOutput, io.Discard); err != nil {
 		cancel()
 		t.Fatal(err)
@@ -161,7 +161,7 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 	caOutput := filepath.Join(directory, "downloaded-ca.crt")
 	cliOutput.Reset()
 	if err := runProxyCommand(context.Background(), []string{
-		"ca", "--control", controlURL, "--output", caOutput,
+		"ca", "--api", apiURL, "--output", caOutput,
 	}, &cliOutput, io.Discard); err != nil {
 		cancel()
 		t.Fatal(err)

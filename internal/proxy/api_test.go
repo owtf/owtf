@@ -22,7 +22,7 @@ func (function doerFunc) Do(request *http.Request) (*http.Response, error) {
 	return function(request)
 }
 
-func TestControlServesCAHistoryStatsAndClear(t *testing.T) {
+func TestAPIServesCAHistoryStatsAndClear(t *testing.T) {
 	recorder := NewRecorder(10)
 	for _, transaction := range []har.Transaction{
 		{
@@ -38,7 +38,7 @@ func TestControlServesCAHistoryStatsAndClear(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	authority, handler := newControlForTest(t, recorder, doerFunc(func(*http.Request) (*http.Response, error) {
+	authority, handler := newAPIForTest(t, recorder, doerFunc(func(*http.Request) (*http.Response, error) {
 		return nil, context.Canceled
 	}), 1024)
 	server := httptest.NewServer(handler)
@@ -86,7 +86,7 @@ func TestControlServesCAHistoryStatsAndClear(t *testing.T) {
 	}
 	block := x509.NewCertPool()
 	if !block.AppendCertsFromPEM(certificate) {
-		t.Fatal("control API returned an invalid CA certificate")
+		t.Fatal("proxy API returned an invalid CA certificate")
 	}
 
 	request, _ := http.NewRequest(http.MethodDelete, server.URL+"/api/v2/transactions", nil)
@@ -101,7 +101,7 @@ func TestControlServesCAHistoryStatsAndClear(t *testing.T) {
 	}
 }
 
-func TestControlRepeaterUsesBoundedBinaryBodies(t *testing.T) {
+func TestAPIRepeaterUsesBoundedBinaryBodies(t *testing.T) {
 	repeatClient := doerFunc(func(request *http.Request) (*http.Response, error) {
 		body, _ := io.ReadAll(request.Body)
 		if request.Method != http.MethodPatch || request.URL.String() != "https://example.test/item" ||
@@ -113,7 +113,7 @@ func TestControlRepeaterUsesBoundedBinaryBodies(t *testing.T) {
 			Body: io.NopCloser(bytes.NewReader([]byte("12345"))),
 		}, nil
 	})
-	_, handler := newControlForTest(t, NewRecorder(10), repeatClient, 4)
+	_, handler := newAPIForTest(t, NewRecorder(10), repeatClient, 4)
 	server := httptest.NewServer(handler)
 	defer server.Close()
 	input := RepeatRequest{
@@ -133,8 +133,8 @@ func TestControlRepeaterUsesBoundedBinaryBodies(t *testing.T) {
 	}
 }
 
-func TestControlRejectsInvalidFiltersAndRepeaterRequests(t *testing.T) {
-	_, handler := newControlForTest(t, NewRecorder(10), doerFunc(func(*http.Request) (*http.Response, error) {
+func TestAPIRejectsInvalidFiltersAndRepeaterRequests(t *testing.T) {
+	_, handler := newAPIForTest(t, NewRecorder(10), doerFunc(func(*http.Request) (*http.Response, error) {
 		t.Fatal("invalid repeater request reached client")
 		return nil, nil
 	}), 4)
@@ -165,14 +165,14 @@ func TestControlRejectsInvalidFiltersAndRepeaterRequests(t *testing.T) {
 	}
 }
 
-func newControlForTest(t *testing.T, recorder *Recorder, client httpDoer, maximumBody int64) (*Authority, http.Handler) {
+func newAPIForTest(t *testing.T, recorder *Recorder, client httpDoer, maximumBody int64) (*Authority, http.Handler) {
 	t.Helper()
 	directory := t.TempDir()
 	authority, err := LoadOrCreateAuthority(filepath.Join(directory, "ca.crt"), filepath.Join(directory, "ca.key"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	handler, err := NewControl(ControlConfig{
+	handler, err := NewAPI(APIConfig{
 		Authority: authority, Recorder: recorder, RepeatClient: client, MaximumBody: maximumBody,
 	})
 	if err != nil {

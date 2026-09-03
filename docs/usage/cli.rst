@@ -116,17 +116,23 @@ shutdown it writes a standard HAR file that can be imported into a target::
     --output .owtf/proxy/capture.har
 
 The command prints its listen address, CA certificate path, and output path as
-JSON before accepting traffic. It also prints the control API address, which
+JSON before accepting traffic. It also prints the proxy API address, which
 defaults to ``127.0.0.1:8010``. Trust the generated CA only in a dedicated test
 browser or tool profile. ``--target-host`` may be repeated; omit it only for an
-interactive proxy that intentionally accepts every host. Keep the proxy and
-control listeners on loopback unless a trusted reverse proxy protects them.
+interactive proxy that intentionally accepts every host. Keep the proxy and API
+listeners on loopback unless a trusted reverse proxy protects them.
 
 The proxy retains at most 10,000 transactions and captures at most 1 MiB per
 request or response by default. Its bounded response cache excludes OWTF's
 historical analytics-cookie list from cache identity. Use ``--cache-entries 0``
 to disable caching. Failed requests and HTTP 408/599 responses get at most three
 attempts.
+
+WebSocket upgrades remain byte-for-byte tunnels. When a connection closes, its
+bounded frame transcript becomes the transaction response body with media type
+``application/vnd.owtf.websocket+json``. Payloads are base64 encoded and retain
+their direction, opcode, framing flags, and protocol errors. Importing the HAR
+into a target retains that transcript as a response artifact.
 
 Route outbound traffic through another proxy when required::
 
@@ -201,8 +207,8 @@ rewrites are checked against ``--target-host`` after transformation.
 Inspect and replay proxy traffic
 --------------------------------
 
-The proxy control commands use ``http://127.0.0.1:8010`` by default. Override
-that address with ``OWTF_PROXY_URL`` or ``--control``::
+The proxy API commands use ``http://127.0.0.1:8010`` by default. Override
+that address with ``OWTF_PROXY_API_URL`` or ``--api``::
 
   owtf proxy status
   owtf proxy transactions --method POST --status 200 --search token
