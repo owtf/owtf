@@ -183,8 +183,9 @@ temporary directory, and ``{{input:name}}`` resolves a validated, snapshotted
 operator input. Partial placeholders and undeclared names are rejected when the
 catalog loads.
 
-Testssl.sh, WAFW00F, Gobuster, Metagoofil, WhatWeb, Nuclei, and Wapiti use an
-explicitly built Kali tools image. Nikto remains a trusted host command.
+Testssl.sh, WAFW00F, Gobuster, Metagoofil, WhatWeb, Nuclei, Wapiti, Nmap, and
+Nikto use an explicitly built Kali tools image. Host command plugins remain
+supported, but these scanner integrations do not require host-installed tools.
 Their manifests set conservative concurrency, request, or scan limits where
 the tool supports them, and retain fixed-name artifacts for reporting. Stable
 report formats have bounded decoders that extract factual observations,
@@ -322,8 +323,8 @@ Phase 2 was exercised with the real ``curl`` command plugin
 ``OWTF-IG-004-semi_passive``. Automated tests also verify missing-command
 visibility, non-shell argument handling, task cancellation, and termination of
 the complete plugin process group, including a child that ignores the initial
-termination signal. The retained ``PTES-001-active`` network plugin uses the
-same shell-free command runtime to run bounded Nmap FTP service and anonymous
+termination signal. The retained ``PTES-001-active`` network plugin now uses
+the container runtime to run bounded Nmap FTP service and anonymous
 access probes against hostname or IP targets. The same contract retains SMTP,
 VNC, X11, Microsoft SQL Server, MSRPC, RPC-over-HTTP, and SMB discovery without
 the legacy Metasploit control plane.
@@ -419,6 +420,16 @@ attempt, matching task/run state, retained attempt-linked logs, an idle worker,
 and no task containers, volumes, or temporary input files. Restarting the same
 server/database must not create another attempt. Evidence is retained under
 ``build/test-evidence/``. The full ``make test-tools`` run includes this gate.
+
+``make test-tools`` also runs the unchanged production scanner manifests against
+nginx and vsftpd. Nmap must identify FTP and anonymous access, while a second
+probe must report a closed port. Nikto must retain its XML header findings.
+Gobuster must discover exactly one configured virtual host, preserve its port,
+and put it in the target URL catalog. Raw artifacts downloaded through the API
+must match their offline ZIP entries byte for byte. Nmap and Nikto XML remains
+raw evidence, not automatically ranked or decoded findings. Other Nmap protocol
+probes still require their own service fixtures; this FTP test does not prove
+SMTP, SMB, or other protocol-specific behavior.
 
 Resource discipline
 -------------------

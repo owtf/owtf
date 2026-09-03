@@ -27,6 +27,8 @@ cleanup() {
   fi
   [[ ! -f "${TMP_DIR}/server.log" ]] || cp "${TMP_DIR}/server.log" "${EVIDENCE_DIR}/server.log"
   docker logs "${FIXTURE}" >"${EVIDENCE_DIR}/requests.log" 2>&1 || true
+  docker cp "${FIXTURE}:/var/log/vsftpd.log" "${EVIDENCE_DIR}/ftp.log" >/dev/null 2>&1 || true
+  docker cp "${FIXTURE}:/var/log/nginx/vhosts.log" "${EVIDENCE_DIR}/vhosts.log" >/dev/null 2>&1 || true
   docker rm --force "${FIXTURE}" >/dev/null 2>&1 || true
   docker image rm --force "${FIXTURE_IMAGE}" >/dev/null 2>&1 || true
   rm -rf "${TMP_DIR}"
@@ -184,7 +186,7 @@ assert_terminal() {
     '.status == $status and .finished_at != null' >/dev/null || fail "${case_name} run did not finish correctly"
 }
 
-for command in docker curl go jq openssl; do
+for command in docker curl go jq openssl unzip; do
   command -v "${command}" >/dev/null || fail "${command} is required"
 done
 docker image inspect "${TOOLS_IMAGE}" >/dev/null 2>&1 || fail "tools image ${TOOLS_IMAGE} is unavailable"
@@ -199,6 +201,7 @@ cp -R "${ROOT_DIR}/plugins/." "${TMP_DIR}/plugins/"
 printf '<html><title>OWTF fixture</title><body>fixture</body></html>\n' >"${TMP_DIR}/fixture/site/index.html"
 printf 'admin fixture\n' >"${TMP_DIR}/fixture/site/admin/index.html"
 printf 'admin\nmissing\n' >"${TMP_DIR}/wordlists/smoke.txt"
+printf 'admin\nmissing\n' >"${TMP_DIR}/wordlists/vhosts.txt"
 printf 'admin\n' >"${TMP_DIR}/wordlists/slow.txt"
 seq 1 9999 | sed 's/^/missing-/' >>"${TMP_DIR}/wordlists/slow.txt"
 for case_name in cancel crash timeout; do
@@ -212,9 +215,16 @@ cat >"${TMP_DIR}/fixture/nginx.conf" <<'NGINX'
 events {}
 http {
   log_format owtf '$request_method $uri';
+  log_format hosts '$host $status';
   access_log /dev/stdout owtf;
+  access_log /var/log/nginx/vhosts.log hosts;
   server {
     listen 80;
+    server_name admin.host.docker.internal;
+    return 200 'OWTF virtual host fixture\n';
+  }
+  server {
+    listen 80 default_server;
     server_name _;
     root /site;
     location / { try_files $uri $uri/ =404; }
@@ -229,9 +239,26 @@ http {
   }
 }
 NGINX
+cat >"${TMP_DIR}/fixture/vsftpd.conf" <<'FTP'
+listen=YES
+listen_ipv6=NO
+background=YES
+anonymous_enable=YES
+local_enable=NO
+write_enable=NO
+anon_root=/site
+no_anon_password=YES
+pasv_min_port=30000
+pasv_max_port=30005
+xferlog_enable=YES
+log_ftp_protocol=YES
+vsftpd_log_file=/var/log/vsftpd.log
+FTP
 cat >"${TMP_DIR}/fixture/Dockerfile" <<'DOCKERFILE'
 FROM nginx:alpine
+RUN apk add --no-cache vsftpd
 COPY nginx.conf /etc/nginx/nginx.conf
+COPY vsftpd.conf /etc/vsftpd/vsftpd.conf
 COPY fixture.crt fixture.key /certs/
 COPY site/ /site/
 DOCKERFILE
@@ -241,6 +268,9 @@ docker run --detach --name "${FIXTURE}" \
   --publish "127.0.0.1:${FIXTURE_HTTP_PORT}:80" \
   --publish "127.0.0.1:${FIXTURE_TLS_PORT}:443" \
   "${FIXTURE_IMAGE}" >/dev/null
+docker exec "${FIXTURE}" /usr/sbin/vsftpd /etc/vsftpd/vsftpd.conf
+FTP_HOST=$(docker inspect --format '{{.NetworkSettings.IPAddress}}' "${FIXTURE}")
+[[ -n "${FTP_HOST}" ]] || fail 'fixture has no bridge IP address'
 
 cat >"${TMP_DIR}/config.yaml" <<YAML
 apiVersion: owtf.dev/v1alpha1
@@ -271,11 +301,12 @@ start_server 240
 printf '%s\n' 'Checking the Kali tool catalog...'
 docker run --rm --entrypoint /bin/sh "${TOOLS_IMAGE}" -c '
   set -eu
-  for command in testssl.sh wafw00f gobuster metagoofil whatweb nuclei wapiti; do
+  for command in testssl.sh wafw00f gobuster metagoofil whatweb nuclei wapiti nmap nikto; do
     command -v "$command" >/dev/null
   done
   metagoofil --help >/dev/null 2>&1
-' || fail 'one or more retained tools are unavailable'
+' >"${EVIDENCE_DIR}/tools.txt" || fail 'one or more retained tools are unavailable'
+docker run --rm --entrypoint dpkg-query "${TOOLS_IMAGE}" -W nmap nikto gobuster >>"${EVIDENCE_DIR}/tools.txt"
 PLUGINS=$(request GET /api/v2/plugins)
 if ! jq -e '
   [.[] | select(
@@ -283,8 +314,9 @@ if ! jq -e '
     .id == "OWTF-CM-006-active" or .id == "OWTF-IG-002-semi_passive" or
     .id == "OWTF-IG-004-active" or .id == "OWTF-IG-005-active" or
     .id == "OWTF-ST-001-active" or .id == "OWTF-CL-002-active" or
-    .id == "OWTF-WVS-003-active"
-  ) | select(.availability == "ready")] | length == 9
+    .id == "OWTF-WVS-002-active" or .id == "OWTF-WVS-003-active" or
+    .group == "network"
+  ) | select(.availability == "ready")] | length == 18
 ' <<<"${PLUGINS}" >/dev/null; then
   jq '[.[] | select(.runtime_type == "container")] | map({id, availability, reason})' <<<"${PLUGINS}" >&2
   fail 'Kali-backed plugin availability is incorrect'
@@ -304,6 +336,8 @@ TLS_TARGET=$(jq -r --arg value "${TLS_URL}" '.created[] | select(.value == $valu
 [[ -n "${HTTP_TARGET}" && -n "${TLS_TARGET}" ]] || fail 'fixture targets were not created'
 
 if [[ "${MODE}" == all ]]; then
+  FTP_TARGET=$(request POST "/api/v2/sessions/${SESSION_ID}/targets" \
+    "$(jq -nc --arg host "${FTP_HOST}" '{targets:[$host]}')" | jq -r '.created[0].id')
   printf '%s\n' 'Running retained scanners through the container executor...'
   TASKS=()
   TASKS+=("$(launch "${TLS_TARGET}" OWTF-CM-001-active)")
@@ -312,25 +346,52 @@ if [[ "${MODE}" == all ]]; then
   TASKS+=("$(launch "${HTTP_TARGET}" OWTF-IG-004-active '{"aggression":"1","threads":1}')")
   TASKS+=("$(launch "${HTTP_TARGET}" OWTF-ST-001-active '{"rate_limit":1,"concurrency":1,"request_timeout_seconds":5}')")
   TASKS+=("$(launch "${HTTP_TARGET}" OWTF-WVS-003-active '{"scope":"folder","max_scan_time_seconds":15,"max_attack_time_seconds":5,"max_files_per_directory":10,"request_timeout_seconds":5}')")
+  NMAP_TASK=$(launch "${FTP_TARGET}" PTES-001-active '{"port":21}')
+  NMAP_CLOSED_TASK=$(launch "${FTP_TARGET}" PTES-001-active '{"port":65000}')
+  NIKTO_TASK=$(launch "${HTTP_TARGET}" OWTF-WVS-002-active '{"max_time_seconds":20,"request_timeout_seconds":5}')
+  VHOST_TASK=$(launch "${HTTP_TARGET}" OWTF-IG-005-active '{"wordlist":"vhosts.txt","threads":1,"delay":"0s","request_timeout":"5s"}')
+  TASKS+=("${NMAP_TASK}" "${NMAP_CLOSED_TASK}" "${NIKTO_TASK}" "${VHOST_TASK}")
+  mkdir -p "${EVIDENCE_DIR}/artifacts"
   for task_id in "${TASKS[@]}"; do
     wait_for_status "${task_id}" succeeded
     assert_removed "${task_id}"
-    request GET "/api/v2/tasks/${task_id}/events" | jq -e \
+    request GET "/api/v2/tasks/${task_id}/events" >"${EVIDENCE_DIR}/${task_id}-events.json"
+    jq -e \
       'any(.[]; .stream == "system" and (.message | startswith("container owtf/kali-tools:local")))' \
-      >/dev/null || fail "task ${task_id} is missing its container command log"
+      "${EVIDENCE_DIR}/${task_id}-events.json" >/dev/null || fail "task ${task_id} is missing its container command log"
   done
 
   HTTP_REPORT=$(request GET "/api/v2/targets/${HTTP_TARGET}/report")
   TLS_REPORT=$(request GET "/api/v2/targets/${TLS_TARGET}/report")
-  if ! jq -e '([.tasks[] | select(.status == "succeeded")] | length) == 5 and
+  request GET "/api/v2/targets/${FTP_TARGET}/report" >"${EVIDENCE_DIR}/ftp-report.json"
+  printf '%s\n' "${HTTP_REPORT}" >"${EVIDENCE_DIR}/http-report.json"
+  printf '%s\n' "${TLS_REPORT}" >"${EVIDENCE_DIR}/tls-report.json"
+  jq -r '.artifacts[] | [.id,.task_id,.name] | @tsv' \
+    "${EVIDENCE_DIR}/http-report.json" "${EVIDENCE_DIR}/ftp-report.json" "${EVIDENCE_DIR}/tls-report.json" >"${EVIDENCE_DIR}/artifacts.tsv"
+  while IFS=$'\t' read -r artifact_id task_id name; do
+    request GET "/api/v2/artifacts/${artifact_id}" >"${EVIDENCE_DIR}/artifacts/${task_id}-${name}"
+  done <"${EVIDENCE_DIR}/artifacts.tsv"
+  NMAP_XML="${EVIDENCE_DIR}/artifacts/${NMAP_TASK}-nmap.xml"
+  NMAP_CLOSED_XML="${EVIDENCE_DIR}/artifacts/${NMAP_CLOSED_TASK}-nmap.xml"
+  NIKTO_XML="${EVIDENCE_DIR}/artifacts/${NIKTO_TASK}-nikto.xml"
+  grep -q 'portid="21"' "${NMAP_XML}" && grep -q 'state="open"' "${NMAP_XML}" &&
+    grep -q 'name="ftp"' "${NMAP_XML}" && grep -q 'Anonymous FTP login allowed' "${NMAP_XML}" || fail 'Nmap did not identify the FTP service and anonymous access'
+  grep -q 'state="closed"' "${NMAP_CLOSED_XML}" || fail 'Nmap did not distinguish the closed port'
+  grep -q '<niktoscan' "${NIKTO_XML}" && grep -q '<item ' "${NIKTO_XML}" &&
+    grep -qi 'x-content-type-options' "${NIKTO_XML}" || fail 'Nikto XML did not retain the fixture header finding'
+  if ! jq -e --arg vhost "http://admin.host.docker.internal:${FIXTURE_HTTP_PORT}/" '([.tasks[] | select(.status == "succeeded")] | length) == 7 and
     any(.artifacts[]; .name == "wafw00f.json") and
     any(.artifacts[]; .name == "gobuster.txt") and
     any(.artifacts[]; .name == "whatweb.json") and
     any(.artifacts[]; .name == "wapiti.json") and
+    any(.artifacts[]; .name == "nikto.xml") and
+    any(.artifacts[]; .name == "vhosts.txt") and
     any(.observations[]; .kind == "waf.fingerprint") and
     any(.observations[]; .kind == "web.fingerprint") and
+    any(.observations[]; .kind == "host.discovery" and (.data | fromjson | .urls == 1)) and
     any(.observations[]; .kind == "container.completed") and
-    any(.urls[]; (.url | contains("/admin")))' <<<"${HTTP_REPORT}" >/dev/null; then
+    any(.urls[]; (.url | contains("/admin"))) and
+    any(.urls[]; .url == $vhost and .visited)' <<<"${HTTP_REPORT}" >/dev/null; then
     jq '{tasks: [.tasks[] | {plugin_id, status}], artifacts: [.artifacts[].name], observations: [.observations[].kind], urls: [.urls[].url], findings: [.findings[].title]}' <<<"${HTTP_REPORT}" >&2
     fail 'HTTP scanner evidence is incomplete'
   fi
@@ -345,10 +406,21 @@ if [[ "${MODE}" == all ]]; then
   OWTF_URL="${BASE_URL}" "${TMP_DIR}/owtf" --json targets report "${HTTP_TARGET}" |
     jq -e 'any(.artifacts[]; .name == "wapiti.json")' >/dev/null || fail 'CLI target report is incomplete'
   request GET /api/v2/metrics | jq -e '
-    .tasks.total == 6 and .tasks.succeeded == 6 and .attempts.succeeded == 6 and
+    .tasks.total == 10 and .tasks.succeeded == 10 and .attempts.succeeded == 10 and
     .workers.total == 1 and .workers.idle == 1 and .outputs.artifacts >= 5 and
     .outputs.observations > 0 and .outputs.findings > 0
   ' >/dev/null || fail 'tool execution metrics are incorrect'
+  request GET "/api/v2/sessions/${SESSION_ID}/export" >"${EVIDENCE_DIR}/report.zip"
+  unzip -tqq "${EVIDENCE_DIR}/report.zip" || fail 'offline report ZIP is invalid'
+  unzip -p "${EVIDENCE_DIR}/report.zip" report.json | jq -e \
+    '.summary.succeeded == 10 and any(.artifacts[]; .name == "nmap.xml") and any(.artifacts[]; .name == "nikto.xml") and any(.artifacts[]; .name == "vhosts.txt")' \
+    >/dev/null || fail 'offline report is missing scanner evidence'
+  unzip -p "${EVIDENCE_DIR}/report.zip" manifest.json >"${EVIDENCE_DIR}/export-manifest.json"
+  while IFS=$'\t' read -r artifact_id task_id name; do
+    archive_path=$(jq -r --arg id "${artifact_id}" '.artifact_files[$id]' "${EVIDENCE_DIR}/export-manifest.json")
+    unzip -p "${EVIDENCE_DIR}/report.zip" "${archive_path}" | cmp - "${EVIDENCE_DIR}/artifacts/${task_id}-${name}" \
+      || fail "offline report changed artifact ${name}"
+  done <"${EVIDENCE_DIR}/artifacts.tsv"
 fi
 
 printf '%s\n' 'Checking cancellation, crash, and timeout after real scanner activity...'
@@ -399,7 +471,7 @@ jq -e '.summary.failed == 2 and .summary.cancelled == 1 and .summary.attempts ==
   "${EVIDENCE_DIR}/report.json" >/dev/null || fail 'failure report is incomplete'
 
 if [[ "${MODE}" == all ]]; then
-  printf '%s\n' 'Kali container compatibility passed for testssl.sh, WAFW00F, Gobuster, WhatWeb, Nuclei, and Wapiti.'
+  printf '%s\n' 'Kali compatibility passed for testssl.sh, WAFW00F, Gobuster dir/vhost, WhatWeb, Nuclei, Wapiti, Nmap FTP/closed port, and Nikto.'
   printf '%s\n' 'Metagoofil startup passed; it has no deterministic local search-provider mode.'
 fi
 printf 'PASS: terminal states and single attempts survived restart. Evidence: %s\n' "${EVIDENCE_DIR}"

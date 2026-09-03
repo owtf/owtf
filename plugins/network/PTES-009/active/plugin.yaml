@@ -3,7 +3,7 @@ kind: Plugin
 
 metadata:
   id: PTES-009-active
-  version: 0.1.0
+  version: 0.2.0
   title: SMB Service Probe
   description: Uses Nmap to identify SMB protocols, security modes, capabilities, and host metadata.
 
@@ -24,11 +24,11 @@ spec:
       default: 445
       minimum: 1
       maximum: 65535
-  requirements:
-    commands: [nmap]
   runtime:
-    type: command
-    command:
+    type: container
+    container:
+      image: owtf/kali-tools:local
+      network: bridge
       executable: nmap
       args:
         - -Pn

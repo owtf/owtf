@@ -3,7 +3,7 @@ kind: Plugin
 
 metadata:
   id: OWTF-WVS-002-active
-  version: 0.1.0
+  version: 0.2.0
   title: Nikto Unauthenticated
   description: Runs a bounded unauthenticated Nikto scan and retains its XML report.
 
@@ -30,11 +30,11 @@ spec:
       default: 5
       minimum: 1
       maximum: 120
-  requirements:
-    commands: [nikto]
   runtime:
-    type: command
-    command:
+    type: container
+    container:
+      image: owtf/kali-tools:local
+      network: bridge
       executable: nikto
       args:
         - -host

@@ -3,7 +3,7 @@ kind: Plugin
 
 metadata:
   id: PTES-001-active
-  version: 0.1.0
+  version: 0.2.0
   title: FTP Service Probe
   description: Uses Nmap to identify FTP service metadata and anonymous access.
 
@@ -26,12 +26,11 @@ spec:
       default: 21
       minimum: 1
       maximum: 65535
-  requirements:
-    commands:
-      - nmap
   runtime:
-    type: command
-    command:
+    type: container
+    container:
+      image: owtf/kali-tools:local
+      network: bridge
       executable: nmap
       args:
         - -Pn

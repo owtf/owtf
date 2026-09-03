@@ -274,7 +274,7 @@ func decodeURLList(data []byte, context decodeContext) (Result, error) {
 
 var (
 	gobusterDirPattern   = regexp.MustCompile(`^(\S+)\s+\(Status:\s+\d{3}\)`)
-	gobusterVHostPattern = regexp.MustCompile(`(?i)^Found:\s+(\S+)\s+Status:`)
+	gobusterVHostPattern = regexp.MustCompile(`(?i)^(?:Found:\s+)?(\S+)\s+Status:\s+\d{3}\b`)
 )
 
 func decodeGobusterDir(data []byte, context decodeContext) (Result, error) {

@@ -168,82 +168,6 @@ spec:
       executable: owtf-command-that-does-not-exist
 YAML
 
-cat >"${TMP_DIR}/bin/nmap" <<'SCRIPT'
-#!/bin/bash
-set -euo pipefail
-
-output=""
-port=""
-scripts=""
-script_args=""
-script_timeout=""
-host_timeout=""
-max_retries=""
-target=""
-while (($#)); do
-  case "$1" in
-    -oX) output=${2-}; shift 2 ;;
-    -p) port=${2-}; shift 2 ;;
-    --script) scripts=${2-}; shift 2 ;;
-    --script-args) script_args=${2-}; shift 2 ;;
-    --script-timeout) script_timeout=${2-}; shift 2 ;;
-    --host-timeout) host_timeout=${2-}; shift 2 ;;
-    --max-retries) max_retries=${2-}; shift 2 ;;
-    -Pn|-n|-sT|-sV|--version-light) shift ;;
-    *)
-      [[ -z "${target}" ]] || exit 64
-      target=$1
-      shift
-      ;;
-  esac
-done
-
-[[ "${script_timeout}" == 15s && "${host_timeout}" == 30s && "${max_retries}" == 1 ]] || exit 64
-[[ "${target}" == example.test ]] || exit 64
-case "${port}:${scripts}:${script_args}" in
-  21:ftp-anon,ftp-syst:|25:smtp-commands,smtp-ntlm-info:|5900:vnc-info,vnc-title:|6000:x11-access:|135:msrpc-enum:|593:http-ntlm-info:|445:smb-protocols,smb-security-mode,smb2-security-mode,smb2-capabilities,smb-os-discovery:) ;;
-  1433:ms-sql-info,ms-sql-ntlm-info:mssql.scanned-ports-only=true) ;;
-  *) exit 64 ;;
-esac
-[[ -n "${output}" ]] || exit 64
-printf '<nmaprun><host name="%s"><port protocol="tcp" portid="%s"/></host></nmaprun>\n' \
-  "${target}" "${port}" >"${output}"
-printf 'Network probe completed for %s:%s\n' "${target}" "${port}"
-SCRIPT
-chmod +x "${TMP_DIR}/bin/nmap"
-
-cat >"${TMP_DIR}/bin/nikto" <<'SCRIPT'
-#!/bin/bash
-set -euo pipefail
-
-host=""
-output=""
-format=""
-ask=""
-request_timeout=""
-max_time=""
-while (($#)); do
-  case "$1" in
-    -host) host=${2-}; shift 2 ;;
-    -output) output=${2-}; shift 2 ;;
-    -Format) format=${2-}; shift 2 ;;
-    -ask) ask=${2-}; shift 2 ;;
-    -timeout) request_timeout=${2-}; shift 2 ;;
-    -maxtime) max_time=${2-}; shift 2 ;;
-    -nointeractive|-nocheck) shift ;;
-    *) exit 64 ;;
-  esac
-done
-
-[[ "${host}" == "${OWTF_TARGET}" ]] || exit 64
-[[ "${OWTF_TARGET_KIND}" == url ]] || exit 64
-[[ "${ask}" == no && "${format}" == xml ]] || exit 64
-[[ "${request_timeout}" == 5 && "${max_time}" == 20 ]] || exit 64
-[[ -n "${output}" ]] || exit 64
-printf '<niktoscan><scandetails target="%s"><item id="smoke"/></scandetails></niktoscan>\n' "${host}" >"${output}"
-printf 'Nikto scan completed for %s\n' "${host}"
-SCRIPT
-chmod +x "${TMP_DIR}/bin/nikto"
 ln -s "$(command -v curl)" "${TMP_DIR}/bin/curl"
 ln -s "$(command -v sleep)" "${TMP_DIR}/bin/sleep"
 printf '%s\n' admin backup api dev staging >"${TMP_DIR}/wordlists/smoke.txt"
@@ -410,24 +334,24 @@ jq -e '.records_total == 1 and .records_filtered == 1 and (.data | length) == 1'
 printf '%s\n' 'Checking plugin discovery and preflight failures...'
 request GET /api/v2/plugins 200
 assert_json 'length == 87' 'plugin catalog is incomplete'
-assert_json '[.[] | select(.availability == "ready")] | length == 77' 'ready plugin count is incorrect'
+assert_json '[.[] | select(.availability == "ready")] | length == 68' 'ready plugin count is incorrect'
 assert_json '[.[] | select(.id == "OWTF-SMOKE-002-active" and .availability == "missing_requirements" and (.reason | contains("owtf-command-that-does-not-exist")))] | length == 1' 'missing requirement is not visible'
 assert_json '[.[] | select(.group == "web" and (.type == "active" or .type == "semi_passive"))] | length == 15' 'OWTF plugin group and type metadata is incorrect'
 assert_json '[.[] | select(.availability == "unavailable")] | length == 0' 'placeholder plugin runtimes remain'
-assert_json '[.[] | select(.id == "OWTF-CL-002-active" or .id == "OWTF-CM-001-active" or .id == "OWTF-CM-003-active" or .id == "OWTF-CM-006-active" or .id == "OWTF-IG-002-semi_passive" or .id == "OWTF-IG-004-active" or .id == "OWTF-IG-005-active" or .id == "OWTF-ST-001-active" or .id == "OWTF-WVS-003-active") | select(.runtime_type == "container" and .availability == "missing_requirements")] | length == 9' 'canonical container plugin availability is incorrect'
+assert_json '[.[] | select(.runtime_type == "container" and .availability == "missing_requirements")] | length == 18' 'container plugin availability is incorrect'
 assert_json '[.[] | select(.id == "OWTF-IG-004-semi_passive" and (.inputs | map(.name)) == ["timeout_seconds","user_agent"])] | length == 1' 'plugin input schema is not visible'
 assert_json '[.[] | select(.id == "OWTF-IG-004-semi_passive" and .techniques[0].code == "OWTF-IG-004" and .techniques[0].hint == "What is that site running?" and .techniques[0].priority == 99)] | length == 1' 'plugin technique metadata is not visible'
 assert_json '[.[] | select(.runtime_type == "http" and .availability == "ready") | .id] | sort == ["OWTF-CM-008-semi_passive","OWTF-IG-001-semi_passive"]' 'HTTP plugins are unavailable'
 cli_json plugin list
 jq -e 'length == 87' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin catalog is incomplete'
 cli_json plugin list --group web --type active
-jq -e 'length == 10 and ([.[] | select(.availability == "ready") | .id] | sort) == ["OWTF-WSP-001-active","OWTF-WVS-002-active"] and ([.[] | select(.availability == "missing_requirements")] | length) == 8' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin group/type filter is incorrect'
+jq -e 'length == 10 and ([.[] | select(.availability == "ready") | .id] | sort) == ["OWTF-WSP-001-active"] and ([.[] | select(.availability == "missing_requirements")] | length) == 9' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin group/type filter is incorrect'
 cli_json plugin list --group web --type external
 jq -e 'length == 51 and all(.[]; .runtime_type == "external" and .availability == "ready") and any(.[]; .id == "OWTF-IG-004-external")' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI external plugins are unavailable'
 cli_json plugin list --group web --type grep
 jq -e 'length == 11 and all(.[]; .runtime_type == "grep" and .availability == "ready") and any(.[]; .id == "OWTF-CM-004-grep") and any(.[]; .id == "OWTF-SM-005-grep")' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI grep plugins are unavailable'
 cli_json plugin list --group network --type active
-jq -e 'length == 8 and all(.[]; .runtime_type == "command" and .availability == "ready" and .inputs[0].name == "port") and [.[].id] == ["PTES-001-active","PTES-002-active","PTES-003-active","PTES-004-active","PTES-006-active","PTES-007-active","PTES-008-active","PTES-009-active"]' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI network plugins are unavailable'
+jq -e 'length == 8 and all(.[]; .runtime_type == "container" and .availability == "missing_requirements" and .inputs[0].name == "port") and [.[].id] == ["PTES-001-active","PTES-002-active","PTES-003-active","PTES-004-active","PTES-006-active","PTES-007-active","PTES-008-active","PTES-009-active"]' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI network plugins are unavailable'
 request GET /api/v2/profiles 200
 assert_json 'length == 1 and .[0].name == "default" and .[0].plugins == ["OWTF-IG-001-semi_passive","OWTF-IG-004-semi_passive","OWTF-CM-008-semi_passive","OWTF-WSP-001-active"]' 'profile catalog is incorrect'
 request GET /api/v2/profiles/default 200
@@ -463,7 +387,7 @@ assert_json 'length == 0' 'preflight failures created tasks'
 printf '%s\n' 'Checking grouped execution, workers, logs, reports, and evidence...'
 GROUP_RUN=$(jq -nc --arg session "${SESSION_ID}" --arg target "${URL_TARGET_ID}" '{session_id:$session,target_ids:[$target],plugin_group:"web",plugin_types:["semi_passive","active"],plugin_inputs:{"OWTF-CL-002-active":{wordlist:"smoke.txt"},"OWTF-CM-006-active":{wordlist:"smoke.txt"},"OWTF-IG-004-semi_passive":{timeout_seconds:5,user_agent:"OWTF smoke; echo not-executed"},"OWTF-IG-005-active":{wordlist:"smoke.txt"}}}')
 request POST /api/v2/runs 202 "${GROUP_RUN}"
-assert_json '.run.profile == "default" and (.tasks | length) == 15 and ([.tasks[] | select(.status == "queued")] | length) == 6 and ([.tasks[] | select(.status == "blocked" and (.error | startswith("container image")))] | length) == 9 and [.tasks[0:4][].plugin_id] == ["OWTF-IG-001-semi_passive","OWTF-IG-004-semi_passive","OWTF-CM-008-semi_passive","OWTF-WSP-001-active"]' 'default profile did not order or block the grouped run correctly'
+assert_json '.run.profile == "default" and (.tasks | length) == 15 and ([.tasks[] | select(.status == "queued")] | length) == 5 and ([.tasks[] | select(.status == "blocked" and (.error | startswith("container image")))] | length) == 10 and [.tasks[0:4][].plugin_id] == ["OWTF-IG-001-semi_passive","OWTF-IG-004-semi_passive","OWTF-CM-008-semi_passive","OWTF-WSP-001-active"]' 'default profile did not order or block the grouped run correctly'
 GROUP_RUN_ID=$(jq -r '.run.id' "${RESPONSE_FILE}")
 INPUT_TASK_ID=$(jq -r '.tasks[] | select(.plugin_id == "OWTF-IG-004-semi_passive") | .id' "${RESPONSE_FILE}")
 GROUP_TASK_IDS=()
@@ -485,15 +409,15 @@ assert_json '.task_id == $task and .rank == "high" and .notes == "Verified from 
 cli_json plugin review "${INPUT_TASK_ID}"
 jq -e --arg task "${INPUT_TASK_ID}" '.task_id == $task and .rank == "high" and .notes == "Verified from retained transaction evidence."' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin output review is incorrect'
 request GET "/api/v2/workers" 200
-assert_json 'length == 1 and .[0].status == "idle" and .[0].completed == 6' 'worker state or accounting is incorrect'
+assert_json 'length == 1 and .[0].status == "idle" and .[0].completed == 5' 'worker state or accounting is incorrect'
 request GET "/api/v2/targets/${URL_TARGET_ID}/report" 200
-assert_json '(.tasks | length) == 15 and ([.tasks[] | select(.status == "blocked")] | length) == 9' 'target report is missing tasks'
+assert_json '(.tasks | length) == 15 and ([.tasks[] | select(.status == "blocked")] | length) == 10' 'target report is missing tasks'
 assert_json '([.tasks[].techniques[].code] | index("OWTF-CM-001")) != null and ([.tasks[].techniques[].code] | index("OWTF-IG-002")) != null and ([.tasks[].techniques[].code] | index("OWTF-WVS-003")) != null' 'target report is missing immutable technique metadata'
-assert_json '.attempts | length == 6' 'target report is missing attempts'
+assert_json '.attempts | length == 5' 'target report is missing attempts'
 assert_json '(.transactions | length) == 4 and any(.transactions[]; .method == "GET" and (.url | endswith("/robots.txt"))) and any(.transactions[]; .method == "OPTIONS")' 'target report is missing imported or plugin HTTP transactions'
 assert_json '(.urls | length) == 2 and all(.urls[]; .visited == true and .scope == true)' 'target report is missing the HTTP probe URL catalog'
-assert_json '(.observations | length) == 7 and ([.observations[] | select((.technique_code == "OWTF-CM-008" or .technique_code == "OWTF-IG-001") and .kind == "http.response")] | length) == 2 and ([.observations[] | select(.technique_code == "OWTF-SM-001" and .kind == "grep.matches")] | length) == 2 and any(.observations[]; .technique_code == "OWTF-WVS-002" and .kind == "command.completed")' 'target report is missing plugin observations'
-assert_json '(.artifacts | length) == 9 and any(.artifacts[]; .name == "nikto.xml" and .media_type == "application/xml")' 'target report is missing retained artifacts'
+assert_json '(.observations | length) == 6 and ([.observations[] | select((.technique_code == "OWTF-CM-008" or .technique_code == "OWTF-IG-001") and .kind == "http.response")] | length) == 2 and ([.observations[] | select(.technique_code == "OWTF-SM-001" and .kind == "grep.matches")] | length) == 2' 'target report is missing plugin observations'
+assert_json '(.artifacts | length) == 8' 'target report is missing retained artifacts'
 assert_json '(.plugin_output_reviews | length) == 15 and any(.plugin_output_reviews[]; .task_id == $task and .rank == "high" and .notes == "Verified from retained transaction evidence.")' 'target report is missing the plugin output review' --arg task "${INPUT_TASK_ID}"
 ARTIFACT_IDS=()
 while IFS= read -r artifact_id; do ARTIFACT_IDS+=("${artifact_id}"); done < <(jq -r '.artifacts[].id' "${RESPONSE_FILE}")
@@ -514,27 +438,27 @@ assert_json 'length == 1 and .[0].id == $run and .[0].profile == "default" and .
 request GET "/api/v2/runs/${GROUP_RUN_ID}" 200
 assert_json '.profile == "default" and .status == "blocked" and .finished_at != null' 'run was not finalized'
 request GET "/api/v2/sessions/${SESSION_ID}/report" 200
-assert_json '.summary.targets == 4 and .summary.runs == 1 and .summary.tasks == 15 and .summary.attempts == 6 and .summary.succeeded == 6 and .summary.blocked == 9 and .summary.urls == 2 and .summary.transactions == 4 and .summary.artifacts == 9 and .summary.observations == 7' 'session report summary is incorrect'
+assert_json '.summary.targets == 4 and .summary.runs == 1 and .summary.tasks == 15 and .summary.attempts == 5 and .summary.succeeded == 5 and .summary.blocked == 10 and .summary.urls == 2 and .summary.transactions == 4 and .summary.artifacts == 8 and .summary.observations == 6' 'session report summary is incorrect'
 request GET /api/v2/metrics 200
-assert_json '.tasks.total == 15 and .tasks.succeeded == 6 and .tasks.blocked == 9 and .attempts.total == 6 and .attempts.succeeded == 6 and .workers.total == 1 and .workers.idle == 1 and .outputs.artifacts == 9 and .outputs.observations == 7' 'aggregate execution metrics are incorrect'
+assert_json '.tasks.total == 15 and .tasks.succeeded == 5 and .tasks.blocked == 10 and .attempts.total == 5 and .attempts.succeeded == 5 and .workers.total == 1 and .workers.idle == 1 and .outputs.artifacts == 8 and .outputs.observations == 6' 'aggregate execution metrics are incorrect'
 cli_json metrics
-jq -e '.tasks.total == 15 and .attempts.succeeded == 6 and .workers.completed == 6' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI execution metrics are incorrect'
+jq -e '.tasks.total == 15 and .attempts.succeeded == 5 and .workers.completed == 5' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI execution metrics are incorrect'
 request GET "/api/v2/sessions/${SESSION_ID}/report" 200
 assert_json '(.plugin_output_reviews | length) == 15 and any(.plugin_output_reviews[]; .task_id == $task and .rank == "high")' 'session report is missing the plugin output review' --arg task "${INPUT_TASK_ID}"
 request GET "/api/v2/sessions/${SESSION_ID}/export" 200
 SESSION_REPORT_ZIP="${TMP_DIR}/session-report.zip"
 cp "${RESPONSE_FILE}" "${SESSION_REPORT_ZIP}"
 unzip -tqq "${SESSION_REPORT_ZIP}" || fail 'session report ZIP is invalid'
-unzip -p "${SESSION_REPORT_ZIP}" report.json | jq -e --arg id "${SESSION_ID}" --arg task "${INPUT_TASK_ID}" '.session.id == $id and .summary.tasks == 15 and .summary.blocked == 9 and .summary.urls == 2 and (.urls | length) == 2 and any(.plugin_output_reviews[]; .task_id == $task and .rank == "high")' >/dev/null || fail 'session report JSON is incorrect'
+unzip -p "${SESSION_REPORT_ZIP}" report.json | jq -e --arg id "${SESSION_ID}" --arg task "${INPUT_TASK_ID}" '.session.id == $id and .summary.tasks == 15 and .summary.blocked == 10 and .summary.urls == 2 and (.urls | length) == 2 and any(.plugin_output_reviews[]; .task_id == $task and .rank == "high")' >/dev/null || fail 'session report JSON is incorrect'
 unzip -p "${SESSION_REPORT_ZIP}" index.html | grep -q 'What is that site running?' || fail 'offline report is missing technique metadata'
 unzip -p "${SESSION_REPORT_ZIP}" index.html | grep -q 'Verified from retained transaction evidence.' || fail 'offline report is missing the plugin output review'
 unzip -p "${SESSION_REPORT_ZIP}" index.html | grep -q '>URLs<' || fail 'offline report is missing the URL catalog'
-[[ $(unzip -Z1 "${SESSION_REPORT_ZIP}" | grep -c '^artifacts/') -eq 9 ]] || fail 'session report ZIP is missing artifacts'
+[[ $(unzip -Z1 "${SESSION_REPORT_ZIP}" | grep -c '^artifacts/') -eq 8 ]] || fail 'session report ZIP is missing artifacts'
 
 cli_json worklist --session "${SESSION_ID}"
-jq -e 'length == 15 and ([.[] | select(.status == "succeeded")] | length) == 6 and ([.[] | select(.status == "blocked")] | length) == 9' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI worklist is incorrect'
+jq -e 'length == 15 and ([.[] | select(.status == "succeeded")] | length) == 5 and ([.[] | select(.status == "blocked")] | length) == 10' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI worklist is incorrect'
 cli_json workers
-jq -e 'length == 1 and .[0].completed == 6' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI worker state is incorrect'
+jq -e 'length == 1 and .[0].completed == 5' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI worker state is incorrect'
 cli_json tasks show "${GROUP_TASK_IDS[0]}"
 jq -e '.status == "succeeded"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI task state is incorrect'
 request GET "/api/v2/tasks/${GROUP_TASK_IDS[0]}/attempts" 200
@@ -544,13 +468,13 @@ jq -e 'length == 1 and .[0].attempt_number == 1 and .[0].status == "succeeded"' 
 cli_json tasks logs "${GROUP_TASK_IDS[0]}"
 jq -e 'length >= 3' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI task logs are incomplete'
 cli_json targets report "${URL_TARGET_ID}"
-jq -e --arg task "${INPUT_TASK_ID}" '(.tasks | length == 15) and ([.tasks[] | select(.status == "blocked")] | length) == 9 and (.urls | length == 2) and any(.plugin_output_reviews[]; .task_id == $task and .rank == "high")' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI target report is incomplete'
+jq -e --arg task "${INPUT_TASK_ID}" '(.tasks | length == 15) and ([.tasks[] | select(.status == "blocked")] | length) == 10 and (.urls | length == 2) and any(.plugin_output_reviews[]; .task_id == $task and .rank == "high")' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI target report is incomplete'
 cli_json runs list --session "${SESSION_ID}"
 jq -e --arg run "${GROUP_RUN_ID}" 'length == 1 and .[0].id == $run and .[0].status == "blocked"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI run history is incorrect'
 cli_json runs show "${GROUP_RUN_ID}"
 jq -e '.status == "blocked" and .finished_at != null' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI run state is incorrect'
 cli_json sessions report "${SESSION_ID}"
-jq -e --arg task "${INPUT_TASK_ID}" '.summary.tasks == 15 and .summary.blocked == 9 and .summary.urls == 2 and .summary.transactions == 4 and .summary.artifacts == 9 and any(.plugin_output_reviews[]; .task_id == $task and .rank == "high")' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI session report is incomplete'
+jq -e --arg task "${INPUT_TASK_ID}" '.summary.tasks == 15 and .summary.blocked == 10 and .summary.urls == 2 and .summary.transactions == 4 and .summary.artifacts == 8 and any(.plugin_output_reviews[]; .task_id == $task and .rank == "high")' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI session report is incomplete'
 CLI_REPORT_ZIP="${TMP_DIR}/cli-session-report.zip"
 cli_json sessions export --output "${CLI_REPORT_ZIP}" "${SESSION_ID}"
 jq -e --arg output "${CLI_REPORT_ZIP}" '.output == $output and .bytes > 0' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI session export result is incorrect'
@@ -582,8 +506,8 @@ cli_json runs create --session "${SESSION_ID}" --target "${URL_TARGET_ID}" --gro
 [[ $(jq -r '.run.profile' "${CLI_RESPONSE_FILE}") == 'default' ]] || fail 'CLI run did not persist its profile'
 CLI_ACTIVE_TASK_IDS=()
 while IFS= read -r task_id; do CLI_ACTIVE_TASK_IDS+=("${task_id}"); done < <(jq -r '.tasks[] | select(.status == "queued") | .id' "${CLI_RESPONSE_FILE}")
-[[ ${#CLI_ACTIVE_TASK_IDS[@]} -eq 2 ]] || fail 'CLI active group did not create two runnable tasks'
-jq -e '(.tasks | length) == 10 and ([.tasks[] | select(.status == "blocked")] | length) == 8' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI active group did not retain blocked optional tools'
+[[ ${#CLI_ACTIVE_TASK_IDS[@]} -eq 1 ]] || fail 'CLI active group did not create one runnable task'
+jq -e '(.tasks | length) == 10 and ([.tasks[] | select(.status == "blocked")] | length) == 9' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI active group did not retain blocked optional tools'
 for task_id in "${CLI_ACTIVE_TASK_IDS[@]}"; do
   wait_for_task_status "${task_id}" succeeded
 done
@@ -594,26 +518,13 @@ cli_json scan --session "${SESSION_ID}" --plugin OWTF-IG-004-semi_passive \
 CLI_SCAN_TASK_ID=$(jq -r '.tasks[0].id' "${CLI_RESPONSE_FILE}")
 wait_for_task_status "${CLI_SCAN_TASK_ID}" succeeded
 cli_json workers
-jq -e '.[0].completed == 9' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI-launched work was not completed'
+jq -e '.[0].completed == 7' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI-launched work was not completed'
 
-printf '%s\n' 'Checking maintained network plugin execution and evidence...'
+printf '%s\n' 'Checking network plugin availability without a container engine...'
 cli_json runs create --session "${SESSION_ID}" --target "${HOST_TARGET_ID}" --group network --type active --profile default
-jq -e '(.tasks | length) == 8 and [.tasks[].plugin_id] == ["PTES-001-active","PTES-002-active","PTES-003-active","PTES-004-active","PTES-006-active","PTES-007-active","PTES-008-active","PTES-009-active"]' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'network plugin group is incomplete'
-NETWORK_TASK_IDS=()
-while IFS= read -r task_id; do NETWORK_TASK_IDS+=("${task_id}"); done < <(jq -r '.tasks[].id' "${CLI_RESPONSE_FILE}")
-for task_id in "${NETWORK_TASK_IDS[@]}"; do
-  wait_for_task_status "${task_id}" succeeded
-  request GET "/api/v2/tasks/${task_id}/events" 200
-  assert_json '[.[].message] | join("\n") | contains("Network probe completed for example.test:")' "network plugin ${task_id} stdout was not retained"
-done
+jq -e '(.tasks | length) == 8 and all(.tasks[]; .status == "blocked" and (.error | startswith("container image"))) and [.tasks[].plugin_id] == ["PTES-001-active","PTES-002-active","PTES-003-active","PTES-004-active","PTES-006-active","PTES-007-active","PTES-008-active","PTES-009-active"]' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'network plugin group is incomplete or failed to block unavailable containers'
 request GET "/api/v2/targets/${HOST_TARGET_ID}/report" 200
-assert_json '(.tasks | length) == 8 and ([.tasks[].inputs.port] | sort) == [21,25,135,445,593,1433,5900,6000] and (.artifacts | length) == 8 and all(.artifacts[]; .name == "nmap.xml")' 'network plugin report evidence is incomplete'
-NETWORK_ARTIFACT_IDS=()
-while IFS= read -r artifact_id; do NETWORK_ARTIFACT_IDS+=("${artifact_id}"); done < <(jq -r '.artifacts[].id' "${RESPONSE_FILE}")
-for artifact_id in "${NETWORK_ARTIFACT_IDS[@]}"; do
-  request GET "/api/v2/artifacts/${artifact_id}" 200
-  grep -q '<host name="example.test"><port protocol="tcp" portid="' "${RESPONSE_FILE}" || fail "network plugin artifact ${artifact_id} is incorrect"
-done
+assert_json '(.tasks | length) == 8 and ([.tasks[].inputs.port] | sort) == [21,25,135,445,593,1433,5900,6000] and (.artifacts | length) == 0 and (.attempts | length) == 0' 'blocked network tasks must not fabricate execution evidence'
 
 printf '%s\n' 'Checking cancellation and worker cleanup...'
 CANCEL_RUN=$(jq -nc --arg session "${SESSION_ID}" --arg target "${URL_TARGET_ID}" '{session_id:$session,target_ids:[$target],plugin_ids:["OWTF-SMOKE-001-active"]}')

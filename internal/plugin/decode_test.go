@@ -69,6 +69,11 @@ func TestArtifactDecoders(t *testing.T) {
 			urls: 1, observations: 1,
 		},
 		{
+			name: "gobuster vhost 3.8", decoder: "gobuster-vhost",
+			data: "admin.example.test:8080 Status: 200 [Size: 26]\n",
+			urls: 1, observations: 1,
+		},
+		{
 			name: "gobuster gcs", decoder: "gobuster-gcs",
 			data:         "Found: public-example [Status: 200]\n",
 			observations: 1,
@@ -87,6 +92,17 @@ func TestArtifactDecoders(t *testing.T) {
 				t.Fatalf("severity = %q", result.Findings[0].Severity)
 			}
 		})
+	}
+}
+
+func TestGobusterVHostPreservesPort(t *testing.T) {
+	context := decodeContext{target: model.Target{Kind: "url", Value: "http://example.test:8080/"}}
+	result, err := decodeGobusterVHost([]byte("admin.example.test:8080 Status: 200 [Size: 26]\n"), context)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.URLs) != 1 || result.URLs[0].URL != "http://admin.example.test:8080" || !result.URLs[0].Visited {
+		t.Fatalf("virtual-host URL lost its scheme or port: %+v", result.URLs)
 	}
 }
 

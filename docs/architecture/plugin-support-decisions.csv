@@ -24,7 +24,7 @@ OWTF-IG-005,web,active,Application Discovery,replace,OWTF-IG-005-active,implemen
 OWTF-WVS-001,web,active,Arachni Unauthenticated,reject,"",reviewed,Arachni is archived and its tool-specific OWTF wrapper has no maintainable runtime to preserve.
 OWTF-CM-008,web,active,HTTP Methods and XST,defer,"",reviewed,Active method probing may send mutating verbs; keep the semi-passive implementation until explicit verb selection is designed.
 OWTF-CM-003,web,active,Infrastructure Configuration Management,replace,OWTF-CM-003-active,implemented,Retain infrastructure configuration probing with maintained tools and structured artifacts instead of the legacy mixed command list.
-OWTF-WVS-002,web,active,Nikto Unauthenticated,replace,OWTF-WVS-002-active,implemented,Retain Nikto as an optional shell-free command integration with bounded execution and report artifacts.
+OWTF-WVS-002,web,active,Nikto Unauthenticated,replace,OWTF-WVS-002-active,implemented,Retain Nikto as an optional shell-free container integration with bounded execution and report artifacts.
 OWTF-CM-006,web,active,Old Backup and Unreferenced Files,replace,OWTF-CM-006-active,implemented,Retain backup and unreferenced-file discovery with a maintained enumerator and an explicit bounded wordlist.
 OWTF-WVS-006,web,active,Skipfish Unauthenticated,reject,"",reviewed,Skipfish is unmaintained; generic scanner coverage is retained through maintained integrations instead.
 OWTF-ST-001,web,active,Subdomain Takeover,replace,OWTF-ST-001-active,implemented,Retain subdomain-takeover checks with a maintained detector and machine-readable evidence instead of the abandoned wrapper.
@@ -59,7 +59,7 @@ OWTF-CM-003,web,external,Infrastructure Configuration Management,replace,OWTF-CM
 OWTF-AT-007,web,external,Logout and Browser Cache Management,replace,OWTF-AT-007-grep,implemented,Logout and cache-control indicators are retained by the bounded transaction grep plugin without a duplicate resource wrapper.
 OWTF-AT-009,web,external,Multiple Factors Authentication,replace,OWTF-AT-009-external,implemented,Retain Multiple Factors Authentication as non-executable manual guidance with current primary references; the legacy Python resource wrapper is unnecessary.
 OWTF-WS-006,web,external,Naughty SOAP attachments,replace,OWTF-WS-006-external,implemented,Retain Naughty SOAP attachments as non-executable manual guidance with current primary references; the legacy Python resource wrapper is unnecessary.
-OWTF-WVS-002,web,external,Nikto Unauthenticated,replace,OWTF-WVS-002-active,implemented,Nikto usage belongs in its optional command plugin rather than a second link-only variant.
+OWTF-WVS-002,web,external,Nikto Unauthenticated,replace,OWTF-WVS-002-active,implemented,Nikto usage belongs in its optional container plugin rather than a second link-only variant.
 OWTF-CM-006,web,external,Old Backup and Unreferenced Files,replace,OWTF-CM-006-active,implemented,File discovery belongs in its bounded active plugin; duplicate tool links are not a separate technique.
 OWTF-AT-010,web,external,Race Conditions,replace,OWTF-AT-010-external,implemented,Retain Race Conditions as non-executable manual guidance with current primary references; the legacy Python resource wrapper is unnecessary.
 OWTF-DV-001,web,external,Reflected Cross Site Scripting,replace,OWTF-DV-001-external,implemented,Retain Reflected Cross Site Scripting as non-executable manual guidance with current primary references; the legacy Python resource wrapper is unnecessary.

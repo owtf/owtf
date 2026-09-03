@@ -3,7 +3,7 @@ kind: Plugin
 
 metadata:
   id: PTES-008-active
-  version: 0.1.0
+  version: 0.2.0
   title: RPC over HTTP Probe
   description: Uses Nmap to identify RPC-over-HTTP service and NTLM metadata.
 
@@ -24,11 +24,11 @@ spec:
       default: 593
       minimum: 1
       maximum: 65535
-  requirements:
-    commands: [nmap]
   runtime:
-    type: command
-    command:
+    type: container
+    container:
+      image: owtf/kali-tools:local
+      network: bridge
       executable: nmap
       args:
         - -Pn

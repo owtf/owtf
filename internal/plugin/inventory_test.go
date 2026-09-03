@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sort"
 	"strings"
 	"testing"
@@ -110,7 +111,7 @@ func TestEveryLegacyPluginHasAReviewedDecision(t *testing.T) {
 	}
 }
 
-func TestCanonicalWebPluginRuntimesUseKaliContainers(t *testing.T) {
+func TestScannerPluginRuntimesUseKaliContainers(t *testing.T) {
 	catalog, err := Load(os.DirFS("../../plugins"))
 	if err != nil {
 		t.Fatal(err)
@@ -124,7 +125,16 @@ func TestCanonicalWebPluginRuntimesUseKaliContainers(t *testing.T) {
 		"OWTF-IG-004-active":       "whatweb",
 		"OWTF-IG-005-active":       "gobuster",
 		"OWTF-ST-001-active":       "nuclei",
+		"OWTF-WVS-002-active":      "nikto",
 		"OWTF-WVS-003-active":      "wapiti",
+		"PTES-001-active":          "nmap",
+		"PTES-002-active":          "nmap",
+		"PTES-003-active":          "nmap",
+		"PTES-004-active":          "nmap",
+		"PTES-006-active":          "nmap",
+		"PTES-007-active":          "nmap",
+		"PTES-008-active":          "nmap",
+		"PTES-009-active":          "nmap",
 	}
 	for id, executable := range executables {
 		entry, ok := catalog.Get(id)
@@ -136,6 +146,37 @@ func TestCanonicalWebPluginRuntimesUseKaliContainers(t *testing.T) {
 			container.Image != "owtf/kali-tools:local" || container.Network != "bridge" ||
 			container.Executable != executable {
 			t.Errorf("plugin %q must run %q through the Kali container", id, executable)
+		}
+	}
+}
+
+func TestNetworkProbeArgumentsRemainBounded(t *testing.T) {
+	catalog, err := Load(os.DirFS("../../plugins"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for id, scripts := range map[string]string{
+		"PTES-001-active": "ftp-anon,ftp-syst",
+		"PTES-002-active": "smtp-commands,smtp-ntlm-info",
+		"PTES-003-active": "vnc-info,vnc-title",
+		"PTES-004-active": "x11-access",
+		"PTES-006-active": "ms-sql-info,ms-sql-ntlm-info",
+		"PTES-007-active": "msrpc-enum",
+		"PTES-008-active": "http-ntlm-info",
+		"PTES-009-active": "smb-protocols,smb-security-mode,smb2-security-mode,smb2-capabilities,smb-os-discovery",
+	} {
+		entry, ok := catalog.Get(id)
+		if !ok || entry.Manifest.Spec.Runtime.Container == nil {
+			t.Fatalf("network container plugin %q is missing", id)
+		}
+		want := []string{"-Pn", "-n", "-sT", "-sV", "--version-light", "--script", scripts}
+		if id == "PTES-006-active" {
+			want = append(want, "--script-args", "mssql.scanned-ports-only=true")
+		}
+		want = append(want, "--script-timeout", "15s", "--host-timeout", "30s", "--max-retries", "1",
+			"-p", "{{input:port}}", "-oX", "{{artifact:nmap.xml}}", "{{target}}")
+		if got := entry.Manifest.Spec.Runtime.Container.Args; !reflect.DeepEqual(got, want) {
+			t.Errorf("%s arguments = %q, want %q", id, got, want)
 		}
 	}
 }

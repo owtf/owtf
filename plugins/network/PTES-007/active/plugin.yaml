@@ -3,7 +3,7 @@ kind: Plugin
 
 metadata:
   id: PTES-007-active
-  version: 0.1.0
+  version: 0.2.0
   title: MSRPC Endpoint Probe
   description: Uses Nmap to enumerate services exposed by an MSRPC endpoint mapper.
 
@@ -24,11 +24,11 @@ spec:
       default: 135
       minimum: 1
       maximum: 65535
-  requirements:
-    commands: [nmap]
   runtime:
-    type: command
-    command:
+    type: container
+    container:
+      image: owtf/kali-tools:local
+      network: bridge
       executable: nmap
       args:
         - -Pn

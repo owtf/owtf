@@ -117,8 +117,8 @@ capacity for more.
 
 ### External scanner tools
 
-The retained Testssl.sh, WAFW00F, Gobuster, Metagoofil, WhatWeb, Nuclei, and
-Wapiti plugins use a separate Kali image. Build it explicitly once:
+The retained Testssl.sh, WAFW00F, Gobuster, Metagoofil, WhatWeb, Nuclei,
+Wapiti, Nmap, and Nikto plugins use a separate Kali image. Build it explicitly:
 
 ```bash
 make tools-image
@@ -141,12 +141,15 @@ make test-api
 
 The smoke test starts an isolated one-worker server in a temporary directory,
 exercises the API with curl, exercises the CLI against that same server, and
-removes its state afterward. It does not start Docker.
+removes its state afterward. It does not start Docker: container plugins must
+remain blocked, without attempts or fabricated scanner artifacts.
 
 With the Kali image already built, run `make test-tools` for real scanner
-execution against temporary local HTTP/TLS fixtures. It checks reporting,
-metrics, cancellation, and container/volume cleanup without rebuilding the
-tools image. Metagoofil receives a startup check only; its search-provider
+execution against temporary local HTTP/TLS and FTP fixtures. It checks Nmap
+service and anonymous-login detection, closed-port handling, Nikto XML, and
+Gobuster virtual-host discoveries, alongside reporting, metrics, cancellation,
+and container/volume cleanup without rebuilding the tools image.
+Metagoofil receives a startup check only; its search-provider
 workflow requires a separate authorized live test.
 
 Run `make test-failures` to check only cancellation, scanner process death,

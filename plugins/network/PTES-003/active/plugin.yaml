@@ -3,7 +3,7 @@ kind: Plugin
 
 metadata:
   id: PTES-003-active
-  version: 0.1.0
+  version: 0.2.0
   title: VNC Service Probe
   description: Uses Nmap to identify VNC security and desktop metadata.
 
@@ -24,11 +24,11 @@ spec:
       default: 5900
       minimum: 1
       maximum: 65535
-  requirements:
-    commands: [nmap]
   runtime:
-    type: command
-    command:
+    type: container
+    container:
+      image: owtf/kali-tools:local
+      network: bridge
       executable: nmap
       args:
         - -Pn

@@ -31,5 +31,10 @@ RUN apt-get update \
 
 COPY --from=nuclei-templates /src/http/takeovers/ /opt/nuclei-templates/http/takeovers/
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends nmap nikto \
+    && rm -rf /var/lib/apt/lists/* \
+    && command -v nmap && command -v nikto
+
 LABEL org.opencontainers.image.title="OWTF Kali plugin tools" \
       org.opencontainers.image.description="External scanners used by OWTF container plugins"
