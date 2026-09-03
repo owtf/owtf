@@ -105,6 +105,35 @@ an HTML report, a manifest, and the retained artifact files::
 
   owtf sessions export --output session-report.zip ses_ID
 
+Capture HTTP transactions
+-------------------------
+
+Start the OWTF interception proxy on its historical loopback port. On clean
+shutdown it writes a standard HAR file that can be imported into a target::
+
+  owtf proxy \
+    --target-host example.test \
+    --output .owtf/proxy/capture.har
+
+The command prints its listen address, CA certificate path, and output path as
+JSON before accepting traffic. Trust the generated CA only in a dedicated test
+browser or tool profile. ``--target-host`` may be repeated; omit it only for an
+interactive proxy that intentionally accepts every host.
+
+The proxy retains at most 10,000 transactions and captures at most 1 MiB per
+request or response by default. Its bounded response cache excludes OWTF's
+historical analytics-cookie list from cache identity. Use ``--cache-entries 0``
+to disable caching. Failed requests and HTTP 408/599 responses get at most three
+attempts.
+
+Route outbound traffic through another proxy when required::
+
+  owtf proxy --upstream http://user:password@proxy.test:8080
+  owtf proxy --upstream socks5://user:password@proxy.test:1080
+
+HTTP, HTTPS, and SOCKS5 upstream URLs are supported. Credentials are supplied
+only through URL user information and are never interpolated into shell text.
+
 Run ``owtf help`` for the compact command index. The CLI never opens the
 SQLite database or starts plugin processes itself; all state transitions pass
 through the server API.

@@ -19,12 +19,16 @@ resulting evidence.
 - Durable sessions and normalized URL targets.
 - OWTF plugin manifests with established short technique codes.
 - OWTF plugin groups and types, including group launches and ``quiet`` mode.
-- A built-in HTTP collector and injection-safe argument-array command plugins.
+- A built-in HTTP collector, trusted host-command plugins, and isolated
+  container plugins with forced cleanup.
 - Requirement discovery with visible ready, unavailable, and blocked states.
 - A bounded worklist with cancellation of the plugin process group.
 - Worker state, task events, HTTP transactions, artifacts, observations, and
   findings stored in SQLite.
 - HAR transaction import with retained source, request, and response files.
+- An OWTF-owned HTTP/HTTPS interception proxy with a persistent CA, bounded HAR
+  capture and cache, retries, WebSocket tunneling, host scope, and outbound
+  HTTP/HTTPS/SOCKS5 proxy support.
 - Target reports through the API and CLI.
 - One API used by the CLI and the embedded proof UI.
 - No accounts, passwords, tokens, or user database.
@@ -50,6 +54,7 @@ The CLI uses the same API:
 ./build/owtf sessions list
 ./build/owtf scan --plugin OWTF-WSP-001-active https://example.com
 ./build/owtf worklist
+./build/owtf proxy --target-host example.com
 ```
 
 Set `OWTF_URL` when the server is not at its default address. Runtime state is

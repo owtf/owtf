@@ -101,12 +101,18 @@ Plugin execution
 The manifest is declarative. It identifies the plugin, version, OWTF technique
 codes, group, type, runtime, requirements, and supported target kinds.
 
-The first runtime is a Go builtin used to prove the contract. The next runtime
-is a local command expressed as an executable plus an argument array. Target and
+The first runtime is a Go builtin used to prove the contract. A local command
+runtime expresses trusted executables as argument arrays. Target and
 configuration values are passed as individual arguments or environment values;
-they are never interpolated into shell source. A strict shell runtime may be
-added later only if its parsed syntax can reject dynamic commands, ``eval``,
-``source``, command substitution, and ``sh -c`` before execution.
+they are never interpolated into shell source. This prevents OWTF from turning
+target text into shell syntax, but it does not sandbox the executable. Host
+command plugins are trusted code with the same operating-system access as OWTF.
+
+Container plugins are the isolation boundary for third-party tools. They use a
+read-only filesystem, dropped capabilities, no-new-privileges, bounded memory,
+CPU, and process counts, and forced removal after success, failure, timeout, or
+cancellation. Network access remains disabled until the per-task OWTF capture
+proxy is the container's only egress path.
 
 Missing required executables make a plugin unavailable before a run starts. An
 unavailable plugin selected directly fails before a run is created. During a
@@ -136,22 +142,32 @@ Phase 3: CLI and reporting
   HTTP API and emits scriptable JSON. The gate is a complete CLI-driven scan and
   an offline report opened without the server.
 
-Phase 4: evidence import
-  Integrate a maintained proxy such as mitmproxy or ZAP and import HAR/evidence.
-  OWTF does not maintain a new TLS interception stack unless external tools
-  prove insufficient under a separate design review.
+Phase 4: capture proxy
+  Implement the historical OWTF proxy outcomes in a smaller Go package: HTTP
+  methods, CONNECT/TLS interception, transaction capture, bounded response
+  caching and cookie filtering, retries, WebSocket tunneling, outbound
+  HTTP/HTTPS/SOCKS5 proxies, upstream authentication, repeater, CA download,
+  and request/response interceptors. Captures use the same HAR boundary as
+  imports; broken object lifecycles from the retired Tornado implementation are
+  not preserved.
 
-Phase 5: AI assistance
+Phase 5: captured plugin execution
+  Give each container task a private network and a task-owned OWTF proxy as its
+  only egress path. Import its HAR into the task and target before completion,
+  and destroy the plugin container, proxy, and network together on every exit
+  path.
+
+Phase 6: AI assistance
   Add optional evidence search and AI summaries that cite stored observations
   and artifacts. Human-reviewed findings remain authoritative.
 
-Phase 6: operator UI
+Phase 7: operator UI
   Build the final React and TypeScript interface with Tailwind and shadcn
   primitives, compact Inter typography, and complete parity with the CLI. Every
   screen uses the real API; no demo counters or simulated progress. The current
   embedded interface is disposable proof tooling, not the product UI.
 
-Phase 7: legacy retirement
+Phase 8: legacy retirement
   Publish a mapping from retained OWTF technique codes to replacement plugins.
   Deprecate a legacy feature only after its replacement passes a documented
   outcome test. Unsupported and unreliable plugins remain available in the old
@@ -175,12 +191,15 @@ gate covers sessions, targets, individual and grouped plugin launches, worklist,
 workers, ordered logs, cancellation, transactions, reports, artifact downloads,
 and portable ZIP export.
 
-Phase 4 is in progress. Its completed import boundary accepts standard HAR
-files through both curl and the Go CLI, retains the source HAR and
-request/response bodies, exposes imported transactions in target and session
-reports, verifies retrieval and deletion, and creates no fake plugin run or
-worklist task. Launching or configuring an external interception proxy remains
-unimplemented.
+Phase 4 is in progress. The import boundary accepts standard HAR files through
+both curl and the Go CLI, retains source, request, and response bodies, and
+creates no fake plugin work. The OWTF proxy handles HTTP and CONNECT/TLS,
+persists its CA, records bounded HAR captures, tunnels WebSockets, enforces an
+optional host scope, retries failures and HTTP 408/599 responses, caches bounded
+responses with cookie-key filtering, and supports authenticated HTTP, HTTPS,
+and SOCKS5 upstream proxies. Origin HTTP authentication, WebSocket frame
+artifacts, repeater, CA and history APIs, and static/live interceptors remain
+before the phase gate.
 
 API regression gate
 -------------------

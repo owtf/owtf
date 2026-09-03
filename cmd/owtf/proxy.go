@@ -11,7 +11,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"net/url"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -43,7 +42,12 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	keyPath := flags.String("ca-key", filepath.Join(".owtf", "proxy", "ca.key"), "proxy CA private key path")
 	maximumBody := flags.Int64("max-body", 1<<20, "maximum captured bytes per request or response body")
 	maximumTransactions := flags.Int("max-transactions", 10_000, "maximum retained transactions")
-	upstream := flags.String("upstream", "", "optional outbound HTTP proxy URL")
+	maximumAttempts := flags.Int("attempts", 3, "maximum attempts for transport failures and HTTP 408/599")
+	cacheEntries := flags.Int("cache-entries", 1000, "maximum cached responses; zero disables the cache")
+	cacheBody := flags.Int64("cache-max-body", 1<<20, "maximum response body bytes stored per cache entry")
+	cookieBlacklist := flags.String("cookie-blacklist", "_ga,__utma,__utmb,__utmc,__utmz,__utmv", "comma-separated cookies excluded from cache identity")
+	cookieWhitelist := flags.String("cookie-whitelist", "", "comma-separated cookies allowed in cache identity")
+	upstream := flags.String("upstream", "", "optional HTTP, HTTPS, or SOCKS5 proxy URL")
 	insecureUpstream := flags.Bool("insecure-upstream", false, "allow invalid upstream TLS certificates")
 	var targetHosts stringFlags
 	flags.Var(&targetHosts, "target-host", "allowed target host; repeat to allow more than one")
@@ -53,8 +57,8 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	if flags.NArg() != 0 {
 		return errors.New("proxy accepts no positional arguments")
 	}
-	if *maximumBody < 1 || *maximumTransactions < 1 {
-		return errors.New("max-body and max-transactions must be positive")
+	if *maximumBody < 1 || *maximumTransactions < 1 || *maximumAttempts < 1 || *cacheEntries < 0 || *cacheBody < 1 {
+		return errors.New("proxy limits are invalid")
 	}
 
 	authority, err := owtfproxy.LoadOrCreateAuthority(*certificatePath, *keyPath)
@@ -66,16 +70,27 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	transport.Proxy = nil
 	transport.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS12, InsecureSkipVerify: *insecureUpstream}
 	if *upstream != "" {
-		proxyURL, err := url.Parse(*upstream)
-		if err != nil || (proxyURL.Scheme != "http" && proxyURL.Scheme != "https") || proxyURL.Host == "" {
-			return fmt.Errorf("invalid outbound HTTP proxy URL %q", *upstream)
+		if err := owtfproxy.SetUpstream(transport, *upstream); err != nil {
+			return err
 		}
-		transport.Proxy = http.ProxyURL(proxyURL)
+	}
+	var roundTripper http.RoundTripper = owtfproxy.RetryTransport{
+		Next: transport, MaxAttempts: *maximumAttempts, Delay: 100 * time.Millisecond,
+	}
+	if *cacheEntries > 0 {
+		cache, err := owtfproxy.NewResponseCache(owtfproxy.CacheOptions{
+			MaximumEntries: *cacheEntries, MaximumBody: *cacheBody,
+			CookieBlacklist: splitNames(*cookieBlacklist), CookieWhitelist: splitNames(*cookieWhitelist),
+		})
+		if err != nil {
+			return err
+		}
+		roundTripper = cache.RoundTripper(roundTripper)
 	}
 
 	recorder := owtfproxy.NewRecorder(*maximumTransactions)
 	handler, err := owtfproxy.New(owtfproxy.Config{
-		Authority: authority, Recorder: recorder, Transport: transport,
+		Authority: authority, Recorder: recorder, Transport: roundTripper,
 		AllowedHosts: targetHosts, MaximumBody: *maximumBody,
 		ErrorLog: log.New(stderr, "proxy: ", log.LstdFlags),
 	})
@@ -112,4 +127,14 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 		return serveErr
 	}
 	return nil
+}
+
+func splitNames(value string) []string {
+	var result []string
+	for _, item := range strings.Split(value, ",") {
+		if item = strings.TrimSpace(item); item != "" {
+			result = append(result, item)
+		}
+	}
+	return result
 }
