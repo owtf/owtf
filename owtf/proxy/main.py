@@ -2,6 +2,7 @@
 owtf.proxy.main
 ~~~~~~~~~~~~~~~
 """
+
 import logging
 import os
 import re
@@ -14,8 +15,8 @@ import tornado.options
 import tornado.web
 
 from owtf.lib.owtf_process import OWTFProcess
-from owtf.proxy.proxy import ProxyHandler
 from owtf.proxy.interceptor_manager import InterceptorManager
+from owtf.proxy.proxy import ProxyHandler
 from owtf.settings import (
     BLACKLIST_COOKIES,
     CA_CERT,
@@ -26,8 +27,8 @@ from owtf.settings import (
     HTTP_AUTH_MODE,
     HTTP_AUTH_PASSWORD,
     HTTP_AUTH_USERNAME,
+    INBOUND_PROXY_BIND_IP,
     INBOUND_PROXY_CACHE_DIR,
-    INBOUND_PROXY_IP,
     INBOUND_PROXY_PORT,
     INBOUND_PROXY_PROCESSES,
     OUTBOUND_PROXY_AUTH,
@@ -45,6 +46,7 @@ logger = logging.getLogger(__name__)
 # Set up logger
 logger = logging.getLogger(__name__)
 
+
 class ProxyProcess(OWTFProcess):
     def initialize(self, outbound_options=None, outbound_auth=""):
         """Initialize the proxy process
@@ -60,7 +62,7 @@ class ProxyProcess(OWTFProcess):
         self.application = tornado.web.Application(handlers=[(r".*", ProxyHandler)], debug=False, gzip=True)
         # All required variables in request handler
         # Required variables are added as attributes to application, so that request handler can access these
-        self.application.inbound_ip = INBOUND_PROXY_IP
+        self.application.inbound_ip = INBOUND_PROXY_BIND_IP
         self.application.inbound_port = int(INBOUND_PROXY_PORT)
         self.instances = INBOUND_PROXY_PROCESSES
 
@@ -215,7 +217,7 @@ def start_proxy():
         try:
             temp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            temp_socket.bind((INBOUND_PROXY_IP, INBOUND_PROXY_PORT))
+            temp_socket.bind((INBOUND_PROXY_BIND_IP, INBOUND_PROXY_PORT))
             temp_socket.close()
         except socket.error:
             abort_framework("Inbound proxy address already in use")
@@ -223,7 +225,7 @@ def start_proxy():
         proxy_process = ProxyProcess()
         logging.warning(
             "Starting HTTP(s) proxy server at %s:%d",
-            INBOUND_PROXY_IP,
+            INBOUND_PROXY_BIND_IP,
             INBOUND_PROXY_PORT,
         )
         proxy_process.initialize(USE_OUTBOUND_PROXY, OUTBOUND_PROXY_AUTH)

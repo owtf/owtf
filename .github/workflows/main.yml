@@ -156,8 +156,11 @@ jobs:
         with:
           filters: |
             docker:
-              - 'docker/Dockerfile.backend'
-              - 'docker/Dockerfile.frontend'
+              - 'docker/**'
+              - 'pyproject.toml'
+              - 'setup.py'
+              - 'setup.cfg'
+              - 'requirements/base.txt'
 
       - name: Set up Docker Buildx
         if: steps.docker_changes.outputs.docker == 'true'
@@ -172,6 +175,23 @@ jobs:
             --target final_install \
             --tag owtf-backend:ci \
             .
+
+      - name: Validate backend image bootstrap
+        if: steps.docker_changes.outputs.docker == 'true'
+        run: |
+          docker compose -f docker/docker-compose.dev.yml config >/dev/null
+          docker run --rm owtf-backend:ci \
+            /bin/bash -ceu '
+              test -x /home/owtf/owtf-venv/bin/owtf
+              test -s /home/owtf/.owtf/proxy/certs/ca.crt
+              test -s /home/owtf/.owtf/proxy/certs/ca.key
+              test -s /home/owtf/.owtf/proxy/certs/ca_pass.txt
+              openssl x509 -in /home/owtf/.owtf/proxy/certs/ca.crt -noout -subject
+              openssl pkey \
+                -in /home/owtf/.owtf/proxy/certs/ca.key \
+                -passin file:/home/owtf/.owtf/proxy/certs/ca_pass.txt \
+                -noout -check
+            '
 
       - name: Build frontend image
         if: steps.docker_changes.outputs.docker == 'true'

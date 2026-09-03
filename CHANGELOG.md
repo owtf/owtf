@@ -30,6 +30,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- Fixed the supported Docker Compose quick start so the backend installs OWTF's package metadata and console entry points correctly.
+- Added first-run proxy certificate generation with persistent Compose storage, and exposed the proxy on loopback-only host ports.
 - Fixed targets disappearing from the active session and corrected selected-plugin execution.
 - Fixed proxy interceptor response handling, cache lock timeouts, and process termination escalation.
 - Fixed work-queue claiming and draining gaps, timeout and exception outcomes, and duplicate plugin output under concurrent execution.

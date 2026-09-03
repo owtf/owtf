@@ -1,6 +1,7 @@
-version: "3.9"
 networks:
   backend: {}
+volumes:
+  owtf-data: {}
 services:
   owtf-backend:
     container_name: owtf-backend
@@ -14,15 +15,17 @@ services:
       - POSTGRES_USER=owtf_db_user
       - POSTGRES_PASSWORD=jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=
       - POSTGRES_DB=owtf_db
+      - OWTF_INBOUND_PROXY_BIND_IP=0.0.0.0
     ports:
-      - 8008:8008
-      - 8010:8010
-      - 8009:8009
+      - 127.0.0.1:8008:8008
+      - 127.0.0.1:8010:8010
+      - 127.0.0.1:8009:8009
     depends_on:
       - owtf-frontend
       - db
     volumes:
       - ..:/home/owtf/owtf
+      - owtf-data:/home/owtf/.owtf
     networks:
       - backend
   owtf-frontend:
@@ -32,15 +35,13 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.frontend
     ports:
-      - 8019:8019
+      - 127.0.0.1:8019:8019
     volumes:
       - ..:/home/owtf/owtf
     networks:
       - backend
   db:
     image: postgres:alpine
-    ports:
-      - 5432:5432
     environment:
       - POSTGRES_USER=owtf_db_user
       - POSTGRES_PASSWORD=jgZKW33Q+HZk8rqylZxaPg1lbuNGHJhgzsq3gBKV32g=

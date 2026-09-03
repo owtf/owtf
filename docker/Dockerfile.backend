@@ -81,11 +81,12 @@ RUN pip install -r ${HOME}/requirements/base.txt
 COPY --chown=owtf:owtf bin ${HOME}/bin
 COPY --chown=owtf:owtf owtf ${HOME}/owtf
 COPY --chown=owtf:owtf requirements ${HOME}/requirements
-COPY --chown=owtf:owtf setup.py setup.cfg MANIFEST.in README.md ${HOME}/
+COPY --chown=owtf:owtf pyproject.toml setup.py setup.cfg MANIFEST.in README.md LICENSE.md ${HOME}/
 
-# Install OWTF using the recommended method (setup.py)
-RUN cd ${HOME} && \
-    python setup.py install
+# Install OWTF from its PEP 517 metadata without reinstalling the dependencies
+# already pinned above. Fail the image build if the console entry point is absent.
+RUN pip install --no-deps ${HOME} && \
+    test -x ${VIRTUAL_ENV}/bin/owtf
 
 # Reduce cache footprint from pip to keep final image size smaller
 RUN pip cache purge && rm -rf ${HOME}/.cache
@@ -112,10 +113,15 @@ COPY --from=owtf_setup /home/owtf/setup.py ${HOME}/setup.py
 COPY --from=owtf_setup /home/owtf/setup.cfg ${HOME}/setup.cfg
 COPY --from=owtf_setup /home/owtf/MANIFEST.in ${HOME}/MANIFEST.in
 COPY --from=owtf_setup /home/owtf/README.md ${HOME}/README.md
+COPY docker/entrypoint.backend.sh /usr/local/bin/owtf-entrypoint
 
-RUN chown -R owtf:owtf ${HOME}
+RUN chmod 0755 /usr/local/bin/owtf-entrypoint && \
+    mkdir -p ${HOME}/.owtf && \
+    chown -R owtf:owtf ${HOME}
 
 USER owtf
+
+ENTRYPOINT ["/usr/local/bin/owtf-entrypoint"]
 
 # Set the current working directory to OWTF root directory
 WORKDIR ${HOME}

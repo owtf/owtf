@@ -71,9 +71,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" \
-            dist/* \
-            SHA256SUMS \
-            --verify-tag \
-            --title "OWTF $GITHUB_REF_NAME" \
-            --notes-file release-notes.md
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release edit "$GITHUB_REF_NAME" \
+              --title "OWTF $GITHUB_REF_NAME" \
+              --notes-file release-notes.md
+            gh release upload "$GITHUB_REF_NAME" \
+              dist/* \
+              SHA256SUMS \
+              --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              dist/* \
+              SHA256SUMS \
+              --verify-tag \
+              --title "OWTF $GITHUB_REF_NAME" \
+              --notes-file release-notes.md
+          fi
