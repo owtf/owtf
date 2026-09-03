@@ -19,16 +19,17 @@ import (
 
 func TestCommandArgumentsDoNotInvokeAShell(t *testing.T) {
 	spec := &CommandSpec{
-		Args:      []string{"--url", "{{target}}", "{{artifact:output}}"},
+		Args:      []string{"--url", "{{target}}", "--user-agent", "{{input:user_agent}}", "{{artifact:output}}"},
 		Artifacts: []CommandArtifact{{Name: "output"}},
 	}
 	target := "https://example.test/; touch /tmp/owtf-injected"
-	args, err := commandArgs(spec, target, t.TempDir())
+	userAgent := "OWTF; $(touch /tmp/owtf-input-injected)"
+	args, err := commandArgs(spec, target, t.TempDir(), map[string]any{"user_agent": userAgent})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(args) != 3 || args[1] != target {
-		t.Fatalf("target was not preserved as one argument: %#v", args)
+	if len(args) != 5 || args[1] != target || args[3] != userAgent {
+		t.Fatalf("dynamic values were not preserved as whole arguments: %#v", args)
 	}
 }
 

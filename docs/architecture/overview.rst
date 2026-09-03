@@ -111,14 +111,24 @@ Plugin execution
 ----------------
 
 The manifest is declarative. It identifies the plugin, version, OWTF technique
-codes, group, type, runtime, requirements, and supported target kinds.
+codes, group, type, runtime, requirements, supported target kinds, and optional
+operator inputs. Inputs use the small ``string``, ``integer``, and ``boolean``
+type set. String choices and integer bounds describe validation and provide the
+same rendering contract to the CLI, API, and final UI.
+
+Launch input is non-secret because its resolved value is intentionally retained
+on every task and included in reports. Defaults are resolved once when the task
+is created. Unknown, missing, incorrectly typed, and out-of-bounds values fail
+before work is queued. A queued task also retains the complete plugin manifest;
+if that manifest changes before execution, OWTF rejects the task rather than
+silently running a different command.
 
 The first runtime is a Go builtin used to prove the contract. A local command
-runtime expresses trusted executables as argument arrays. Target and
-configuration values are passed as individual arguments or environment values;
-they are never interpolated into shell source. This prevents OWTF from turning
-target text into shell syntax, but it does not sandbox the executable. Host
-command plugins are trusted code with the same operating-system access as OWTF.
+runtime expresses trusted executables as argument arrays. Target, artifact, and
+input placeholders must occupy a complete argument. They are never interpolated
+into shell source. This prevents OWTF from turning target or operator text into
+shell syntax, but it does not sandbox the executable. Host command plugins are
+trusted code with the same operating-system access as OWTF.
 
 Container plugins are the isolation boundary for third-party tools. They use a
 read-only filesystem, dropped capabilities, no-new-privileges, bounded memory,
@@ -266,10 +276,11 @@ and SOCKS5 upstream proxies. Basic and Digest target authentication is scoped
 
 Phase 5 has a checked feature matrix, typed configuration shared by server and
 proxy startup, deterministic named plugin profiles, target scope and bounded
-search, and complete session deletion. Configuration validation,
+search, complete session deletion, and typed plugin inputs. Configuration validation,
 default/file/environment/flag precedence, bounded worker and proxy limits,
 secret redaction, profile validation, persisted run ordering, deletion
-conflicts, and target pagination are covered by tests. The remaining matrix
+conflicts, target pagination, input validation, immutable snapshots, and
+shell-free argument expansion are covered by tests. The remaining matrix
 rows are not implied complete by this slice.
 
 API regression gate

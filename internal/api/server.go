@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -332,12 +333,13 @@ func (s *Server) listPlugins(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) createRun(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		SessionID   string   `json:"session_id"`
-		TargetIDs   []string `json:"target_ids"`
-		PluginIDs   []string `json:"plugin_ids"`
-		PluginGroup string   `json:"plugin_group"`
-		PluginTypes []string `json:"plugin_types"`
-		Profile     string   `json:"profile"`
+		SessionID    string                    `json:"session_id"`
+		TargetIDs    []string                  `json:"target_ids"`
+		PluginIDs    []string                  `json:"plugin_ids"`
+		PluginGroup  string                    `json:"plugin_group"`
+		PluginTypes  []string                  `json:"plugin_types"`
+		Profile      string                    `json:"profile"`
+		PluginInputs map[string]map[string]any `json:"plugin_inputs"`
 	}
 	if err := decodeJSON(w, r, &input); err != nil {
 		return
@@ -420,11 +422,26 @@ func (s *Server) createRun(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	selected := make(map[string]bool, len(entries))
+	for _, entry := range entries {
+		selected[entry.Manifest.Metadata.ID] = true
+	}
+	unselected := make([]string, 0)
+	for pluginID := range input.PluginInputs {
+		if !selected[pluginID] {
+			unselected = append(unselected, pluginID)
+		}
+	}
+	if len(unselected) != 0 {
+		sort.Strings(unselected)
+		writeError(w, http.StatusBadRequest, fmt.Sprintf("plugin inputs provided for unselected plugins: %s", strings.Join(unselected, ", ")))
+		return
+	}
 	specs := make([]store.TaskSpec, 0, len(input.TargetIDs)*len(entries))
 	for _, entry := range entries {
-		snapshot, err := entry.Snapshot()
+		snapshot, err := entry.Snapshot(input.PluginInputs[entry.Manifest.Metadata.ID])
 		if err != nil {
-			s.internalError(w, err)
+			writeError(w, http.StatusBadRequest, fmt.Sprintf("plugin %s inputs: %v", entry.Manifest.Metadata.ID, err))
 			return
 		}
 		for _, targetID := range input.TargetIDs {
@@ -834,6 +851,7 @@ func (s *Server) internalError(w http.ResponseWriter, err error) {
 func decodeJSON(w http.ResponseWriter, r *http.Request, destination any) error {
 	decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20))
 	decoder.DisallowUnknownFields()
+	decoder.UseNumber()
 	if err := decoder.Decode(destination); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid JSON: "+err.Error())
 		return err

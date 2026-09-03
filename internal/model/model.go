@@ -46,19 +46,32 @@ type TargetSearchResult struct {
 	Data            []Target `json:"data"`
 }
 
+// PluginInput describes one non-secret value accepted by a plugin launch.
+type PluginInput struct {
+	Name        string   `yaml:"name" json:"name"`
+	Type        string   `yaml:"type" json:"type"`
+	Description string   `yaml:"description,omitempty" json:"description,omitempty"`
+	Required    bool     `yaml:"required,omitempty" json:"required,omitempty"`
+	Default     any      `yaml:"default,omitempty" json:"default,omitempty"`
+	Choices     []string `yaml:"choices,omitempty" json:"choices,omitempty"`
+	Minimum     *int64   `yaml:"minimum,omitempty" json:"minimum,omitempty"`
+	Maximum     *int64   `yaml:"maximum,omitempty" json:"maximum,omitempty"`
+}
+
 // Plugin is the indexed, operator-visible form of a plugin manifest.
 type Plugin struct {
-	ID           string    `json:"id"`
-	Version      string    `json:"version"`
-	Title        string    `json:"title"`
-	Description  string    `json:"description"`
-	Group        string    `json:"group"`
-	Type         string    `json:"type"`
-	Techniques   []string  `json:"techniques"`
-	RuntimeType  string    `json:"runtime_type"`
-	Availability string    `json:"availability"`
-	Reason       string    `json:"reason,omitempty"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID           string        `json:"id"`
+	Version      string        `json:"version"`
+	Title        string        `json:"title"`
+	Description  string        `json:"description"`
+	Group        string        `json:"group"`
+	Type         string        `json:"type"`
+	Techniques   []string      `json:"techniques"`
+	Inputs       []PluginInput `json:"inputs"`
+	RuntimeType  string        `json:"runtime_type"`
+	Availability string        `json:"availability"`
+	Reason       string        `json:"reason,omitempty"`
+	UpdatedAt    time.Time     `json:"updated_at"`
 }
 
 // Run groups the immutable set of tasks created by one launch request.
@@ -74,24 +87,26 @@ type Run struct {
 
 // Task is one plugin and target pair scheduled by a run.
 type Task struct {
-	ID        string     `json:"id"`
-	RunID     string     `json:"run_id"`
-	TargetID  string     `json:"target_id"`
-	PluginID  string     `json:"plugin_id"`
-	Status    string     `json:"status"`
-	Error     string     `json:"error,omitempty"`
-	CreatedAt time.Time  `json:"created_at"`
-	StartedAt *time.Time `json:"started_at,omitempty"`
-	EndedAt   *time.Time `json:"ended_at,omitempty"`
+	ID        string         `json:"id"`
+	RunID     string         `json:"run_id"`
+	TargetID  string         `json:"target_id"`
+	PluginID  string         `json:"plugin_id"`
+	Inputs    map[string]any `json:"inputs"`
+	Status    string         `json:"status"`
+	Error     string         `json:"error,omitempty"`
+	CreatedAt time.Time      `json:"created_at"`
+	StartedAt *time.Time     `json:"started_at,omitempty"`
+	EndedAt   *time.Time     `json:"ended_at,omitempty"`
 }
 
 // TaskExecution contains the task, its current attempt, and the resolved target
 // needed by the runner.
 type TaskExecution struct {
 	Task
-	AttemptID     string `json:"attempt_id"`
-	AttemptNumber int    `json:"attempt_number"`
-	Target        Target `json:"target"`
+	AttemptID      string `json:"attempt_id"`
+	AttemptNumber  int    `json:"attempt_number"`
+	Target         Target `json:"target"`
+	PluginSnapshot string `json:"-"`
 }
 
 // TaskEvent is one ordered lifecycle, stdout, or stderr record for a task.

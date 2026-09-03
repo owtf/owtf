@@ -158,6 +158,15 @@ func (r *Runner) execute(parent context.Context, workerIndex int, taskID string)
 		r.fail(parent, execution, logEvent, fmt.Errorf("plugin %s is not in the catalog", execution.PluginID))
 		return model.TaskFailed
 	}
+	snapshot, err := plugin.ParseSnapshot(execution.PluginSnapshot)
+	if err != nil {
+		r.fail(parent, execution, logEvent, err)
+		return model.TaskFailed
+	}
+	if snapshot.Manifest.Metadata.ID != execution.PluginID || !snapshot.Matches(entry.Manifest) {
+		r.fail(parent, execution, logEvent, errors.New("plugin manifest changed after task creation; create a new run"))
+		return model.TaskFailed
+	}
 	if entry.Availability != "ready" || entry.Executor == nil {
 		r.fail(parent, execution, logEvent, fmt.Errorf("plugin %s is unavailable: %s", execution.PluginID, entry.Reason))
 		return model.TaskFailed
@@ -166,7 +175,8 @@ func (r *Runner) execute(parent context.Context, workerIndex int, taskID string)
 	ctx, cancel := context.WithTimeout(taskCtx, r.timeout)
 	defer cancel()
 	result, err := entry.Executor(ctx, plugin.Request{
-		TaskID: execution.ID, PluginID: execution.PluginID, Target: execution.Target, Log: logEvent,
+		TaskID: execution.ID, PluginID: execution.PluginID, Target: execution.Target,
+		Inputs: snapshot.Inputs, Log: logEvent,
 	})
 	if err != nil {
 		if errors.Is(ctx.Err(), context.Canceled) && parent.Err() == nil {

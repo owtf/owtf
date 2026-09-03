@@ -16,6 +16,7 @@ import (
 
 func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 	requests := make(map[string]int)
+	pluginInputRequests := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		key := r.Method + " " + r.URL.Path
 		requests[key]++
@@ -78,18 +79,26 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 			writeTestJSON(t, w, map[string]any{"name": "default", "plugins": []string{"OWTF-WSP-001-active"}})
 		case "POST /api/v2/runs":
 			var input struct {
-				SessionID   string   `json:"session_id"`
-				TargetIDs   []string `json:"target_ids"`
-				PluginIDs   []string `json:"plugin_ids"`
-				PluginGroup string   `json:"plugin_group"`
-				PluginTypes []string `json:"plugin_types"`
-				Profile     string   `json:"profile"`
+				SessionID    string                    `json:"session_id"`
+				TargetIDs    []string                  `json:"target_ids"`
+				PluginIDs    []string                  `json:"plugin_ids"`
+				PluginGroup  string                    `json:"plugin_group"`
+				PluginTypes  []string                  `json:"plugin_types"`
+				Profile      string                    `json:"profile"`
+				PluginInputs map[string]map[string]any `json:"plugin_inputs"`
 			}
 			decodeTestJSON(t, r, &input)
 			explicit := len(input.PluginIDs) == 1 && input.PluginIDs[0] == "OWTF-WSP-001-active" && input.PluginGroup == ""
 			grouped := len(input.PluginIDs) == 0 && input.PluginGroup == "web" && len(input.PluginTypes) == 1 && input.PluginTypes[0] == "active" && input.Profile == "default"
 			if input.SessionID != "ses_1" || len(input.TargetIDs) != 1 || input.TargetIDs[0] != "tgt_1" || (!explicit && !grouped) {
 				t.Fatalf("unexpected run request: %+v", input)
+			}
+			if values := input.PluginInputs["OWTF-WSP-001-active"]; values != nil {
+				pluginInputRequests++
+				value, ok := values["request_label"]
+				if !ok || (value != "CLI run" && value != "browser,scan") {
+					t.Fatalf("plugin input was not preserved: %+v", input.PluginInputs)
+				}
 			}
 			w.WriteHeader(http.StatusAccepted)
 			writeTestJSON(t, w, map[string]any{"run": map[string]string{"id": "run_1"}, "tasks": []map[string]string{{"id": "tsk_1"}}})
@@ -169,9 +178,9 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 		{"profiles", "show", "default"},
 		{"runs", "list", "--session", "ses_1"},
 		{"runs", "show", "run_1"},
-		{"runs", "create", "--session", "ses_1", "--target", "tgt_1", "--plugin", "OWTF-WSP-001-active"},
+		{"runs", "create", "--session", "ses_1", "--target", "tgt_1", "--plugin", "OWTF-WSP-001-active", "--input", "OWTF-WSP-001-active.request_label=CLI run"},
 		{"runs", "create", "--session", "ses_1", "--target", "tgt_1", "--group", "web", "--type", "active", "--profile", "default"},
-		{"scan", "--session", "ses_1", "--group", "web", "--type", "active", "--profile", "default", "https://example.test/"},
+		{"scan", "--session", "ses_1", "--group", "web", "--type", "active", "--profile", "default", "--input", "OWTF-WSP-001-active.request_label=browser,scan", "https://example.test/"},
 		{"worklist", "--session", "ses_1", "--status", "queued"},
 		{"workers"},
 		{"tasks", "show", "tsk_1"},
@@ -251,6 +260,9 @@ func TestOperatorCommandsUseHTTPAPI(t *testing.T) {
 			t.Errorf("CLI did not call %s", route)
 		}
 	}
+	if pluginInputRequests != 2 {
+		t.Fatalf("CLI sent plugin inputs on %d requests, want 2", pluginInputRequests)
+	}
 }
 
 func TestAPIErrorIsReturned(t *testing.T) {
@@ -264,6 +276,25 @@ func TestAPIErrorIsReturned(t *testing.T) {
 	err := Run(context.Background(), []string{"--url", server.URL, "targets", "show", "missing"}, io.Discard, io.Discard)
 	if err == nil || !strings.Contains(err.Error(), "not found") {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestParsePluginInputs(t *testing.T) {
+	inputs, err := parsePluginInputs([]string{
+		"OWTF-TEST-001-active.user_agent=OWTF, security runner",
+		"OWTF-TEST-001-active.timeout_seconds=10",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	values := inputs["OWTF-TEST-001-active"]
+	if values["user_agent"] != "OWTF, security runner" || values["timeout_seconds"] != "10" {
+		t.Fatalf("unexpected plugin inputs: %#v", inputs)
+	}
+	for _, values := range [][]string{{"bad"}, {"plugin.=value"}, {"plugin.name=one", "plugin.name=two"}} {
+		if _, err := parsePluginInputs(values); err == nil {
+			t.Fatalf("invalid plugin inputs were accepted: %q", values)
+		}
 	}
 }
 

@@ -19,6 +19,7 @@ resulting evidence.
 - Durable session lifecycle and normalized URL, host, IP, and CIDR targets.
 - Persisted target scope plus bounded target search and pagination.
 - OWTF plugin manifests with established short technique codes.
+- Typed, bounded plugin inputs with defaults recorded on every task.
 - OWTF plugin groups and types, including group launches and ``quiet`` mode.
 - Named OWTF profiles with deterministic plugin ordering recorded on each run.
 - A built-in HTTP collector, trusted host-command plugins, and isolated

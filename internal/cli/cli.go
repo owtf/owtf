@@ -43,6 +43,14 @@ func (values *stringList) Set(value string) error {
 	return nil
 }
 
+type assignmentList []string
+
+func (values *assignmentList) String() string { return strings.Join(*values, ",") }
+func (values *assignmentList) Set(value string) error {
+	*values = append(*values, value)
+	return nil
+}
+
 // Run parses and executes one CLI request against an OWTF server.
 func Run(ctx context.Context, args []string, out, errOut io.Writer) error {
 	flags := flag.NewFlagSet("owtf", flag.ContinueOnError)
@@ -340,14 +348,16 @@ func (a *app) runs(ctx context.Context, args []string) error {
 		profileName := flags.String("profile", "", "plugin order profile for a group launch")
 		var targetIDs, pluginIDs stringList
 		var pluginTypes stringList
+		var pluginInputs assignmentList
 		flags.Var(&targetIDs, "target", "target ID (repeatable or comma-separated)")
 		flags.Var(&pluginIDs, "plugin", "plugin ID (repeatable or comma-separated)")
 		flags.Var(&pluginTypes, "type", "plugin type (repeatable or comma-separated)")
+		flags.Var(&pluginInputs, "input", "plugin input as PLUGIN_ID.NAME=VALUE (repeatable)")
 		if err := flags.Parse(args[1:]); err != nil {
 			return err
 		}
 		if *sessionID == "" || len(targetIDs) == 0 || flags.NArg() != 0 {
-			return errors.New("usage: owtf runs create --session ID --target ID (--plugin ID | --group GROUP [--type TYPE] [--profile NAME])")
+			return errors.New("usage: owtf runs create --session ID --target ID (--plugin ID | --group GROUP [--type TYPE] [--profile NAME]) [--input PLUGIN_ID.NAME=VALUE]")
 		}
 		selection, err := pluginSelection(pluginIDs, *pluginGroup, pluginTypes)
 		if err != nil {
@@ -359,9 +369,16 @@ func (a *app) runs(ctx context.Context, args []string) error {
 			}
 			selection["profile"] = *profileName
 		}
+		inputs, err := parsePluginInputs(pluginInputs)
+		if err != nil {
+			return err
+		}
 		input := map[string]any{
 			"session_id": *sessionID,
 			"target_ids": []string(targetIDs),
+		}
+		if len(inputs) != 0 {
+			input["plugin_inputs"] = inputs
 		}
 		for key, value := range selection {
 			input[key] = value
@@ -379,13 +396,15 @@ func (a *app) scan(ctx context.Context, args []string) error {
 	profileName := flags.String("profile", "", "plugin order profile for a group launch")
 	var pluginIDs stringList
 	var pluginTypes stringList
+	var pluginInputs assignmentList
 	flags.Var(&pluginIDs, "plugin", "plugin ID (repeatable or comma-separated)")
 	flags.Var(&pluginTypes, "type", "plugin type (repeatable or comma-separated)")
+	flags.Var(&pluginInputs, "input", "plugin input as PLUGIN_ID.NAME=VALUE (repeatable)")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
 	if flags.NArg() == 0 {
-		return errors.New("usage: owtf scan [--session ID] (--plugin ID | --group GROUP [--type TYPE] [--profile NAME]) TARGET...")
+		return errors.New("usage: owtf scan [--session ID] (--plugin ID | --group GROUP [--type TYPE] [--profile NAME]) [--input PLUGIN_ID.NAME=VALUE] TARGET...")
 	}
 	selection, err := pluginSelection(pluginIDs, *pluginGroup, pluginTypes)
 	if err != nil {
@@ -396,6 +415,10 @@ func (a *app) scan(ctx context.Context, args []string) error {
 			return errors.New("--profile requires --group")
 		}
 		selection["profile"] = *profileName
+	}
+	inputs, err := parsePluginInputs(pluginInputs)
+	if err != nil {
+		return err
 	}
 	resolvedSessionID, err := a.ensureSession(ctx, *sessionID)
 	if err != nil {
@@ -424,6 +447,9 @@ func (a *app) scan(ctx context.Context, args []string) error {
 		"session_id": resolvedSessionID,
 		"target_ids": targetIDs,
 	}
+	if len(inputs) != 0 {
+		input["plugin_inputs"] = inputs
+	}
 	for key, value := range selection {
 		input[key] = value
 	}
@@ -444,6 +470,26 @@ func pluginSelection(pluginIDs []string, group string, pluginTypes []string) (ma
 		return map[string]any{"plugin_group": group, "plugin_types": []string(pluginTypes)}, nil
 	}
 	return map[string]any{"plugin_ids": []string(pluginIDs)}, nil
+}
+
+func parsePluginInputs(values []string) (map[string]map[string]any, error) {
+	inputs := make(map[string]map[string]any)
+	for _, assignment := range values {
+		key, value, ok := strings.Cut(assignment, "=")
+		separator := strings.LastIndexByte(key, '.')
+		if !ok || separator < 1 || separator == len(key)-1 {
+			return nil, fmt.Errorf("invalid plugin input %q; want PLUGIN_ID.NAME=VALUE", assignment)
+		}
+		pluginID, name := key[:separator], key[separator+1:]
+		if inputs[pluginID] == nil {
+			inputs[pluginID] = make(map[string]any)
+		}
+		if _, exists := inputs[pluginID][name]; exists {
+			return nil, fmt.Errorf("plugin input %s.%s was provided more than once", pluginID, name)
+		}
+		inputs[pluginID][name] = value
+	}
+	return inputs, nil
 }
 
 func (a *app) ensureSession(ctx context.Context, id string) (string, error) {
@@ -813,6 +859,8 @@ Usage:
   owtf [--url URL] plugins list [--group GROUP] [--type TYPE]
   owtf [--url URL] profiles list|show
   owtf [--url URL] runs list --session ID
+  owtf [--url URL] runs create ... [--input PLUGIN_ID.NAME=VALUE]
+  owtf [--url URL] scan ... [--input PLUGIN_ID.NAME=VALUE] TARGET...
   owtf [--url URL] runs show ID
   owtf [--url URL] runs create --session ID --target ID (--plugin ID | --group GROUP [--type TYPE] [--profile NAME])
   owtf [--url URL] scan [--session ID] (--plugin ID | --group GROUP [--type TYPE] [--profile NAME]) TARGET...

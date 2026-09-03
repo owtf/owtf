@@ -51,7 +51,7 @@ func ContainerExecutor(manifest Manifest, engine ContainerEngine) Executor {
 		defer os.RemoveAll(workDir)
 
 		spec := manifest.Spec.Runtime.Container
-		args, err := containerArgs(spec, request.Target.Value)
+		args, err := containerArgs(spec, request.Target.Value, request.Inputs)
 		if err != nil {
 			return Result{}, err
 		}
@@ -87,28 +87,12 @@ func ContainerExecutor(manifest Manifest, engine ContainerEngine) Executor {
 	}
 }
 
-func containerArgs(spec *ContainerSpec, target string) ([]string, error) {
+func containerArgs(spec *ContainerSpec, target string, inputs map[string]any) ([]string, error) {
 	artifacts := make(map[string]string, len(spec.Artifacts))
 	for _, artifact := range spec.Artifacts {
 		artifacts[artifact.Name] = path.Join(containerArtifactDir, artifact.Name)
 	}
-	args := make([]string, 0, len(spec.Args))
-	for _, arg := range spec.Args {
-		switch {
-		case arg == "{{target}}":
-			args = append(args, target)
-		case strings.HasPrefix(arg, "{{artifact:") && strings.HasSuffix(arg, "}}"):
-			name := strings.TrimSuffix(strings.TrimPrefix(arg, "{{artifact:"), "}}")
-			artifactPath, ok := artifacts[name]
-			if !ok {
-				return nil, fmt.Errorf("argument references undeclared artifact %q", name)
-			}
-			args = append(args, artifactPath)
-		default:
-			args = append(args, arg)
-		}
-	}
-	return args, nil
+	return expandArguments(spec.Args, target, artifacts, inputs)
 }
 
 func containerEnvironment(request Request) []string {

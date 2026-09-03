@@ -171,6 +171,10 @@ spec:
   group: web
   type: active
   targetKinds: [url]
+  inputs:
+    - name: request_label
+      type: string
+      default: default
   runtime:
     type: builtin
     builtin: http-collector
@@ -199,7 +203,12 @@ func TestTargetScanPersistsReportAndSupportsDeletion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	catalog.RegisterBuiltin("http-collector", plugin.HTTPCollector(targetServer.Client()))
+	collector := plugin.HTTPCollector(targetServer.Client())
+	receivedInputs := make(chan map[string]any, 1)
+	catalog.RegisterBuiltin("http-collector", func(ctx context.Context, request plugin.Request) (plugin.Result, error) {
+		receivedInputs <- request.Inputs
+		return collector(ctx, request)
+	})
 	entries := catalog.Entries()
 	if err := database.ReplacePlugins(context.Background(), []model.Plugin{entries[0].Plugin()}); err != nil {
 		t.Fatal(err)
@@ -226,16 +235,27 @@ func TestTargetScanPersistsReportAndSupportsDeletion(t *testing.T) {
 		t.Fatalf("unexpected target intake result: %+v", added)
 	}
 	target := added.Created[0]
+	plugins := requestJSON[[]model.Plugin](t, server.Client(), http.MethodGet, server.URL+"/api/v2/plugins", nil, http.StatusOK)
+	if len(plugins) != 1 || len(plugins[0].Inputs) != 1 || plugins[0].Inputs[0].Name != "request_label" {
+		t.Fatalf("plugin inputs are not exposed: %+v", plugins)
+	}
+	requestJSON[map[string]string](t, server.Client(), http.MethodPost, server.URL+"/api/v2/runs", map[string]any{
+		"session_id":    session.ID,
+		"target_ids":    []string{target.ID},
+		"plugin_ids":    []string{"OWTF-WSP-001-active"},
+		"plugin_inputs": map[string]any{"OWTF-WSP-001-active": map[string]any{"unknown": true}},
+	}, http.StatusBadRequest)
 
 	runResult := requestJSON[struct {
 		Run   model.Run    `json:"run"`
 		Tasks []model.Task `json:"tasks"`
 	}](t, server.Client(), http.MethodPost, server.URL+"/api/v2/runs", map[string]any{
-		"session_id": session.ID,
-		"target_ids": []string{target.ID},
-		"plugin_ids": []string{"OWTF-WSP-001-active"},
+		"session_id":    session.ID,
+		"target_ids":    []string{target.ID},
+		"plugin_ids":    []string{"OWTF-WSP-001-active"},
+		"plugin_inputs": map[string]any{"OWTF-WSP-001-active": map[string]any{"request_label": "API run"}},
 	}, http.StatusAccepted)
-	if len(runResult.Tasks) != 1 || runResult.Run.Status != model.RunQueued {
+	if len(runResult.Tasks) != 1 || runResult.Run.Status != model.RunQueued || runResult.Tasks[0].Inputs["request_label"] != "API run" {
 		t.Fatalf("unexpected run: %+v", runResult)
 	}
 
@@ -252,6 +272,10 @@ func TestTargetScanPersistsReportAndSupportsDeletion(t *testing.T) {
 			t.Fatal("timed out waiting for task completion")
 		}
 		time.Sleep(20 * time.Millisecond)
+	}
+	inputs := <-receivedInputs
+	if inputs["request_label"] != "API run" {
+		t.Fatalf("runner did not use snapshotted inputs: %#v", inputs)
 	}
 
 	report := requestJSON[model.TargetReport](t, server.Client(), http.MethodGet, server.URL+"/api/v2/targets/"+target.ID+"/report", nil, http.StatusOK)
@@ -559,7 +583,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *store.Store, *runner.Runner
 
 func assertReport(t *testing.T, report model.TargetReport) {
 	t.Helper()
-	if len(report.Tasks) != 1 || report.Tasks[0].Status != model.TaskSucceeded {
+	if len(report.Tasks) != 1 || report.Tasks[0].Status != model.TaskSucceeded || report.Tasks[0].Inputs["request_label"] != "API run" {
 		t.Fatalf("unexpected tasks: %+v", report.Tasks)
 	}
 	if len(report.Transactions) != 1 || report.Transactions[0].StatusCode != http.StatusCreated {

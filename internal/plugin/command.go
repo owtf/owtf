@@ -32,7 +32,7 @@ func CommandExecutor(manifest Manifest, executable string) Executor {
 		}
 		defer os.RemoveAll(workDir)
 
-		args, err := commandArgs(manifest.Spec.Runtime.Command, request.Target.Value, workDir)
+		args, err := commandArgs(manifest.Spec.Runtime.Command, request.Target.Value, workDir, request.Inputs)
 		if err != nil {
 			return Result{}, err
 		}
@@ -71,28 +71,43 @@ func CommandExecutor(manifest Manifest, executable string) Executor {
 	}
 }
 
-func commandArgs(spec *CommandSpec, target, workDir string) ([]string, error) {
+func commandArgs(spec *CommandSpec, target, workDir string, inputs map[string]any) ([]string, error) {
 	artifacts := make(map[string]string, len(spec.Artifacts))
 	for _, artifact := range spec.Artifacts {
 		artifacts[artifact.Name] = filepath.Join(workDir, artifact.Name)
 	}
-	args := make([]string, 0, len(spec.Args))
-	for _, arg := range spec.Args {
+	return expandArguments(spec.Args, target, artifacts, inputs)
+}
+
+func expandArguments(arguments []string, target string, artifacts map[string]string, inputs map[string]any) ([]string, error) {
+	result := make([]string, 0, len(arguments))
+	for _, argument := range arguments {
 		switch {
-		case arg == "{{target}}":
-			args = append(args, target)
-		case strings.HasPrefix(arg, "{{artifact:") && strings.HasSuffix(arg, "}}"):
-			name := strings.TrimSuffix(strings.TrimPrefix(arg, "{{artifact:"), "}}")
+		case argument == "{{target}}":
+			result = append(result, target)
+		case strings.HasPrefix(argument, "{{artifact:") && strings.HasSuffix(argument, "}}"):
+			name := strings.TrimSuffix(strings.TrimPrefix(argument, "{{artifact:"), "}}")
 			path, ok := artifacts[name]
 			if !ok {
 				return nil, fmt.Errorf("argument references undeclared artifact %q", name)
 			}
-			args = append(args, path)
+			result = append(result, path)
+		case strings.HasPrefix(argument, "{{input:") && strings.HasSuffix(argument, "}}"):
+			name := strings.TrimSuffix(strings.TrimPrefix(argument, "{{input:"), "}}")
+			value, ok := inputs[name]
+			if !ok {
+				return nil, fmt.Errorf("argument references unresolved input %q", name)
+			}
+			text, err := inputArgument(value)
+			if err != nil {
+				return nil, fmt.Errorf("input %q: %w", name, err)
+			}
+			result = append(result, text)
 		default:
-			args = append(args, arg)
+			result = append(result, argument)
 		}
 	}
-	return args, nil
+	return result, nil
 }
 
 func commandEnvironment(request Request, workDir string) []string {

@@ -14,6 +14,17 @@ spec:
   type: semi_passive
   targetKinds:
     - url
+  inputs:
+    - name: timeout_seconds
+      type: integer
+      description: Maximum time allowed for the HTTP request.
+      default: 20
+      minimum: 1
+      maximum: 300
+    - name: user_agent
+      type: string
+      description: User-Agent header sent with the request.
+      default: OWTF
   requirements:
     commands:
       - curl
@@ -25,7 +36,9 @@ spec:
         - --silent
         - --show-error
         - --max-time
-        - "20"
+        - "{{input:timeout_seconds}}"
+        - --user-agent
+        - "{{input:user_agent}}"
         - --proto
         - =http,https
         - --dump-header

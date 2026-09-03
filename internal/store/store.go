@@ -105,6 +105,7 @@ CREATE TABLE IF NOT EXISTS plugins (
     plugin_group TEXT NOT NULL,
     plugin_type TEXT NOT NULL,
     techniques_json TEXT NOT NULL,
+    inputs_json TEXT NOT NULL DEFAULT '[]',
     runtime_type TEXT NOT NULL,
     availability TEXT NOT NULL,
     reason TEXT NOT NULL DEFAULT '',
@@ -410,6 +411,11 @@ func (s *Store) migratePluginColumns(ctx context.Context) error {
 			return fmt.Errorf("add plugin group column: %w", err)
 		}
 	}
+	if !columns["inputs_json"] {
+		if _, err := s.db.ExecContext(ctx, `ALTER TABLE plugins ADD COLUMN inputs_json TEXT NOT NULL DEFAULT '[]'`); err != nil {
+			return fmt.Errorf("add plugin inputs column: %w", err)
+		}
+	}
 	return nil
 }
 
@@ -703,12 +709,19 @@ func (s *Store) ReplacePlugins(ctx context.Context, plugins []model.Plugin) erro
 		return err
 	}
 	for _, item := range plugins {
-		techniquesJSON, _ := json.Marshal(item.Techniques)
+		techniquesJSON, err := json.Marshal(item.Techniques)
+		if err != nil {
+			return fmt.Errorf("encode plugin %s techniques: %w", item.ID, err)
+		}
+		inputsJSON, err := json.Marshal(item.Inputs)
+		if err != nil {
+			return fmt.Errorf("encode plugin %s inputs: %w", item.ID, err)
+		}
 		updated := time.Now().UTC()
 		_, err = tx.ExecContext(ctx, `
-INSERT INTO plugins(id, version, title, description, plugin_group, plugin_type, techniques_json, runtime_type, availability, reason, updated_at)
-VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, item.ID, item.Version, item.Title, item.Description, item.Group, item.Type,
-			string(techniquesJSON), item.RuntimeType, item.Availability, item.Reason, formatTime(updated))
+INSERT INTO plugins(id, version, title, description, plugin_group, plugin_type, techniques_json, inputs_json, runtime_type, availability, reason, updated_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, item.ID, item.Version, item.Title, item.Description, item.Group, item.Type,
+			string(techniquesJSON), string(inputsJSON), item.RuntimeType, item.Availability, item.Reason, formatTime(updated))
 		if err != nil {
 			return err
 		}
@@ -724,7 +737,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, item.ID, item.Version, item.Title, ite
 // ListPlugins returns the current indexed catalog ordered by plugin ID.
 func (s *Store) ListPlugins(ctx context.Context) ([]model.Plugin, error) {
 	rows, err := s.db.QueryContext(ctx, `
-SELECT id, version, title, description, plugin_group, plugin_type, techniques_json, runtime_type, availability, reason, updated_at
+SELECT id, version, title, description, plugin_group, plugin_type, techniques_json, inputs_json, runtime_type, availability, reason, updated_at
 FROM plugins ORDER BY id`)
 	if err != nil {
 		return nil, err
@@ -733,12 +746,17 @@ FROM plugins ORDER BY id`)
 	plugins := make([]model.Plugin, 0)
 	for rows.Next() {
 		var item model.Plugin
-		var techniquesJSON, updated string
+		var techniquesJSON, inputsJSON, updated string
 		if err := rows.Scan(&item.ID, &item.Version, &item.Title, &item.Description, &item.Group, &item.Type,
-			&techniquesJSON, &item.RuntimeType, &item.Availability, &item.Reason, &updated); err != nil {
+			&techniquesJSON, &inputsJSON, &item.RuntimeType, &item.Availability, &item.Reason, &updated); err != nil {
 			return nil, err
 		}
-		_ = json.Unmarshal([]byte(techniquesJSON), &item.Techniques)
+		if err := json.Unmarshal([]byte(techniquesJSON), &item.Techniques); err != nil {
+			return nil, fmt.Errorf("decode plugin %s techniques: %w", item.ID, err)
+		}
+		if err := json.Unmarshal([]byte(inputsJSON), &item.Inputs); err != nil {
+			return nil, fmt.Errorf("decode plugin %s inputs: %w", item.ID, err)
+		}
 		item.UpdatedAt = parseTime(updated)
 		plugins = append(plugins, item)
 	}
@@ -805,6 +823,10 @@ func (s *Store) CreateRun(ctx context.Context, sessionID, profile string, specs 
 		task := model.Task{
 			ID: newID("tsk"), RunID: run.ID, TargetID: spec.TargetID, PluginID: spec.PluginID,
 			Status: spec.Status, Error: spec.Error, CreatedAt: now,
+		}
+		task.Inputs, err = taskInputs(spec.PluginSnapshot)
+		if err != nil {
+			return model.Run{}, nil, fmt.Errorf("decode plugin %s inputs: %w", spec.PluginID, err)
 		}
 		if task.Status == model.TaskBlocked {
 			task.EndedAt = &now
@@ -917,7 +939,8 @@ func (s *Store) StartTask(ctx context.Context, taskID string) (model.TaskExecuti
 	var targetCreated, taskCreated string
 	err = tx.QueryRowContext(ctx, `
 SELECT t.id, t.public_id, r.id, r.public_id, tg.id, tg.public_id, a.public_id,
-       tg.kind, tg.original, tg.value, tg.scope, tg.created_at, t.plugin_id, t.status, t.created_at
+       tg.kind, tg.original, tg.value, tg.scope, tg.created_at, t.plugin_id,
+       t.plugin_snapshot, t.status, t.created_at
 FROM tasks t
 JOIN runs r ON r.id = t.run_id
 JOIN targets tg ON tg.id = t.target_id
@@ -925,7 +948,8 @@ JOIN sessions a ON a.id = tg.session_id
 WHERE t.public_id = ?`, taskID).Scan(
 		&taskPK, &execution.ID, &runPK, &execution.RunID, &targetPK, &execution.Target.ID,
 		&execution.Target.SessionID, &execution.Target.Kind, &execution.Target.Original,
-		&execution.Target.Value, &execution.Target.Scope, &targetCreated, &execution.PluginID, &execution.Status, &taskCreated,
+		&execution.Target.Value, &execution.Target.Scope, &targetCreated, &execution.PluginID,
+		&execution.PluginSnapshot, &execution.Status, &taskCreated,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return model.TaskExecution{}, ErrNotFound
@@ -1177,7 +1201,7 @@ FROM tasks WHERE run_id = ?`, runPK).Scan(&pending, &failed, &cancelled, &blocke
 func (s *Store) ListTasks(ctx context.Context, sessionID, status string) ([]model.Task, error) {
 	query := `
 SELECT t.public_id, r.public_id, tg.public_id, t.plugin_id, t.status, t.error,
-       t.created_at, t.started_at, t.ended_at
+       t.plugin_snapshot, t.created_at, t.started_at, t.ended_at
 FROM tasks t JOIN runs r ON r.id=t.run_id JOIN targets tg ON tg.id=t.target_id
 JOIN sessions s ON s.id=r.session_id WHERE 1=1`
 	var args []any
@@ -1210,7 +1234,7 @@ JOIN sessions s ON s.id=r.session_id WHERE 1=1`
 func (s *Store) GetTask(ctx context.Context, taskID string) (model.Task, error) {
 	row := s.db.QueryRowContext(ctx, `
 SELECT t.public_id, r.public_id, tg.public_id, t.plugin_id, t.status, t.error,
-       t.created_at, t.started_at, t.ended_at
+       t.plugin_snapshot, t.created_at, t.started_at, t.ended_at
 FROM tasks t JOIN runs r ON r.id=t.run_id JOIN targets tg ON tg.id=t.target_id
 WHERE t.public_id=?`, taskID)
 	item, err := scanTask(row)
@@ -1260,14 +1284,36 @@ WHERE task_id=? AND status=?`, model.TaskCancelled, formatTime(now), taskPK, mod
 
 func scanTask(row rowScanner) (model.Task, error) {
 	var item model.Task
-	var created string
+	var snapshot, created string
 	var started, ended sql.NullString
 	err := row.Scan(&item.ID, &item.RunID, &item.TargetID, &item.PluginID, &item.Status, &item.Error,
-		&created, &started, &ended)
+		&snapshot, &created, &started, &ended)
+	if err != nil {
+		return model.Task{}, err
+	}
+	item.Inputs, err = taskInputs(snapshot)
+	if err != nil {
+		return model.Task{}, fmt.Errorf("decode task %s inputs: %w", item.ID, err)
+	}
 	item.CreatedAt = parseTime(created)
 	item.StartedAt = parseNullTime(started)
 	item.EndedAt = parseNullTime(ended)
 	return item, err
+}
+
+func taskInputs(snapshot string) (map[string]any, error) {
+	var stored struct {
+		Inputs map[string]any `json:"inputs"`
+	}
+	decoder := json.NewDecoder(strings.NewReader(snapshot))
+	decoder.UseNumber()
+	if err := decoder.Decode(&stored); err != nil {
+		return nil, err
+	}
+	if stored.Inputs == nil {
+		stored.Inputs = make(map[string]any)
+	}
+	return stored.Inputs, nil
 }
 
 // ListTaskEvents returns task output in insertion order.
@@ -1510,7 +1556,7 @@ WHERE s.public_id=? ORDER BY f.id DESC`, sessionID)
 func (s *Store) listTargetTasks(ctx context.Context, targetID string) ([]model.Task, error) {
 	rows, err := s.db.QueryContext(ctx, `
 SELECT t.public_id, r.public_id, tg.public_id, t.plugin_id, t.status, t.error,
-       t.created_at, t.started_at, t.ended_at
+       t.plugin_snapshot, t.created_at, t.started_at, t.ended_at
 FROM tasks t JOIN runs r ON r.id=t.run_id JOIN targets tg ON tg.id=t.target_id
 WHERE tg.public_id=? ORDER BY t.id DESC`, targetID)
 	if err != nil {

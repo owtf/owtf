@@ -151,7 +151,7 @@ INSERT INTO plugins VALUES('OWTF-TEST-001-passive','0.1.0','test','','passive','
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(plugins) != 1 || plugins[0].Group != "web" || plugins[0].Type != "passive" {
+	if len(plugins) != 1 || plugins[0].Group != "web" || plugins[0].Type != "passive" || len(plugins[0].Inputs) != 0 {
 		t.Fatalf("legacy plugin columns were not migrated: %+v", plugins)
 	}
 }
@@ -165,6 +165,7 @@ func TestReplacePluginsRemovesStaleCatalogEntries(t *testing.T) {
 
 	first := plugin("OWTF-TEST-001-active")
 	second := plugin("OWTF-TEST-002-passive")
+	second.Inputs = []model.PluginInput{{Name: "timeout_seconds", Type: "integer", Default: 20}}
 	if err := database.ReplacePlugins(context.Background(), []model.Plugin{first, second}); err != nil {
 		t.Fatal(err)
 	}
@@ -175,7 +176,7 @@ func TestReplacePluginsRemovesStaleCatalogEntries(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(plugins) != 1 || plugins[0].ID != second.ID {
+	if len(plugins) != 1 || plugins[0].ID != second.ID || len(plugins[0].Inputs) != 1 || plugins[0].Inputs[0].Name != "timeout_seconds" {
 		t.Fatalf("stale plugins remain after catalog replacement: %+v", plugins)
 	}
 }

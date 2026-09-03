@@ -63,7 +63,7 @@ func TestCancelStopsTaskAndReleasesWorker(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	snapshot, _ := entry.Snapshot()
+	snapshot, _ := entry.Snapshot(nil)
 	_, tasks, err := database.CreateRun(context.Background(), session.ID, "", []store.TaskSpec{{
 		TargetID: added.Created[0].ID, PluginID: entry.Manifest.Metadata.ID,
 		PluginVersion: entry.Manifest.Metadata.Version, PluginSnapshot: snapshot,

@@ -319,6 +319,7 @@ assert_json 'length == 4' 'plugin catalog is incomplete'
 assert_json '[.[] | select(.availability == "ready")] | length == 3' 'ready plugin count is incorrect'
 assert_json '[.[] | select(.id == "OWTF-SMOKE-002-active" and .availability == "missing_requirements" and (.reason | contains("owtf-command-that-does-not-exist")))] | length == 1' 'missing requirement is not visible'
 assert_json '[.[] | select(.group == "web" and (.type == "active" or .type == "semi_passive"))] | length == 2' 'OWTF plugin group and type metadata is incorrect'
+assert_json '[.[] | select(.id == "OWTF-IG-004-semi_passive" and (.inputs | map(.name)) == ["timeout_seconds","user_agent"])] | length == 1' 'plugin input schema is not visible'
 cli_json plugins list
 jq -e 'length == 4' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin catalog is incomplete'
 cli_json plugins list --group web --type active
@@ -338,14 +339,24 @@ assert_json '.error | contains("does not support hostname")' 'unsupported target
 MISSING_RUN=$(jq -nc --arg session "${SESSION_ID}" --arg target "${URL_TARGET_ID}" '{session_id:$session,target_ids:[$target],plugin_ids:["OWTF-SMOKE-002-active"]}')
 request POST /api/v2/runs 409 "${MISSING_RUN}"
 assert_json '.error | contains("missing commands")' 'missing command run was not rejected'
+INVALID_INPUT_RUN=$(jq -nc --arg session "${SESSION_ID}" --arg target "${URL_TARGET_ID}" '{session_id:$session,target_ids:[$target],plugin_ids:["OWTF-IG-004-semi_passive"],plugin_inputs:{"OWTF-IG-004-semi_passive":{timeout_seconds:"soon"}}}')
+request POST /api/v2/runs 400 "${INVALID_INPUT_RUN}"
+assert_json '.error | contains("timeout_seconds")' 'invalid plugin input was not rejected'
+UNKNOWN_INPUT_RUN=$(jq -nc --arg session "${SESSION_ID}" --arg target "${URL_TARGET_ID}" '{session_id:$session,target_ids:[$target],plugin_ids:["OWTF-IG-004-semi_passive"],plugin_inputs:{"OWTF-IG-004-semi_passive":{unknown:true}}}')
+request POST /api/v2/runs 400 "${UNKNOWN_INPUT_RUN}"
+assert_json '.error | contains("unknown inputs")' 'unknown plugin input was not rejected'
+UNSELECTED_INPUT_RUN=$(jq -nc --arg session "${SESSION_ID}" --arg target "${URL_TARGET_ID}" '{session_id:$session,target_ids:[$target],plugin_ids:["OWTF-WSP-001-active"],plugin_inputs:{"OWTF-IG-004-semi_passive":{timeout_seconds:5}}}')
+request POST /api/v2/runs 400 "${UNSELECTED_INPUT_RUN}"
+assert_json '.error | contains("unselected plugin")' 'input for an unselected plugin was not rejected'
 request GET "/api/v2/tasks?session_id=${SESSION_ID}" 200
 assert_json 'length == 0' 'preflight failures created tasks'
 
 printf '%s\n' 'Checking grouped execution, workers, logs, reports, and evidence...'
-GROUP_RUN=$(jq -nc --arg session "${SESSION_ID}" --arg target "${URL_TARGET_ID}" '{session_id:$session,target_ids:[$target],plugin_group:"web",plugin_types:["semi_passive","active"]}')
+GROUP_RUN=$(jq -nc --arg session "${SESSION_ID}" --arg target "${URL_TARGET_ID}" '{session_id:$session,target_ids:[$target],plugin_group:"web",plugin_types:["semi_passive","active"],plugin_inputs:{"OWTF-IG-004-semi_passive":{timeout_seconds:5,user_agent:"OWTF smoke; echo not-executed"}}}')
 request POST /api/v2/runs 202 "${GROUP_RUN}"
 assert_json '.run.profile == "default" and (.tasks | length) == 2 and .tasks[0].plugin_id == "OWTF-IG-004-semi_passive" and .tasks[1].plugin_id == "OWTF-WSP-001-active"' 'default profile did not order the grouped run'
 GROUP_RUN_ID=$(jq -r '.run.id' "${RESPONSE_FILE}")
+INPUT_TASK_ID=$(jq -r '.tasks[] | select(.plugin_id == "OWTF-IG-004-semi_passive") | .id' "${RESPONSE_FILE}")
 GROUP_TASK_IDS=()
 while IFS= read -r task_id; do GROUP_TASK_IDS+=("${task_id}"); done < <(jq -r '.tasks[].id' "${RESPONSE_FILE}")
 for task_id in "${GROUP_TASK_IDS[@]}"; do
@@ -353,6 +364,8 @@ for task_id in "${GROUP_TASK_IDS[@]}"; do
   request GET "/api/v2/tasks/${task_id}/events" 200
   assert_json 'length >= 3' "task ${task_id} is missing lifecycle events"
 done
+request GET "/api/v2/tasks/${INPUT_TASK_ID}/events" 200
+assert_json '[.[].message] | join("\n") | contains("OWTF smoke; echo not-executed")' 'resolved plugin input did not reach the command executor'
 request GET "/api/v2/workers" 200
 assert_json 'length == 1 and .[0].status == "idle" and .[0].completed == 2' 'worker state or accounting is incorrect'
 request GET "/api/v2/targets/${URL_TARGET_ID}/report" 200
@@ -422,7 +435,10 @@ cli_json runs create --session "${SESSION_ID}" --target "${URL_TARGET_ID}" --gro
 [[ $(jq -r '.run.profile' "${CLI_RESPONSE_FILE}") == 'default' ]] || fail 'CLI run did not persist its profile'
 CLI_RUN_TASK_ID=$(jq -r '.tasks[0].id' "${CLI_RESPONSE_FILE}")
 wait_for_task_status "${CLI_RUN_TASK_ID}" succeeded
-cli_json scan --session "${SESSION_ID}" --plugin OWTF-WSP-001-active "${BASE_URL}/debug/health"
+cli_json scan --session "${SESSION_ID}" --plugin OWTF-IG-004-semi_passive \
+  --input 'OWTF-IG-004-semi_passive.timeout_seconds=5' \
+  --input 'OWTF-IG-004-semi_passive.user_agent=OWTF CLI' \
+  "${BASE_URL}/debug/health"
 CLI_SCAN_TASK_ID=$(jq -r '.tasks[0].id' "${CLI_RESPONSE_FILE}")
 wait_for_task_status "${CLI_SCAN_TASK_ID}" succeeded
 cli_json workers

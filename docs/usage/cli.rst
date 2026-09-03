@@ -105,7 +105,14 @@ repeated or supplied as comma-separated IDs::
     --session ses_ID \
     --target tgt_ID \
     --plugin OWTF-IG-004-semi_passive \
-    --plugin OWTF-WSP-001-active
+    --plugin OWTF-WSP-001-active \
+    --input OWTF-IG-004-semi_passive.timeout_seconds=30 \
+    --input 'OWTF-IG-004-semi_passive.user_agent=OWTF review'
+
+``--input`` is repeatable and uses ``PLUGIN_ID.NAME=VALUE``. OWTF validates the
+value against the plugin schema, resolves defaults, and records the resulting
+non-secret values with each task. Do not pass passwords, tokens, or other
+secrets through plugin inputs.
 
 Launch an OWTF plugin group by group and type. Omit ``--type`` (or use
 ``--type all``) for every type in the group. ``--type quiet`` retains the old

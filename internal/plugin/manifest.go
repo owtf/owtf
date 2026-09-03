@@ -2,7 +2,6 @@ package plugin
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/fs"
 	"os/exec"
@@ -27,10 +26,11 @@ type Manifest struct {
 		Description string `yaml:"description" json:"description"`
 	} `yaml:"metadata" json:"metadata"`
 	Spec struct {
-		Techniques   []string `yaml:"techniques" json:"techniques"`
-		Group        string   `yaml:"group" json:"group"`
-		Type         string   `yaml:"type" json:"type"`
-		TargetKinds  []string `yaml:"targetKinds,omitempty" json:"targetKinds,omitempty"`
+		Techniques   []string            `yaml:"techniques" json:"techniques"`
+		Group        string              `yaml:"group" json:"group"`
+		Type         string              `yaml:"type" json:"type"`
+		TargetKinds  []string            `yaml:"targetKinds,omitempty" json:"targetKinds,omitempty"`
+		Inputs       []model.PluginInput `yaml:"inputs,omitempty" json:"inputs,omitempty"`
 		Requirements struct {
 			Commands []string `yaml:"commands,omitempty" json:"commands,omitempty"`
 		} `yaml:"requirements,omitempty" json:"requirements,omitempty"`
@@ -113,6 +113,7 @@ type Request struct {
 	TaskID   string
 	PluginID string
 	Target   model.Target
+	Inputs   map[string]any
 	Log      func(stream, message string)
 }
 
@@ -189,6 +190,10 @@ func validateManifest(manifest Manifest) error {
 	if !validPluginType(manifest.Spec.Type) {
 		return fmt.Errorf("unsupported plugin type %q", manifest.Spec.Type)
 	}
+	inputNames, err := validateInputs(manifest.Spec.Inputs)
+	if err != nil {
+		return err
+	}
 	switch manifest.Spec.Runtime.Type {
 	case "builtin":
 		if manifest.Spec.Runtime.Builtin == "" || manifest.Spec.Runtime.Command != nil || manifest.Spec.Runtime.Container != nil {
@@ -198,14 +203,14 @@ func validateManifest(manifest Manifest) error {
 		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Container != nil {
 			return fmt.Errorf("command runtime requires only a command")
 		}
-		if err := validateCommand(manifest.Spec.Runtime.Command); err != nil {
+		if err := validateCommand(manifest.Spec.Runtime.Command, inputNames); err != nil {
 			return err
 		}
 	case "container":
 		if manifest.Spec.Runtime.Builtin != "" || manifest.Spec.Runtime.Command != nil {
 			return fmt.Errorf("container runtime requires only a container")
 		}
-		if err := validateContainer(manifest.Spec.Runtime.Container); err != nil {
+		if err := validateContainer(manifest.Spec.Runtime.Container, inputNames); err != nil {
 			return err
 		}
 	default:
@@ -232,7 +237,7 @@ func validPluginType(pluginType string) bool {
 	}
 }
 
-func validateCommand(command *CommandSpec) error {
+func validateCommand(command *CommandSpec, inputs map[string]bool) error {
 	if command == nil || strings.TrimSpace(command.Executable) == "" {
 		return fmt.Errorf("command runtime requires an executable")
 	}
@@ -260,12 +265,15 @@ func validateCommand(command *CommandSpec) error {
 		if strings.HasPrefix(arg, "{{artifact:") && strings.HasSuffix(arg, "}}") && artifacts[strings.TrimSuffix(strings.TrimPrefix(arg, "{{artifact:"), "}}")] {
 			continue
 		}
+		if strings.HasPrefix(arg, "{{input:") && strings.HasSuffix(arg, "}}") && inputs[strings.TrimSuffix(strings.TrimPrefix(arg, "{{input:"), "}}")] {
+			continue
+		}
 		return fmt.Errorf("argument %q contains an unsupported or partial placeholder", arg)
 	}
 	return nil
 }
 
-func validateContainer(container *ContainerSpec) error {
+func validateContainer(container *ContainerSpec, inputs map[string]bool) error {
 	if container == nil {
 		return fmt.Errorf("container runtime requires a container")
 	}
@@ -277,7 +285,7 @@ func validateContainer(container *ContainerSpec) error {
 		Args:       container.Args,
 		Artifacts:  container.Artifacts,
 	}
-	if err := validateCommand(command); err != nil {
+	if err := validateCommand(command, inputs); err != nil {
 		return fmt.Errorf("container %w", err)
 	}
 	return nil
@@ -432,6 +440,7 @@ func (e Entry) Plugin() model.Plugin {
 		Group:        e.Manifest.Spec.Group,
 		Type:         e.Manifest.Spec.Type,
 		Techniques:   append([]string(nil), e.Manifest.Spec.Techniques...),
+		Inputs:       append([]model.PluginInput{}, e.Manifest.Spec.Inputs...),
 		RuntimeType:  e.Manifest.Spec.Runtime.Type,
 		Availability: e.Availability,
 		Reason:       e.Reason,
@@ -441,10 +450,4 @@ func (e Entry) Plugin() model.Plugin {
 // SupportsTarget reports whether an entry accepts the normalized target kind.
 func (e Entry) SupportsTarget(kind string) bool {
 	return supportsTarget(e.Manifest.Spec.TargetKinds, kind)
-}
-
-// Snapshot serializes the exact manifest retained with a queued task.
-func (e Entry) Snapshot() (string, error) {
-	data, err := json.Marshal(e.Manifest)
-	return string(data), err
 }
