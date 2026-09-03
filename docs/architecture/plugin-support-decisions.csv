@@ -1,0 +1,7 @@
+code,group,type,legacy_name,decision,replacement,status,rationale
+PTES-001,network,active,FTP Service Probe,replace,PTES-001-active,implemented,"Retain FTP service, version, and anonymous-access probing with maintained Nmap NSE scripts instead of the legacy Metasploit wrapper."
+OWTF-ABrF-001,auxiliary,bruteforce,Password Bruteforce,defer,,reviewed,"Credential attacks need an explicit authorization and safety design before they can be retained."
+OWTF-ADoS-001,auxiliary,dos,Direct DoS Launcher,reject,,reviewed,"A generic denial-of-service launcher is unsafe and is not required for the retained OWTF assessment workflow."
+OWTF-AExP-001,auxiliary,exploit,Exploit Launcher,reject,,reviewed,"A generic exploit launcher duplicates maintained exploitation frameworks without adding reliable OWTF evidence."
+OWTF-ASEL-001,auxiliary,selenium,Selenium URL Launcher,replace,OWTF-WSP-001-active,implemented,"The retained Visit URL plugin records the observable fetch outcome without preserving the obsolete Selenium launcher."
+OWTF-SMB-001,auxiliary,smb,SMB Handler,reject,,reviewed,"Mounting and transferring files over SMB is an operator utility rather than a vulnerability-assessment technique."

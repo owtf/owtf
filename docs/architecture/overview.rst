@@ -276,7 +276,9 @@ Phase 2 was exercised with the real ``curl`` command plugin
 ``OWTF-IG-004-semi_passive``. Automated tests also verify missing-command
 visibility, non-shell argument handling, task cancellation, and termination of
 the complete plugin process group, including a child that ignores the initial
-termination signal.
+termination signal. The retained ``PTES-001-active`` network plugin uses the
+same shell-free command runtime to run bounded Nmap FTP service and anonymous
+access probes against hostname or IP targets.
 
 Phase 3 was exercised through the Go CLI against a live one-worker server. The
 gate covers sessions, targets, individual and grouped plugin launches, worklist,
@@ -315,6 +317,12 @@ declarative grep plugins retain evidence-linked transaction matches. Operators
 can assign the established OWTF rank and notes to terminal plugin output; that
 mutable review remains separate from scanner evidence and appears in target,
 session, CLI, API, and portable reports.
+The legacy auxiliary variants have also received explicit first-pass decisions:
+the Selenium launcher is replaced by the retained Visit URL behavior, generic
+DoS and exploit launchers and the SMB transfer helper are rejected, and password
+brute force remains deferred pending an authorization and safety design. These
+decisions are recorded in ``plugin-support-decisions.csv`` rather than hidden by
+omission.
 Configuration validation, default/file/environment/flag precedence, bounded
 worker and proxy limits, secret redaction, profile validation, persisted run
 ordering, deletion conflicts, target pagination, input validation, immutable

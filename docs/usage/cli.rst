@@ -134,6 +134,18 @@ value against the plugin schema, resolves defaults, and records the resulting
 non-secret values with each task. Do not pass passwords, tokens, or other
 secrets through plugin inputs.
 
+Run the retained FTP service probe against an existing hostname or IP target::
+
+  owtf runs create \
+    --session ses_ID \
+    --target tgt_ID \
+    --plugin PTES-001-active \
+    --input PTES-001-active.port=21
+
+This plugin requires ``nmap``. If the executable is absent, ``plugin list``
+keeps the plugin visible with ``missing_requirements`` and OWTF rejects an
+individual launch before creating work.
+
 Launch an OWTF plugin group by group and type. Omit ``--type`` (or use
 ``--type all``) for every type in the group. ``--type quiet`` retains the old
 OWTF meaning of ``passive`` plus ``semi_passive``::
