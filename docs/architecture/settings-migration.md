@@ -4,6 +4,8 @@ The inventory is complete for the four source files below. **Settings parity is
 not complete.** Every declaration or resource occurrence has a status, replacement
 or gap, current evidence path, and explanation in
 [settings-migration.csv](settings-migration.csv).
+Follow-through decisions are recorded in
+[settings-decisions.md](settings-decisions.md); planned controls are not shipped features.
 
 ## Source and scope
 
@@ -34,12 +36,12 @@ identify source lines without copying credentials or executable command template
 
 | Status | Occurrences | Meaning |
 | --- | ---: | --- |
-| migrated | 10 | Equivalent control exists in typed configuration; defaults may differ. |
+| migrated | 9 | Equivalent control exists in typed configuration; defaults may differ. |
 | replaced | 80 | Supported behavior moved to another mechanism with explicit differences. |
-| partial | 170 | Related support exists, but some values, rules, or behavior differ or remain unverified. |
-| removed | 912 | Covered by an existing retirement decision, rather than silently omitted. |
-| deferred | 65 | Covered by existing deferred credential/SNMP work. |
-| gap | 252 | No verified equivalent or explicit retirement decision. Requires a decision, not automatic implementation. |
+| partial | 171 | Related support exists, but some values, rules, or behavior differ or remain unverified. |
+| removed | 975 | Covered by an explicit retirement decision, rather than silently omitted. |
+| deferred | 70 | Credential/SNMP work, API CORS policy, and encrypted CA-key loading are deferred. |
+| gap | 184 | No verified equivalent; planned controls and undecided gaps are not implemented features. |
 
 These count source occurrences, not features or unique settings. Most removed
 rows are repetitive DoS/exploit command resources belonging to rejected launchers.
@@ -61,7 +63,9 @@ Reference destinations were not checked for present-day availability.
   SQL Server now defaults to **TCP 1433**, whereas the old constant was **1434**;
   this does not establish UDP SQL Browser discovery parity.
 - Global `PLUGIN_TIMEOUT` was 300 seconds in the audited source; the current
-  server default is **30 seconds**. This is a default change, not a copied value.
+  server default is **30 seconds**. The old SIGALRM wrapper surrounds the plugin
+  function; the new runner uses a cancellable task context. This is partial
+  compatibility, not verified timing equivalence. The default is unchanged here.
 - Automatic worker scaling and resource thresholds became a fixed bounded worker
   pool. Plugin retries were removed; proxy forwarding attempts are separate.
 - OWTF proxy upstream settings replace outbound proxy fields. Proxychains settings
@@ -72,14 +76,16 @@ Reference destinations were not checked for present-day availability.
 - Header/body grep behavior moved into plugin YAML. Matching sets and extraction
   semantics differ, so those rows are partial even where related rules exist.
 
-## Remaining decisions
+## Decisions and deferred gaps
 
-The concrete gaps include:
+The follow-through scope is:
 
-1. Global API CORS policy and debug/log-level configuration.
-2. Encrypted CA private keys/passphrase-file handling.
-3. Global User-Agent behavior; selected plugins have an input, but no shared
-   override controls all tools.
+1. Plan typed process log-level configuration; it is not implemented yet and
+   must not filter captured task evidence. Defer API CORS until UI deployment design.
+2. Defer encrypted CA private keys/passphrase-file handling until needed.
+3. Plan shared User-Agent and request-timeout defaults for OWTF-owned HTTP
+   collectors only. External tools retain explicit plugin inputs; no shared
+   override controls all tools today.
 4. Reusable TCP/UDP port lists and legacy dictionary contents.
 5. File/image/SSI URL classification and automatic small-file retrieval policy.
 6. CSS/JS-comment, generic autocomplete/hidden-field, and legacy XSS-protection
@@ -87,9 +93,14 @@ The concrete gaps include:
    or changed behavior.
 7. Unmapped legacy tool paths, passive discovery resources, and individual command
    options/reference links. These remain part of deferred plugin-related work.
-8. Remote-shell/SBD/SET/phishing settings that lack a current implementation or an
-   explicit retirement decision in the checked support matrix. This audit does
-   not introduce such a decision.
+8. Explicitly retire remote-shell/SBD/SET/phishing orchestration and its settings
+   and launcher resources. These subsystems are already absent; this decision
+   deletes no runtime code and does not retire trusted command plugins or SMTP probes.
+
+Items 4-7 remain deferred plugin work, not a requirement to restore every legacy
+constant. The decision document gives source-level evidence for narrower SQL,
+fingerprint, CORS, cache, cookie, and body-rule behavior. No live legacy runtime
+or SQL Server comparison was performed for these decisions.
 
 The old editable settings API/UI also has no general replacement. `owtf config
 show` resolves configuration for **the process running that command**, including

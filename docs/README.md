@@ -10,6 +10,8 @@ The maintained design and operator documentation is intentionally small:
   replaced, removed, and deferred legacy outcomes.
 - `architecture/settings-migration.md` summarizes the complete four-file legacy
   settings inventory; `settings-migration.csv` records each occurrence and gap.
+- `architecture/settings-decisions.md` records verified differences, planned
+  global controls, explicit retirements, and deferred plugin work.
 - `usage/cli.rst` documents the current CLI surface.
 - `usage/recovery.rst` covers Compose verification, backup/restore, and a manual CLI walkthrough.
 - `usage/access-model.rst` documents the deliberate absence of application
