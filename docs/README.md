@@ -9,6 +9,7 @@ The maintained design and operator documentation is intentionally small:
 - `architecture/feature-parity.csv` records implemented, partial, missing,
   replaced, removed, and deferred legacy outcomes.
 - `usage/cli.rst` documents the current CLI surface.
+- `usage/recovery.rst` covers Compose verification, backup/restore, and a manual CLI walkthrough.
 - `usage/access-model.rst` documents the deliberate absence of application
   authentication.
 

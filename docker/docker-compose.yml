@@ -1,6 +1,6 @@
 services:
   owtf:
-    container_name: owtf
+    image: ${OWTF_IMAGE:-owtf:local}
     build:
       context: ..
       dockerfile: docker/Dockerfile.backend
@@ -8,7 +8,7 @@ services:
     environment:
       OWTF_WORKERS: ${OWTF_WORKERS:-1}
     ports:
-      - "8009:8009"
+      - "${OWTF_BIND:-127.0.0.1}:${OWTF_PORT:-8009}:8009"
     volumes:
       - owtf_data:/data
     cpus: 1.0

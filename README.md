@@ -95,9 +95,13 @@ The CLI uses the same API:
 ./build/owtf proxy --target-host example.com
 ```
 
-Interactive commands use the familiar OWTF banner and terminal formatting.
-Redirected command output remains JSON; pass `--json` or `--human` to make
-the output mode explicit.
+Startup and interactive plugin listings use the familiar OWTF banner and terminal
+formatting. Other command responses currently remain JSON. Pass `--json` for
+machine output or `--human` to request presentation where it is implemented.
+
+Run `make demo-cli` for a verified Compose instance with sample results and a
+CLI wrapper you can try. `make test-compose` checks the same lifecycle and cleans
+up afterward. See [backup, restore, and the CLI walkthrough](docs/usage/recovery.rst).
 
 Set `OWTF_URL` when the server is not at its default address. Runtime state is
 stored under `.owtf/` unless configuration, `OWTF_DATA_DIR`, or `--data-dir`

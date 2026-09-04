@@ -55,6 +55,15 @@ test-failures:
 
 test: lint test-unit test-api
 
+.PHONY: test-compose demo-cli
+test-compose: check-compose
+	@$(COMPOSE) build
+	@./scripts/owtf-compose-smoke.sh
+
+demo-cli: check-compose
+	@$(COMPOSE) build
+	@./scripts/owtf-compose-smoke.sh --keep
+
 check-compose:
 ifeq ($(strip $(DOCKER_COMPOSE_CMD)),)
 	$(error Docker Compose not found. Install the Docker Compose plugin)
