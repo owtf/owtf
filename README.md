@@ -66,6 +66,8 @@ reference](docs/usage/cli.rst), and [legacy technique
 inventory](docs/architecture/legacy-plugin-inventory.csv). The checked
 [feature-parity matrix](docs/architecture/feature-parity.csv) tracks what is
 implemented, partial, missing, intentionally replaced, removed, or deferred.
+The [legacy settings audit](docs/architecture/settings-migration.md) maps every
+setting/resource occurrence in four pinned source files and records remaining gaps.
 
 ## Run locally
 

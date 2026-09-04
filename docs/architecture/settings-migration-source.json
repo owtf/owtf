@@ -1,0 +1,26 @@
+{
+  "commit": "c41908bf0b83c5588f885ee20e5d187bf5d87be2",
+  "label": "Local origin/develop snapshot (not a verified 2.6.10 tag)",
+  "files": [
+    {
+      "path": "owtf/settings.py",
+      "sha256": "3aa851363fcde141c089ded403e7af8e1b60e180a698bdbe63f1393404f1a588",
+      "entries": 117
+    },
+    {
+      "path": "owtf/data/conf/general.yaml",
+      "sha256": "d258287c4811018360e448abc216844a56a14888b5c9bfdfa3f5e8d0bced819c",
+      "entries": 118
+    },
+    {
+      "path": "owtf/data/conf/framework.yaml",
+      "sha256": "cb41991cb5838c55b4411b335b9598b24229b8eeb63a36a3e049bb13f3afc226",
+      "entries": 81
+    },
+    {
+      "path": "owtf/data/conf/resources.cfg",
+      "sha256": "5a93fc94d4ee9611d8b80f8b7e4979abd197d118b3450851b797ffd63cd1283d",
+      "entries": 1173
+    }
+  ]
+}

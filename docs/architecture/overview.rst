@@ -270,6 +270,11 @@ call internal Go packages.
 Configuration
 -------------
 
+The declaration-by-declaration audit is in ``settings-migration.md`` and
+``settings-migration.csv``. The inventory is complete for its pinned four-file
+legacy source, but settings parity is partial; see its explicit gaps and default
+changes before assuming an old setting has an equivalent.
+
 The legacy ``settings.py`` module is not a parity target. It mixed process
 startup, database credentials, authentication, UI ports, proxy behavior, tool
 paths, plugin inputs, and analysis rules in executable Python. The replacement
