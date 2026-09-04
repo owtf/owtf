@@ -185,18 +185,27 @@ func (a *app) sessions(ctx context.Context, args []string) error {
 		}
 		return a.proxyJSON(ctx, http.MethodPost, "/api/v2/sessions", map[string]any{"name": *name})
 	case "show", "report":
-		id, err := oneArg("sessions "+args[0], args[1:])
+		flags := a.flags("sessions " + args[0])
+		disposition := flags.String("disposition", "", "report dispositions, comma-separated")
+		if err := flags.Parse(args[1:]); err != nil {
+			return err
+		}
+		if args[0] == "show" && *disposition != "" {
+			return errors.New("--disposition requires report")
+		}
+		id, err := oneArg("sessions "+args[0], flags.Args())
 		if err != nil {
 			return err
 		}
 		path := "/api/v2/sessions/" + pathSegment(id)
 		if args[0] == "report" {
-			path += "/report"
+			path += "/report" + reportQuery(*disposition)
 		}
 		return a.proxyJSON(ctx, http.MethodGet, path, nil)
 	case "export":
 		flags := a.flags("sessions export")
 		output := flags.String("output", "", "output ZIP path; defaults to owtf-SESSION_ID.zip")
+		disposition := flags.String("disposition", "", "report dispositions, comma-separated")
 		if err := flags.Parse(args[1:]); err != nil {
 			return err
 		}
@@ -207,7 +216,7 @@ func (a *app) sessions(ctx context.Context, args []string) error {
 		if *output == "" {
 			*output = "owtf-" + id + ".zip"
 		}
-		response, err := a.do(ctx, http.MethodGet, "/api/v2/sessions/"+pathSegment(id)+"/export", nil)
+		response, err := a.do(ctx, http.MethodGet, "/api/v2/sessions/"+pathSegment(id)+"/export"+reportQuery(*disposition), nil)
 		if err != nil {
 			return err
 		}
@@ -292,13 +301,21 @@ func (a *app) targets(ctx context.Context, args []string) error {
 		}
 		return a.proxyJSON(ctx, http.MethodPost, "/api/v2/sessions/"+pathSegment(*sessionID)+"/targets", map[string]any{"targets": flags.Args()})
 	case "show", "report":
-		id, err := oneArg("targets "+args[0], args[1:])
+		flags := a.flags("targets " + args[0])
+		disposition := flags.String("disposition", "", "report dispositions, comma-separated")
+		if err := flags.Parse(args[1:]); err != nil {
+			return err
+		}
+		if args[0] == "show" && *disposition != "" {
+			return errors.New("--disposition requires report")
+		}
+		id, err := oneArg("targets "+args[0], flags.Args())
 		if err != nil {
 			return err
 		}
 		path := "/api/v2/targets/" + pathSegment(id)
 		if args[0] == "report" {
-			path += "/report"
+			path += "/report" + reportQuery(*disposition)
 		}
 		return a.proxyJSON(ctx, http.MethodGet, path, nil)
 	case "update":
@@ -1075,8 +1092,10 @@ func printUsage(output io.Writer) {
   owtf proxy intercept status|enable|disable|list|show|continue|drop
   owtf [--url URL] health
   owtf [--url URL] sessions list|create|show|report|delete
-  owtf [--url URL] sessions export [--output FILE] ID
+  owtf [--url URL] sessions report [--disposition VALUES] ID
+  owtf [--url URL] sessions export [--disposition VALUES] [--output FILE] ID
   owtf [--url URL] targets list|search|add|show|update|delete|report
+  owtf [--url URL] targets report [--disposition VALUES] ID
   owtf [--url URL] plugin list [--group GROUP] [--type TYPE]
   owtf [--url URL] plugin review [--disposition VALUE] [--rank RANK] [--notes TEXT] TASK_ID
   owtf [--url URL] plugin review --history TASK_ID
@@ -1102,4 +1121,12 @@ func printUsage(output io.Writer) {
 Repeat --target and --plugin, or pass comma-separated IDs.
 Use --json for machine-readable output or --human to force terminal presentation.
 `)
+}
+
+// reportQuery encodes the optional report disposition selection.
+func reportQuery(disposition string) string {
+	if disposition == "" {
+		return ""
+	}
+	return "?disposition=" + url.QueryEscape(disposition)
 }

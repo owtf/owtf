@@ -505,3 +505,25 @@ The same operations are available directly for scripts::
 Run ``owtf help`` for the compact command index. The CLI never opens the
 SQLite database or starts plugin processes itself; all state transitions pass
 through the server API.
+
+Filtering reports by output review
+---------------------------------
+
+Use ``--disposition`` with target reports, session reports, or session exports::
+
+  owtf targets report --disposition confirmed tgt_ID
+  owtf sessions report --disposition confirmed,accepted_risk ses_ID
+  owtf sessions export --disposition confirmed --output confirmed.zip ses_ID
+
+The corresponding report and export API endpoints accept ``?disposition=confirmed``.
+Multiple values may be comma-separated or supplied as repeated query parameters.
+Valid values are ``open``, ``confirmed``, ``false_positive``, and ``accepted_risk``.
+Unreviewed outputs count as ``open``. Invalid API values, including explicitly
+empty query values, are rejected. An empty CLI flag is treated as no filter.
+
+Filters select tasks using their current review and include their full review
+history and associated evidence. Session context, URL catalogs, and independently
+imported evidence remain included. Referenced transaction artifacts are retained.
+JSON and HTML identify filtered reports, and summary counts describe the exported
+records. Omitting the filter returns the complete report. Filtering never changes
+stored evidence or reviews.

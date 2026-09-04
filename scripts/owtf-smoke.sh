@@ -560,6 +560,17 @@ CLI_REPORT_ZIP="${TMP_DIR}/cli-session-report.zip"
 cli_json sessions export --output "${CLI_REPORT_ZIP}" "${SESSION_ID}"
 jq -e --arg output "${CLI_REPORT_ZIP}" '.output == $output and .bytes > 0' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI session export result is incorrect'
 unzip -tqq "${CLI_REPORT_ZIP}" || fail 'CLI session export ZIP is invalid'
+cli_json sessions report --disposition confirmed "${SESSION_ID}"
+jq -e --arg task "${INPUT_TASK_ID}" '.dispositions == ["confirmed"] and .summary.tasks == 1 and .tasks[0].id == $task and (.plugin_output_review_events | length) == 1' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'filtered CLI session report is incorrect'
+cli_json targets report --disposition confirmed "${URL_TARGET_ID}"
+jq -e '.dispositions == ["confirmed"] and (.tasks | length) == 1' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'filtered CLI target report is incorrect'
+FILTERED_REPORT_ZIP="${TMP_DIR}/filtered-session-report.zip"
+cli_json sessions export --disposition confirmed --output "${FILTERED_REPORT_ZIP}" "${SESSION_ID}"
+unzip -tqq "${FILTERED_REPORT_ZIP}" || fail 'filtered export is invalid'
+unzip -p "${FILTERED_REPORT_ZIP}" report.json | jq -e '.dispositions == ["confirmed"] and .summary.tasks == 1' >/dev/null || fail 'filtered export JSON is incorrect'
+unzip -p "${FILTERED_REPORT_ZIP}" index.html | grep -q 'Filtered report' || fail 'filtered export is not labeled'
+cli_json sessions report "${SESSION_ID}"
+jq -e '.summary.tasks == 15 and .dispositions == null' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'filter changed stored evidence'
 cli_json transactions list --session "${SESSION_ID}" --target "${URL_TARGET_ID}"
 jq -e 'length == 4 and ([.[].status_code] | sort) == [200,201,404,405]' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI transactions are incomplete'
 cli_json transactions search --session "${SESSION_ID}" --target "${URL_TARGET_ID}" --search debug --method get --status 200 --limit 1 --offset 0

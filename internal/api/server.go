@@ -212,7 +212,7 @@ func (s *Server) deleteSession(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) sessionReport(w http.ResponseWriter, r *http.Request) {
-	report, err := s.store.GetSessionReport(r.Context(), r.PathValue("sessionID"))
+	report, err := s.store.GetSessionReport(r.Context(), r.PathValue("sessionID"), r.URL.Query()["disposition"]...)
 	if s.handleStoreError(w, err) {
 		return
 	}
@@ -220,7 +220,7 @@ func (s *Server) sessionReport(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) sessionExport(w http.ResponseWriter, r *http.Request) {
-	session, err := s.store.GetSessionReport(r.Context(), r.PathValue("sessionID"))
+	session, err := s.store.GetSessionReport(r.Context(), r.PathValue("sessionID"), r.URL.Query()["disposition"]...)
 	if s.handleStoreError(w, err) {
 		return
 	}
@@ -327,7 +327,7 @@ func (s *Server) deleteTarget(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) targetReport(w http.ResponseWriter, r *http.Request) {
-	report, err := s.store.GetTargetReport(r.Context(), r.PathValue("targetID"))
+	report, err := s.store.GetTargetReport(r.Context(), r.PathValue("targetID"), r.URL.Query()["disposition"]...)
 	if s.handleStoreError(w, err) {
 		return
 	}

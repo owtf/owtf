@@ -389,8 +389,10 @@ type WorkerMetrics struct {
 	Cancelled int `json:"cancelled"`
 }
 
-// TargetReport is the complete retained evidence view for one target.
+// TargetReport is a retained evidence view for one target. Dispositions records
+// an optional selection of task outputs; an omitted selection includes all.
 type TargetReport struct {
+	Dispositions             []string                  `json:"dispositions,omitempty"`
 	Target                   Target                    `json:"target"`
 	Tasks                    []Task                    `json:"tasks"`
 	PluginOutputReviews      []PluginOutputReview      `json:"plugin_output_reviews"`
@@ -404,9 +406,10 @@ type TargetReport struct {
 	Findings                 []Finding                 `json:"findings"`
 }
 
-// SessionReport is the complete retained execution and evidence view for one
-// OWTF session.
+// SessionReport is a retained execution and evidence view for one OWTF session.
+// Dispositions records an optional selection of task outputs.
 type SessionReport struct {
+	Dispositions             []string                  `json:"dispositions,omitempty"`
 	Session                  Session                   `json:"session"`
 	Summary                  ReportSummary             `json:"summary"`
 	Targets                  []Target                  `json:"targets"`

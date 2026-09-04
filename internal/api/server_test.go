@@ -331,6 +331,19 @@ func TestTargetScanPersistsReportAndSupportsDeletion(t *testing.T) {
 
 	report := requestJSON[model.TargetReport](t, server.Client(), http.MethodGet, server.URL+"/api/v2/targets/"+target.ID+"/report", nil, http.StatusOK)
 	assertReport(t, report)
+	for _, endpoint := range []string{"/api/v2/targets/" + target.ID + "/report", "/api/v2/sessions/" + session.ID + "/report"} {
+		filtered := requestJSON[model.TargetReport](t, server.Client(), http.MethodGet, server.URL+endpoint+"?disposition=open", nil, http.StatusOK)
+		if len(filtered.Tasks) != 0 || len(filtered.PluginOutputReviewEvents) != 0 || len(filtered.Dispositions) != 1 {
+			t.Fatalf("unexpected filtered report: %+v", filtered)
+		}
+		included := requestJSON[model.TargetReport](t, server.Client(), http.MethodGet, server.URL+endpoint+"?disposition=confirmed", nil, http.StatusOK)
+		if len(included.Tasks) != 1 || len(included.PluginOutputReviewEvents) != 1 {
+			t.Fatalf("missing selected output: %+v", included)
+		}
+		requestJSON[map[string]string](t, server.Client(), http.MethodGet, server.URL+endpoint+"?disposition=invalid", nil, http.StatusBadRequest)
+	}
+	requestJSON[map[string]string](t, server.Client(), http.MethodGet, server.URL+"/api/v2/sessions/"+session.ID+"/export?disposition=invalid", nil, http.StatusBadRequest)
+	assertReport(t, requestJSON[model.TargetReport](t, server.Client(), http.MethodGet, server.URL+"/api/v2/targets/"+target.ID+"/report", nil, http.StatusOK))
 	urls := requestJSON[[]model.URL](t, server.Client(), http.MethodGet, server.URL+"/api/v2/targets/"+target.ID+"/urls", nil, http.StatusOK)
 	if len(urls) != 2 || urls[0].TargetID != target.ID || !urls[0].Visited || !urls[0].Scope || urls[1].Visited || !urls[1].Scope {
 		t.Fatalf("unexpected URL catalog: %+v", urls)

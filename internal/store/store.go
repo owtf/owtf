@@ -1963,8 +1963,9 @@ func scanPluginOutputReviews(rows *sql.Rows) ([]model.PluginOutputReview, error)
 	return reviews, rows.Err()
 }
 
-// GetTargetReport assembles all retained task and evidence records for a target.
-func (s *Store) GetTargetReport(ctx context.Context, targetID string) (model.TargetReport, error) {
+// GetTargetReport assembles retained target evidence, optionally selecting task
+// outputs by current review disposition. Stored records are never changed.
+func (s *Store) GetTargetReport(ctx context.Context, targetID string, dispositions ...string) (model.TargetReport, error) {
 	target, err := s.GetTarget(ctx, targetID)
 	if err != nil {
 		return model.TargetReport{}, err
@@ -2019,12 +2020,16 @@ func (s *Store) GetTargetReport(ctx context.Context, targetID string) (model.Tar
 	if report.PluginOutputReviewEvents, err = s.listTargetPluginOutputReviewEvents(ctx, targetID); err != nil {
 		return model.TargetReport{}, err
 	}
+	if err := filterTargetReport(&report, dispositions); err != nil {
+		return model.TargetReport{}, err
+	}
 	return report, nil
 }
 
 // GetSessionReport assembles all retained execution and evidence records for a
-// session using direct session-scoped queries.
-func (s *Store) GetSessionReport(ctx context.Context, sessionID string) (model.SessionReport, error) {
+// session using direct session-scoped queries. Optional dispositions select task
+// outputs while preserving independent evidence and session context.
+func (s *Store) GetSessionReport(ctx context.Context, sessionID string, dispositions ...string) (model.SessionReport, error) {
 	session, err := s.GetSession(ctx, sessionID)
 	if err != nil {
 		return model.SessionReport{}, err
@@ -2080,7 +2085,9 @@ func (s *Store) GetSessionReport(ctx context.Context, sessionID string) (model.S
 	if report.PluginOutputReviewEvents, err = s.listSessionPluginOutputReviewEvents(ctx, sessionID); err != nil {
 		return model.SessionReport{}, err
 	}
-	report.Summary = summarizeReport(report)
+	if err := filterSessionReport(&report, dispositions); err != nil {
+		return model.SessionReport{}, err
+	}
 	return report, nil
 }
 

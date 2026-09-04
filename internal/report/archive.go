@@ -24,8 +24,8 @@ type manifest struct {
 	ArtifactFiles map[string]string `json:"artifact_files"`
 }
 
-// WriteSessionArchive writes a portable ZIP containing the complete JSON
-// report, an offline HTML summary, and every retained artifact.
+// WriteSessionArchive writes a portable ZIP containing the supplied JSON report,
+// an offline HTML summary, and every artifact included in that report.
 func WriteSessionArchive(destination io.Writer, session model.SessionReport, artifacts *artifact.Store) error {
 	artifactFiles := make(map[string]string, len(session.Artifacts))
 	for _, item := range session.Artifacts {
@@ -174,6 +174,7 @@ var sessionTemplate = template.Must(template.New("session-report").Funcs(templat
 <body><main>
   <p class="muted">OWASP OWTF session report</p>
   <h1>{{.Report.Session.Name}}</h1>
+  {{if .Report.Dispositions}}<p>Filtered report. Output dispositions: {{range .Report.Dispositions}}<code>{{.}}</code> {{end}}. Independent target evidence and session context are included.</p>{{end}}
   <p class="muted"><code>{{.Report.Session.ID}}</code> created {{time .Report.Session.CreatedAt}}</p>
   <section class="summary">
     <div class="stat"><strong>{{.Report.Summary.Targets}}</strong>Targets</div>
