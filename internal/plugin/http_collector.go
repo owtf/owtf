@@ -11,7 +11,10 @@ import (
 
 // HTTPCollector returns the baseline HTTP evidence collector. Redirects remain
 // on the original host and response bodies are retained with a bounded size.
-func HTTPCollector(client *http.Client) Executor {
+func HTTPCollector(client *http.Client, userAgent string) Executor {
+	if userAgent == "" {
+		userAgent = "OWTF/0.1"
+	}
 	if client == nil {
 		client = &http.Client{Timeout: 20 * time.Second}
 	}
@@ -31,7 +34,7 @@ func HTTPCollector(client *http.Client) Executor {
 		if err != nil {
 			return Result{}, fmt.Errorf("create request: %w", err)
 		}
-		req.Header.Set("User-Agent", "OWTF/0.1")
+		req.Header.Set("User-Agent", userAgent)
 		request.Log("system", "fetching "+targetURL.Redacted())
 		started := time.Now()
 		response, err := collectorClient.Do(req)

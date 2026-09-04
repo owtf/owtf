@@ -30,9 +30,17 @@ const (
 type Config struct {
 	APIVersion string  `json:"api_version" yaml:"apiVersion"`
 	Kind       string  `json:"kind" yaml:"kind"`
+	LogLevel   string  `json:"log_level" yaml:"logLevel"`
+	HTTP       HTTP    `json:"http" yaml:"http"`
 	Server     Server  `json:"server" yaml:"server"`
 	Plugins    Plugins `json:"plugins" yaml:"plugins"`
 	Proxy      Proxy   `json:"proxy" yaml:"proxy"`
+}
+
+// HTTP configures OWTF-owned collectors, not external tools or proxy forwarding.
+type HTTP struct {
+	UserAgent             string `json:"user_agent" yaml:"userAgent"`
+	RequestTimeoutSeconds int    `json:"request_timeout_seconds" yaml:"requestTimeoutSeconds"`
 }
 
 // Server configures the API process and bounded worker pool.
@@ -78,6 +86,8 @@ func Default() Config {
 	return Config{
 		APIVersion: APIVersion,
 		Kind:       Kind,
+		LogLevel:   "info",
+		HTTP:       HTTP{UserAgent: "OWTF/0.1", RequestTimeoutSeconds: 20},
 		Server: Server{
 			Address: ":8009", DataDirectory: ".owtf", Workers: 1,
 			TaskTimeoutSeconds: 30,
@@ -178,6 +188,8 @@ func (config *Config) ApplyEnvironment(lookup func(string) (string, bool)) error
 		name        string
 		destination *string
 	}{
+		{"OWTF_LOG_LEVEL", &next.LogLevel},
+		{"OWTF_HTTP_USER_AGENT", &next.HTTP.UserAgent},
 		{"OWTF_ADDR", &next.Server.Address},
 		{"OWTF_DATA_DIR", &next.Server.DataDirectory},
 		{"OWTF_PLUGIN_DIR", &next.Plugins.Directory},
@@ -203,6 +215,7 @@ func (config *Config) ApplyEnvironment(lookup func(string) (string, bool)) error
 		name        string
 		destination *int
 	}{
+		{"OWTF_HTTP_REQUEST_TIMEOUT", &next.HTTP.RequestTimeoutSeconds},
 		{"OWTF_WORKERS", &next.Server.Workers},
 		{"OWTF_TASK_TIMEOUT", &next.Server.TaskTimeoutSeconds},
 		{"OWTF_PROXY_MAX_TRANSACTIONS", &next.Proxy.MaximumTransactions},
@@ -263,7 +276,24 @@ func (config *Config) ApplyEnvironment(lookup func(string) (string, bool)) error
 
 // Validate checks all process settings before listeners or workers start.
 func (config Config) Validate() error {
+	switch config.LogLevel {
+	case "debug", "info", "warn", "error":
+	default:
+		return errors.New("logLevel must be debug, info, warn, or error")
+	}
+	if strings.TrimSpace(config.HTTP.UserAgent) == "" {
+		return errors.New("http.userAgent cannot be empty")
+	}
+	for _, c := range config.HTTP.UserAgent {
+		if c < 32 || c == 127 {
+			return errors.New("http.userAgent cannot contain control characters")
+		}
+	}
+	if config.HTTP.RequestTimeoutSeconds < 1 || config.HTTP.RequestTimeoutSeconds > 86400 {
+		return errors.New("http.requestTimeoutSeconds must be between 1 and 86400")
+	}
 	if config.APIVersion != APIVersion {
+
 		return fmt.Errorf("unsupported apiVersion %q", config.APIVersion)
 	}
 	if config.Kind != Kind {

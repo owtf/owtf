@@ -20,17 +20,17 @@ Legacy paths refer to commit `c41908bf0b83c5588f885ee20e5d187bf5d87be2`, not a
 verified 2.6.10 release. These are code/configuration comparisons, not live SQL
 Server or legacy Python runtime comparisons. No scan was run for this decision pass.
 
-## Global controls to build
+## Implemented global controls
 
-Two small controls are worth implementing next in configuration work:
+Two typed controls are now implemented and documented in `docs/usage/cli.rst`:
 
 - A process log level (`debug`, `info`, `warn`, `error`), shared by server and proxy.
   It controls OWTF diagnostics, not deletion/filtering of captured task logs.
-  It is **planned**, not currently available.
+  Use `logLevel`, `OWTF_LOG_LEVEL`, or `--log-level`.
 - Consistent request defaults for OWTF-owned HTTP collectors: User-Agent and
   per-request timeout, bounded by the whole-task deadline. Built-in collectors
   currently use `OWTF/0.1` and 20 seconds; some curl plugins have their own inputs.
-  The shared override is **planned**. External scanners keep their explicit
+  The shared override uses `http.userAgent` and `http.requestTimeoutSeconds`. External scanners keep their explicit
   manifest inputs; do not pretend a global field changes arbitrary tool behavior.
 
 Avoid a general key/value settings API. Use typed fields and documented precedence.
@@ -78,3 +78,8 @@ coverage can still be checked. Do not add legacy constants with no retained use.
 `owtf config show` resolves the invoking process's environment/files. It does not
 read a remote server's effective configuration. A future read-only settings API
 must make that distinction explicit if the UI needs it.
+
+Verification: `cmd/owtf/logging_test.go` covers diagnostic levels and flag
+precedence; `internal/config/config_test.go` covers strict validation;
+`internal/plugin/http_config_test.go` uses a local HTTP server to check User-Agent,
+request deadlines, shorter task deadlines, and retained evidence.

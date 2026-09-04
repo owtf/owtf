@@ -132,3 +132,20 @@ func writeConfig(t *testing.T, text string) string {
 	}
 	return path
 }
+
+func TestDiagnosticAndHTTPSettings(t *testing.T) {
+	loaded, err := Load(writeConfig(t, "apiVersion: owtf.dev/v1alpha1\nkind: Config\nlogLevel: debug\nhttp:\n  userAgent: custom\n  requestTimeoutSeconds: 9\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.LogLevel != "debug" || loaded.HTTP.UserAgent != "custom" || loaded.HTTP.RequestTimeoutSeconds != 9 {
+		t.Fatalf("%+v", loaded)
+	}
+	for key, value := range map[string]string{"OWTF_LOG_LEVEL": "trace", "OWTF_HTTP_USER_AGENT": "bad\r\nHeader: injected", "OWTF_HTTP_REQUEST_TIMEOUT": "0"} {
+		before := loaded
+		err := loaded.ApplyEnvironment(func(name string) (string, bool) { return value, name == key })
+		if err == nil || !reflect.DeepEqual(before, loaded) {
+			t.Fatalf("%s: invalid environment accepted or mutated settings", key)
+		}
+	}
+}

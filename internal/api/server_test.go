@@ -228,7 +228,7 @@ func TestTargetScanPersistsReportAndSupportsDeletion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	collector := plugin.HTTPCollector(targetServer.Client())
+	collector := plugin.HTTPCollector(targetServer.Client(), "")
 	receivedInputs := make(chan map[string]any, 1)
 	catalog.RegisterBuiltin("http-collector", func(ctx context.Context, request plugin.Request) (plugin.Result, error) {
 		receivedInputs <- request.Inputs
@@ -709,7 +709,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *store.Store, *runner.Runner
 		database.Close()
 		t.Fatal(err)
 	}
-	catalog.RegisterBuiltin("http-collector", plugin.HTTPCollector(nil))
+	catalog.RegisterBuiltin("http-collector", plugin.HTTPCollector(nil, ""))
 	entries := catalog.Entries()
 	if err := database.ReplacePlugins(context.Background(), []model.Plugin{entries[0].Plugin()}); err != nil {
 		database.Close()

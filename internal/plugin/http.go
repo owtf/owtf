@@ -21,11 +21,14 @@ const (
 
 // HTTPExecutor performs the read-only requests declared by an HTTP plugin.
 // Redirects cannot leave the target host and response bodies are bounded.
-func HTTPExecutor(manifest Manifest, client *http.Client) Executor {
+func HTTPExecutor(manifest Manifest, client *http.Client, userAgent string) Executor {
 	spec := *manifest.Spec.Runtime.HTTP
 	spec.Probes = append([]HTTPProbe(nil), spec.Probes...)
 	targetKinds := append([]string(nil), manifest.Spec.TargetKinds...)
 	techniqueCode := manifest.Spec.Techniques[0].Code
+	if userAgent == "" {
+		userAgent = "OWTF/0.1"
+	}
 	if client == nil {
 		client = &http.Client{Timeout: 20 * time.Second}
 	}
@@ -53,7 +56,7 @@ func HTTPExecutor(manifest Manifest, client *http.Client) Executor {
 			if err != nil {
 				return Result{}, fmt.Errorf("create HTTP probe %q: %w", probe.Name, err)
 			}
-			httpRequest.Header.Set("User-Agent", "OWTF/0.1")
+			httpRequest.Header.Set("User-Agent", userAgent)
 			response, err := httpClient.Do(httpRequest)
 			if err != nil {
 				return Result{}, fmt.Errorf("run HTTP probe %q: %w", probe.Name, err)

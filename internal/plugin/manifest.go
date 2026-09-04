@@ -306,7 +306,7 @@ func Load(fsys fs.FS) (*Catalog, error) {
 		case "http":
 			entry.Availability = "ready"
 			entry.Reason = ""
-			entry.Executor = HTTPExecutor(manifest, nil)
+			entry.Executor = HTTPExecutor(manifest, nil, "")
 		}
 		catalog.entries[manifest.Metadata.ID] = entry
 		return nil

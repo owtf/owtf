@@ -19,6 +19,8 @@ func runServe(args []string, stdout, stderr io.Writer) error {
 	if err != nil {
 		return err
 	}
+	restore := configureLogging(stderr, settings.LogLevel)
+	defer restore()
 	cli.WriteBanner(stdout)
 	return serve(settings)
 }
@@ -36,6 +38,9 @@ func serverConfiguration(args []string, stderr io.Writer) (owtfconfig.Config, er
 	flags := flag.NewFlagSet("owtf serve", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	flags.String("config", path, "configuration file")
+	flags.StringVar(&settings.LogLevel, "log-level", settings.LogLevel, "process diagnostic level")
+	flags.StringVar(&settings.HTTP.UserAgent, "http-user-agent", settings.HTTP.UserAgent, "built-in HTTP collector User-Agent")
+	flags.IntVar(&settings.HTTP.RequestTimeoutSeconds, "http-request-timeout", settings.HTTP.RequestTimeoutSeconds, "built-in HTTP request timeout in seconds")
 	flags.StringVar(&settings.Server.Address, "addr", settings.Server.Address, "server listen address")
 	flags.StringVar(&settings.Server.DataDirectory, "data-dir", settings.Server.DataDirectory, "data directory")
 	flags.IntVar(&settings.Server.Workers, "workers", settings.Server.Workers, "worker count")

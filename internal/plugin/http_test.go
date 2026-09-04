@@ -49,7 +49,7 @@ func TestHTTPExecutorCapturesProbesAndDiscoversRobotsURLs(t *testing.T) {
 		t.Fatalf("HTTP plugin is not ready: %+v", entry)
 	}
 
-	result, err := HTTPExecutor(entry.Manifest, server.Client())(context.Background(), Request{
+	result, err := HTTPExecutor(entry.Manifest, server.Client(), "")(context.Background(), Request{
 		Target: model.Target{Kind: "url", Value: server.URL + "/entry?source=test"},
 		Log:    func(string, string) {},
 	})
@@ -102,7 +102,7 @@ func TestHTTPExecutorDoesNotFollowCrossHostRedirects(t *testing.T) {
         - name: redirect-response
           method: GET
 `))
-	result, err := HTTPExecutor(manifest, origin.Client())(context.Background(), Request{
+	result, err := HTTPExecutor(manifest, origin.Client(), "")(context.Background(), Request{
 		Target: model.Target{Kind: "url", Value: origin.URL}, Log: func(string, string) {},
 	})
 	if err != nil {
@@ -123,7 +123,7 @@ func TestHTTPExecutorBoundsResponseBodies(t *testing.T) {
         - name: bounded-response
           method: GET
 `))
-	result, err := HTTPExecutor(manifest, server.Client())(context.Background(), Request{
+	result, err := HTTPExecutor(manifest, server.Client(), "")(context.Background(), Request{
 		Target: model.Target{Kind: "url", Value: server.URL}, Log: func(string, string) {},
 	})
 	if err != nil {
@@ -156,7 +156,7 @@ func TestHTTPExecutorHonorsCancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error, 1)
 	go func() {
-		_, err := HTTPExecutor(manifest, server.Client())(ctx, Request{
+		_, err := HTTPExecutor(manifest, server.Client(), "")(ctx, Request{
 			Target: model.Target{Kind: "url", Value: server.URL}, Log: func(string, string) {},
 		})
 		done <- err

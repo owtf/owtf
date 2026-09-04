@@ -13,7 +13,9 @@ Legacy source is pinned to `c41908bf0b83c5588f885ee20e5d187bf5d87be2`, the local
 available Python `origin/develop` snapshot. This is **not a verified 2.6.10 tag**;
 it includes later community-plugin and worker-scaling settings. Current code was
 inspected at `89ffc5c4` on `owtf-next`. No legacy files were executed, and no
-runtime settings or plugins were changed by this audit.
+runtime settings or plugins were changed by the initial audit. The subsequent
+log-level and built-in HTTP-default implementation is recorded in the decision
+document with tests; plugin gaps remain deferred.
 
 | Source | Occurrences |
 | --- | ---: |
@@ -37,11 +39,11 @@ identify source lines without copying credentials or executable command template
 | Status | Occurrences | Meaning |
 | --- | ---: | --- |
 | migrated | 9 | Equivalent control exists in typed configuration; defaults may differ. |
-| replaced | 80 | Supported behavior moved to another mechanism with explicit differences. |
+| replaced | 81 | Supported behavior moved to another mechanism with explicit differences. |
 | partial | 171 | Related support exists, but some values, rules, or behavior differ or remain unverified. |
 | removed | 975 | Covered by an explicit retirement decision, rather than silently omitted. |
 | deferred | 70 | Credential/SNMP work, API CORS policy, and encrypted CA-key loading are deferred. |
-| gap | 184 | No verified equivalent; planned controls and undecided gaps are not implemented features. |
+| gap | 183 | No verified equivalent; planned controls and undecided gaps are not implemented features. |
 
 These count source occurrences, not features or unique settings. Most removed
 rows are repetitive DoS/exploit command resources belonging to rejected launchers.
@@ -80,10 +82,9 @@ Reference destinations were not checked for present-day availability.
 
 The follow-through scope is:
 
-1. Plan typed process log-level configuration; it is not implemented yet and
-   must not filter captured task evidence. Defer API CORS until UI deployment design.
+1. Typed process log-level configuration is implemented without filtering task evidence. Defer API CORS until UI deployment design.
 2. Defer encrypted CA private keys/passphrase-file handling until needed.
-3. Plan shared User-Agent and request-timeout defaults for OWTF-owned HTTP
+3. Shared User-Agent and request-timeout defaults are implemented for OWTF-owned HTTP
    collectors only. External tools retain explicit plugin inputs; no shared
    override controls all tools today.
 4. Reusable TCP/UDP port lists and legacy dictionary contents.

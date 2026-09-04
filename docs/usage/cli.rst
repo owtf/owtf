@@ -528,3 +528,32 @@ imported evidence remain included. Referenced transaction artifacts are retained
 JSON and HTML identify filtered reports, and summary counts describe the exported
 records. Omitting the filter returns the complete report. Filtering never changes
 stored evidence or reviews.
+
+Process diagnostics and HTTP collectors
+--------------------------------------
+
+``logLevel`` accepts ``debug``, ``info`` (default), ``warn``, or ``error``.
+Set ``OWTF_LOG_LEVEL`` or pass ``--log-level`` to ``serve`` or ``proxy``.
+This filters process diagnostics only, never persisted plugin stdout, stderr,
+transactions, or events. Command results, startup banners, and fatal command
+errors are not diagnostic-level filtered.
+
+OWTF-owned collectors share these defaults::
+
+  apiVersion: owtf.dev/v1alpha1
+  kind: Config
+  logLevel: info
+  http:
+    userAgent: OWTF/0.1
+    requestTimeoutSeconds: 20
+
+Override them with ``OWTF_HTTP_USER_AGENT`` and
+``OWTF_HTTP_REQUEST_TIMEOUT`` (integer seconds), or with ``serve`` flags
+``--http-user-agent`` and ``--http-request-timeout``. Timeout values must be
+1-86400 seconds; empty User-Agents and control characters are rejected.
+Precedence remains flags, environment, YAML, compiled defaults.
+
+These apply to the baseline collector and YAML HTTP probes, including redirects
+and response-body reads. The earlier whole-task deadline still wins. External
+scanner commands and proxy forwarding retain their own settings; these controls
+do not force arbitrary tools to adopt an HTTP policy. Restart to apply changes.

@@ -9,7 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net"
 	"net/http"
 	"net/url"
@@ -47,6 +47,8 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	if err != nil {
 		return err
 	}
+	restore := configureLogging(stderr, settings.LogLevel)
+	defer restore()
 	proxySettings := settings.Proxy
 
 	authority, err := owtfproxy.LoadOrCreateAuthority(proxySettings.CACertificate, proxySettings.CAKey)
@@ -116,7 +118,7 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 		Authority: authority, Recorder: recorder, Transport: roundTripper,
 		AllowedHosts: proxySettings.TargetHosts, MaximumBody: proxySettings.MaximumBody,
 		Interceptors: interceptors, Live: live,
-		ErrorLog: log.New(stderr, "proxy: ", log.LstdFlags),
+		ErrorLog: slog.NewLogLogger(slog.Default().Handler(), slog.LevelError),
 	})
 	if err != nil {
 		return err
@@ -157,11 +159,11 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	}
 	server := &http.Server{
 		Handler: handler, ReadHeaderTimeout: 10 * time.Second, IdleTimeout: 60 * time.Second,
-		ErrorLog: log.New(stderr, "proxy: ", log.LstdFlags),
+		ErrorLog: slog.NewLogLogger(slog.Default().Handler(), slog.LevelError),
 	}
 	apiServer := &http.Server{
 		Handler: apiHandler, ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 30 * time.Second,
-		ErrorLog: log.New(stderr, "proxy API: ", log.LstdFlags),
+		ErrorLog: slog.NewLogLogger(slog.Default().Handler(), slog.LevelError),
 	}
 	ctx, stop := signal.NotifyContext(parent, os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -219,6 +221,7 @@ func proxyConfiguration(args []string, stderr io.Writer) (owtfconfig.Config, err
 	flags := flag.NewFlagSet("owtf proxy", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	flags.String("config", path, "configuration file")
+	flags.StringVar(&settings.LogLevel, "log-level", settings.LogLevel, "process diagnostic level")
 	flags.StringVar(&proxySettings.ListenAddress, "listen", proxySettings.ListenAddress, "proxy listen address")
 	flags.StringVar(&proxySettings.APIAddress, "api-listen", proxySettings.APIAddress, "proxy API listen address")
 	flags.StringVar(&proxySettings.Output, "output", proxySettings.Output, "HAR output path")
