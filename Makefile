@@ -10,7 +10,7 @@ OWTF_GO_ENV := GOPATH=$(OWTF_GO_PATH) GOMODCACHE=$(OWTF_GO_PATH)/pkg/mod GOCACHE
 
 .PHONY: build check-compose clean fmt fmt-check lint local-down local-logs local-status local-up run test test-unit test-api test-tools test-failures tools-image vet
 
-build:
+build: ui-build
 	@echo "--> Building OWTF"
 	@mkdir -p build
 	@env $(OWTF_GO_ENV) go build -trimpath -o build/owtf ./cmd/owtf
@@ -61,7 +61,14 @@ test-failures:
 	@echo "--> Checking active-scan cancellation, crashes, and timeouts"
 	@./scripts/owtf-tools-smoke.sh --failure-only
 
-test: lint test-unit test-api
+test: ui-test lint test-unit test-api
+
+.PHONY: ui-build ui-test
+ui-build:
+	@cd web && npm ci && npm run build
+
+ui-test:
+	@cd web && npm ci && npm run check && npm test
 
 .PHONY: test-compose demo-cli
 test-compose: check-compose

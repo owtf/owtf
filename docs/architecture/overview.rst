@@ -349,10 +349,21 @@ Phase 6: AI design
   architecture. No AI capability ships merely to satisfy this phase name.
 
 Phase 7: operator UI
-  Build the final React and TypeScript interface with Tailwind and shadcn
-  primitives, compact Inter typography, and complete parity with the CLI. Every
-  screen uses the real API; no demo counters or simulated progress. The current
-  embedded interface is disposable proof tooling, not the product UI.
+  Build the React and TypeScript interface with shadcn/ui, Tailwind and TanStack Query.
+  Reuse the pre-React OWTF Bootstrap layouts and workflows: compact tables,
+  toolbars, plugin-type tabs, and accordion reports with Inter typography.
+  Use React state for forms and selections, and TanStack Query for API data,
+  caching, and status polling. Do not add Redux, RTK Query, sagas, or TanStack
+  Table or Bootstrap runtime; plain semantic tables are sufficient until a
+  concrete need says otherwise. Disable automatic mutation retries, especially
+  for plugin launches.
+  Reuse the Go API without a frontend server layer. Every screen uses real
+  data; no demo counters or simulated progress. The first embedded React UI
+  covers targets, plugin launch, reports, worklist, workers and transactions.
+  Proxy replay and live settings editing are not included in this slice.
+  See ``operator-ui.md`` for the historical sources, workflow mappings and
+  real-browser acceptance gates. Reuse the old interaction design, not its
+  jQuery or Python implementation.
 
 Phase 8: legacy retirement
   Publish a mapping from retained OWTF technique codes to replacement plugins.

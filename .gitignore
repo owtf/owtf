@@ -12,3 +12,5 @@ coverage.out
 *.tmp
 *.bak
 *.*~
+
+web/node_modules/

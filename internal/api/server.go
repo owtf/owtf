@@ -115,7 +115,7 @@ func New(config Config) http.Handler {
 	mux.HandleFunc("GET /api/v2/targets/{targetID}/transactions/{transactionID}", server.getTransaction)
 	mux.HandleFunc("DELETE /api/v2/targets/{targetID}/transactions/{transactionID}", server.deleteTransaction)
 	mux.HandleFunc("GET /api/v2/artifacts/{artifactID}", server.getArtifact)
-	staticFS, err := fs.Sub(uiFiles, "ui")
+	staticFS, err := fs.Sub(uiFiles, "ui/assets")
 	if err != nil {
 		panic(err)
 	}
@@ -151,7 +151,7 @@ func (s *Server) middleware(next http.Handler) http.Handler {
 }
 
 func (s *Server) app(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" && r.URL.Path != "/work" && r.URL.Path != "/workers" && r.URL.Path != "/transactions" && !strings.HasPrefix(r.URL.Path, "/targets/") {
+	if r.URL.Path != "/" && r.URL.Path != "/settings" && r.URL.Path != "/help" && r.URL.Path != "/work" && r.URL.Path != "/workers" && r.URL.Path != "/transactions" && !strings.HasPrefix(r.URL.Path, "/targets/") {
 		http.NotFound(w, r)
 		return
 	}
