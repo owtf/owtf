@@ -42,6 +42,14 @@ tools-image:
 	@echo "--> Building the Kali plugin tools image"
 	@docker build --file docker/Dockerfile.tools --tag owtf/kali-tools:local .
 
+.PHONY: install
+install: check-compose
+	@echo "--> Building the OWTF service image"
+	@$(COMPOSE) build
+	@$(MAKE) tools-image
+	@echo "--> Images installed. Start OWTF with: make local-up"
+	@echo "--> Compose tool execution still requires a configured container-engine connection."
+
 test-tools: check-compose
 	@echo "--> Exercising retained scanner tools against isolated fixtures"
 	@docker image inspect owtf/kali-tools:local >/dev/null 2>&1 || { \

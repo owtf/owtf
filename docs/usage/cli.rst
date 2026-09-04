@@ -150,7 +150,8 @@ keeps the plugin visible with ``missing_requirements`` and OWTF rejects an
 individual launch before creating work.
 
 The retained Testssl.sh, WAFW00F, Gobuster, Metagoofil, WhatWeb, Nuclei, and
-Wapiti plugins use ``owtf/kali-tools:local``. Build it with ``make tools-image``
+Wapiti plugins use ``owtf/kali-tools:local``. ``make install`` builds both the
+OWTF service and tools images. Alternatively, build only the tools with ``make tools-image``
 before starting the host server with a working Docker CLI/context. OWTF does
 not pull the image automatically. The minimal Compose server does not receive
 the Docker socket and cannot launch these plugins itself.

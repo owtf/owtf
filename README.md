@@ -113,6 +113,7 @@ Docker is optional. Compose starts one resource-bounded OWTF service backed by
 a named SQLite data volume:
 
 ```bash
+make install       # Build OWTF and owtf/kali-tools:local
 make local-up
 make local-status
 make local-logs
@@ -122,10 +123,16 @@ make local-down
 The default is one worker. Set `OWTF_WORKERS` deliberately if the host has
 capacity for more.
 
+`make install` prepares both images without starting services. Docker reuses
+cached layers on subsequent installs. The Kali image contains the external
+scanners and can take substantial disk space. For the service alone, use
+`make local-up`; for just the tools image, use `make tools-image`.
+
 ### External scanner tools
 
 The retained Testssl.sh, WAFW00F, Gobuster, Metagoofil, WhatWeb, Nuclei,
-Wapiti, Nmap, and Nikto plugins use a separate Kali image. Build it explicitly:
+Wapiti, Nmap, and Nikto plugins use a separate Kali image, built by `make install`.
+To build only that image:
 
 ```bash
 make tools-image
