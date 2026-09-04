@@ -132,9 +132,19 @@ cat >"$PROOF/cli" <<SH
 #!/usr/bin/env bash
 tty_args=()
 if [[ ! -t 0 || ! -t 1 ]]; then tty_args=(-T); fi
-exec ${COMPOSE[*]} -p "$RESTORED" -f "$ROOT/docker/docker-compose.yml" -f "$OVERRIDE" exec "\${tty_args[@]}" owtf owtf --url http://127.0.0.1:8009 --human "\$@"
+if [[ \$# == 0 ]]; then set -- help; fi
+cli_args=()
+case \$1 in
+  config|proxy|serve) ;;
+  *) cli_args=(--url http://127.0.0.1:8009 --human) ;;
+esac
+exec ${COMPOSE[*]} -p "$RESTORED" -f "$ROOT/docker/docker-compose.yml" -f "$OVERRIDE" exec "\${tty_args[@]}" owtf owtf "\${cli_args[@]}" "\$@"
 SH
 chmod +x "$PROOF/cli"
+"$PROOF/cli" config show >"$PROOF/config.json"
+jq -e '.server.data_directory == "/data"' "$PROOF/config.json" >/dev/null
+"$PROOF/cli" sessions list >"$PROOF/sessions-preview.json"
+jq -e --arg id "$SESSION" 'any(.[]; .id == $id)' "$PROOF/sessions-preview.json" >/dev/null
 printf 'URL=%s\nSESSION=%s\nTARGET=%s\nTASK=%s\nPROJECT=%s\n' "$URL" "$SESSION" "$TARGET" "$TASK" "$RESTORED" >"$PROOF/demo.env"
 PASSED=true
 printf 'PASS: Compose lifecycle, cancellation, restart, backup, restore, and artifact hashes.\n'

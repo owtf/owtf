@@ -19,6 +19,7 @@ and before/after reports. Set ``PROOF`` to that printed directory::
 
   PROOF=/absolute/path/to/build/compose-proof.XXXXXX
   source "$PROOF/demo.env"
+  "$PROOF/cli" config show
   "$PROOF/cli" plugin list --group web --type active
   "$PROOF/cli" sessions list
   "$PROOF/cli" targets list --session "$SESSION"
