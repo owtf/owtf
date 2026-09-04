@@ -308,17 +308,25 @@ func TestTargetScanPersistsReportAndSupportsDeletion(t *testing.T) {
 	taskID := runResult.Tasks[0].ID
 	reviewURL := server.URL + "/api/v2/tasks/" + taskID + "/review"
 	review := requestJSON[model.PluginOutputReview](t, server.Client(), http.MethodGet, reviewURL, nil, http.StatusOK)
-	if review.TaskID != taskID || review.Rank != model.PluginOutputRankUnranked || review.UpdatedAt != nil {
+	if review.TaskID != taskID || review.Disposition != model.PluginOutputDispositionOpen ||
+		review.Rank != model.PluginOutputRankUnranked || review.UpdatedAt != nil {
 		t.Fatalf("unexpected default plugin output review: %+v", review)
 	}
 	requestJSON[map[string]string](t, server.Client(), http.MethodPatch, reviewURL, map[string]any{}, http.StatusBadRequest)
 	requestJSON[map[string]string](t, server.Client(), http.MethodPatch, reviewURL, map[string]any{"rank": "urgent"}, http.StatusBadRequest)
+	requestJSON[map[string]string](t, server.Client(), http.MethodPatch, reviewURL, map[string]any{"disposition": "suppressed"}, http.StatusBadRequest)
 	requestJSON[map[string]string](t, server.Client(), http.MethodPatch, reviewURL, map[string]any{"unknown": true}, http.StatusBadRequest)
 	review = requestJSON[model.PluginOutputReview](t, server.Client(), http.MethodPatch, reviewURL, map[string]any{
-		"rank": model.PluginOutputRankHigh, "notes": "Verified from retained HTTP evidence.",
+		"disposition": model.PluginOutputDispositionConfirmed,
+		"rank":        model.PluginOutputRankHigh, "notes": "Verified from retained HTTP evidence.",
 	}, http.StatusOK)
-	if review.Rank != model.PluginOutputRankHigh || review.Notes != "Verified from retained HTTP evidence." || review.UpdatedAt == nil {
+	if review.Disposition != model.PluginOutputDispositionConfirmed || review.Rank != model.PluginOutputRankHigh ||
+		review.Notes != "Verified from retained HTTP evidence." || review.UpdatedAt == nil {
 		t.Fatalf("plugin output review was not stored: %+v", review)
+	}
+	reviewEvents := requestJSON[[]model.PluginOutputReviewEvent](t, server.Client(), http.MethodGet, reviewURL+"/history", nil, http.StatusOK)
+	if len(reviewEvents) != 1 || reviewEvents[0].Disposition != model.PluginOutputDispositionConfirmed || reviewEvents[0].TaskID != taskID {
+		t.Fatalf("plugin output review history = %+v", reviewEvents)
 	}
 
 	report := requestJSON[model.TargetReport](t, server.Client(), http.MethodGet, server.URL+"/api/v2/targets/"+target.ID+"/report", nil, http.StatusOK)
@@ -729,7 +737,9 @@ func assertReport(t *testing.T, report model.TargetReport) {
 		t.Fatalf("expected lifecycle and plugin logs, got %d events", len(report.Events))
 	}
 	if len(report.PluginOutputReviews) != 1 || report.PluginOutputReviews[0].TaskID != report.Tasks[0].ID ||
-		report.PluginOutputReviews[0].Rank != model.PluginOutputRankHigh || report.PluginOutputReviews[0].Notes != "Verified from retained HTTP evidence." {
+		report.PluginOutputReviews[0].Disposition != model.PluginOutputDispositionConfirmed ||
+		report.PluginOutputReviews[0].Rank != model.PluginOutputRankHigh || report.PluginOutputReviews[0].Notes != "Verified from retained HTTP evidence." ||
+		len(report.PluginOutputReviewEvents) != 1 {
 		t.Fatalf("unexpected plugin output reviews: %+v", report.PluginOutputReviews)
 	}
 }

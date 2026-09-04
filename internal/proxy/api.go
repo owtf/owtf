@@ -32,6 +32,7 @@ type APIConfig struct {
 	Recorder     *Recorder
 	RepeatClient httpDoer
 	Interceptors *Interceptors
+	Live         *LiveInterception
 	MaximumBody  int64
 }
 
@@ -40,6 +41,7 @@ type apiServer struct {
 	recorder     *Recorder
 	repeatClient httpDoer
 	interceptors *Interceptors
+	live         *LiveInterception
 	maximumBody  int64
 }
 
@@ -60,10 +62,17 @@ func NewAPI(config APIConfig) (http.Handler, error) {
 	if config.MaximumBody < 1 {
 		return nil, errors.New("proxy API maximum body must be positive")
 	}
+	if config.Live == nil {
+		var err error
+		config.Live, err = NewLiveInterception(config.MaximumBody, 0)
+		if err != nil {
+			return nil, err
+		}
+	}
 	server := &apiServer{
 		authority: config.Authority, recorder: config.Recorder,
 		repeatClient: config.RepeatClient, interceptors: config.Interceptors,
-		maximumBody: config.MaximumBody,
+		live: config.Live, maximumBody: config.MaximumBody,
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/v2/health", server.health)
@@ -76,6 +85,12 @@ func NewAPI(config APIConfig) (http.Handler, error) {
 	mux.HandleFunc("GET /api/v2/interceptors", server.listInterceptors)
 	mux.HandleFunc("PUT /api/v2/interceptors", server.replaceInterceptors)
 	mux.HandleFunc("PATCH /api/v2/interceptors", server.setInterceptorEnabled)
+	mux.HandleFunc("GET /api/v2/interception", server.liveInterceptionConfig)
+	mux.HandleFunc("PUT /api/v2/interception", server.configureLiveInterception)
+	mux.HandleFunc("GET /api/v2/interception/pending", server.pendingInterceptions)
+	mux.HandleFunc("GET /api/v2/interception/pending/{interceptionID}", server.pendingInterception)
+	mux.HandleFunc("POST /api/v2/interception/pending/{interceptionID}/continue", server.continueInterception)
+	mux.HandleFunc("POST /api/v2/interception/pending/{interceptionID}/drop", server.dropInterception)
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		writer.Header().Set("Cache-Control", "no-store")
 		writer.Header().Set("X-Content-Type-Options", "nosniff")
@@ -183,6 +198,73 @@ func (c *apiServer) setInterceptorEnabled(writer http.ResponseWriter, request *h
 		return
 	}
 	writeAPIJSON(writer, http.StatusOK, rule)
+}
+
+func (c *apiServer) liveInterceptionConfig(writer http.ResponseWriter, _ *http.Request) {
+	writeAPIJSON(writer, http.StatusOK, c.live.Config())
+}
+
+func (c *apiServer) configureLiveInterception(writer http.ResponseWriter, request *http.Request) {
+	if !requireAPIJSON(writer, request) {
+		return
+	}
+	var config LiveConfig
+	if err := decodeAPIJSON(request.Body, &config); err != nil {
+		writeAPIError(writer, http.StatusBadRequest, err)
+		return
+	}
+	if err := c.live.Configure(config); err != nil {
+		writeAPIError(writer, http.StatusBadRequest, err)
+		return
+	}
+	writeAPIJSON(writer, http.StatusOK, c.live.Config())
+}
+
+func (c *apiServer) pendingInterceptions(writer http.ResponseWriter, _ *http.Request) {
+	writeAPIJSON(writer, http.StatusOK, c.live.Pending())
+}
+
+func (c *apiServer) pendingInterception(writer http.ResponseWriter, request *http.Request) {
+	item, err := c.live.Get(request.PathValue("interceptionID"))
+	if errors.Is(err, ErrInterceptionNotFound) {
+		writeAPIError(writer, http.StatusNotFound, err)
+		return
+	}
+	if err != nil {
+		writeAPIError(writer, http.StatusBadRequest, err)
+		return
+	}
+	writeAPIJSON(writer, http.StatusOK, item)
+}
+
+func (c *apiServer) continueInterception(writer http.ResponseWriter, request *http.Request) {
+	if !requireAPIJSON(writer, request) {
+		return
+	}
+	var update InterceptionUpdate
+	if err := decodeAPIJSON(request.Body, &update); err != nil {
+		writeAPIError(writer, http.StatusBadRequest, err)
+		return
+	}
+	item, err := c.live.Continue(request.PathValue("interceptionID"), update)
+	c.writeInterceptionResolution(writer, item, err)
+}
+
+func (c *apiServer) dropInterception(writer http.ResponseWriter, request *http.Request) {
+	item, err := c.live.Drop(request.PathValue("interceptionID"))
+	c.writeInterceptionResolution(writer, item, err)
+}
+
+func (c *apiServer) writeInterceptionResolution(writer http.ResponseWriter, item PendingInterception, err error) {
+	if errors.Is(err, ErrInterceptionNotFound) {
+		writeAPIError(writer, http.StatusNotFound, err)
+		return
+	}
+	if err != nil {
+		writeAPIError(writer, http.StatusBadRequest, err)
+		return
+	}
+	writeAPIJSON(writer, http.StatusOK, item)
 }
 
 func (c *apiServer) repeat(writer http.ResponseWriter, request *http.Request) {

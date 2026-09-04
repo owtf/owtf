@@ -33,7 +33,9 @@ func WriteSessionArchive(destination io.Writer, session model.SessionReport, art
 	}
 	reviewByTask := make(map[string]model.PluginOutputReview, len(session.Tasks))
 	for _, task := range session.Tasks {
-		reviewByTask[task.ID] = model.PluginOutputReview{TaskID: task.ID, Rank: model.PluginOutputRankUnranked}
+		reviewByTask[task.ID] = model.PluginOutputReview{
+			TaskID: task.ID, Disposition: model.PluginOutputDispositionOpen, Rank: model.PluginOutputRankUnranked,
+		}
 	}
 	for _, review := range session.PluginOutputReviews {
 		reviewByTask[review.TaskID] = review
@@ -194,9 +196,13 @@ var sessionTemplate = template.Must(template.New("session-report").Funcs(templat
   {{range .Report.URLs}}<tr><td><code>{{.TargetID}}</code></td><td><a href="{{.URL}}">{{.URL}}</a></td><td>{{.Visited}}</td><td>{{.Scope}}</td></tr>{{else}}<tr><td colspan="4">No URLs</td></tr>{{end}}
   </tbody></table>
   <h2>Tasks</h2>
-  <table><thead><tr><th>ID</th><th>Target</th><th>Plugin</th><th>Technique</th><th>Status</th><th>Rank</th><th>Notes</th><th>Error</th></tr></thead><tbody>
-  {{range .Report.Tasks}}{{$review := index $.ReviewByTask .ID}}<tr><td><code>{{.ID}}</code></td><td><code>{{.TargetID}}</code></td><td>{{.PluginID}}</td><td>{{range .Techniques}}<div><code>{{.Code}}</code> {{.Title}}{{if .Hint}}<br><span class="muted">{{.Hint}}</span>{{end}}{{if .Reference}}<br><a href="{{.Reference}}">Reference</a>{{end}}</div>{{end}}</td><td>{{.Status}}</td><td>{{$review.Rank}}</td><td><pre>{{$review.Notes}}</pre></td><td>{{.Error}}</td></tr>{{else}}<tr><td colspan="8">No tasks</td></tr>{{end}}
-  </tbody></table>
+	  <table><thead><tr><th>ID</th><th>Target</th><th>Plugin</th><th>Technique</th><th>Status</th><th>Disposition</th><th>Rank</th><th>Notes</th><th>Error</th></tr></thead><tbody>
+	  {{range .Report.Tasks}}{{$review := index $.ReviewByTask .ID}}<tr><td><code>{{.ID}}</code></td><td><code>{{.TargetID}}</code></td><td>{{.PluginID}}</td><td>{{range .Techniques}}<div><code>{{.Code}}</code> {{.Title}}{{if .Hint}}<br><span class="muted">{{.Hint}}</span>{{end}}{{if .Reference}}<br><a href="{{.Reference}}">Reference</a>{{end}}</div>{{end}}</td><td>{{.Status}}</td><td>{{$review.Disposition}}</td><td>{{$review.Rank}}</td><td><pre>{{$review.Notes}}</pre></td><td>{{.Error}}</td></tr>{{else}}<tr><td colspan="9">No tasks</td></tr>{{end}}
+	  </tbody></table>
+	  <h2>Review history</h2>
+	  <table><thead><tr><th>Task</th><th>Disposition</th><th>Rank</th><th>Notes</th><th>Changed</th></tr></thead><tbody>
+	  {{range .Report.PluginOutputReviewEvents}}<tr><td><code>{{.TaskID}}</code></td><td>{{.Disposition}}</td><td>{{.Rank}}</td><td><pre>{{.Notes}}</pre></td><td>{{time .CreatedAt}}</td></tr>{{else}}<tr><td colspan="5">No review changes</td></tr>{{end}}
+	  </tbody></table>
   <h2>Attempts</h2>
   <table><thead><tr><th>Task</th><th>Attempt</th><th>Status</th><th>Started</th><th>Error</th></tr></thead><tbody>
   {{range .Report.Attempts}}<tr><td><code>{{.TaskID}}</code></td><td>{{.AttemptNumber}}</td><td>{{.Status}}</td><td>{{time .StartedAt}}</td><td>{{.Error}}</td></tr>{{else}}<tr><td colspan="5">No attempts</td></tr>{{end}}

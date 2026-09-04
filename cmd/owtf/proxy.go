@@ -89,6 +89,11 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	}
 
 	recorder := owtfproxy.NewRecorder(proxySettings.MaximumTransactions)
+	live, err := owtfproxy.NewLiveInterception(proxySettings.MaximumBody, 0)
+	if err != nil {
+		return err
+	}
+	defer live.Close()
 	interceptors, err := owtfproxy.NewInterceptors(nil, proxySettings.MaximumBody)
 	if err != nil {
 		return err
@@ -110,8 +115,8 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	handler, err := owtfproxy.New(owtfproxy.Config{
 		Authority: authority, Recorder: recorder, Transport: roundTripper,
 		AllowedHosts: proxySettings.TargetHosts, MaximumBody: proxySettings.MaximumBody,
-		Interceptors: interceptors,
-		ErrorLog:     log.New(stderr, "proxy: ", log.LstdFlags),
+		Interceptors: interceptors, Live: live,
+		ErrorLog: log.New(stderr, "proxy: ", log.LstdFlags),
 	})
 	if err != nil {
 		return err
@@ -143,7 +148,7 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	}
 	apiHandler, err := owtfproxy.NewAPI(owtfproxy.APIConfig{
 		Authority: authority, Recorder: recorder, RepeatClient: repeatClient,
-		Interceptors: interceptors, MaximumBody: proxySettings.MaximumBody,
+		Interceptors: interceptors, Live: live, MaximumBody: proxySettings.MaximumBody,
 	})
 	if err != nil {
 		listener.Close()
@@ -187,6 +192,7 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 		}
 	}
 	stop()
+	live.Close()
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	shutdownErr := shutdownHTTPServers(shutdownCtx, server, apiServer)

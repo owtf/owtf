@@ -374,7 +374,9 @@ func (a *app) listPlugins(ctx context.Context, args []string) error {
 
 func (a *app) reviewPluginOutput(ctx context.Context, args []string) error {
 	flags := a.flags("plugin review")
-	var rank, notes optionalString
+	var disposition, rank, notes optionalString
+	history := flags.Bool("history", false, "show append-only review history")
+	flags.Var(&disposition, "disposition", "output disposition: open, confirmed, false_positive, or accepted_risk")
 	flags.Var(&rank, "rank", "output rank: unranked, passing, informational, low, medium, high, or critical")
 	flags.Var(&notes, "notes", "operator notes; use --notes= to clear")
 	if err := flags.Parse(args); err != nil {
@@ -385,10 +387,19 @@ func (a *app) reviewPluginOutput(ctx context.Context, args []string) error {
 		return err
 	}
 	path := "/api/v2/tasks/" + pathSegment(taskID) + "/review"
-	if !rank.set && !notes.set {
+	if *history {
+		if disposition.set || rank.set || notes.set {
+			return errors.New("plugin review --history cannot be combined with review changes")
+		}
+		return a.proxyJSON(ctx, http.MethodGet, path+"/history", nil)
+	}
+	if !disposition.set && !rank.set && !notes.set {
 		return a.proxyJSON(ctx, http.MethodGet, path, nil)
 	}
-	input := make(map[string]any, 2)
+	input := make(map[string]any, 3)
+	if disposition.set {
+		input["disposition"] = disposition.value
+	}
 	if rank.set {
 		input["rank"] = rank.value
 	}
@@ -1061,12 +1072,14 @@ func printUsage(output io.Writer) {
   owtf proxy [--config FILE] [--listen ADDRESS] [--api-listen ADDRESS]
   owtf proxy status|transactions|transaction|stats|clear|ca|repeat
   owtf proxy interceptors list|replace|enable|disable
+  owtf proxy intercept status|enable|disable|list|show|continue|drop
   owtf [--url URL] health
   owtf [--url URL] sessions list|create|show|report|delete
   owtf [--url URL] sessions export [--output FILE] ID
   owtf [--url URL] targets list|search|add|show|update|delete|report
   owtf [--url URL] plugin list [--group GROUP] [--type TYPE]
-  owtf [--url URL] plugin review [--rank RANK] [--notes TEXT] TASK_ID
+  owtf [--url URL] plugin review [--disposition VALUE] [--rank RANK] [--notes TEXT] TASK_ID
+  owtf [--url URL] plugin review --history TASK_ID
   owtf [--url URL] help list
   owtf [--url URL] profiles list|show
   owtf [--url URL] runs list --session ID

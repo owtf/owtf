@@ -41,6 +41,13 @@ type TaskSpec struct {
 	Error          string
 }
 
+// PluginOutputReviewUpdate contains operator-owned fields to change.
+type PluginOutputReviewUpdate struct {
+	Disposition *string
+	Rank        *string
+	Notes       *string
+}
+
 // Store is a serialized SQLite connection for OWTF state.
 type Store struct {
 	db *sql.DB
@@ -227,10 +234,20 @@ CREATE TABLE IF NOT EXISTS findings (
 );
 CREATE TABLE IF NOT EXISTS plugin_output_reviews (
     task_id INTEGER PRIMARY KEY REFERENCES tasks(id) ON DELETE CASCADE,
+    disposition TEXT NOT NULL DEFAULT 'open' CHECK(disposition IN ('open', 'confirmed', 'false_positive', 'accepted_risk')),
     rank TEXT NOT NULL CHECK(rank IN ('unranked', 'passing', 'informational', 'low', 'medium', 'high', 'critical')),
     notes TEXT NOT NULL,
     updated_at TEXT NOT NULL
-);`
+);
+CREATE TABLE IF NOT EXISTS plugin_output_review_events (
+    id INTEGER PRIMARY KEY,
+    task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    disposition TEXT NOT NULL CHECK(disposition IN ('open', 'confirmed', 'false_positive', 'accepted_risk')),
+    rank TEXT NOT NULL CHECK(rank IN ('unranked', 'passing', 'informational', 'low', 'medium', 'high', 'critical')),
+    notes TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS plugin_output_review_events_task_idx ON plugin_output_review_events(task_id, id);`
 	if _, err := s.db.ExecContext(ctx, schema); err != nil {
 		return fmt.Errorf("migrate database: %w", err)
 	}
@@ -246,6 +263,9 @@ CREATE TABLE IF NOT EXISTS plugin_output_reviews (
 	if err := s.migrateTaskColumns(ctx); err != nil {
 		return err
 	}
+	if err := s.migratePluginOutputReviews(ctx); err != nil {
+		return err
+	}
 	if err := s.migrateTransactionTables(ctx); err != nil {
 		return err
 	}
@@ -254,6 +274,37 @@ CREATE TABLE IF NOT EXISTS plugin_output_reviews (
 	}
 	if _, err := s.db.ExecContext(ctx, `DELETE FROM runs WHERE NOT EXISTS (SELECT 1 FROM tasks WHERE tasks.run_id=runs.id)`); err != nil {
 		return fmt.Errorf("prune empty runs: %w", err)
+	}
+	return nil
+}
+
+func (s *Store) migratePluginOutputReviews(ctx context.Context) error {
+	const migration = "plugin_output_review_disposition_v1"
+	var applied bool
+	if err := s.db.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE name=?)`, migration).Scan(&applied); err != nil {
+		return fmt.Errorf("inspect plugin output review migration: %w", err)
+	}
+	if applied {
+		return nil
+	}
+	columns, err := s.tableColumns(ctx, "plugin_output_reviews")
+	if err != nil {
+		return err
+	}
+	if !columns["disposition"] {
+		if _, err := s.db.ExecContext(ctx, `ALTER TABLE plugin_output_reviews ADD COLUMN disposition TEXT NOT NULL DEFAULT 'open' CHECK(disposition IN ('open', 'confirmed', 'false_positive', 'accepted_risk'))`); err != nil {
+			return fmt.Errorf("add plugin output disposition column: %w", err)
+		}
+	}
+	if _, err := s.db.ExecContext(ctx, `
+INSERT INTO plugin_output_review_events(task_id, disposition, rank, notes, created_at)
+SELECT r.task_id, r.disposition, r.rank, r.notes, r.updated_at
+FROM plugin_output_reviews r
+WHERE NOT EXISTS (SELECT 1 FROM plugin_output_review_events e WHERE e.task_id=r.task_id)`); err != nil {
+		return fmt.Errorf("backfill plugin output review history: %w", err)
+	}
+	if _, err := s.db.ExecContext(ctx, `INSERT INTO schema_migrations(name, applied_at) VALUES(?, ?)`, migration, formatTime(time.Now().UTC())); err != nil {
+		return fmt.Errorf("record plugin output review migration: %w", err)
 	}
 	return nil
 }
@@ -1738,13 +1789,13 @@ WHERE t.public_id=? ORDER BY e.id`, taskID)
 	return events, rows.Err()
 }
 
-// GetPluginOutputReview returns the rank and notes attached to one task output.
-// Tasks without an explicit review are returned as unranked.
+// GetPluginOutputReview returns the current review attached to one task output.
+// Tasks without an explicit review are returned as open and unranked.
 func (s *Store) GetPluginOutputReview(ctx context.Context, taskID string) (model.PluginOutputReview, error) {
 	row := s.db.QueryRowContext(ctx, `
-SELECT t.public_id, COALESCE(r.rank, ?), COALESCE(r.notes, ''), r.updated_at
+SELECT t.public_id, COALESCE(r.disposition, ?), COALESCE(r.rank, ?), COALESCE(r.notes, ''), r.updated_at
 FROM tasks t LEFT JOIN plugin_output_reviews r ON r.task_id=t.id
-WHERE t.public_id=?`, model.PluginOutputRankUnranked, taskID)
+WHERE t.public_id=?`, model.PluginOutputDispositionOpen, model.PluginOutputRankUnranked, taskID)
 	review, err := scanPluginOutputReview(row)
 	if errors.Is(err, sql.ErrNoRows) {
 		return model.PluginOutputReview{}, ErrNotFound
@@ -1752,20 +1803,27 @@ WHERE t.public_id=?`, model.PluginOutputRankUnranked, taskID)
 	return review, err
 }
 
-// UpdatePluginOutputReview changes only operator-owned review state. Scanner
-// evidence and task history remain immutable.
-func (s *Store) UpdatePluginOutputReview(ctx context.Context, taskID string, rank, notes *string) (model.PluginOutputReview, error) {
-	if rank == nil && notes == nil {
-		return model.PluginOutputReview{}, fmt.Errorf("%w: rank or notes is required", ErrInvalid)
+// UpdatePluginOutputReview changes only operator-owned review state and appends
+// its resulting snapshot to history. Scanner evidence remains immutable.
+func (s *Store) UpdatePluginOutputReview(ctx context.Context, taskID string, update PluginOutputReviewUpdate) (model.PluginOutputReview, error) {
+	if update.Disposition == nil && update.Rank == nil && update.Notes == nil {
+		return model.PluginOutputReview{}, fmt.Errorf("%w: disposition, rank, or notes is required", ErrInvalid)
 	}
-	if rank != nil {
-		value := strings.TrimSpace(*rank)
+	if update.Disposition != nil {
+		value := strings.TrimSpace(*update.Disposition)
+		if !validPluginOutputDisposition(value) {
+			return model.PluginOutputReview{}, fmt.Errorf("%w: unsupported plugin output disposition %q", ErrInvalid, value)
+		}
+		update.Disposition = &value
+	}
+	if update.Rank != nil {
+		value := strings.TrimSpace(*update.Rank)
 		if !validPluginOutputRank(value) {
 			return model.PluginOutputReview{}, fmt.Errorf("%w: unsupported plugin output rank %q", ErrInvalid, value)
 		}
-		rank = &value
+		update.Rank = &value
 	}
-	if notes != nil && len(*notes) > maxPluginOutputNotes {
+	if update.Notes != nil && len(*update.Notes) > maxPluginOutputNotes {
 		return model.PluginOutputReview{}, fmt.Errorf("%w: plugin output notes exceed %d bytes", ErrInvalid, maxPluginOutputNotes)
 	}
 
@@ -1786,30 +1844,77 @@ func (s *Store) UpdatePluginOutputReview(ctx context.Context, taskID string, ran
 		return model.PluginOutputReview{}, fmt.Errorf("%w: task output is not terminal", ErrConflict)
 	}
 
-	currentRank := model.PluginOutputRankUnranked
-	currentNotes := ""
-	err = tx.QueryRowContext(ctx, `SELECT rank, notes FROM plugin_output_reviews WHERE task_id=?`, taskPK).
-		Scan(&currentRank, &currentNotes)
+	current := model.PluginOutputReview{
+		TaskID: taskID, Disposition: model.PluginOutputDispositionOpen,
+		Rank: model.PluginOutputRankUnranked,
+	}
+	exists := true
+	err = tx.QueryRowContext(ctx, `SELECT disposition, rank, notes FROM plugin_output_reviews WHERE task_id=?`, taskPK).
+		Scan(&current.Disposition, &current.Rank, &current.Notes)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return model.PluginOutputReview{}, err
 	}
-	if rank != nil {
-		currentRank = *rank
+	if errors.Is(err, sql.ErrNoRows) {
+		exists = false
 	}
-	if notes != nil {
-		currentNotes = *notes
+	previous := current
+	if update.Disposition != nil {
+		current.Disposition = *update.Disposition
+	}
+	if update.Rank != nil {
+		current.Rank = *update.Rank
+	}
+	if update.Notes != nil {
+		current.Notes = *update.Notes
+	}
+	if exists && current.Disposition == previous.Disposition && current.Rank == previous.Rank && current.Notes == previous.Notes {
+		if err := tx.Commit(); err != nil {
+			return model.PluginOutputReview{}, err
+		}
+		return s.GetPluginOutputReview(ctx, taskID)
 	}
 	now := time.Now().UTC()
 	if _, err := tx.ExecContext(ctx, `
-INSERT INTO plugin_output_reviews(task_id, rank, notes, updated_at) VALUES(?, ?, ?, ?)
-ON CONFLICT(task_id) DO UPDATE SET rank=excluded.rank, notes=excluded.notes, updated_at=excluded.updated_at`,
-		taskPK, currentRank, currentNotes, formatTime(now)); err != nil {
+INSERT INTO plugin_output_reviews(task_id, disposition, rank, notes, updated_at) VALUES(?, ?, ?, ?, ?)
+ON CONFLICT(task_id) DO UPDATE SET disposition=excluded.disposition, rank=excluded.rank, notes=excluded.notes, updated_at=excluded.updated_at`,
+		taskPK, current.Disposition, current.Rank, current.Notes, formatTime(now)); err != nil {
+		return model.PluginOutputReview{}, err
+	}
+	if _, err := tx.ExecContext(ctx, `
+INSERT INTO plugin_output_review_events(task_id, disposition, rank, notes, created_at) VALUES(?, ?, ?, ?, ?)`,
+		taskPK, current.Disposition, current.Rank, current.Notes, formatTime(now)); err != nil {
 		return model.PluginOutputReview{}, err
 	}
 	if err := tx.Commit(); err != nil {
 		return model.PluginOutputReview{}, err
 	}
 	return s.GetPluginOutputReview(ctx, taskID)
+}
+
+// ListPluginOutputReviewEvents returns immutable review snapshots oldest first.
+func (s *Store) ListPluginOutputReviewEvents(ctx context.Context, taskID string) ([]model.PluginOutputReviewEvent, error) {
+	if _, err := s.GetTask(ctx, taskID); err != nil {
+		return nil, err
+	}
+	rows, err := s.db.QueryContext(ctx, `
+SELECT e.id, t.public_id, e.disposition, e.rank, e.notes, e.created_at
+FROM plugin_output_review_events e JOIN tasks t ON t.id=e.task_id
+WHERE t.public_id=? ORDER BY e.id`, taskID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return scanPluginOutputReviewEvents(rows)
+}
+
+func validPluginOutputDisposition(disposition string) bool {
+	switch disposition {
+	case model.PluginOutputDispositionOpen, model.PluginOutputDispositionConfirmed,
+		model.PluginOutputDispositionFalsePositive, model.PluginOutputDispositionAcceptedRisk:
+		return true
+	default:
+		return false
+	}
 }
 
 func validPluginOutputRank(rank string) bool {
@@ -1825,11 +1930,25 @@ func validPluginOutputRank(rank string) bool {
 func scanPluginOutputReview(row rowScanner) (model.PluginOutputReview, error) {
 	var review model.PluginOutputReview
 	var updated sql.NullString
-	if err := row.Scan(&review.TaskID, &review.Rank, &review.Notes, &updated); err != nil {
+	if err := row.Scan(&review.TaskID, &review.Disposition, &review.Rank, &review.Notes, &updated); err != nil {
 		return model.PluginOutputReview{}, err
 	}
 	review.UpdatedAt = parseNullTime(updated)
 	return review, nil
+}
+
+func scanPluginOutputReviewEvents(rows *sql.Rows) ([]model.PluginOutputReviewEvent, error) {
+	events := make([]model.PluginOutputReviewEvent, 0)
+	for rows.Next() {
+		var event model.PluginOutputReviewEvent
+		var created string
+		if err := rows.Scan(&event.ID, &event.TaskID, &event.Disposition, &event.Rank, &event.Notes, &created); err != nil {
+			return nil, err
+		}
+		event.CreatedAt = parseTime(created)
+		events = append(events, event)
+	}
+	return events, rows.Err()
 }
 
 func scanPluginOutputReviews(rows *sql.Rows) ([]model.PluginOutputReview, error) {
@@ -1851,16 +1970,17 @@ func (s *Store) GetTargetReport(ctx context.Context, targetID string) (model.Tar
 		return model.TargetReport{}, err
 	}
 	report := model.TargetReport{
-		Target:              target,
-		Tasks:               []model.Task{},
-		PluginOutputReviews: []model.PluginOutputReview{},
-		URLs:                []model.URL{},
-		Attempts:            []model.TaskAttempt{},
-		Events:              []model.TaskEvent{},
-		Artifacts:           []model.Artifact{},
-		Transactions:        []model.Transaction{},
-		Observations:        []model.Observation{},
-		Findings:            []model.Finding{},
+		Target:                   target,
+		Tasks:                    []model.Task{},
+		PluginOutputReviews:      []model.PluginOutputReview{},
+		PluginOutputReviewEvents: []model.PluginOutputReviewEvent{},
+		URLs:                     []model.URL{},
+		Attempts:                 []model.TaskAttempt{},
+		Events:                   []model.TaskEvent{},
+		Artifacts:                []model.Artifact{},
+		Transactions:             []model.Transaction{},
+		Observations:             []model.Observation{},
+		Findings:                 []model.Finding{},
 	}
 	report.Tasks, err = s.listTargetTasks(ctx, targetID)
 	if err != nil {
@@ -1896,6 +2016,9 @@ func (s *Store) GetTargetReport(ctx context.Context, targetID string) (model.Tar
 	if report.PluginOutputReviews, err = s.listTargetPluginOutputReviews(ctx, targetID); err != nil {
 		return model.TargetReport{}, err
 	}
+	if report.PluginOutputReviewEvents, err = s.listTargetPluginOutputReviewEvents(ctx, targetID); err != nil {
+		return model.TargetReport{}, err
+	}
 	return report, nil
 }
 
@@ -1907,18 +2030,19 @@ func (s *Store) GetSessionReport(ctx context.Context, sessionID string) (model.S
 		return model.SessionReport{}, err
 	}
 	report := model.SessionReport{
-		Session:             session,
-		Targets:             []model.Target{},
-		Runs:                []model.Run{},
-		Tasks:               []model.Task{},
-		PluginOutputReviews: []model.PluginOutputReview{},
-		URLs:                []model.URL{},
-		Attempts:            []model.TaskAttempt{},
-		Events:              []model.TaskEvent{},
-		Artifacts:           []model.Artifact{},
-		Transactions:        []model.Transaction{},
-		Observations:        []model.Observation{},
-		Findings:            []model.Finding{},
+		Session:                  session,
+		Targets:                  []model.Target{},
+		Runs:                     []model.Run{},
+		Tasks:                    []model.Task{},
+		PluginOutputReviews:      []model.PluginOutputReview{},
+		PluginOutputReviewEvents: []model.PluginOutputReviewEvent{},
+		URLs:                     []model.URL{},
+		Attempts:                 []model.TaskAttempt{},
+		Events:                   []model.TaskEvent{},
+		Artifacts:                []model.Artifact{},
+		Transactions:             []model.Transaction{},
+		Observations:             []model.Observation{},
+		Findings:                 []model.Finding{},
 	}
 	if report.Targets, err = s.ListTargets(ctx, sessionID); err != nil {
 		return model.SessionReport{}, err
@@ -1951,6 +2075,9 @@ func (s *Store) GetSessionReport(ctx context.Context, sessionID string) (model.S
 		return model.SessionReport{}, err
 	}
 	if report.PluginOutputReviews, err = s.listSessionPluginOutputReviews(ctx, sessionID); err != nil {
+		return model.SessionReport{}, err
+	}
+	if report.PluginOutputReviewEvents, err = s.listSessionPluginOutputReviewEvents(ctx, sessionID); err != nil {
 		return model.SessionReport{}, err
 	}
 	report.Summary = summarizeReport(report)
@@ -2150,15 +2277,28 @@ WHERE s.public_id=? ORDER BY f.id DESC`, sessionID)
 
 func (s *Store) listSessionPluginOutputReviews(ctx context.Context, sessionID string) ([]model.PluginOutputReview, error) {
 	rows, err := s.db.QueryContext(ctx, `
-SELECT t.public_id, COALESCE(v.rank, ?), COALESCE(v.notes, ''), v.updated_at
+SELECT t.public_id, COALESCE(v.disposition, ?), COALESCE(v.rank, ?), COALESCE(v.notes, ''), v.updated_at
 FROM tasks t JOIN runs r ON r.id=t.run_id JOIN sessions s ON s.id=r.session_id
 LEFT JOIN plugin_output_reviews v ON v.task_id=t.id
-WHERE s.public_id=? ORDER BY t.id DESC`, model.PluginOutputRankUnranked, sessionID)
+WHERE s.public_id=? ORDER BY t.id DESC`, model.PluginOutputDispositionOpen, model.PluginOutputRankUnranked, sessionID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	return scanPluginOutputReviews(rows)
+}
+
+func (s *Store) listSessionPluginOutputReviewEvents(ctx context.Context, sessionID string) ([]model.PluginOutputReviewEvent, error) {
+	rows, err := s.db.QueryContext(ctx, `
+SELECT e.id, t.public_id, e.disposition, e.rank, e.notes, e.created_at
+FROM plugin_output_review_events e
+JOIN tasks t ON t.id=e.task_id JOIN runs r ON r.id=t.run_id JOIN sessions s ON s.id=r.session_id
+WHERE s.public_id=? ORDER BY e.id`, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return scanPluginOutputReviewEvents(rows)
 }
 
 func (s *Store) listSessionURLs(ctx context.Context, sessionID string) ([]model.URL, error) {
@@ -2608,15 +2748,27 @@ WHERE tg.public_id=? ORDER BY f.id DESC`, targetID)
 
 func (s *Store) listTargetPluginOutputReviews(ctx context.Context, targetID string) ([]model.PluginOutputReview, error) {
 	rows, err := s.db.QueryContext(ctx, `
-SELECT t.public_id, COALESCE(v.rank, ?), COALESCE(v.notes, ''), v.updated_at
+SELECT t.public_id, COALESCE(v.disposition, ?), COALESCE(v.rank, ?), COALESCE(v.notes, ''), v.updated_at
 FROM tasks t JOIN targets tg ON tg.id=t.target_id
 LEFT JOIN plugin_output_reviews v ON v.task_id=t.id
-WHERE tg.public_id=? ORDER BY t.id DESC`, model.PluginOutputRankUnranked, targetID)
+WHERE tg.public_id=? ORDER BY t.id DESC`, model.PluginOutputDispositionOpen, model.PluginOutputRankUnranked, targetID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	return scanPluginOutputReviews(rows)
+}
+
+func (s *Store) listTargetPluginOutputReviewEvents(ctx context.Context, targetID string) ([]model.PluginOutputReviewEvent, error) {
+	rows, err := s.db.QueryContext(ctx, `
+SELECT e.id, t.public_id, e.disposition, e.rank, e.notes, e.created_at
+FROM plugin_output_review_events e JOIN tasks t ON t.id=e.task_id JOIN targets tg ON tg.id=t.target_id
+WHERE tg.public_id=? ORDER BY e.id`, targetID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return scanPluginOutputReviewEvents(rows)
 }
 
 func newID(prefix string) string {

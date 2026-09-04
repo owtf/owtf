@@ -220,7 +220,57 @@ func TestAPIManagesInterceptorsAtomically(t *testing.T) {
 	decodeTestResponse(t, response, http.StatusNotFound, &map[string]string{})
 }
 
+func TestAPIControlsLiveInterception(t *testing.T) {
+	_, _, live, handler := newAPIForTestWithLive(t, NewRecorder(10), doerFunc(func(*http.Request) (*http.Response, error) {
+		return nil, context.Canceled
+	}), 1024)
+	server := httptest.NewServer(handler)
+	defer server.Close()
+	response := proxyJSONRequest(t, http.MethodPut, server.URL+"/api/v2/interception", LiveConfig{
+		Enabled: true, Requests: true, TimeoutMS: 1000,
+	})
+	var config LiveConfig
+	decodeTestResponse(t, response, http.StatusOK, &config)
+	if !config.Enabled || !config.Requests || config.Responses {
+		t.Fatalf("live config = %+v", config)
+	}
+
+	request, _ := http.NewRequest(http.MethodGet, "https://example.test/api", nil)
+	done := make(chan error, 1)
+	go func() { done <- live.interceptRequest(context.Background(), request) }()
+	waitForPending(t, live)
+	response, err := http.Get(server.URL + "/api/v2/interception/pending")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var pending []PendingInterception
+	decodeTestResponse(t, response, http.StatusOK, &pending)
+	if len(pending) != 1 || pending[0].URL != request.URL.String() {
+		t.Fatalf("pending interceptions = %+v", pending)
+	}
+	updatedURL := "https://example.test/edited"
+	response = proxyJSONRequest(t, http.MethodPost,
+		server.URL+"/api/v2/interception/pending/"+pending[0].ID+"/continue",
+		InterceptionUpdate{URL: &updatedURL})
+	var resolved PendingInterception
+	decodeTestResponse(t, response, http.StatusOK, &resolved)
+	if err := <-done; err != nil || request.URL.String() != updatedURL {
+		t.Fatalf("continued request URL = %s, error = %v", request.URL, err)
+	}
+	response, err = http.Get(server.URL + "/api/v2/interception/pending/" + pending[0].ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	decodeTestResponse(t, response, http.StatusNotFound, &map[string]string{})
+}
+
 func newAPIForTest(t *testing.T, recorder *Recorder, client httpDoer, maximumBody int64) (*Authority, *Interceptors, http.Handler) {
+	t.Helper()
+	authority, interceptors, _, handler := newAPIForTestWithLive(t, recorder, client, maximumBody)
+	return authority, interceptors, handler
+}
+
+func newAPIForTestWithLive(t *testing.T, recorder *Recorder, client httpDoer, maximumBody int64) (*Authority, *Interceptors, *LiveInterception, http.Handler) {
 	t.Helper()
 	directory := t.TempDir()
 	authority, err := LoadOrCreateAuthority(filepath.Join(directory, "ca.crt"), filepath.Join(directory, "ca.key"))
@@ -231,14 +281,19 @@ func newAPIForTest(t *testing.T, recorder *Recorder, client httpDoer, maximumBod
 	if err != nil {
 		t.Fatal(err)
 	}
+	live, err := NewLiveInterception(maximumBody, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(live.Close)
 	handler, err := NewAPI(APIConfig{
 		Authority: authority, Recorder: recorder, RepeatClient: client,
-		Interceptors: interceptors, MaximumBody: maximumBody,
+		Interceptors: interceptors, Live: live, MaximumBody: maximumBody,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	return authority, interceptors, handler
+	return authority, interceptors, live, handler
 }
 
 func proxyJSONRequest(t *testing.T, method, endpoint string, input any) *http.Response {

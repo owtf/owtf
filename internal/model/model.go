@@ -35,6 +35,11 @@ const (
 	PluginOutputRankMedium        = "medium"
 	PluginOutputRankHigh          = "high"
 	PluginOutputRankCritical      = "critical"
+
+	PluginOutputDispositionOpen          = "open"
+	PluginOutputDispositionConfirmed     = "confirmed"
+	PluginOutputDispositionFalsePositive = "false_positive"
+	PluginOutputDispositionAcceptedRisk  = "accepted_risk"
 )
 
 // Session is a named scan workspace containing targets and their execution
@@ -204,10 +209,21 @@ type TaskEvent struct {
 // output. OWTF has no user records; the deployment boundary owns actor
 // attribution when it is required.
 type PluginOutputReview struct {
-	TaskID    string     `json:"task_id"`
-	Rank      string     `json:"rank"`
-	Notes     string     `json:"notes"`
-	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+	TaskID      string     `json:"task_id"`
+	Disposition string     `json:"disposition"`
+	Rank        string     `json:"rank"`
+	Notes       string     `json:"notes"`
+	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
+}
+
+// PluginOutputReviewEvent is an immutable snapshot of one review change.
+type PluginOutputReviewEvent struct {
+	ID          int64     `json:"id"`
+	TaskID      string    `json:"task_id"`
+	Disposition string    `json:"disposition"`
+	Rank        string    `json:"rank"`
+	Notes       string    `json:"notes"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 // Worker reports the live state and process-lifetime counters of one bounded
@@ -375,32 +391,34 @@ type WorkerMetrics struct {
 
 // TargetReport is the complete retained evidence view for one target.
 type TargetReport struct {
-	Target              Target               `json:"target"`
-	Tasks               []Task               `json:"tasks"`
-	PluginOutputReviews []PluginOutputReview `json:"plugin_output_reviews"`
-	URLs                []URL                `json:"urls"`
-	Attempts            []TaskAttempt        `json:"attempts"`
-	Events              []TaskEvent          `json:"events"`
-	Artifacts           []Artifact           `json:"artifacts"`
-	Transactions        []Transaction        `json:"transactions"`
-	Observations        []Observation        `json:"observations"`
-	Findings            []Finding            `json:"findings"`
+	Target                   Target                    `json:"target"`
+	Tasks                    []Task                    `json:"tasks"`
+	PluginOutputReviews      []PluginOutputReview      `json:"plugin_output_reviews"`
+	PluginOutputReviewEvents []PluginOutputReviewEvent `json:"plugin_output_review_events"`
+	URLs                     []URL                     `json:"urls"`
+	Attempts                 []TaskAttempt             `json:"attempts"`
+	Events                   []TaskEvent               `json:"events"`
+	Artifacts                []Artifact                `json:"artifacts"`
+	Transactions             []Transaction             `json:"transactions"`
+	Observations             []Observation             `json:"observations"`
+	Findings                 []Finding                 `json:"findings"`
 }
 
 // SessionReport is the complete retained execution and evidence view for one
 // OWTF session.
 type SessionReport struct {
-	Session             Session              `json:"session"`
-	Summary             ReportSummary        `json:"summary"`
-	Targets             []Target             `json:"targets"`
-	Runs                []Run                `json:"runs"`
-	Tasks               []Task               `json:"tasks"`
-	PluginOutputReviews []PluginOutputReview `json:"plugin_output_reviews"`
-	URLs                []URL                `json:"urls"`
-	Attempts            []TaskAttempt        `json:"attempts"`
-	Events              []TaskEvent          `json:"events"`
-	Artifacts           []Artifact           `json:"artifacts"`
-	Transactions        []Transaction        `json:"transactions"`
-	Observations        []Observation        `json:"observations"`
-	Findings            []Finding            `json:"findings"`
+	Session                  Session                   `json:"session"`
+	Summary                  ReportSummary             `json:"summary"`
+	Targets                  []Target                  `json:"targets"`
+	Runs                     []Run                     `json:"runs"`
+	Tasks                    []Task                    `json:"tasks"`
+	PluginOutputReviews      []PluginOutputReview      `json:"plugin_output_reviews"`
+	PluginOutputReviewEvents []PluginOutputReviewEvent `json:"plugin_output_review_events"`
+	URLs                     []URL                     `json:"urls"`
+	Attempts                 []TaskAttempt             `json:"attempts"`
+	Events                   []TaskEvent               `json:"events"`
+	Artifacts                []Artifact                `json:"artifacts"`
+	Transactions             []Transaction             `json:"transactions"`
+	Observations             []Observation             `json:"observations"`
+	Findings                 []Finding                 `json:"findings"`
 }

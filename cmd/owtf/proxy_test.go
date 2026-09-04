@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -142,6 +143,73 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 		cancel()
 		t.Fatalf("CLI replacement = %+v, error = %v", interceptorConfig, err)
 	}
+	cliOutput.Reset()
+	if err := runProxyCommand(context.Background(), []string{
+		"intercept", "enable", "--api", apiURL, "--phase", "request", "--wait", "2s",
+	}, &cliOutput, io.Discard); err != nil {
+		cancel()
+		t.Fatal(err)
+	}
+	liveDone := make(chan error, 1)
+	go func() {
+		response, err := client.Get(upstream.URL + "/live-before")
+		if err == nil {
+			body, readErr := io.ReadAll(response.Body)
+			response.Body.Close()
+			if readErr != nil {
+				err = readErr
+			} else if response.StatusCode != http.StatusAccepted || string(body) != "runtime" {
+				err = fmt.Errorf("live CLI response status=%d body=%q", response.StatusCode, body)
+			}
+		}
+		liveDone <- err
+	}()
+	var pending []owtfproxy.PendingInterception
+	deadline := time.Now().Add(time.Second)
+	for len(pending) == 0 && time.Now().Before(deadline) {
+		cliOutput.Reset()
+		if err := runProxyCommand(context.Background(), []string{
+			"intercept", "list", "--api", apiURL,
+		}, &cliOutput, io.Discard); err != nil {
+			cancel()
+			t.Fatal(err)
+		}
+		if err := json.Unmarshal(cliOutput.Bytes(), &pending); err != nil {
+			cancel()
+			t.Fatal(err)
+		}
+		if len(pending) == 0 {
+			time.Sleep(time.Millisecond)
+		}
+	}
+	if len(pending) != 1 {
+		cancel()
+		t.Fatalf("CLI pending interceptions = %+v", pending)
+	}
+	liveUpdatePath := filepath.Join(directory, "live-update.json")
+	liveURL := upstream.URL + "/live-after"
+	if err := os.WriteFile(liveUpdatePath, []byte(fmt.Sprintf(`{"url":%q}`, liveURL)), 0o600); err != nil {
+		cancel()
+		t.Fatal(err)
+	}
+	cliOutput.Reset()
+	if err := runProxyCommand(context.Background(), []string{
+		"intercept", "continue", "--api", apiURL, "--input", liveUpdatePath, pending[0].ID,
+	}, &cliOutput, io.Discard); err != nil {
+		cancel()
+		t.Fatal(err)
+	}
+	if err := <-liveDone; err != nil {
+		cancel()
+		t.Fatal(err)
+	}
+	cliOutput.Reset()
+	if err := runProxyCommand(context.Background(), []string{
+		"intercept", "disable", "--api", apiURL,
+	}, &cliOutput, io.Discard); err != nil {
+		cancel()
+		t.Fatal(err)
+	}
 
 	repeatInput, _ := json.Marshal(owtfproxy.RepeatRequest{Method: http.MethodGet, URL: upstream.URL + "/repeat"})
 	repeatResponse, err := http.Post("http://"+status.API+"/api/v2/repeater", "application/json", bytes.NewReader(repeatInput))
@@ -193,7 +261,7 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 		t.Fatal(err)
 	}
 	statsResponse.Body.Close()
-	if statsResponse.StatusCode != http.StatusOK || stats.Total != 4 {
+	if statsResponse.StatusCode != http.StatusOK || stats.Total != 5 {
 		cancel()
 		t.Fatalf("proxy stats status = %d, stats = %+v", statsResponse.StatusCode, stats)
 	}
@@ -248,12 +316,12 @@ func TestRunProxyCapturesTrafficAndStopsCleanly(t *testing.T) {
 	if parseErr != nil {
 		t.Fatal(parseErr)
 	}
-	if len(transactions) != 4 || transactions[0].URL != upstream.URL+"/through-proxy" ||
-		transactions[1].URL != upstream.URL+"/disabled" || transactions[2].URL != upstream.URL+"/repeat" ||
-		transactions[3].URL != upstream.URL+"/cli-repeat" ||
+	if len(transactions) != 5 || transactions[0].URL != upstream.URL+"/through-proxy" ||
+		transactions[1].URL != upstream.URL+"/disabled" || transactions[2].URL != liveURL ||
+		transactions[3].URL != upstream.URL+"/repeat" || transactions[4].URL != upstream.URL+"/cli-repeat" ||
 		transactions[0].StatusCode != http.StatusAccepted || string(transactions[0].ResponseBody) != "modified" ||
 		string(transactions[1].ResponseBody) != "captured" || string(transactions[2].ResponseBody) != "runtime" ||
-		string(transactions[3].ResponseBody) != "runtime" {
+		string(transactions[3].ResponseBody) != "runtime" || string(transactions[4].ResponseBody) != "runtime" {
 		t.Fatalf("transactions = %+v", transactions)
 	}
 }

@@ -83,8 +83,92 @@ func runProxyCommand(ctx context.Context, args []string, stdout, stderr io.Write
 		return runProxyRepeat(ctx, args[1:], stdout, stderr)
 	case "interceptors":
 		return runProxyInterceptors(ctx, args[1:], stdout, stderr)
+	case "intercept":
+		return runProxyInterception(ctx, args[1:], stdout, stderr)
 	default:
 		return fmt.Errorf("unknown proxy command %q", args[0])
+	}
+}
+
+func runProxyInterception(ctx context.Context, args []string, stdout, stderr io.Writer) error {
+	if len(args) == 0 {
+		return errors.New("proxy intercept requires status, enable, disable, list, show, continue, or drop")
+	}
+	command := args[0]
+	flags, options := newProxyAPIFlags("owtf proxy intercept "+command, stderr, 30*time.Second)
+	phase := flags.String("phase", "both", "phase to pause: request, response, or both")
+	wait := flags.Duration("wait", 30*time.Second, "maximum time each exchange may remain paused")
+	input := flags.String("input", "", "JSON file containing continue-time edits")
+	if err := flags.Parse(args[1:]); err != nil {
+		return err
+	}
+	client, err := newProxyAPIClient(options, stdout)
+	if err != nil {
+		return err
+	}
+	const base = "/api/v2/interception"
+	switch command {
+	case "status":
+		if flags.NArg() != 0 {
+			return errors.New("proxy intercept status accepts no positional arguments")
+		}
+		return client.writeJSON(ctx, http.MethodGet, base, nil)
+	case "enable":
+		if flags.NArg() != 0 {
+			return errors.New("proxy intercept enable accepts no positional arguments")
+		}
+		if *wait < 100*time.Millisecond || *wait > 5*time.Minute {
+			return errors.New("proxy intercept --wait must be between 100ms and 5m")
+		}
+		config := owtfproxy.LiveConfig{Enabled: true, TimeoutMS: int(*wait / time.Millisecond)}
+		switch strings.ToLower(strings.TrimSpace(*phase)) {
+		case "request":
+			config.Requests = true
+		case "response":
+			config.Responses = true
+		case "both":
+			config.Requests, config.Responses = true, true
+		default:
+			return fmt.Errorf("unsupported interception phase %q", *phase)
+		}
+		return client.writeJSON(ctx, http.MethodPut, base, config)
+	case "disable":
+		if flags.NArg() != 0 {
+			return errors.New("proxy intercept disable accepts no positional arguments")
+		}
+		return client.writeJSON(ctx, http.MethodPut, base, owtfproxy.LiveConfig{Enabled: false})
+	case "list":
+		if flags.NArg() != 0 {
+			return errors.New("proxy intercept list accepts no positional arguments")
+		}
+		return client.writeJSON(ctx, http.MethodGet, base+"/pending", nil)
+	case "show":
+		if flags.NArg() != 1 {
+			return errors.New("proxy intercept show requires one interception ID")
+		}
+		return client.writeJSON(ctx, http.MethodGet, base+"/pending/"+url.PathEscape(flags.Arg(0)), nil)
+	case "continue":
+		if flags.NArg() != 1 {
+			return errors.New("proxy intercept continue requires one interception ID")
+		}
+		var update any = map[string]any{}
+		if *input != "" {
+			data, err := readInterceptionUpdate(*input)
+			if err != nil {
+				return err
+			}
+			update = json.RawMessage(data)
+		}
+		endpoint := base + "/pending/" + url.PathEscape(flags.Arg(0)) + "/continue"
+		return client.writeJSON(ctx, http.MethodPost, endpoint, update)
+	case "drop":
+		if flags.NArg() != 1 {
+			return errors.New("proxy intercept drop requires one interception ID")
+		}
+		endpoint := base + "/pending/" + url.PathEscape(flags.Arg(0)) + "/drop"
+		return client.writeJSON(ctx, http.MethodPost, endpoint, nil)
+	default:
+		return fmt.Errorf("unknown proxy intercept command %q", command)
 	}
 }
 
@@ -413,6 +497,25 @@ func readInterceptorFile(path string) (json.RawMessage, error) {
 		return nil, errors.New("interceptor file exceeds 1 MiB")
 	}
 	return json.RawMessage(data), nil
+}
+
+func readInterceptionUpdate(path string) ([]byte, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("open interception update: %w", err)
+	}
+	defer file.Close()
+	data, err := io.ReadAll(io.LimitReader(file, maximumCLIDataFile+1))
+	if err != nil {
+		return nil, fmt.Errorf("read interception update: %w", err)
+	}
+	if len(data) > maximumCLIDataFile {
+		return nil, fmt.Errorf("interception update exceeds %d bytes", maximumCLIDataFile)
+	}
+	if !json.Valid(data) {
+		return nil, errors.New("interception update is not valid JSON")
+	}
+	return data, nil
 }
 
 func writeProxyFile(path string, source io.Reader, mode os.FileMode) (int64, error) {

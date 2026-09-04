@@ -34,6 +34,7 @@ type Config struct {
 	AllowedHosts []string
 	MaximumBody  int64
 	Interceptors *Interceptors
+	Live         *LiveInterception
 	ErrorLog     *log.Logger
 }
 
@@ -45,6 +46,7 @@ type Proxy struct {
 	allowedHosts map[string]bool
 	maximumBody  int64
 	interceptors *Interceptors
+	live         *LiveInterception
 	errorLog     *log.Logger
 }
 
@@ -77,7 +79,7 @@ func New(config Config) (*Proxy, error) {
 	return &Proxy{
 		authority: config.Authority, recorder: config.Recorder, transport: config.Transport,
 		allowedHosts: allowedHosts, maximumBody: config.MaximumBody,
-		interceptors: config.Interceptors, errorLog: config.ErrorLog,
+		interceptors: config.Interceptors, live: config.Live, errorLog: config.ErrorLog,
 	}, nil
 }
 
@@ -115,6 +117,12 @@ func (p *Proxy) forward(writer http.ResponseWriter, request *http.Request, schem
 		p.interceptionError(writer, "request", err)
 		return
 	}
+	if p.live != nil {
+		if err := p.live.interceptRequest(request.Context(), outgoing); err != nil {
+			p.interceptionError(writer, "request", err)
+			return
+		}
+	}
 	if !p.hostAllowed(outgoing.URL.Hostname()) {
 		http.Error(writer, "interceptor rewrote request outside this proxy scope", http.StatusForbidden)
 		return
@@ -151,6 +159,21 @@ func (p *Proxy) forward(writer http.ResponseWriter, request *http.Request, schem
 		p.interceptionError(writer, "response", err)
 		return
 	}
+	if p.live != nil {
+		if err := p.live.interceptResponse(request.Context(), response); err != nil {
+			if errors.Is(err, ErrInterceptionDropped) {
+				body, readErr := readInterceptorBody(response.Body, p.maximumBody)
+				if readErr == nil {
+					setResponseBody(response, body)
+					p.record(started, outgoing, response, requestBody.Bytes(), body)
+				} else {
+					p.errorLog.Printf("capture dropped response %s: %v", outgoing.URL.Redacted(), readErr)
+				}
+			}
+			p.interceptionError(writer, "response", err)
+			return
+		}
+	}
 	copyHeaders(writer.Header(), response.Header, false)
 	writer.WriteHeader(response.StatusCode)
 	responseBody := newPrefixWriter(p.maximumBody)
@@ -165,6 +188,9 @@ func (p *Proxy) interceptionError(writer http.ResponseWriter, phase string, err 
 	status := http.StatusBadGateway
 	if phase == "request" {
 		status = http.StatusBadRequest
+	}
+	if errors.Is(err, ErrInterceptionDropped) {
+		status = http.StatusForbidden
 	}
 	if errors.Is(err, ErrInterceptorBodyTooLarge) {
 		status = http.StatusRequestEntityTooLarge

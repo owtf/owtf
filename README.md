@@ -52,9 +52,12 @@ resulting evidence.
 - Priority-ordered request and response interceptors with bounded URL, header,
   body, and delay actions, plus atomic runtime management through the loopback
   API and CLI.
+- Bounded live request and response interception with inspect, edit, continue,
+  drop, timeout, and shutdown release through the loopback API and CLI.
 - Strict, versioned configuration shared by the server and proxy, with
   scriptable show and validation commands.
-- Target reports through the API and CLI.
+- Target and session reports with evidence-preserving output dispositions,
+  ranks, notes, and append-only review history through the API and CLI.
 - One API used by the CLI and the embedded proof UI.
 - No accounts, passwords, tokens, or user database.
 

@@ -101,6 +101,7 @@ func New(config Config) http.Handler {
 	mux.HandleFunc("GET /api/v2/tasks/{taskID}/events", server.taskEvents)
 	mux.HandleFunc("GET /api/v2/tasks/{taskID}/review", server.pluginOutputReview)
 	mux.HandleFunc("PATCH /api/v2/tasks/{taskID}/review", server.updatePluginOutputReview)
+	mux.HandleFunc("GET /api/v2/tasks/{taskID}/review/history", server.pluginOutputReviewHistory)
 	mux.HandleFunc("POST /api/v2/tasks/{taskID}/cancel", server.cancelTask)
 	mux.HandleFunc("POST /api/v2/tasks/{taskID}/pause", server.pauseTask)
 	mux.HandleFunc("POST /api/v2/tasks/{taskID}/resume", server.resumeTask)
@@ -684,17 +685,28 @@ func (s *Server) pluginOutputReview(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) updatePluginOutputReview(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Rank  *string `json:"rank"`
-		Notes *string `json:"notes"`
+		Disposition *string `json:"disposition"`
+		Rank        *string `json:"rank"`
+		Notes       *string `json:"notes"`
 	}
 	if err := decodeJSON(w, r, &input); err != nil {
 		return
 	}
-	review, err := s.store.UpdatePluginOutputReview(r.Context(), r.PathValue("taskID"), input.Rank, input.Notes)
+	review, err := s.store.UpdatePluginOutputReview(r.Context(), r.PathValue("taskID"), store.PluginOutputReviewUpdate{
+		Disposition: input.Disposition, Rank: input.Rank, Notes: input.Notes,
+	})
 	if s.handleStoreError(w, err) {
 		return
 	}
 	writeJSON(w, http.StatusOK, review)
+}
+
+func (s *Server) pluginOutputReviewHistory(w http.ResponseWriter, r *http.Request) {
+	events, err := s.store.ListPluginOutputReviewEvents(r.Context(), r.PathValue("taskID"))
+	if s.handleStoreError(w, err) {
+		return
+	}
+	writeJSON(w, http.StatusOK, events)
 }
 
 func (s *Server) listURLs(w http.ResponseWriter, r *http.Request) {

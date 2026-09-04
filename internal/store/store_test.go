@@ -708,17 +708,18 @@ func TestPluginOutputReviewIsSeparateFromTerminalTaskEvidence(t *testing.T) {
 	}
 	taskID := tasks[0].ID
 	review, err := database.GetPluginOutputReview(ctx, taskID)
-	if err != nil || review.TaskID != taskID || review.Rank != model.PluginOutputRankUnranked || review.Notes != "" || review.UpdatedAt != nil {
+	if err != nil || review.TaskID != taskID || review.Disposition != model.PluginOutputDispositionOpen ||
+		review.Rank != model.PluginOutputRankUnranked || review.Notes != "" || review.UpdatedAt != nil {
 		t.Fatalf("unexpected default review: review=%+v err=%v", review, err)
 	}
 	if _, err := database.GetPluginOutputReview(ctx, "tsk_missing"); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("missing task review error = %v, want not found", err)
 	}
-	if _, err := database.UpdatePluginOutputReview(ctx, taskID, nil, nil); !errors.Is(err, ErrInvalid) {
+	if _, err := database.UpdatePluginOutputReview(ctx, taskID, PluginOutputReviewUpdate{}); !errors.Is(err, ErrInvalid) {
 		t.Fatalf("empty review update error = %v, want invalid input", err)
 	}
 	rank := model.PluginOutputRankHigh
-	if _, err := database.UpdatePluginOutputReview(ctx, taskID, &rank, nil); !errors.Is(err, ErrConflict) {
+	if _, err := database.UpdatePluginOutputReview(ctx, taskID, PluginOutputReviewUpdate{Rank: &rank}); !errors.Is(err, ErrConflict) {
 		t.Fatalf("active task review error = %v, want conflict", err)
 	}
 	execution, err := database.StartTask(ctx, taskID)
@@ -729,29 +730,46 @@ func TestPluginOutputReviewIsSeparateFromTerminalTaskEvidence(t *testing.T) {
 		t.Fatal(err)
 	}
 	invalid := "urgent"
-	if _, err := database.UpdatePluginOutputReview(ctx, taskID, &invalid, nil); !errors.Is(err, ErrInvalid) {
+	if _, err := database.UpdatePluginOutputReview(ctx, taskID, PluginOutputReviewUpdate{Rank: &invalid}); !errors.Is(err, ErrInvalid) {
 		t.Fatalf("invalid rank error = %v, want invalid input", err)
 	}
+	invalidDisposition := "suppressed"
+	if _, err := database.UpdatePluginOutputReview(ctx, taskID, PluginOutputReviewUpdate{Disposition: &invalidDisposition}); !errors.Is(err, ErrInvalid) {
+		t.Fatalf("invalid disposition error = %v, want invalid input", err)
+	}
 	tooLong := strings.Repeat("x", maxPluginOutputNotes+1)
-	if _, err := database.UpdatePluginOutputReview(ctx, taskID, nil, &tooLong); !errors.Is(err, ErrInvalid) {
+	if _, err := database.UpdatePluginOutputReview(ctx, taskID, PluginOutputReviewUpdate{Notes: &tooLong}); !errors.Is(err, ErrInvalid) {
 		t.Fatalf("oversized notes error = %v, want invalid input", err)
 	}
 	notes := "Verified against retained evidence."
-	review, err = database.UpdatePluginOutputReview(ctx, taskID, &rank, &notes)
-	if err != nil || review.Rank != rank || review.Notes != notes || review.UpdatedAt == nil {
+	disposition := model.PluginOutputDispositionConfirmed
+	review, err = database.UpdatePluginOutputReview(ctx, taskID, PluginOutputReviewUpdate{
+		Disposition: &disposition, Rank: &rank, Notes: &notes,
+	})
+	if err != nil || review.Disposition != disposition || review.Rank != rank || review.Notes != notes || review.UpdatedAt == nil {
 		t.Fatalf("unexpected updated review: review=%+v err=%v", review, err)
 	}
 	cleared := ""
-	review, err = database.UpdatePluginOutputReview(ctx, taskID, nil, &cleared)
-	if err != nil || review.Rank != rank || review.Notes != "" {
+	review, err = database.UpdatePluginOutputReview(ctx, taskID, PluginOutputReviewUpdate{Notes: &cleared})
+	if err != nil || review.Disposition != disposition || review.Rank != rank || review.Notes != "" {
 		t.Fatalf("partial review update lost rank: review=%+v err=%v", review, err)
 	}
+	if _, err := database.UpdatePluginOutputReview(ctx, taskID, PluginOutputReviewUpdate{Notes: &cleared}); err != nil {
+		t.Fatal(err)
+	}
+	events, err := database.ListPluginOutputReviewEvents(ctx, taskID)
+	if err != nil || len(events) != 2 || events[0].Notes != notes || events[1].Notes != "" ||
+		events[1].Disposition != disposition || events[1].Rank != rank {
+		t.Fatalf("review history = %+v, error = %v", events, err)
+	}
 	targetReport, err := database.GetTargetReport(ctx, added.Created[0].ID)
-	if err != nil || len(targetReport.PluginOutputReviews) != 1 || targetReport.PluginOutputReviews[0].Rank != rank {
+	if err != nil || len(targetReport.PluginOutputReviews) != 1 || targetReport.PluginOutputReviews[0].Rank != rank ||
+		len(targetReport.PluginOutputReviewEvents) != 2 {
 		t.Fatalf("target report review missing: reviews=%+v err=%v", targetReport.PluginOutputReviews, err)
 	}
 	sessionReport, err := database.GetSessionReport(ctx, session.ID)
-	if err != nil || len(sessionReport.PluginOutputReviews) != 1 || sessionReport.PluginOutputReviews[0].TaskID != taskID {
+	if err != nil || len(sessionReport.PluginOutputReviews) != 1 || sessionReport.PluginOutputReviews[0].TaskID != taskID ||
+		len(sessionReport.PluginOutputReviewEvents) != 2 {
 		t.Fatalf("session report review missing: reviews=%+v err=%v", sessionReport.PluginOutputReviews, err)
 	}
 	if err := database.Close(); err != nil {
@@ -763,8 +781,52 @@ func TestPluginOutputReviewIsSeparateFromTerminalTaskEvidence(t *testing.T) {
 	}
 	defer database.Close()
 	review, err = database.GetPluginOutputReview(ctx, taskID)
-	if err != nil || review.Rank != rank || review.Notes != "" || review.UpdatedAt == nil {
+	if err != nil || review.Disposition != disposition || review.Rank != rank || review.Notes != "" || review.UpdatedAt == nil {
 		t.Fatalf("review did not persist: review=%+v err=%v", review, err)
+	}
+	events, err = database.ListPluginOutputReviewEvents(ctx, taskID)
+	if err != nil || len(events) != 2 {
+		t.Fatalf("review history did not persist: events=%+v err=%v", events, err)
+	}
+}
+
+func TestOpenMigratesPluginOutputReviewDispositionAndHistory(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "owtf.db")
+	legacy, err := sql.Open("sqlite3", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	now := formatTime(time.Now().UTC())
+	_, err = legacy.Exec(`
+CREATE TABLE sessions (id INTEGER PRIMARY KEY, public_id TEXT NOT NULL UNIQUE, name TEXT NOT NULL, created_at TEXT NOT NULL);
+CREATE TABLE targets (id INTEGER PRIMARY KEY, public_id TEXT NOT NULL UNIQUE, session_id INTEGER NOT NULL, kind TEXT NOT NULL, original TEXT NOT NULL, value TEXT NOT NULL, scope INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, UNIQUE(session_id, value));
+CREATE TABLE runs (id INTEGER PRIMARY KEY, public_id TEXT NOT NULL UNIQUE, session_id INTEGER NOT NULL, profile TEXT NOT NULL DEFAULT '', status TEXT NOT NULL, created_at TEXT NOT NULL, started_at TEXT, finished_at TEXT);
+CREATE TABLE tasks (id INTEGER PRIMARY KEY, public_id TEXT NOT NULL UNIQUE, run_id INTEGER NOT NULL, target_id INTEGER NOT NULL, plugin_id TEXT NOT NULL, plugin_version TEXT NOT NULL, plugin_snapshot TEXT NOT NULL, position INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL, error TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL, started_at TEXT, ended_at TEXT);
+CREATE TABLE plugin_output_reviews (task_id INTEGER PRIMARY KEY REFERENCES tasks(id) ON DELETE CASCADE, rank TEXT NOT NULL, notes TEXT NOT NULL, updated_at TEXT NOT NULL);
+INSERT INTO sessions VALUES(1, 'ses_legacy', 'Legacy', ?);
+INSERT INTO targets VALUES(1, 'tgt_legacy', 1, 'url', 'https://example.test', 'https://example.test/', 1, ?);
+INSERT INTO runs VALUES(1, 'run_legacy', 1, '', 'succeeded', ?, ?, ?);
+INSERT INTO tasks VALUES(1, 'tsk_legacy', 1, 1, 'OWTF-TEST-001-active', '0.1.0', '{}', 1, 'succeeded', '', ?, ?, ?);
+INSERT INTO plugin_output_reviews VALUES(1, 'high', 'legacy notes', ?);`, now, now, now, now, now, now, now, now, now)
+	if err != nil {
+		legacy.Close()
+		t.Fatal(err)
+	}
+	if err := legacy.Close(); err != nil {
+		t.Fatal(err)
+	}
+	database, err := Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+	review, err := database.GetPluginOutputReview(context.Background(), "tsk_legacy")
+	if err != nil || review.Disposition != model.PluginOutputDispositionOpen || review.Rank != model.PluginOutputRankHigh || review.Notes != "legacy notes" {
+		t.Fatalf("migrated review = %+v, error = %v", review, err)
+	}
+	events, err := database.ListPluginOutputReviewEvents(context.Background(), "tsk_legacy")
+	if err != nil || len(events) != 1 || events[0].Disposition != model.PluginOutputDispositionOpen || events[0].Notes != "legacy notes" {
+		t.Fatalf("migrated review history = %+v, error = %v", events, err)
 	}
 }
 

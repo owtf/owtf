@@ -191,6 +191,123 @@ func TestProxyAppliesInterceptorsAndRejectsScopeEscape(t *testing.T) {
 	}
 }
 
+func TestProxyLiveInterceptionEditsRequestAndResponse(t *testing.T) {
+	upstream := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		body, _ := io.ReadAll(request.Body)
+		writer.Header().Set("X-Upstream", request.Header.Get("X-Live"))
+		_, _ = writer.Write(append([]byte("upstream:"), body...))
+	}))
+	defer upstream.Close()
+	live := newLiveForTest(t)
+	if err := live.Configure(LiveConfig{Enabled: true, Requests: true, Responses: true, TimeoutMS: 1000}); err != nil {
+		t.Fatal(err)
+	}
+	recorder := NewRecorder(10)
+	directory := t.TempDir()
+	authority, err := LoadOrCreateAuthority(filepath.Join(directory, "ca.crt"), filepath.Join(directory, "ca.key"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	handler, err := New(Config{
+		Authority: authority, Recorder: recorder, Live: live,
+		AllowedHosts: []string{hostFromURL(t, upstream.URL)},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	proxyServer := httptest.NewServer(handler)
+	defer proxyServer.Close()
+	client := proxyClient(t, proxyServer.URL, nil)
+	type clientResult struct {
+		status int
+		body   string
+		err    error
+	}
+	done := make(chan clientResult, 1)
+	go func() {
+		request, _ := http.NewRequest(http.MethodPost, upstream.URL+"/live", strings.NewReader("before"))
+		response, err := client.Do(request)
+		if err != nil {
+			done <- clientResult{err: err}
+			return
+		}
+		defer response.Body.Close()
+		body, err := io.ReadAll(response.Body)
+		done <- clientResult{status: response.StatusCode, body: string(body), err: err}
+	}()
+
+	pending := waitForPending(t, live)
+	headers := pending.Headers.Clone()
+	headers.Set("X-Live", "yes")
+	requestBody := base64.StdEncoding.EncodeToString([]byte("edited"))
+	if _, err := live.Continue(pending.ID, InterceptionUpdate{Headers: &headers, BodyBase64: &requestBody}); err != nil {
+		t.Fatal(err)
+	}
+	pending = waitForPending(t, live)
+	status := http.StatusAccepted
+	responseBody := base64.StdEncoding.EncodeToString([]byte("reviewed"))
+	if _, err := live.Continue(pending.ID, InterceptionUpdate{StatusCode: &status, BodyBase64: &responseBody}); err != nil {
+		t.Fatal(err)
+	}
+	result := <-done
+	if result.err != nil || result.status != http.StatusAccepted || result.body != "reviewed" {
+		t.Fatalf("live response = %+v", result)
+	}
+	captured := waitForTransaction(t, recorder)
+	if string(captured.RequestBody) != "edited" || captured.StatusCode != http.StatusAccepted || string(captured.ResponseBody) != "reviewed" {
+		t.Fatalf("live capture = %+v", captured)
+	}
+}
+
+func TestProxyRecordsResponseDroppedByLiveInterception(t *testing.T) {
+	upstream := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {
+		writer.WriteHeader(http.StatusCreated)
+		_, _ = writer.Write([]byte("retained evidence"))
+	}))
+	defer upstream.Close()
+	live := newLiveForTest(t)
+	if err := live.Configure(LiveConfig{Enabled: true, Responses: true, TimeoutMS: 1000}); err != nil {
+		t.Fatal(err)
+	}
+	recorder := NewRecorder(10)
+	directory := t.TempDir()
+	authority, err := LoadOrCreateAuthority(filepath.Join(directory, "ca.crt"), filepath.Join(directory, "ca.key"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	handler, err := New(Config{
+		Authority: authority, Recorder: recorder, Live: live,
+		AllowedHosts: []string{hostFromURL(t, upstream.URL)},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	proxyServer := httptest.NewServer(handler)
+	defer proxyServer.Close()
+	client := proxyClient(t, proxyServer.URL, nil)
+	done := make(chan int, 1)
+	go func() {
+		response, err := client.Get(upstream.URL + "/drop")
+		if err != nil {
+			done <- 0
+			return
+		}
+		response.Body.Close()
+		done <- response.StatusCode
+	}()
+	pending := waitForPending(t, live)
+	if _, err := live.Drop(pending.ID); err != nil {
+		t.Fatal(err)
+	}
+	if status := <-done; status != http.StatusForbidden {
+		t.Fatalf("dropped response status = %d", status)
+	}
+	captured := waitForTransaction(t, recorder)
+	if captured.StatusCode != http.StatusCreated || string(captured.ResponseBody) != "retained evidence" {
+		t.Fatalf("dropped response capture = %+v", captured)
+	}
+}
+
 func TestProxyDoesNotInterceptUpgradeResponse(t *testing.T) {
 	interceptors, err := NewInterceptors([]InterceptorRule{{
 		Name: "response", Phase: "response",

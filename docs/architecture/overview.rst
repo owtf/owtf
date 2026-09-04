@@ -395,16 +395,17 @@ persists its CA, records bounded HAR captures, tunnels WebSockets, enforces an
 optional host scope, retries failures and HTTP 408/599 responses, caches bounded
 responses with cookie-key filtering, and supports authenticated HTTP, HTTPS,
 and SOCKS5 upstream proxies. Basic and Digest target authentication is scoped
-  to configured hosts and loaded from a private file. Priority-ordered static
-  request and response interceptors provide bounded URL, header, body, and delay
-  actions. The same validated rule set can be listed, replaced, enabled, and
-  disabled atomically through the loopback API and CLI; an in-flight exchange
-  keeps one immutable rule snapshot. A separate loopback proxy API listener
-  provides transaction history, filters, statistics, clearing, CA download,
-  and request replay through the same proxy path. WebSocket traffic is
-  forwarded unchanged and captured as a bounded, binary-safe frame transcript.
-  Pausing and editing individual live requests or responses remains before the
-  phase gate.
+to configured hosts and loaded from a private file. Priority-ordered static
+request and response interceptors provide bounded URL, header, body, and delay
+actions. The same validated rule set can be listed, replaced, enabled, and
+disabled atomically through the loopback API and CLI; an in-flight exchange
+keeps one immutable rule snapshot. Operators can separately enable bounded live
+request and response pauses, inspect or edit a pending exchange, and continue
+or drop it through the same API and CLI. Timeouts continue unchanged; disable
+and shutdown release all waiters. A separate loopback proxy API listener
+provides transaction history, filters, statistics, clearing, CA download, and
+request replay through the same proxy path. WebSocket traffic is forwarded
+unchanged and captured as a bounded, binary-safe frame transcript.
 
 Phase 5 has a checked feature matrix, typed configuration shared by server and
 proxy startup, deterministic named plugin profiles, target scope and bounded
@@ -417,9 +418,10 @@ and restart recovery. Failed and cancelled tasks remain terminal; an operator
 creates a new run when a technique must be repeated. Declarative external
 plugins retain curated manual guidance without sending target traffic, and
 declarative grep plugins retain evidence-linked transaction matches. Operators
-can assign the established OWTF rank and notes to terminal plugin output; that
-mutable review remains separate from scanner evidence and appears in target,
-session, CLI, API, and portable reports.
+can assign a disposition, the established OWTF rank, and notes to terminal
+plugin output. Each effective change creates an immutable history snapshot.
+Current review state and its history remain separate from scanner evidence and
+appear in target, session, CLI, API, and portable reports.
 Queued work can be paused, resumed, reordered within its session, or removed.
 The dispatch order is persisted in SQLite and restored after restart. Removal
 is limited to work that has never started, so attempts, logs, observations, and

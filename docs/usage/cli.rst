@@ -261,7 +261,8 @@ URLs, transactions, plugin output reviews, and artifact metadata::
   owtf targets report tgt_ID
   owtf sessions report ses_ID
   owtf plugin review tsk_ID
-  owtf plugin review --rank high --notes "Verified manually" tsk_ID
+  owtf plugin review --disposition confirmed --rank high --notes "Verified manually" tsk_ID
+  owtf plugin review --history tsk_ID
   owtf urls list --target tgt_ID
   owtf urls search --target tgt_ID --search login --visited true --scope true
   owtf transactions list --session ses_ID --target tgt_ID
@@ -277,7 +278,11 @@ Plugin output reviews are operator decisions stored separately from immutable
 scanner evidence. Valid ranks are ``unranked``, ``passing``,
 ``informational``, ``low``, ``medium``, ``high``, and ``critical``. Running
 ``plugin review`` without review flags reads the current value. ``--notes=``
-clears notes. Only completed, failed, or cancelled tasks can be reviewed.
+clears notes. Dispositions are ``open``, ``confirmed``, ``false_positive``, and
+``accepted_risk``. Every effective change appends an immutable review snapshot;
+``--history`` reads those snapshots oldest first. Only completed, failed, or
+cancelled tasks can be reviewed. A disposition changes review state, never the
+scanner output, artifacts, transactions, observations, or findings.
 
 Plugins add discovered HTTP and HTTPS URLs to the owning target's URL catalog;
 retained transactions add their URLs automatically. Repeated discoveries are
@@ -416,6 +421,38 @@ HTTP exchange uses one rule snapshot for both its request and response. Runtime
 changes are not written back to ``--interceptor-file`` and end when the proxy
 stops.
 
+Pause individual exchanges for interactive inspection only when an operator
+explicitly enables live interception::
+
+  owtf proxy intercept enable --phase both --wait 30s
+  owtf proxy intercept list
+  owtf proxy intercept show int_1
+  owtf proxy intercept continue int_1
+  owtf proxy intercept drop int_2
+  owtf proxy intercept disable
+
+``--phase`` accepts ``request``, ``response``, or ``both``. Pending entries
+contain the method, URL, status when applicable, headers, and a base64 body.
+Continue without an input file forwards the exchange unchanged. To edit it,
+pass a strict JSON object through ``--input``::
+
+  cat >request-edit.json <<'EOF'
+  {
+    "method": "POST",
+    "url": "https://example.test/reviewed",
+    "headers": {"Content-Type": ["application/json"]},
+    "body_base64": "eyJvd3RmIjp0cnVlfQ=="
+  }
+  EOF
+  owtf proxy intercept continue --input request-edit.json int_1
+
+Request edits may set ``method``, ``url``, ``headers``, and ``body_base64``.
+Response edits may set ``status_code``, ``headers``, and ``body_base64``.
+Headers replace the complete captured map; OWTF recalculates framing from the
+body. Bodies and the pending queue are bounded. A timed-out exchange continues
+unchanged, and disabling interception or stopping the proxy immediately releases
+all waiters. Upgraded WebSocket responses are never buffered or paused.
+
 Inspect and replay proxy traffic
 --------------------------------
 
@@ -455,6 +492,14 @@ The same operations are available directly for scripts::
   curl -sS -X PATCH -H 'Content-Type: application/json' \
     --data '{"name":"redact-text","enabled":false}' \
     http://127.0.0.1:8010/api/v2/interceptors
+  curl -sS -X PUT -H 'Content-Type: application/json' \
+    --data '{"enabled":true,"requests":true,"responses":true,"timeout_ms":30000}' \
+    http://127.0.0.1:8010/api/v2/interception
+  curl -sS http://127.0.0.1:8010/api/v2/interception/pending
+  curl -sS -X POST -H 'Content-Type: application/json' --data '{}' \
+    http://127.0.0.1:8010/api/v2/interception/pending/int_1/continue
+  curl -sS -X POST \
+    http://127.0.0.1:8010/api/v2/interception/pending/int_2/drop
   curl -sS -X DELETE http://127.0.0.1:8010/api/v2/transactions
 
 Run ``owtf help`` for the compact command index. The CLI never opens the

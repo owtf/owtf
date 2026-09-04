@@ -10,6 +10,7 @@ RESPONSE_FILE="${TMP_DIR}/response"
 CLI_RESPONSE_FILE="${TMP_DIR}/cli-response"
 SERVER_PID=""
 PROXY_PID=""
+TRAFFIC_PID=""
 GO_PATH=${OWTF_SMOKE_GOPATH:-${TMPDIR:-/tmp}/owtf-go}
 GO_MODULE_CACHE=${OWTF_SMOKE_GOMODCACHE:-${GO_PATH}/pkg/mod}
 PROXY_ADDRESS=${OWTF_SMOKE_PROXY_ADDR:-127.0.0.1:18118}
@@ -23,6 +24,10 @@ EMPTY_INTERCEPTORS="${TMP_DIR}/empty-interceptors.json"
 CONFIG_FILE="${TMP_DIR}/config.yaml"
 
 cleanup() {
+  if [[ -n "${TRAFFIC_PID}" ]] && kill -0 "${TRAFFIC_PID}" 2>/dev/null; then
+    kill "${TRAFFIC_PID}" 2>/dev/null || true
+    wait "${TRAFFIC_PID}" 2>/dev/null || true
+  fi
   if [[ -n "${PROXY_PID}" ]] && kill -0 "${PROXY_PID}" 2>/dev/null; then
     kill "${PROXY_PID}" 2>/dev/null || true
     wait "${PROXY_PID}" 2>/dev/null || true
@@ -111,6 +116,19 @@ wait_for_task_status() {
     sleep 0.05
   done
   fail "task ${task_id} remained ${status}, expected ${wanted}"
+}
+
+wait_for_proxy_interception() {
+  local attempt
+  for attempt in $(seq 1 100); do
+    curl --silent --show-error --fail --max-time 1 \
+      "${PROXY_API_URL}/api/v2/interception/pending" >"${RESPONSE_FILE}"
+    if jq -e 'length > 0' "${RESPONSE_FILE}" >/dev/null; then
+      return 0
+    fi
+    sleep 0.01
+  done
+  fail 'proxy traffic did not become pending'
 }
 
 command -v curl >/dev/null || fail "curl is required"
@@ -461,12 +479,16 @@ done
 request GET "/api/v2/tasks/${INPUT_TASK_ID}/events" 200
 assert_json '[.[].message] | join("\n") | contains("OWTF smoke; echo not-executed")' 'resolved plugin input did not reach the command executor'
 request GET "/api/v2/tasks/${INPUT_TASK_ID}/review" 200
-assert_json '.task_id == $task and .rank == "unranked" and .notes == "" and .updated_at == null' 'new plugin output review is not unranked' --arg task "${INPUT_TASK_ID}"
-PLUGIN_REVIEW=$(jq -nc '{rank:"high",notes:"Verified from retained transaction evidence."}')
+assert_json '.task_id == $task and .disposition == "open" and .rank == "unranked" and .notes == "" and .updated_at == null' 'new plugin output review is not open and unranked' --arg task "${INPUT_TASK_ID}"
+PLUGIN_REVIEW=$(jq -nc '{disposition:"confirmed",rank:"high",notes:"Verified from retained transaction evidence."}')
 request PATCH "/api/v2/tasks/${INPUT_TASK_ID}/review" 200 "${PLUGIN_REVIEW}"
-assert_json '.task_id == $task and .rank == "high" and .notes == "Verified from retained transaction evidence." and .updated_at != null' 'plugin output review was not saved' --arg task "${INPUT_TASK_ID}"
+assert_json '.task_id == $task and .disposition == "confirmed" and .rank == "high" and .notes == "Verified from retained transaction evidence." and .updated_at != null' 'plugin output review was not saved' --arg task "${INPUT_TASK_ID}"
+request GET "/api/v2/tasks/${INPUT_TASK_ID}/review/history" 200
+assert_json 'length == 1 and .[0].task_id == $task and .[0].disposition == "confirmed" and .[0].rank == "high"' 'plugin output review history is incorrect' --arg task "${INPUT_TASK_ID}"
 cli_json plugin review "${INPUT_TASK_ID}"
-jq -e --arg task "${INPUT_TASK_ID}" '.task_id == $task and .rank == "high" and .notes == "Verified from retained transaction evidence."' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin output review is incorrect'
+jq -e --arg task "${INPUT_TASK_ID}" '.task_id == $task and .disposition == "confirmed" and .rank == "high" and .notes == "Verified from retained transaction evidence."' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin output review is incorrect'
+cli_json plugin review --history "${INPUT_TASK_ID}"
+jq -e --arg task "${INPUT_TASK_ID}" 'length == 1 and .[0].task_id == $task and .[0].disposition == "confirmed"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin output review history is incorrect'
 request GET "/api/v2/workers" 200
 assert_json 'length == 1 and .[0].status == "idle" and .[0].completed == 5' 'worker state or accounting is incorrect'
 request GET "/api/v2/targets/${URL_TARGET_ID}/report" 200
@@ -477,7 +499,7 @@ assert_json '(.transactions | length) == 4 and any(.transactions[]; .method == "
 assert_json '(.urls | length) == 2 and all(.urls[]; .visited == true and .scope == true)' 'target report is missing the HTTP probe URL catalog'
 assert_json '(.observations | length) == 6 and ([.observations[] | select((.technique_code == "OWTF-CM-008" or .technique_code == "OWTF-IG-001") and .kind == "http.response")] | length) == 2 and ([.observations[] | select(.technique_code == "OWTF-SM-001" and .kind == "grep.matches")] | length) == 2' 'target report is missing plugin observations'
 assert_json '(.artifacts | length) == 8' 'target report is missing retained artifacts'
-assert_json '(.plugin_output_reviews | length) == 15 and any(.plugin_output_reviews[]; .task_id == $task and .rank == "high" and .notes == "Verified from retained transaction evidence.")' 'target report is missing the plugin output review' --arg task "${INPUT_TASK_ID}"
+assert_json '(.plugin_output_reviews | length) == 15 and any(.plugin_output_reviews[]; .task_id == $task and .disposition == "confirmed" and .rank == "high" and .notes == "Verified from retained transaction evidence.") and (.plugin_output_review_events | length) == 1' 'target report is missing the plugin output review or history' --arg task "${INPUT_TASK_ID}"
 ARTIFACT_IDS=()
 while IFS= read -r artifact_id; do ARTIFACT_IDS+=("${artifact_id}"); done < <(jq -r '.artifacts[].id' "${RESPONSE_FILE}")
 for artifact_id in "${ARTIFACT_IDS[@]}"; do
@@ -503,7 +525,7 @@ assert_json '.tasks.total == 15 and .tasks.succeeded == 5 and .tasks.blocked == 
 cli_json metrics
 jq -e '.tasks.total == 15 and .attempts.succeeded == 5 and .workers.completed == 5' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI execution metrics are incorrect'
 request GET "/api/v2/sessions/${SESSION_ID}/report" 200
-assert_json '(.plugin_output_reviews | length) == 15 and any(.plugin_output_reviews[]; .task_id == $task and .rank == "high")' 'session report is missing the plugin output review' --arg task "${INPUT_TASK_ID}"
+assert_json '(.plugin_output_reviews | length) == 15 and any(.plugin_output_reviews[]; .task_id == $task and .disposition == "confirmed" and .rank == "high") and (.plugin_output_review_events | length) == 1' 'session report is missing the plugin output review or history' --arg task "${INPUT_TASK_ID}"
 request GET "/api/v2/sessions/${SESSION_ID}/export" 200
 SESSION_REPORT_ZIP="${TMP_DIR}/session-report.zip"
 cp "${RESPONSE_FILE}" "${SESSION_REPORT_ZIP}"
@@ -826,15 +848,67 @@ printf '%s\n' '{"rules":[]}' >"${EMPTY_INTERCEPTORS}"
 proxy_cli_json interceptors replace "${EMPTY_INTERCEPTORS}"
 jq -e '(.rules | length) == 0' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy CLI did not replace interceptors'
 
+proxy_cli_json intercept enable --phase request --wait 5s
+jq -e '.enabled == true and .requests == true and .responses == false' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy CLI did not enable live request interception'
+LIVE_RESPONSE="${TMP_DIR}/live-request-response"
+LIVE_STATUS="${TMP_DIR}/live-request-status"
+curl --silent --show-error --max-time 10 --noproxy '' --proxy "${PROXY_URL}" \
+  --output "${LIVE_RESPONSE}" --write-out '%{http_code}' "${BASE_URL}/debug/health?live=before" >"${LIVE_STATUS}" &
+TRAFFIC_PID=$!
+wait_for_proxy_interception
+LIVE_INTERCEPTION_ID=$(jq -r '.[0].id' "${RESPONSE_FILE}")
+LIVE_EDITED_URL="${BASE_URL}/debug/health?live=after"
+LIVE_REQUEST_EDIT=$(jq -nc --arg url "${LIVE_EDITED_URL}" '{url:$url}')
+request_status=$(curl --silent --show-error --max-time 10 --request POST \
+  --header 'Content-Type: application/json' --data "${LIVE_REQUEST_EDIT}" \
+  --output "${RESPONSE_FILE}" --write-out '%{http_code}' \
+  "${PROXY_API_URL}/api/v2/interception/pending/${LIVE_INTERCEPTION_ID}/continue")
+[[ "${request_status}" == 200 ]] || fail "live request continue returned ${request_status}: $(cat "${RESPONSE_FILE}")"
+wait "${TRAFFIC_PID}"
+TRAFFIC_PID=""
+[[ "$(cat "${LIVE_STATUS}")" == 200 ]] || fail 'continued live request returned the wrong status'
+jq -e '.status == "ok"' "${LIVE_RESPONSE}" >/dev/null || fail 'continued live request returned the wrong body'
+
+proxy_cli_json intercept enable --phase response --wait 5s
+LIVE_RESPONSE="${TMP_DIR}/live-response-response"
+LIVE_STATUS="${TMP_DIR}/live-response-status"
+curl --silent --show-error --max-time 10 --noproxy '' --proxy "${PROXY_URL}" \
+  --output "${LIVE_RESPONSE}" --write-out '%{http_code}' "${BASE_URL}/debug/health?live=response" >"${LIVE_STATUS}" &
+TRAFFIC_PID=$!
+wait_for_proxy_interception
+LIVE_INTERCEPTION_ID=$(jq -r '.[0].id' "${RESPONSE_FILE}")
+LIVE_RESPONSE_EDIT="${TMP_DIR}/live-response-edit.json"
+jq -nc --arg body '{"status":"live"}' '{status_code:202,body_base64:($body|@base64)}' >"${LIVE_RESPONSE_EDIT}"
+proxy_cli_json intercept continue --input "${LIVE_RESPONSE_EDIT}" "${LIVE_INTERCEPTION_ID}"
+wait "${TRAFFIC_PID}"
+TRAFFIC_PID=""
+[[ "$(cat "${LIVE_STATUS}")" == 202 ]] || fail 'edited live response returned the wrong status'
+jq -e '.status == "live"' "${LIVE_RESPONSE}" >/dev/null || fail 'edited live response returned the wrong body'
+
+proxy_cli_json intercept enable --phase request --wait 5s
+LIVE_RESPONSE="${TMP_DIR}/live-drop-response"
+LIVE_STATUS="${TMP_DIR}/live-drop-status"
+curl --silent --show-error --max-time 10 --noproxy '' --proxy "${PROXY_URL}" \
+  --output "${LIVE_RESPONSE}" --write-out '%{http_code}' "${BASE_URL}/debug/health?live=drop" >"${LIVE_STATUS}" &
+TRAFFIC_PID=$!
+wait_for_proxy_interception
+LIVE_INTERCEPTION_ID=$(jq -r '.[0].id' "${RESPONSE_FILE}")
+proxy_cli_json intercept drop "${LIVE_INTERCEPTION_ID}"
+wait "${TRAFFIC_PID}"
+TRAFFIC_PID=""
+[[ "$(cat "${LIVE_STATUS}")" == 403 ]] || fail 'dropped live request was forwarded'
+proxy_cli_json intercept disable
+jq -e '.enabled == false' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy CLI did not disable live interception'
+
 curl --silent --show-error --fail --max-time 10 \
   "${PROXY_API_URL}/api/v2/transactions?method=GET&status=200&url=debug%2Fhealth&limit=10" >"${RESPONSE_FILE}"
-assert_json 'length == 2 and all(.[]; .method == "GET" and .status_code == 200)' 'proxy transaction filtering is incorrect'
+assert_json 'length == 3 and all(.[]; .method == "GET" and .status_code == 200)' 'proxy transaction filtering is incorrect'
 curl --silent --show-error --fail --max-time 10 \
   "${PROXY_API_URL}/api/v2/transactions/1" >"${RESPONSE_FILE}"
 assert_json '.id == 1 and .response_body_base64 != ""' 'proxy transaction detail is incomplete'
 curl --silent --show-error --fail --max-time 10 \
   "${PROXY_API_URL}/api/v2/transactions/stats" >"${RESPONSE_FILE}"
-assert_json '.total == 2 and .methods.GET == 2 and .statuses["200"] == 2' 'proxy transaction stats are incorrect'
+assert_json '.total == 4 and .methods.GET == 4 and .statuses["200"] == 3 and .statuses["202"] == 1' 'proxy transaction stats are incorrect'
 curl --silent --show-error --fail --max-time 10 \
   "${PROXY_API_URL}/api/v2/ca" >"${TMP_DIR}/downloaded-ca.crt"
 cmp -s "${PROXY_CA}" "${TMP_DIR}/downloaded-ca.crt" || fail 'proxy CA download differs from generated CA'
@@ -842,11 +916,11 @@ cmp -s "${PROXY_CA}" "${TMP_DIR}/downloaded-ca.crt" || fail 'proxy CA download d
 proxy_cli_json status
 jq -e '.status == "ok"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy CLI status is incorrect'
 proxy_cli_json transactions --url debug/health --limit 10
-jq -e 'length == 2' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy CLI transactions are incorrect'
+jq -e 'length == 4' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy CLI transactions are incorrect'
 proxy_cli_json transaction 1
 jq -e '.id == 1 and .status_code == 200' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy CLI transaction detail is incorrect'
 proxy_cli_json stats
-jq -e '.total == 2' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy CLI stats are incorrect'
+jq -e '.total == 4' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy CLI stats are incorrect'
 proxy_cli_json repeat "${BASE_URL}/debug/health"
 jq -e '.status_code == 200 and (.body_base64 | @base64d | fromjson | .status == "ok")' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy CLI repeater is incorrect'
 proxy_cli_json ca --output "${TMP_DIR}/cli-proxy-ca.crt"
@@ -855,7 +929,7 @@ cmp -s "${PROXY_CA}" "${TMP_DIR}/cli-proxy-ca.crt" || fail 'proxy CLI CA differs
 request_status=$(curl --silent --show-error --max-time 10 --request DELETE \
   --output "${RESPONSE_FILE}" --write-out '%{http_code}' "${PROXY_API_URL}/api/v2/transactions")
 [[ "${request_status}" == 200 ]] || fail "proxy clear returned ${request_status}: $(cat "${RESPONSE_FILE}")"
-assert_json '.removed == 3' 'proxy history clear count is incorrect'
+assert_json '.removed == 5' 'proxy history clear count is incorrect'
 proxy_cli_json stats
 jq -e '.total == 0' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'proxy history survived clear'
 
