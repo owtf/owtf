@@ -95,6 +95,20 @@ func TestContainerDecoderFailureRetainsRawArtifact(t *testing.T) {
 	}
 }
 
+func TestContainerOutputErrorRetainsArtifacts(t *testing.T) {
+	manifest := containerManifest()
+	manifest.Spec.Runtime.Container.ErrorPrefix = "[ERROR]"
+	engine := &fakeContainerEngine{output: "[ERROR] lookup failed\n", run: func(run ContainerRun) error {
+		return os.WriteFile(filepath.Join(run.ArtifactDir, "result.json"), []byte("partial evidence"), 0o600)
+	}}
+	result, err := ContainerExecutor(manifest, engine, t.TempDir())(context.Background(), Request{
+		Target: model.Target{Kind: "url", Value: "https://example.test"}, Log: func(string, string) {},
+	})
+	if err == nil || !strings.Contains(err.Error(), "output reported errors") || len(result.Artifacts) != 1 || string(result.Artifacts[0].Data) != "partial evidence" || len(result.Observations) != 0 {
+		t.Fatalf("zero-exit error was hidden or evidence discarded: %+v, %v", result, err)
+	}
+}
+
 func TestContainerArtifactArchiveRejectsUndeclaredFile(t *testing.T) {
 	source := t.TempDir()
 	if err := os.WriteFile(filepath.Join(source, "unexpected.json"), []byte("{}"), 0o600); err != nil {
@@ -290,10 +304,14 @@ func TestDockerCommandHelper(t *testing.T) {
 type fakeContainerEngine struct {
 	available error
 	run       func(ContainerRun) error
+	output    string
 }
 
 func (e *fakeContainerEngine) ImageAvailable(context.Context, string) error { return e.available }
-func (e *fakeContainerEngine) Run(_ context.Context, run ContainerRun, _, _ io.Writer) error {
+func (e *fakeContainerEngine) Run(_ context.Context, run ContainerRun, stdout, _ io.Writer) error {
+	if _, err := io.WriteString(stdout, e.output); err != nil {
+		return err
+	}
 	if e.run == nil {
 		return nil
 	}

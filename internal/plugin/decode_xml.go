@@ -62,6 +62,7 @@ func decodeXML(data []byte, root string, out any) error {
 
 type nmapService struct {
 	Name    string   `xml:"name,attr" json:"name"`
+	Method  string   `xml:"method,attr" json:"method,omitempty"`
 	Product string   `xml:"product,attr" json:"product,omitempty"`
 	Version string   `xml:"version,attr" json:"version,omitempty"`
 	Extra   string   `xml:"extrainfo,attr" json:"extra,omitempty"`
@@ -83,6 +84,7 @@ type nmapState struct {
 func decodeNmap(data []byte, context decodeContext) (Result, error) {
 	var report struct {
 		Hosts []struct {
+			TimedOut  bool      `xml:"timedout,attr"`
 			Status    nmapState `xml:"status"`
 			Addresses []struct {
 				Address string `xml:"addr,attr"`
@@ -123,6 +125,9 @@ func decodeNmap(data []byte, context decodeContext) (Result, error) {
 		return nil
 	}
 	for _, host := range report.Hosts {
+		if host.TimedOut {
+			return Result{}, errors.New("Nmap host timed out; scan is incomplete")
+		}
 		address := ""
 		for _, item := range host.Addresses {
 			if item.Type == "ipv4" || item.Type == "ipv6" {
@@ -142,6 +147,7 @@ func decodeNmap(data []byte, context decodeContext) (Result, error) {
 				return Result{}, errors.New("Nmap port is missing or has invalid port, protocol, or state")
 			}
 			if service := port.Service; service != nil {
+				service.Method = limited(service.Method)
 				service.Name, service.Product, service.Version = limited(service.Name), limited(service.Product), limited(service.Version)
 				service.Extra, service.Tunnel, service.OS = limited(service.Extra), limited(service.Tunnel), limited(service.OS)
 				for i := range service.CPEs {

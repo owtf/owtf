@@ -76,6 +76,7 @@ type PluginInput struct {
 	Maximum      *int64   `yaml:"maximum,omitempty" json:"maximum,omitempty"`
 	MaximumBytes int64    `yaml:"maximumBytes,omitempty" json:"maximum_bytes,omitempty"`
 	MaximumLines int      `yaml:"maximumLines,omitempty" json:"maximum_lines,omitempty"`
+	Format       string   `yaml:"format,omitempty" json:"format,omitempty"`
 }
 
 // Technique is the OWTF test-group metadata shared by plugin type variants.

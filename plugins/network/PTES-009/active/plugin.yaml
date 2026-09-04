@@ -3,7 +3,7 @@ kind: Plugin
 
 metadata:
   id: PTES-009-active
-  version: 0.3.0
+  version: 0.4.0
   title: SMB Service Probe
   description: Uses Nmap to identify SMB protocols, security modes, capabilities, and host metadata.
 
@@ -34,10 +34,10 @@ spec:
         - -Pn
         - -n
         - -sT
-        - -sV
-        - --version-light
         - --script
         - smb-protocols,smb-security-mode,smb2-security-mode,smb2-capabilities,smb-os-discovery
+        - --script-args
+        - "smbport={{input:port}}"
         - --script-timeout
         - 15s
         - --host-timeout

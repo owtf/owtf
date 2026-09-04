@@ -1,0 +1,79 @@
+apiVersion: owtf.dev/v1alpha1
+kind: Plugin
+
+metadata:
+  id: PTES-011-bruteforce
+  version: 0.1.0
+  title: DNS Name Discovery
+  description: Resolves a bounded list of names below the target hostname; stops on wildcard DNS.
+
+spec:
+  techniques:
+    - code: PTES-011
+      title: DNS Name Discovery
+      hint: Which names below the target resolve through the selected DNS server? Review discoveries before adding targets.
+      priority: 99
+      reference: https://owasp.org/www-project-penetration-testing-execution-standard/
+  group: network
+  type: bruteforce
+  targetKinds: [hostname]
+  inputs:
+    - name: wordlist
+      type: wordlist
+      format: dns-labels
+      description: Named wordlist containing one hostname label per line, not full hostnames or URLs.
+      required: true
+      maximumBytes: 65536
+      maximumLines: 1000
+    - name: resolver
+      type: address
+      description: Explicit DNS server IP and port, such as 192.0.2.53:53 or '[2001:db8::53]:53'.
+      required: true
+    - name: threads
+      type: integer
+      description: Maximum concurrent hostname lookups.
+      default: 2
+      minimum: 1
+      maximum: 10
+    - name: delay
+      type: string
+      description: Delay per worker between hostname lookups.
+      default: 500ms
+      choices: [100ms, 500ms, 1s]
+    - name: timeout
+      type: string
+      description: Timeout per hostname lookup.
+      default: 2s
+      choices: [1s, 2s, 5s]
+  runtime:
+    type: container
+    container:
+      image: owtf/kali-tools:local
+      network: bridge
+      executable: gobuster
+      errorPrefix: "[ERROR]"
+      args:
+        - dns
+        - --domain
+        - "{{target}}"
+        - --wordlist
+        - "{{input:wordlist}}"
+        - --resolver
+        - "{{input:resolver}}"
+        - --protocol
+        - udp
+        - --threads
+        - "{{input:threads}}"
+        - --delay
+        - "{{input:delay}}"
+        - --timeout
+        - "{{input:timeout}}"
+        - --no-progress
+        - --no-color
+        - --output
+        - "{{artifact:dns.txt}}"
+      artifacts:
+        - name: dns.txt
+          mediaType: text/plain
+          required: true
+          decoder: gobuster-dns

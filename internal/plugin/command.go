@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -25,6 +26,11 @@ const (
 	maxLogEvents     = 1000
 	maxWordlistLine  = 4 << 10
 )
+
+// Only decimal integers may be embedded in tool-specific key=value syntax.
+// Strings remain whole arguments, never shell or NSE argument expressions.
+var integerArgument = regexp.MustCompile(`^([a-zA-Z][a-zA-Z0-9_.-]*=)\{\{input:([a-z][a-z0-9_]*)\}\}$`)
+var dnsLabel = regexp.MustCompile(`^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$`)
 
 // CommandExecutor returns an executor that invokes executable with a validated
 // argument array and an isolated temporary artifact directory.
@@ -51,8 +57,8 @@ func CommandExecutor(manifest Manifest, executable, wordlistDirectory string) Ex
 		command := exec.Command(executable, args...)
 		command.Dir = workDir
 		command.Env = commandEnvironment(request, workDir)
-		stdout := &eventWriter{stream: "stdout", log: request.Log, remaining: maxCommandOutput}
-		stderr := &eventWriter{stream: "stderr", log: request.Log, remaining: maxCommandOutput}
+		stdout := &eventWriter{stream: "stdout", log: request.Log, remaining: maxCommandOutput, errorPrefix: manifest.Spec.Runtime.Command.ErrorPrefix}
+		stderr := &eventWriter{stream: "stderr", log: request.Log, remaining: maxCommandOutput, errorPrefix: manifest.Spec.Runtime.Command.ErrorPrefix}
 		command.Stdout = stdout
 		command.Stderr = stderr
 		err = executeProcess(ctx, command)
@@ -65,6 +71,9 @@ func CommandExecutor(manifest Manifest, executable, wordlistDirectory string) Ex
 		artifacts, err := readCommandArtifacts(workDir, manifest.Spec.Runtime.Command.Artifacts)
 		if err != nil {
 			return Result{}, err
+		}
+		if stdout.outputFailed() || stderr.outputFailed() {
+			return Result{Artifacts: artifacts}, errors.New("command output reported errors or was truncated; see task logs")
 		}
 		result, err := decodeArtifacts(manifest, request.Target, artifacts)
 		if err != nil {
@@ -162,9 +171,15 @@ func copyWordlist(directory, name, workDir string, spec model.PluginInput) (stri
 		if len(scanner.Bytes()) > maxWordlistLine {
 			return "", fmt.Errorf("%q contains a line exceeding %d bytes", name, maxWordlistLine)
 		}
+		if spec.Format == "dns-labels" && !dnsLabel.MatchString(scanner.Text()) {
+			return "", fmt.Errorf("%q line %d must contain one DNS label (1-63 ASCII letters, digits, or interior hyphens)", name, lines)
+		}
 	}
 	if err := scanner.Err(); err != nil {
 		return "", fmt.Errorf("read %q: %w", name, err)
+	}
+	if spec.Format == "dns-labels" && lines == 0 {
+		return "", fmt.Errorf("%q must contain at least one DNS label", name)
 	}
 	outputPath := filepath.Join(workDir, "input-"+spec.Name+".txt")
 	output, err := os.OpenFile(outputPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
@@ -221,6 +236,14 @@ func expandArguments(arguments []string, target string, artifacts map[string]str
 			}
 			result = append(result, text)
 		default:
+			if match := integerArgument.FindStringSubmatch(argument); match != nil {
+				value, ok := inputs[match[2]].(int64)
+				if !ok {
+					return nil, fmt.Errorf("argument %q requires a resolved integer input", argument)
+				}
+				result = append(result, match[1]+strconv.FormatInt(value, 10))
+				continue
+			}
 			result = append(result, argument)
 		}
 	}
@@ -312,12 +335,20 @@ func formatCommand(executable string, args []string) string {
 }
 
 type eventWriter struct {
-	stream    string
-	log       func(string, string)
-	remaining int
-	pending   []byte
-	events    int
-	truncated bool
+	stream      string
+	log         func(string, string)
+	remaining   int
+	pending     []byte
+	events      int
+	truncated   bool
+	errorPrefix string
+	failed      bool
+}
+
+// Some tools exit zero even when individual checks fail. Their manifests can
+// name a diagnostic prefix; incomplete output must not pass that check either.
+func (w *eventWriter) outputFailed() bool {
+	return w.errorPrefix != "" && (w.failed || w.truncated)
 }
 
 func (w *eventWriter) Write(data []byte) (int, error) {
@@ -340,6 +371,9 @@ func (w *eventWriter) Write(data []byte) (int, error) {
 		w.emit(string(w.pending[:index]))
 		w.pending = w.pending[index+1:]
 	}
+	if w.events >= maxLogEvents && len(w.pending) != 0 {
+		w.truncated = true
+	}
 	return original, nil
 }
 
@@ -355,6 +389,9 @@ func (w *eventWriter) Close() {
 func (w *eventWriter) emit(line string) {
 	w.events++
 	if line = strings.TrimSpace(line); line != "" {
+		if w.errorPrefix != "" && strings.HasPrefix(line, w.errorPrefix) {
+			w.failed = true
+		}
 		w.log(w.stream, line)
 	}
 }

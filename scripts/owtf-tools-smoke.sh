@@ -19,6 +19,7 @@ BASE_URL="http://127.0.0.1:${PORT}"
 FIXTURE="owtf-tools-fixture-$$"
 FIXTURE_IMAGE="owtf/tools-fixture:$$"
 SERVER_PID=""
+EXPECTED_FAILURES=2
 
 cleanup() {
   if [[ -n "${SERVER_PID}" ]]; then
@@ -32,6 +33,7 @@ cleanup() {
   if [[ "${MODE}" == all ]]; then
     docker cp "${FIXTURE}:/var/log/smtp.log" "${EVIDENCE_DIR}/smtp.log" >/dev/null 2>&1 || true
     docker cp "${FIXTURE}:/var/log/samba" "${EVIDENCE_DIR}/samba-logs" >/dev/null 2>&1 || true
+    docker cp "${FIXTURE}:/var/log/dns.log" "${EVIDENCE_DIR}/dns.log" >/dev/null 2>&1 || true
   fi
   docker rm --force "${FIXTURE}" >/dev/null 2>&1 || true
   docker image rm --force "${FIXTURE_IMAGE}" >/dev/null 2>&1 || true
@@ -206,6 +208,8 @@ printf '<html><title>OWTF fixture</title><body>fixture</body></html>\n' >"${TMP_
 printf 'admin fixture\n' >"${TMP_DIR}/fixture/site/admin/index.html"
 printf 'admin\nmissing\n' >"${TMP_DIR}/wordlists/smoke.txt"
 printf 'admin\nmissing\n' >"${TMP_DIR}/wordlists/vhosts.txt"
+printf 'www\napi\nmissing\n' >"${TMP_DIR}/wordlists/dns.txt"
+printf '../outside\n' >"${TMP_DIR}/wordlists/dns-invalid.txt"
 printf 'admin\n' >"${TMP_DIR}/wordlists/slow.txt"
 seq 1 9999 | sed 's/^/missing-/' >>"${TMP_DIR}/wordlists/slow.txt"
 for case_name in cancel crash timeout; do
@@ -292,6 +296,18 @@ log level = 3
 log file = /var/log/samba/log.smbd
 max log size = 256
 SMB
+cat >"${TMP_DIR}/fixture/dnsmasq.conf" <<'DNS'
+no-resolv
+no-hosts
+port=5353
+user=root
+local=/owtf.test/
+host-record=www.dns.owtf.test,192.0.2.10,2001:db8::10
+host-record=api.dns.owtf.test,192.0.2.11
+address=/wild.owtf.test/192.0.2.200
+log-queries
+log-facility=/var/log/dns.log
+DNS
 cat >"${TMP_DIR}/fixture/Dockerfile" <<'DOCKERFILE'
 FROM nginx:alpine
 ARG NETWORK_PACKAGES
@@ -300,12 +316,13 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY vsftpd.conf /etc/vsftpd/vsftpd.conf
 COPY postfix.cf /etc/postfix/main.cf
 COPY smb.conf /etc/samba/smb.conf
+COPY dnsmasq.conf /etc/dnsmasq.conf
 COPY fixture.crt fixture.key /certs/
 COPY site/ /site/
 DOCKERFILE
 
 NETWORK_PACKAGES=""
-[[ "${MODE}" != all ]] || NETWORK_PACKAGES="postfix samba-server samba-common-tools"
+[[ "${MODE}" != all ]] || NETWORK_PACKAGES="postfix samba-server samba-common-tools dnsmasq"
 docker build --quiet --build-arg "NETWORK_PACKAGES=${NETWORK_PACKAGES}" --tag "${FIXTURE_IMAGE}" "${TMP_DIR}/fixture" >/dev/null
 docker run --detach --name "${FIXTURE}" \
   --publish "127.0.0.1:${FIXTURE_HTTP_PORT}:80" \
@@ -328,6 +345,9 @@ if [[ "${MODE}" == all ]]; then
   docker exec "${FIXTURE}" sh -c 'nc -z -w 1 127.0.0.1 25 && nc -z -w 1 127.0.0.1 445' || fail 'SMTP/SMB fixture did not become ready'
   docker exec "${FIXTURE}" postconf mail_version >"${EVIDENCE_DIR}/fixture-versions.txt"
   docker exec "${FIXTURE}" smbd --version >>"${EVIDENCE_DIR}/fixture-versions.txt"
+  docker exec "${FIXTURE}" dnsmasq --test
+  docker exec "${FIXTURE}" dnsmasq
+  docker exec "${FIXTURE}" dnsmasq --version >>"${EVIDENCE_DIR}/fixture-versions.txt"
 fi
 
 cat >"${TMP_DIR}/config.yaml" <<YAML
@@ -374,7 +394,7 @@ if ! jq -e '
     .id == "OWTF-ST-001-active" or .id == "OWTF-CL-002-active" or
     .id == "OWTF-WVS-002-active" or .id == "OWTF-WVS-003-active" or
     .group == "network"
-  ) | select(.availability == "ready")] | length == 18
+  ) | select(.availability == "ready")] | length == 19
 ' <<<"${PLUGINS}" >/dev/null; then
   jq '[.[] | select(.runtime_type == "container")] | map({id, availability, reason})' <<<"${PLUGINS}" >&2
   fail 'Kali-backed plugin availability is incorrect'
@@ -421,6 +441,41 @@ if [[ "${MODE}" == all ]]; then
   docker exec "${FIXTURE}" testparm --suppress-prompt >"${EVIDENCE_DIR}/smb-optional-config.txt" 2>&1
   SMB_OPTIONAL_TASK=$(launch "${NETWORK_TARGET}" PTES-009-active)
   TASKS+=("${SMB_OPTIONAL_TASK}")
+  # Close 445 so custom-port success cannot be caused by an NSE fallback.
+  wait_for_status "${SMB_OPTIONAL_TASK}" succeeded
+  docker exec "${FIXTURE}" smbcontrol all shutdown
+  docker exec "${FIXTURE}" sed -i -e 's/smb ports = 445/smb ports = 1445/' -e 's/server signing = auto/server signing = mandatory/' /etc/samba/smb.conf
+  for attempt in $(seq 1 50); do
+    if ! docker exec "${FIXTURE}" pgrep -x smbd >/dev/null; then break; fi
+    sleep 0.1
+  done
+  docker exec "${FIXTURE}" smbd --daemon --no-process-group
+  for attempt in $(seq 1 50); do
+    if docker exec "${FIXTURE}" nc -z -w 1 127.0.0.1 1445; then break; fi
+    sleep 0.1
+  done
+  docker exec "${FIXTURE}" nc -z -w 1 127.0.0.1 1445 || fail 'custom SMB port is not listening'
+  if docker exec "${FIXTURE}" nc -z -w 1 127.0.0.1 445; then fail 'default SMB port must be closed'; fi
+  docker exec "${FIXTURE}" testparm --suppress-prompt >"${EVIDENCE_DIR}/smb-custom-config.txt" 2>&1
+  SMB_CUSTOM_TASK=$(launch "${NETWORK_TARGET}" PTES-009-active '{"port":1445}')
+  DNS_TARGET=$(request POST "/api/v2/sessions/${SESSION_ID}/targets" '{"targets":["dns.owtf.test"]}' | jq -r '.created[0].id')
+  DNS_EMPTY_TARGET=$(request POST "/api/v2/sessions/${SESSION_ID}/targets" '{"targets":["empty.owtf.test"]}' | jq -r '.created[0].id')
+  DNS_WILD_TARGET=$(request POST "/api/v2/sessions/${SESSION_ID}/targets" '{"targets":["wild.owtf.test"]}' | jq -r '.created[0].id')
+  DNS_INPUTS=$(jq -nc --arg resolver "${NETWORK_HOST}:5353" '{wordlist:"dns.txt",resolver:$resolver,threads:1,delay:"100ms",timeout:"1s"}')
+  for inputs in '{"wordlist":"dns.txt","resolver":"resolver.test:53"}' '{"wordlist":"dns.txt","resolver":"192.0.2.53:0"}' \
+    "$(jq '.threads=11' <<<"${DNS_INPUTS}")"; do
+    status=$(jq -nc --arg session "${SESSION_ID}" --arg target "${DNS_TARGET}" --argjson inputs "${inputs}" \
+      '{session_id:$session,target_ids:[$target],plugin_ids:["PTES-011-bruteforce"],plugin_inputs:{"PTES-011-bruteforce":$inputs}}' | \
+      curl --silent --show-error --max-time 10 -o "${EVIDENCE_DIR}/dns-invalid-input.json" -w '%{http_code}' \
+        --header 'Content-Type: application/json' --data @- "${BASE_URL}/api/v2/runs")
+    [[ "${status}" == 400 ]] || fail 'invalid DNS launch inputs were accepted'
+  done
+  DNS_TASK=$(launch "${DNS_TARGET}" PTES-011-bruteforce "${DNS_INPUTS}")
+  DNS_EMPTY_TASK=$(OWTF_URL="${BASE_URL}" "${TMP_DIR}/owtf" --json runs create --session "${SESSION_ID}" \
+    --target "${DNS_EMPTY_TARGET}" --plugin PTES-011-bruteforce --input PTES-011-bruteforce.wordlist=dns.txt \
+    --input "PTES-011-bruteforce.resolver=${NETWORK_HOST}:5353" --input PTES-011-bruteforce.threads=1 \
+    --input PTES-011-bruteforce.delay=100ms --input PTES-011-bruteforce.timeout=1s | jq -r '.tasks[0].id')
+  TASKS+=("${SMB_CUSTOM_TASK}" "${DNS_TASK}" "${DNS_EMPTY_TASK}")
   mkdir -p "${EVIDENCE_DIR}/artifacts"
   for task_id in "${TASKS[@]}"; do
     wait_for_status "${task_id}" succeeded
@@ -434,13 +489,43 @@ if [[ "${MODE}" == all ]]; then
       "${EVIDENCE_DIR}/${task_id}-attempts.json" >/dev/null || fail "task ${task_id} did not finish in one attempt"
   done
 
+  DNS_WILD_TASK=$(launch "${DNS_WILD_TARGET}" PTES-011-bruteforce "${DNS_INPUTS}")
+  DNS_INVALID_TASK=$(launch "${DNS_TARGET}" PTES-011-bruteforce "$(jq '.wordlist = "dns-invalid.txt"' <<<"${DNS_INPUTS}")")
+  DNS_UNAVAILABLE_TASK=$(launch "${DNS_TARGET}" PTES-011-bruteforce "$(jq '.resolver = "127.0.0.1:65000"' <<<"${DNS_INPUTS}")")
+  for task_id in "${DNS_WILD_TASK}" "${DNS_INVALID_TASK}" "${DNS_UNAVAILABLE_TASK}"; do
+    wait_for_status "${task_id}" failed
+    assert_removed "${task_id}"
+    request GET "/api/v2/tasks/${task_id}/events" >"${EVIDENCE_DIR}/${task_id}-events.json"
+    request GET "/api/v2/tasks/${task_id}/attempts" | jq -e 'length == 1 and .[0].status == "failed"' >/dev/null || fail 'DNS failure was retried'
+  done
+  jq -e 'any(.[]; (.message | contains("same IP for every domain")))' "${EVIDENCE_DIR}/${DNS_WILD_TASK}-events.json" >/dev/null || fail 'wildcard DNS diagnostic missing'
+  jq -e 'all(.[]; (.message | startswith("container owtf/kali-tools:local")) | not)' "${EVIDENCE_DIR}/${DNS_INVALID_TASK}-events.json" >/dev/null || fail 'invalid DNS labels reached the container'
+  jq -e 'any(.[]; (.message | startswith("[ERROR]")))' "${EVIDENCE_DIR}/${DNS_UNAVAILABLE_TASK}-events.json" >/dev/null || fail 'resolver errors were hidden'
+  EXPECTED_FAILURES=5
+
   HTTP_REPORT=$(request GET "/api/v2/targets/${HTTP_TARGET}/report")
   TLS_REPORT=$(request GET "/api/v2/targets/${TLS_TARGET}/report")
   request GET "/api/v2/targets/${NETWORK_TARGET}/report" >"${EVIDENCE_DIR}/network-report.json"
+  request GET "/api/v2/targets/${DNS_TARGET}/report" >"${EVIDENCE_DIR}/dns-report.json"
+  request GET "/api/v2/targets/${DNS_EMPTY_TARGET}/report" >"${EVIDENCE_DIR}/dns-empty-report.json"
+  request GET "/api/v2/targets/${DNS_WILD_TARGET}/report" >"${EVIDENCE_DIR}/dns-wild-report.json"
+  jq -e --arg task "${DNS_UNAVAILABLE_TASK}" 'any(.tasks[]; .id == $task and .status == "failed" and (.error | contains("output reported errors"))) and
+    all(.observations[]; .task_id != $task) and any(.artifacts[]; .task_id == $task and .name == "dns.txt")' \
+    "${EVIDENCE_DIR}/dns-report.json" >/dev/null || fail 'resolver failure was treated as empty discovery or lost its raw report'
+  for name in dns-empty dns-wild; do
+    jq -e '(.findings | length) == 0 and (.urls | length) == 0 and all(.observations[]; .kind != "dns.name")' \
+      "${EVIDENCE_DIR}/${name}-report.json" >/dev/null || fail 'DNS empty/wildcard results fabricated discoveries'
+  done
+  docker cp "${FIXTURE}:/var/log/dns.log" "${EVIDENCE_DIR}/dns.log" >/dev/null
+  for name in www.dns.owtf.test api.dns.owtf.test missing.dns.owtf.test; do
+    grep -Fq "${name}" "${EVIDENCE_DIR}/dns.log" || fail "DNS server saw no query for ${name}"
+  done
+  if grep -Eq '(www|api|missing)\.wild\.owtf\.test' "${EVIDENCE_DIR}/dns.log"; then fail 'wildcard detection did not stop dictionary queries'; fi
   printf '%s\n' "${HTTP_REPORT}" >"${EVIDENCE_DIR}/http-report.json"
   printf '%s\n' "${TLS_REPORT}" >"${EVIDENCE_DIR}/tls-report.json"
   jq -r '.artifacts[] | [.id,.task_id,.name] | @tsv' \
-    "${EVIDENCE_DIR}/http-report.json" "${EVIDENCE_DIR}/network-report.json" "${EVIDENCE_DIR}/tls-report.json" >"${EVIDENCE_DIR}/artifacts.tsv"
+    "${EVIDENCE_DIR}/http-report.json" "${EVIDENCE_DIR}/network-report.json" "${EVIDENCE_DIR}/tls-report.json" \
+    "${EVIDENCE_DIR}/dns-report.json" "${EVIDENCE_DIR}/dns-empty-report.json" >"${EVIDENCE_DIR}/artifacts.tsv"
   while IFS=$'\t' read -r artifact_id task_id name; do
     request GET "/api/v2/artifacts/${artifact_id}" >"${EVIDENCE_DIR}/artifacts/${task_id}-${name}"
   done <"${EVIDENCE_DIR}/artifacts.tsv"
@@ -514,7 +599,7 @@ if [[ "${MODE}" == all ]]; then
   }
   assert_network_results() {
     jq -e --arg smtp "${SMTP_TASK}" --arg required "${SMB_REQUIRED_TASK}" --arg optional "${SMB_OPTIONAL_TASK}" \
-      --arg smtp_closed "${SMTP_CLOSED_TASK}" --arg smb_closed "${SMB_CLOSED_TASK}" '
+      --arg smtp_closed "${SMTP_CLOSED_TASK}" --arg smb_closed "${SMB_CLOSED_TASK}" --arg custom "${SMB_CUSTOM_TASK}" '
       def records($task; $kind): [.observations[] | select(.task_id == $task and .kind == $kind) | .data | fromjson];
       def signing($task; $message): any(records($task; "network.script")[];
         .id == "smb2-security-mode" and (.output | contains($message)));
@@ -529,11 +614,30 @@ if [[ "${MODE}" == all ]]; then
       any(records($required; "network.script")[]; .id == "smb2-capabilities" and (.output | contains("Multi-credit operations"))) and
       signing($required; "Message signing enabled and required") and
       signing($optional; "Message signing enabled but not required") and
+      any(records($custom; "network.port")[]; .port == 1445 and .state == "open") and
+      signing($custom; "Message signing enabled and required") and
+      any(records($custom; "network.script")[]; .id == "smb-protocols" and (.output | contains("3.1.1"))) and
       closed($smtp_closed) and closed($smb_closed) and
       all(.findings[]; .task_id != $smtp and .task_id != $required and .task_id != $optional and
         .task_id != $smtp_closed and .task_id != $smb_closed)
     ' "$1" >/dev/null || fail "SMTP/SMB observations are incomplete in $1"
   }
+  assert_dns_results() {
+    jq -e --arg task "${DNS_TASK}" '
+      [.observations[] | select(.task_id == $task and .kind == "dns.name") | .data | fromjson] as $names |
+      ($names | length) == 2 and
+      any($names[]; .hostname == "www.dns.owtf.test" and .addresses == ["192.0.2.10","2001:db8::10"]) and
+      any($names[]; .hostname == "api.dns.owtf.test" and .addresses == ["192.0.2.11"]) and
+      all(.findings[]; .task_id != $task) and any(.artifacts[]; .task_id == $task and .name == "dns.txt")
+    ' "$1" >/dev/null || fail "DNS discoveries missing in $1"
+  }
+  assert_dns_results "${EVIDENCE_DIR}/dns-report.json"
+  jq -e '(.urls | length) == 0' "${EVIDENCE_DIR}/dns-report.json" >/dev/null || fail 'DNS answers became URLs'
+  request GET "/api/v2/sessions/${SESSION_ID}/targets" >"${EVIDENCE_DIR}/targets-after-dns.json"
+  jq -e 'all(.[]; .value != "www.dns.owtf.test" and .value != "api.dns.owtf.test")' \
+    "${EVIDENCE_DIR}/targets-after-dns.json" >/dev/null || fail 'DNS expanded scan targets automatically'
+  OWTF_URL="${BASE_URL}" "${TMP_DIR}/owtf" --json targets report "${DNS_TARGET}" >"${EVIDENCE_DIR}/dns-cli-report.json"
+  assert_dns_results "${EVIDENCE_DIR}/dns-cli-report.json"
   assert_nmap_results "${EVIDENCE_DIR}/network-report.json"
   assert_network_results "${EVIDENCE_DIR}/network-report.json"
   assert_nikto_results "${EVIDENCE_DIR}/http-report.json"
@@ -543,22 +647,24 @@ if [[ "${MODE}" == all ]]; then
   assert_network_results "${EVIDENCE_DIR}/network-cli-report.json"
   assert_nikto_results "${EVIDENCE_DIR}/http-cli-report.json"
   request GET /api/v2/metrics | jq -e '
-    .tasks.total == 15 and .tasks.succeeded == 15 and .attempts.succeeded == 15 and
+    .tasks.total == 21 and .tasks.succeeded == 18 and .attempts.succeeded == 18 and .tasks.failed == 3 and
     .workers.total == 1 and .workers.idle == 1 and .outputs.artifacts >= 5 and
     .outputs.observations > 0 and .outputs.findings > 0
   ' >/dev/null || fail 'tool execution metrics are incorrect'
   request GET "/api/v2/sessions/${SESSION_ID}/export" >"${EVIDENCE_DIR}/report.zip"
   unzip -tqq "${EVIDENCE_DIR}/report.zip" || fail 'offline report ZIP is invalid'
   unzip -p "${EVIDENCE_DIR}/report.zip" report.json | jq -e \
-    '.summary.succeeded == 15 and any(.artifacts[]; .name == "nmap.xml") and any(.artifacts[]; .name == "nikto.xml") and any(.artifacts[]; .name == "vhosts.txt")' \
+    '.summary.succeeded == 18 and any(.artifacts[]; .name == "nmap.xml") and any(.artifacts[]; .name == "nikto.xml") and any(.artifacts[]; .name == "vhosts.txt")' \
     >/dev/null || fail 'offline report is missing scanner evidence'
   unzip -p "${EVIDENCE_DIR}/report.zip" report.json >"${EVIDENCE_DIR}/export-report.json"
   assert_nmap_results "${EVIDENCE_DIR}/export-report.json"
+  assert_dns_results "${EVIDENCE_DIR}/export-report.json"
   assert_network_results "${EVIDENCE_DIR}/export-report.json"
   assert_nikto_results "${EVIDENCE_DIR}/export-report.json"
   unzip -p "${EVIDENCE_DIR}/report.zip" index.html >"${EVIDENCE_DIR}/report.html"
   for text in network.port network.script vsftpd 'Anonymous FTP login allowed' 'Nikto:' x-content-type-options unranked \
-    smtp-commands PIPELINING smb-protocols smb2-capabilities 'Message signing enabled and required' 'Message signing enabled but not required'; do
+    smtp-commands PIPELINING smb-protocols smb2-capabilities 'Message signing enabled and required' 'Message signing enabled but not required' \
+    dns.name www.dns.owtf.test 2001:db8::10; do
     grep -Fq "${text}" "${EVIDENCE_DIR}/report.html" || fail "offline HTML is missing ${text}"
   done
   unzip -p "${EVIDENCE_DIR}/report.zip" manifest.json >"${EVIDENCE_DIR}/export-manifest.json"
@@ -570,6 +676,7 @@ if [[ "${MODE}" == all ]]; then
   done <"${EVIDENCE_DIR}/artifacts.tsv"
   printf '%s\n' 'PASS: Nmap/Nikto structured results in API, CLI, and offline JSON/HTML; raw artifacts match byte for byte.'
   printf '%s\n' 'PASS: SMTP capabilities, SMB2/SMB3 dialects and both signing modes, closed ports, server logs, and one attempt per scan.'
+  printf '%s\n' 'PASS: custom SMB port with 445 closed; DNS A/AAAA discovery, NXDOMAIN, wildcard refusal, resolver failures, invalid wordlists, and no automatic targets.'
 fi
 
 printf '%s\n' 'Checking cancellation, crash, and timeout after real scanner activity...'
@@ -611,12 +718,12 @@ for case_name in cancel crash timeout; do
   assert_terminal "${task_id}" "${case_name}" "${expected}" "${error_text}"
 done
 request GET /api/v2/metrics >"${EVIDENCE_DIR}/metrics.json"
-jq -e '.tasks.failed == 2 and .tasks.cancelled == 1 and .tasks.running == 0 and .tasks.queued == 0 and
-  .attempts.total == .tasks.total and .attempts.failed == 2 and .attempts.cancelled == 1 and
+jq -e --argjson failed "${EXPECTED_FAILURES}" '.tasks.failed == $failed and .tasks.cancelled == 1 and .tasks.running == 0 and .tasks.queued == 0 and
+  .attempts.total == .tasks.total and .attempts.failed == $failed and .attempts.cancelled == 1 and
   .workers.total == 1 and .workers.idle == 1 and .workers.completed == 0' \
   "${EVIDENCE_DIR}/metrics.json" >/dev/null || fail 'failure metrics or restart state are incorrect'
 request GET "/api/v2/sessions/${SESSION_ID}/report" >"${EVIDENCE_DIR}/report.json"
-jq -e '.summary.failed == 2 and .summary.cancelled == 1 and .summary.attempts == .summary.tasks' \
+jq -e --argjson failed "${EXPECTED_FAILURES}" '.summary.failed == $failed and .summary.cancelled == 1 and .summary.attempts == .summary.tasks' \
   "${EVIDENCE_DIR}/report.json" >/dev/null || fail 'failure report is incomplete'
 
 if [[ "${MODE}" == all ]]; then

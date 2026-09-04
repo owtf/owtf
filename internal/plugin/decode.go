@@ -21,6 +21,7 @@ const (
 )
 
 var artifactDecoders = map[string]func([]byte, decodeContext) (Result, error){
+	"gobuster-dns":   decodeGobusterDNS,
 	"gobuster-dir":   decodeGobusterDir,
 	"gobuster-gcs":   decodeGobusterGCS,
 	"gobuster-vhost": decodeGobusterVHost,

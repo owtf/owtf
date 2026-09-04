@@ -94,6 +94,43 @@ func TestNiktoCapturedXML(t *testing.T) {
 	}
 }
 
+func TestNmapCapturedHostTimeout(t *testing.T) {
+	result, err := decodeNmap(scannerXML(t, "nmap-timeout.xml"), decodeContext{})
+	if err == nil || !strings.Contains(err.Error(), "host timed out") || len(result.Observations) != 0 {
+		t.Fatalf("incomplete scan was accepted: %+v, %v", result, err)
+	}
+}
+
+func TestNmapCapturedCustomSMBPort(t *testing.T) {
+	result, err := decodeNmap(scannerXML(t, "nmap-smb-custom.xml"), decodeContext{technique: "PTES-009"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ports, protocols := 0, 0
+	for _, item := range result.Observations {
+		var data struct {
+			Port       int
+			Service    *nmapService
+			ID, Output string
+		}
+		if err := json.Unmarshal([]byte(item.Data), &data); err != nil {
+			t.Fatal(err)
+		}
+		if item.Kind == "network.port" {
+			ports++
+			if data.Port != 1445 || data.Service == nil || data.Service.Method != "table" || data.Service.Product != "" {
+				t.Fatalf("port-table label was misrepresented as a detected service: %s", item.Data)
+			}
+		}
+		if item.Kind == "network.script" && data.ID == "smb-protocols" && strings.Contains(data.Output, "3.1.1") {
+			protocols++
+		}
+	}
+	if ports != 1 || protocols != 1 {
+		t.Fatalf("custom SMB-port evidence missing: %+v", result)
+	}
+}
+
 func TestNmapCapturedSMTPAndSMB(t *testing.T) {
 	for _, test := range []struct {
 		file      string

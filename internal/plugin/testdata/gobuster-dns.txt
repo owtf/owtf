@@ -1,0 +1,2 @@
+www.dns.owtf.test 192.0.2.10,2001:db8::10
+api.dns.owtf.test 192.0.2.11

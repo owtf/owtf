@@ -135,6 +135,7 @@ func TestScannerPluginRuntimesUseKaliContainers(t *testing.T) {
 		"PTES-007-active":          "nmap",
 		"PTES-008-active":          "nmap",
 		"PTES-009-active":          "nmap",
+		"PTES-011-bruteforce":      "gobuster",
 	}
 	for id, executable := range executables {
 		entry, ok := catalog.Get(id)
@@ -174,9 +175,16 @@ func TestNetworkProbeArgumentsRemainBounded(t *testing.T) {
 		if !ok || entry.Manifest.Spec.Runtime.Container == nil {
 			t.Fatalf("network container plugin %q is missing", id)
 		}
-		want := []string{"-Pn", "-n", "-sT", "-sV", "--version-light", "--script", scripts}
+		want := []string{"-Pn", "-n", "-sT"}
+		if id != "PTES-009-active" {
+			want = append(want, "-sV", "--version-light")
+		}
+		want = append(want, "--script", scripts)
 		if id == "PTES-006-active" {
 			want = append(want, "--script-args", "mssql.scanned-ports-only=true")
+		}
+		if id == "PTES-009-active" {
+			want = append(want, "--script-args", "smbport={{input:port}}")
 		}
 		want = append(want, "--script-timeout", "15s", "--host-timeout", "30s", "--max-retries", "1",
 			"-p", "{{input:port}}", "-oX", "{{artifact:nmap.xml}}", "{{target}}")

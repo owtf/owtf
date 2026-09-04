@@ -14,7 +14,7 @@ PTES-009,network,active,SMB Service Probe,replace,PTES-009-active,implemented,"R
 PTES-002,network,active,SMTP Service Probe,replace,PTES-002-active,implemented,"Retain SMTP service, capability, and NTLM metadata probing; drop the legacy SMTP fuzzer from the default technique."
 PTES-010,network,active,SNMP Service Probe,defer,,reviewed,A useful SNMP probe needs explicit UDP and community handling plus a privilege requirement that the current manifest contract cannot express.
 PTES-003,network,active,VNC Service Probe,replace,PTES-003-active,implemented,"Retain VNC service, security, and desktop metadata probing with maintained Nmap NSE scripts."
-PTES-011,network,bruteforce,DNS Name Discovery,defer,,reviewed,Retain only after a maintained resolver and a bounded typed hostname dictionary are selected.
+PTES-011,network,bruteforce,DNS Name Discovery,replace,PTES-011-bruteforce,implemented,Bounded Gobuster DNS discovery with explicit resolver and validated hostname-label wordlist; wildcard DNS aborts and discoveries never create targets automatically.
 PTES-001,network,bruteforce,FTP Credential Testing,defer,,reviewed,"Credential attacks require explicit authorization, rate limits, and secret handling before they can be retained."
 PTES-006,network,bruteforce,Microsoft SQL Server Credential Testing,defer,,reviewed,"Credential attacks require explicit authorization, rate limits, and secret handling before they can be retained."
 PTES-009,network,bruteforce,SMB Credential Testing,defer,,reviewed,"Credential attacks require explicit authorization, rate limits, and secret handling before they can be retained."

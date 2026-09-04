@@ -133,7 +133,9 @@ Plugin execution
 The manifest is declarative. It identifies the plugin, version, OWTF technique
 metadata, group, type, runtime, requirements, supported target kinds, and
 optional operator inputs. Inputs use the small ``string``, ``integer``,
-``boolean``, and ``wordlist`` type set. String choices and integer bounds describe validation and provide the
+``boolean``, ``address``, and ``wordlist`` type set. An address is an explicit
+unicast IP and nonzero port, without DNS resolution or interface-zone syntax.
+String choices and integer bounds describe validation and provide the
 same rendering contract to the CLI, API, and final UI.
 
 An ``external`` plugin contains bounded guidance and validated HTTP/S
@@ -164,7 +166,11 @@ silently running a different command.
 
 The first runtime is a Go builtin used to prove the contract. A local command
 runtime expresses trusted executables as argument arrays. Target, artifact, and
-input placeholders must occupy a complete argument. They are never interpolated
+input placeholders occupy a complete argument, with one exception: a static
+``key={{input:integer_name}}`` argument accepts only a declared, normalized
+integer. The key contains letters, digits, underscores, dots, or hyphens and
+starts with a letter. This supports Nmap's ``smbport`` without allowing strings
+to introduce NSE argument separators or expressions. Values are never interpolated
 into shell source. This prevents OWTF from turning target or operator text into
 shell syntax, but it does not sandbox the executable. Host command plugins are
 trusted code with the same operating-system access as OWTF.
@@ -180,8 +186,16 @@ deadline expiry, and forced parent death.
 parses a URL target and passes only its hostname, which is required by tools
 such as Metagoofil. ``{{artifact:name}}`` resolves inside the task-owned
 temporary directory, and ``{{input:name}}`` resolves a validated, snapshotted
-operator input. Partial placeholders and undeclared names are rejected when the
-catalog loads.
+operator input. Apart from the integer key/value form, partial placeholders and
+undeclared names are rejected when the catalog loads.
+
+Command and container manifests can declare an ``errorPrefix``: a bounded
+literal prefix of diagnostic lines that indicates failure even on exit zero.
+It is checked on both output streams, across write boundaries. With this
+contract, truncated logs also fail the task because the absence of an error
+cannot be established. Raw declared artifacts are retained, but partial
+results are not decoded. DNS uses ``[ERROR]`` and does not enable Gobuster's
+quiet mode, which suppresses resolver errors as well as its banner.
 
 Testssl.sh, WAFW00F, Gobuster, Metagoofil, WhatWeb, Nuclei, Wapiti, Nmap, and
 Nikto use an explicitly built Kali tools image. Host command plugins remain
@@ -194,6 +208,8 @@ findings, and discovered URLs while preserving the raw reports.
 The ``nmap-xml`` decoder emits ``network.host``, ``network.port``,
 ``network.port_summary``, and ``network.script`` observations. Port records
 include protocol, state, and available service product/version/CPE data.
+Service ``method`` distinguishes a port-table label from probed service data;
+a table label alone does not identify the actual listening product.
 Port-level and host-level NSE results retain their script IDs and textual
 output; nested NSE tables remain available in the original XML. Open ports
 and NSE output do not automatically become vulnerabilities.
@@ -208,7 +224,7 @@ XML decoding uses Go's standard library with a 10 MiB input limit, 32-level
 nesting limit, 160,000-element limit, and 10,000 decoded-record limit. Retained
 text fields are capped at 4 KiB. External DTDs and stylesheets are not fetched;
 internal DTD subsets and unknown entities are rejected. Malformed documents,
-multiple roots, oversized reports, and missing Nmap completion metadata fail the
+multiple roots, oversized reports, Nmap host timeouts, and missing Nmap completion metadata fail the
 task rather than produce an apparently empty successful scan. A decoder
 failure retains the bounded raw artifacts with the failed task but discards
 all derived records. Process failures before artifact collection still retain
@@ -221,6 +237,21 @@ so execution also works with a remote Docker daemon. Artifact export accepts
 only declared regular files, capped at 10 MiB per file and 32 MiB per task.
 Images using inputs or artifacts must provide ``/bin/tar``. The volumes are
 not filesystem quotas: only trusted tool images should be used.
+
+The optional wordlist ``format: dns-labels`` validates every line as one ASCII
+DNS label before a process or container starts. Empty lists, dots, wildcards,
+whitespace, shell syntax, and labels longer than 63 characters are rejected.
+``PTES-011-bruteforce`` bounds its dictionary to 1,000 labels and 64 KiB and uses
+Gobuster's maintained DNS resolver with an explicit operator-selected IP:port.
+It leaves FQDN lookup and wildcard detection enabled. Wildcard DNS fails the
+task before dictionary enumeration, with the actual tool diagnostic retained.
+Successful raw ``dns.txt`` records decode to sorted, deduplicated ``dns.name``
+observations containing hostnames and IPv4/IPv6 addresses. Invalid or unrelated
+hostnames and malformed IP addresses fail decoding. There is no automatic
+target creation, URL synthesis, follow-up scanning, or vulnerability ranking.
+An operator can review the names in CLI/API/offline reports and explicitly use
+the existing target-add workflow. This is bounded name discovery, not an
+exhaustive DNS inventory or credential attack.
 
 Container plugins are the isolation boundary for third-party tools. They use a
 read-only filesystem, dropped capabilities, no-new-privileges, bounded memory,
@@ -402,9 +433,9 @@ decisions are recorded in ``plugin-support-decisions.csv`` rather than hidden by
 omission.
 All legacy network variants now have the same explicit decision record. Eight
 bounded service and exposure probes are retained. Obsolete EMC probing is
-rejected, while SNMP, DNS name discovery, and credential attacks remain deferred
+rejected, while SNMP and credential attacks remain deferred
 until their privilege, resource, authorization, and rate-limit requirements can
-be represented honestly.
+be represented honestly. DNS discovery now uses a bounded Gobuster plugin.
 All 145 inventoried legacy plugin variants now have an enforced decision in
 ``plugin-support-decisions.csv``. ``implemented`` points to a manifest that
 exists in the current catalog. ``planned`` identifies one canonical replacement
@@ -466,10 +497,29 @@ failed-task state, a single attempt, and raw artifact downloads and export.
 These error fixtures are not scanner parity evidence. Captured real SMTP/SMB
 XML is checked into the decoder regression suite, but fresh service interaction
 is proved only by the Kali gate. This does not prove Windows NTLM authentication,
-SMB1-specific scripts, non-default SMB ports, or other network protocols. Nmap's
-SMB library needs an explicit ``smbport`` script argument for non-default ports;
-the current plugin passes its port only to ``-p``. That routing gap remains open.
+SMB1-specific scripts, or other network protocols. The non-default SMB-port test
+sets Samba to 1445 with 445 closed and requires protocol and signing observations.
+The plugin passes the same validated port to ``-p`` and NSE's ``smbport``.
+SMB uses its protocol-specific scripts rather than generic ``-sV`` probes,
+which can consume the entire host deadline on a nonstandard SMB port. A host
+timeout is a failed task with raw XML retained, even when Nmap exits zero.
 VNC, X11, SQL Server, MSRPC, and RPC-over-HTTP still need service fixtures.
+
+The DNS fixture is a real dnsmasq server with no upstream resolvers or published
+host port. A/AAAA answers, NXDOMAIN, wildcard abort, invalid wordlist rejection,
+single attempts, server-side query logs, and absence of automatic target/URL
+creation are checked through the normal worklist and reports.
+
+Remaining plugin work
+---------------------
+
+The next implementation slices are an SNMP service probe with explicit community
+and transport handling, and active HTTP-method testing with explicit verb
+selection. Neither is implied complete by DNS or SMB coverage. Credential
+attacks remain deferred until secret handling and bounded execution are designed.
+Separate validation work remains for the five network services listed above,
+Windows NTLM/SMB1, Metagoofil's search provider, and Gobuster GCS. Rejected legacy
+launchers are not part of that queue; see ``plugin-support-decisions.csv``.
 
 Resource discipline
 -------------------

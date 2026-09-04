@@ -117,19 +117,21 @@ type Manifest struct {
 
 // CommandSpec defines direct executable invocation without a shell.
 type CommandSpec struct {
-	Executable string            `yaml:"executable" json:"executable"`
-	Args       []string          `yaml:"args,omitempty" json:"args,omitempty"`
-	Artifacts  []CommandArtifact `yaml:"artifacts,omitempty" json:"artifacts,omitempty"`
+	Executable  string            `yaml:"executable" json:"executable"`
+	Args        []string          `yaml:"args,omitempty" json:"args,omitempty"`
+	ErrorPrefix string            `yaml:"errorPrefix,omitempty" json:"errorPrefix,omitempty"`
+	Artifacts   []CommandArtifact `yaml:"artifacts,omitempty" json:"artifacts,omitempty"`
 }
 
 // ContainerSpec defines a shell-free command executed in a pre-existing image.
 // Images are never pulled implicitly by OWTF.
 type ContainerSpec struct {
-	Image      string            `yaml:"image" json:"image"`
-	Executable string            `yaml:"executable" json:"executable"`
-	Network    string            `yaml:"network,omitempty" json:"network,omitempty"`
-	Args       []string          `yaml:"args,omitempty" json:"args,omitempty"`
-	Artifacts  []CommandArtifact `yaml:"artifacts,omitempty" json:"artifacts,omitempty"`
+	Image       string            `yaml:"image" json:"image"`
+	Executable  string            `yaml:"executable" json:"executable"`
+	Network     string            `yaml:"network,omitempty" json:"network,omitempty"`
+	Args        []string          `yaml:"args,omitempty" json:"args,omitempty"`
+	ErrorPrefix string            `yaml:"errorPrefix,omitempty" json:"errorPrefix,omitempty"`
+	Artifacts   []CommandArtifact `yaml:"artifacts,omitempty" json:"artifacts,omitempty"`
 }
 
 // ExternalSpec contains static resources for an OWTF external plugin. It has
@@ -481,12 +483,15 @@ func validPluginType(pluginType string) bool {
 	}
 }
 
-func validateCommand(command *CommandSpec, inputs map[string]bool) error {
+func validateCommand(command *CommandSpec, inputs map[string]string) error {
 	if command == nil || strings.TrimSpace(command.Executable) == "" {
 		return fmt.Errorf("command runtime requires an executable")
 	}
 	if strings.Contains(command.Executable, "{{") {
 		return fmt.Errorf("command executable cannot contain placeholders")
+	}
+	if len(command.ErrorPrefix) > 128 || strings.TrimSpace(command.ErrorPrefix) != command.ErrorPrefix || strings.ContainsAny(command.ErrorPrefix, "\x00\r\n") {
+		return fmt.Errorf("command errorPrefix must be a single trimmed line of at most 128 bytes")
 	}
 	switch filepath.Base(command.Executable) {
 	case "sh", "bash", "dash", "zsh", "ksh", "fish", "pwsh", "powershell":
@@ -512,7 +517,10 @@ func validateCommand(command *CommandSpec, inputs map[string]bool) error {
 		if strings.HasPrefix(arg, "{{artifact:") && strings.HasSuffix(arg, "}}") && artifacts[strings.TrimSuffix(strings.TrimPrefix(arg, "{{artifact:"), "}}")] {
 			continue
 		}
-		if strings.HasPrefix(arg, "{{input:") && strings.HasSuffix(arg, "}}") && inputs[strings.TrimSuffix(strings.TrimPrefix(arg, "{{input:"), "}}")] {
+		if strings.HasPrefix(arg, "{{input:") && strings.HasSuffix(arg, "}}") && inputs[strings.TrimSuffix(strings.TrimPrefix(arg, "{{input:"), "}}")] != "" {
+			continue
+		}
+		if match := integerArgument.FindStringSubmatch(arg); match != nil && inputs[match[2]] == "integer" {
 			continue
 		}
 		return fmt.Errorf("argument %q contains an unsupported or partial placeholder", arg)
@@ -520,7 +528,7 @@ func validateCommand(command *CommandSpec, inputs map[string]bool) error {
 	return nil
 }
 
-func validateContainer(container *ContainerSpec, inputs map[string]bool) error {
+func validateContainer(container *ContainerSpec, inputs map[string]string) error {
 	if container == nil {
 		return fmt.Errorf("container runtime requires a container")
 	}
@@ -531,9 +539,10 @@ func validateContainer(container *ContainerSpec, inputs map[string]bool) error {
 		return fmt.Errorf("container network must be none or bridge")
 	}
 	command := &CommandSpec{
-		Executable: container.Executable,
-		Args:       container.Args,
-		Artifacts:  container.Artifacts,
+		Executable:  container.Executable,
+		Args:        container.Args,
+		ErrorPrefix: container.ErrorPrefix,
+		Artifacts:   container.Artifacts,
 	}
 	if err := validateCommand(command, inputs); err != nil {
 		return fmt.Errorf("container %w", err)

@@ -129,6 +129,44 @@ func TestCommandArtifactsCannotEscapeTheirDirectory(t *testing.T) {
 	}
 }
 
+func TestOutputErrorPrefix(t *testing.T) {
+	for _, test := range []struct {
+		parts  []string
+		limit  int
+		failed bool
+	}{
+		{[]string{"normal output\n"}, 100, false},
+		{[]string{"[ER", "ROR] resolver failed"}, 100, true},
+		{[]string{"  [ERROR] lookup failed\n"}, 100, true},
+		{[]string{"more than ten bytes\n"}, 10, true},
+		{[]string{strings.Repeat("ok\n", maxLogEvents) + "[ERROR] lookup failed\n"}, 10000, true},
+	} {
+		writer := &eventWriter{stream: "stdout", log: func(string, string) {}, remaining: test.limit, errorPrefix: "[ERROR]"}
+		for _, part := range test.parts {
+			if _, err := writer.Write([]byte(part)); err != nil {
+				t.Fatal(err)
+			}
+		}
+		writer.Close()
+		if writer.outputFailed() != test.failed {
+			t.Errorf("output %q failed=%v, want %v", test.parts, writer.outputFailed(), test.failed)
+		}
+	}
+}
+
+func TestCommandOutputErrorRetainsArtifacts(t *testing.T) {
+	manifest := Manifest{}
+	manifest.Spec.Runtime.Type = "command"
+	manifest.Spec.Runtime.Command = &CommandSpec{
+		Args: []string{"-test.run=TestCommandProcessHelper", "--", "output-error"}, ErrorPrefix: "[ERROR]",
+		Artifacts: []CommandArtifact{{Name: "raw.txt", Required: true}},
+	}
+	result, err := CommandExecutor(manifest, os.Args[0], t.TempDir())(context.Background(), Request{Log: func(string, string) {}})
+	if err == nil || !strings.Contains(err.Error(), "output reported errors") || len(result.Artifacts) != 1 || string(result.Artifacts[0].Data) != "partial evidence" || len(result.Observations) != 0 {
+		t.Fatalf("zero-exit error was hidden or evidence discarded: %+v, %v", result, err)
+	}
+}
+
 func TestFailureKillsPluginProcessGroup(t *testing.T) {
 	for _, outcome := range []string{"cancel", "timeout", "crash"} {
 		t.Run(outcome, func(t *testing.T) {
@@ -210,6 +248,13 @@ func testFailureKillsPluginProcessGroup(t *testing.T, outcome string) {
 
 func TestCommandProcessHelper(t *testing.T) {
 	role := os.Args[len(os.Args)-1]
+	if role == "output-error" {
+		if err := os.WriteFile("raw.txt", []byte("partial evidence"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		fmt.Fprintln(os.Stderr, "[ERROR] resolver failed")
+		return
+	}
 	if role != "spawn" && role != "child" && role != "leaf" {
 		return
 	}

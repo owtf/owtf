@@ -108,6 +108,41 @@ func TestPluginInputsRejectInvalidSchemasAndValues(t *testing.T) {
 	}
 }
 
+func TestIntegerKeyValueArguments(t *testing.T) {
+	for _, arg := range []string{"smbport={{input:timeout_seconds}}", "mssql.port={{input:timeout_seconds}}"} {
+		manifest := strings.Replace(inputManifest, "{{input:timeout_seconds}}", arg, 1)
+		if _, err := Load(fstest.MapFS{"plugin.yaml": {Data: []byte(manifest)}}); err != nil {
+			t.Fatal(err)
+		}
+		args, err := expandArguments([]string{arg}, "", nil, map[string]any{"timeout_seconds": int64(1445)})
+		if err != nil || len(args) != 1 || args[0] != strings.Split(arg, "=")[0]+"=1445" {
+			t.Fatalf("argument was not expanded as one value: %q, %v", args, err)
+		}
+		for _, value := range []any{"1445", "1445,smbusername=admin", "$(id)", "`id`", "1;id", "1\n2", true, float64(1445), nil} {
+			if _, err := expandArguments([]string{arg}, "", nil, map[string]any{"timeout_seconds": value}); err == nil {
+				t.Errorf("embedded non-integer value %#v", value)
+			}
+		}
+	}
+	for _, arg := range []string{"smbport={{input:user_agent}}", "smbport={{target}}", "smbport={{input:missing}}", "smbport={{input:timeout_seconds}},other=true", "{{input:timeout_seconds}}suffix", "bad,key={{input:timeout_seconds}}", "x={{input:timeout_seconds}}{{input:timeout_seconds}}"} {
+		manifest := strings.Replace(inputManifest, "{{input:timeout_seconds}}", arg, 1)
+		if _, err := Load(fstest.MapFS{"plugin.yaml": {Data: []byte(manifest)}}); err == nil {
+			t.Errorf("accepted unsafe composite argument %q", arg)
+		}
+	}
+}
+
+func TestOutputErrorPrefixSchema(t *testing.T) {
+	for _, prefix := range []string{"\n[ERROR]", "[ERROR]\nnext", " [ERROR]", "[ERROR] ", "\x00", strings.Repeat("x", 129)} {
+		if err := validateCommand(&CommandSpec{Executable: "tool", ErrorPrefix: prefix}, nil); err == nil {
+			t.Errorf("accepted invalid error prefix %q", prefix)
+		}
+	}
+	if err := validateCommand(&CommandSpec{Executable: "tool", ErrorPrefix: "[ERROR]"}, nil); err != nil {
+		t.Fatal(err)
+	}
+}
+
 const inputManifest = `apiVersion: owtf.dev/v1alpha1
 kind: Plugin
 metadata:

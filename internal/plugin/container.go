@@ -69,8 +69,8 @@ func ContainerExecutor(manifest Manifest, engine ContainerEngine, wordlistDirect
 			return Result{}, err
 		}
 		request.Log("system", "container "+spec.Image+" "+formatCommand(spec.Executable, args))
-		stdout := &eventWriter{stream: "stdout", log: request.Log, remaining: maxCommandOutput}
-		stderr := &eventWriter{stream: "stderr", log: request.Log, remaining: maxCommandOutput}
+		stdout := &eventWriter{stream: "stdout", log: request.Log, remaining: maxCommandOutput, errorPrefix: spec.ErrorPrefix}
+		stderr := &eventWriter{stream: "stderr", log: request.Log, remaining: maxCommandOutput, errorPrefix: spec.ErrorPrefix}
 		declaredArtifacts := make([]string, 0, len(spec.Artifacts))
 		for _, artifact := range spec.Artifacts {
 			declaredArtifacts = append(declaredArtifacts, artifact.Name)
@@ -90,6 +90,9 @@ func ContainerExecutor(manifest Manifest, engine ContainerEngine, wordlistDirect
 		artifacts, err := readCommandArtifacts(workDir, spec.Artifacts)
 		if err != nil {
 			return Result{}, err
+		}
+		if stdout.outputFailed() || stderr.outputFailed() {
+			return Result{Artifacts: artifacts}, fmt.Errorf("container output reported errors or was truncated; see task logs")
 		}
 		result, err := decodeArtifacts(manifest, request.Target, artifacts)
 		if err != nil {

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<?xml-stylesheet href="file:///usr/share/nmap/nmap.xsl" type="text/xsl"?>
+<!-- Nmap 7.99 scan initiated Thu Sep  3 23:45:19 2026 as: /usr/lib/nmap/nmap -Pn -n -sT -&#45;script smb-protocols,smb-security-mode,smb2-security-mode,smb2-capabilities,smb-os-discovery -&#45;script-args smbport=1445 -&#45;script-timeout 15s -&#45;host-timeout 30s -&#45;max-retries 1 -p 1445 -oX /owtf/artifacts/nmap.xml 172.17.0.2 -->
+<nmaprun scanner="nmap" args="/usr/lib/nmap/nmap -Pn -n -sT -&#45;script smb-protocols,smb-security-mode,smb2-security-mode,smb2-capabilities,smb-os-discovery -&#45;script-args smbport=1445 -&#45;script-timeout 15s -&#45;host-timeout 30s -&#45;max-retries 1 -p 1445 -oX /owtf/artifacts/nmap.xml 172.17.0.2" start="1788479119" startstr="Thu Sep  3 23:45:19 2026" version="7.99" xmloutputversion="1.05">
+<scaninfo type="connect" protocol="tcp" numservices="1" services="1445"/>
+<verbose level="0"/>
+<debugging level="0"/>
+<host starttime="1788479119" endtime="1788479126"><status state="up" reason="user-set" reason_ttl="0"/>
+<address addr="172.17.0.2" addrtype="ipv4"/>
+<hostnames>
+</hostnames>
+<ports><port protocol="tcp" portid="1445"><state state="open" reason="syn-ack" reason_ttl="0"/><service name="proxima-lm" method="table" conf="3"/></port>
+</ports>
+<hostscript><script id="smb2-security-mode" output="&#xa;  3.1.1: &#xa;    Message signing enabled and required"><table key="3.1.1">
+<elem>Message signing enabled and required</elem>
+</table>
+</script><script id="smb2-capabilities" output="&#xa;  2.0.2: &#xa;    Distributed File System&#xa;  2.1: &#xa;    Distributed File System&#xa;    Leasing&#xa;    Multi-credit operations&#xa;  3.0: &#xa;    Distributed File System&#xa;    Leasing&#xa;    Multi-credit operations&#xa;  3.0.2: &#xa;    Distributed File System&#xa;    Leasing&#xa;    Multi-credit operations&#xa;  3.1.1: &#xa;    Distributed File System&#xa;    Leasing&#xa;    Multi-credit operations"><table key="2.0.2">
+<elem>Distributed File System</elem>
+</table>
+<table key="2.1">
+<elem>Distributed File System</elem>
+<elem>Leasing</elem>
+<elem>Multi-credit operations</elem>
+</table>
+<table key="3.0">
+<elem>Distributed File System</elem>
+<elem>Leasing</elem>
+<elem>Multi-credit operations</elem>
+</table>
+<table key="3.0.2">
+<elem>Distributed File System</elem>
+<elem>Leasing</elem>
+<elem>Multi-credit operations</elem>
+</table>
+<table key="3.1.1">
+<elem>Distributed File System</elem>
+<elem>Leasing</elem>
+<elem>Multi-credit operations</elem>
+</table>
+</script><script id="smb-protocols" output="&#xa;  dialects: &#xa;    2.0.2&#xa;    2.1&#xa;    3.0&#xa;    3.0.2&#xa;    3.1.1"><table key="dialects">
+<elem>2.0.2</elem>
+<elem>2.1</elem>
+<elem>3.0</elem>
+<elem>3.0.2</elem>
+<elem>3.1.1</elem>
+</table>
+</script></hostscript><times srtt="10" rttvar="5000" to="100000"/>
+</host>
+<runstats><finished time="1788479126" timestr="Thu Sep  3 23:45:26 2026" summary="Nmap done at Thu Sep  3 23:45:26 2026; 1 IP address (1 host up) scanned in 7.23 seconds" elapsed="7.23" exit="success"/><hosts up="1" down="0" total="1"/>
+</runstats>
+</nmaprun>

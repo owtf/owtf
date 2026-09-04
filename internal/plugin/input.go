@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"net/netip"
 	"sort"
 	"strconv"
 	"strings"
@@ -30,20 +31,20 @@ type TaskSnapshot struct {
 	Inputs   map[string]any `json:"inputs"`
 }
 
-func validateInputs(inputs []model.PluginInput) (map[string]bool, error) {
+func validateInputs(inputs []model.PluginInput) (map[string]string, error) {
 	if len(inputs) > maxPluginInputs {
 		return nil, fmt.Errorf("plugin declares more than %d inputs", maxPluginInputs)
 	}
-	names := make(map[string]bool, len(inputs))
+	names := make(map[string]string, len(inputs))
 	for _, input := range inputs {
-		if !validInputName(input.Name) || names[input.Name] {
+		if !validInputName(input.Name) || names[input.Name] != "" {
 			return nil, fmt.Errorf("invalid or duplicate input name %q", input.Name)
 		}
 		if len(input.Description) > 512 {
 			return nil, fmt.Errorf("input %q description exceeds 512 characters", input.Name)
 		}
 		switch input.Type {
-		case "string":
+		case "string", "address":
 			if input.MaximumBytes != 0 || input.MaximumLines != 0 {
 				return nil, fmt.Errorf("input %q wordlist bounds require wordlist type", input.Name)
 			}
@@ -67,6 +68,12 @@ func validateInputs(inputs []model.PluginInput) (map[string]bool, error) {
 		default:
 			return nil, fmt.Errorf("input %q has unsupported type %q", input.Name, input.Type)
 		}
+		if input.Format != "" && (input.Type != "wordlist" || input.Format != "dns-labels") {
+			return nil, fmt.Errorf("input %q format must be dns-labels on a wordlist", input.Name)
+		}
+		if input.Type == "address" && len(input.Choices) != 0 {
+			return nil, fmt.Errorf("input %q choices require string type", input.Name)
+		}
 		if input.Type != "integer" && (input.Minimum != nil || input.Maximum != nil) {
 			return nil, fmt.Errorf("input %q bounds require integer type", input.Name)
 		}
@@ -85,7 +92,7 @@ func validateInputs(inputs []model.PluginInput) (map[string]bool, error) {
 				return nil, fmt.Errorf("input %q default: %w", input.Name, err)
 			}
 		}
-		names[input.Name] = true
+		names[input.Name] = input.Type
 	}
 	return names, nil
 }
@@ -141,13 +148,21 @@ func (e Entry) ResolveInputs(provided map[string]any) (map[string]any, error) {
 
 func normalizeInput(input model.PluginInput, value any) (any, error) {
 	switch input.Type {
-	case "string", "wordlist":
+	case "string", "wordlist", "address":
 		text, ok := value.(string)
 		if !ok {
 			return nil, errors.New("must be a string")
 		}
 		if len(text) > maxInputString {
 			return nil, fmt.Errorf("exceeds %d bytes", maxInputString)
+		}
+		if input.Type == "address" {
+			address, err := netip.ParseAddrPort(text)
+			ip := address.Addr().Unmap()
+			if err != nil || address.Port() == 0 || address.Addr().Zone() != "" || !(ip.IsGlobalUnicast() || ip.IsLoopback() || ip.IsLinkLocalUnicast()) {
+				return nil, errors.New("must be an explicit unicast IP:port address")
+			}
+			return netip.AddrPortFrom(ip, address.Port()).String(), nil
 		}
 		if input.Type == "string" && len(input.Choices) != 0 {
 			for _, choice := range input.Choices {

@@ -131,6 +131,33 @@ use the host server for this container-plugin workflow. Scanner containers
 receive bounded inputs and task-owned volumes, not host-directory mounts.
 Reports are exported before all task containers and volumes are removed.
 
+### DNS name discovery
+
+`PTES-011-bruteforce` uses Gobuster against an explicit DNS resolver. Put a
+reviewed wordlist in the configured `plugins.wordlistDirectory` (`wordlists/`
+by default): one label such as `www` or `api` per line, not URLs or full names.
+The limit is 1,000 labels and 64 KiB. For an authorized target, for example:
+
+```bash
+./build/owtf scan --plugin PTES-011-bruteforce \
+  --input PTES-011-bruteforce.wordlist=names.txt \
+  --input PTES-011-bruteforce.resolver=192.0.2.53:53 \
+  example.test
+```
+
+Replace the example resolver with your DNS server. Results retain A/AAAA
+addresses as `dns.name` observations and the original `dns.txt`. They appear
+in target/session reports without inventing HTTP URLs or creating new targets.
+Use the existing target-add command to select discoveries for further work.
+Wildcard DNS aborts the task with its diagnostic in the logs; it does not
+create findings for every dictionary entry. An empty result is not proof that
+no names exist: the wordlist and selected resolver bound the check.
+Resolver errors fail the task even when Gobuster exits zero; raw partial
+output remains available but is not promoted to successful discoveries.
+
+`PTES-009-active.port` now applies to both the Nmap port scan and SMB scripts,
+including non-default ports such as 1445.
+
 ## Verify changes
 
 ```bash
@@ -145,16 +172,19 @@ removes its state afterward. It does not start Docker: container plugins must
 remain blocked, without attempts or fabricated scanner artifacts.
 
 With the Kali image already built, run `make test-tools` for real scanner
-execution against temporary local HTTP/TLS, FTP, SMTP, and SMB fixtures. It checks
+execution against temporary local HTTP/TLS, FTP, SMTP, SMB, and DNS fixtures. It checks
 Postfix capabilities, Samba SMB2/SMB3 dialects and required/optional signing,
 Nmap service and NSE observations, closed-port handling, unranked Nikto findings,
-affected URLs, and Gobuster virtual-host discoveries. API, CLI, and offline
+affected URLs, Gobuster virtual hosts, and DNS A/AAAA discoveries. DNS tests
+include NXDOMAIN, wildcard refusal, and rejection of invalid wordlists before
+container execution. The custom SMB-port check closes 445 to rule out fallback.
+API, CLI, and offline
 JSON/HTML reports must contain the decoded results; exported raw XML must match
 the API artifact bytes. The gate also checks metrics, cancellation,
 and container/volume cleanup without rebuilding the tools image. SMTP and SMB
 stay on the Docker bridge, without published host ports. The SMTP fixture
 rejects mail delivery. Captured XML regression fixtures also run in normal CI.
-Windows NTLM, SMB1, and non-default SMB ports remain outside this live coverage.
+Windows NTLM and SMB1 remain outside this live coverage.
 Metagoofil receives a startup check only; its search-provider
 workflow requires a separate authorized live test.
 

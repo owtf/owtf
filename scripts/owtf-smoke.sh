@@ -387,17 +387,17 @@ jq -e '.records_total == 1 and .records_filtered == 1 and (.data | length) == 1'
 
 printf '%s\n' 'Checking plugin discovery and preflight failures...'
 request GET /api/v2/plugins 200
-assert_json 'length == 88' 'plugin catalog is incomplete'
+assert_json 'length == 89' 'plugin catalog is incomplete'
 assert_json '[.[] | select(.availability == "ready")] | length == 69' 'ready plugin count is incorrect'
 assert_json '[.[] | select(.id == "OWTF-SMOKE-002-active" and .availability == "missing_requirements" and (.reason | contains("owtf-command-that-does-not-exist")))] | length == 1' 'missing requirement is not visible'
 assert_json '[.[] | select(.group == "web" and (.type == "active" or .type == "semi_passive"))] | length == 15' 'OWTF plugin group and type metadata is incorrect'
 assert_json '[.[] | select(.availability == "unavailable")] | length == 0' 'placeholder plugin runtimes remain'
-assert_json '[.[] | select(.runtime_type == "container" and .availability == "missing_requirements")] | length == 18' 'container plugin availability is incorrect'
+assert_json '[.[] | select(.runtime_type == "container" and .availability == "missing_requirements")] | length == 19' 'container plugin availability is incorrect'
 assert_json '[.[] | select(.id == "OWTF-IG-004-semi_passive" and (.inputs | map(.name)) == ["timeout_seconds","user_agent"])] | length == 1' 'plugin input schema is not visible'
 assert_json '[.[] | select(.id == "OWTF-IG-004-semi_passive" and .techniques[0].code == "OWTF-IG-004" and .techniques[0].hint == "What is that site running?" and .techniques[0].priority == 99)] | length == 1' 'plugin technique metadata is not visible'
 assert_json '[.[] | select(.runtime_type == "http" and .availability == "ready") | .id] | sort == ["OWTF-CM-008-semi_passive","OWTF-IG-001-semi_passive"]' 'HTTP plugins are unavailable'
 cli_json plugin list
-jq -e 'length == 88' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin catalog is incomplete'
+jq -e 'length == 89' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin catalog is incomplete'
 cli_json plugin list --group web --type active
 jq -e 'length == 10 and ([.[] | select(.availability == "ready") | .id] | sort) == ["OWTF-WSP-001-active"] and ([.[] | select(.availability == "missing_requirements")] | length) == 9' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI plugin group/type filter is incorrect'
 cli_json plugin list --group web --type external
@@ -406,6 +406,11 @@ cli_json plugin list --group web --type grep
 jq -e 'length == 11 and all(.[]; .runtime_type == "grep" and .availability == "ready") and any(.[]; .id == "OWTF-CM-004-grep") and any(.[]; .id == "OWTF-SM-005-grep")' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI grep plugins are unavailable'
 cli_json plugin list --group network --type active
 jq -e 'length == 8 and all(.[]; .runtime_type == "container" and .availability == "missing_requirements" and .inputs[0].name == "port") and [.[].id] == ["PTES-001-active","PTES-002-active","PTES-003-active","PTES-004-active","PTES-006-active","PTES-007-active","PTES-008-active","PTES-009-active"]' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI network plugins are unavailable'
+cli_json plugin list --group network --type bruteforce
+jq -e 'length == 1 and .[0].id == "PTES-011-bruteforce" and .[0].availability == "missing_requirements" and
+  any(.[0].inputs[]; .name == "wordlist" and .format == "dns-labels" and .maximum_lines == 1000) and
+  any(.[0].inputs[]; .name == "resolver" and .type == "address" and .required)' \
+  "${CLI_RESPONSE_FILE}" >/dev/null || fail 'DNS input schema or missing-tool state is incorrect'
 request GET /api/v2/profiles 200
 assert_json 'length == 1 and .[0].name == "default" and .[0].plugins == ["OWTF-IG-001-semi_passive","OWTF-IG-004-semi_passive","OWTF-CM-008-semi_passive","OWTF-WSP-001-active"]' 'profile catalog is incorrect'
 request GET /api/v2/profiles/default 200
