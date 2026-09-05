@@ -44,9 +44,12 @@ jobs:
       - uses: docker/setup-buildx-action@v3
       - name: Build the Go and SQLite image
         run: docker build --file docker/Dockerfile.backend --tag owtf:ci .
+      - name: Build the separate frontend image
+        run: docker build --file docker/Dockerfile.frontend --tag owtf-ui:ci .
       - name: Verify Compose lifecycle, backup, and restore
         env:
           OWTF_IMAGE: owtf:ci
+          OWTF_UI_IMAGE: owtf-ui:ci
         run: bash scripts/owtf-compose-smoke.sh
       - name: Retain recovery evidence
         if: always()

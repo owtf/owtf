@@ -644,8 +644,8 @@ func TestTaskAttemptHistoryAPI(t *testing.T) {
 		t.Fatal(err)
 	}
 	response.Body.Close()
-	if response.StatusCode != http.StatusMethodNotAllowed {
-		t.Fatalf("retry endpoint status = %d, want %d", response.StatusCode, http.StatusMethodNotAllowed)
+	if response.StatusCode != http.StatusNotFound {
+		t.Fatalf("retry endpoint status = %d, want %d", response.StatusCode, http.StatusNotFound)
 	}
 	requestJSON[map[string]string](t, server.Client(), http.MethodGet,
 		server.URL+"/api/v2/tasks/missing/attempts", nil, http.StatusNotFound)

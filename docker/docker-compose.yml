@@ -1,4 +1,18 @@
 services:
+  frontend:
+    image: ${OWTF_UI_IMAGE:-owtf-ui:local}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    restart: unless-stopped
+    depends_on:
+      owtf:
+        condition: service_healthy
+    ports:
+      - "${OWTF_BIND:-127.0.0.1}:${OWTF_PORT:-8009}:8080"
+    cpus: 0.5
+    mem_limit: 128m
+
   owtf:
     image: ${OWTF_IMAGE:-owtf:local}
     build:
@@ -10,7 +24,6 @@ services:
       OWTF_PLUGIN_PROXY: http://127.0.0.1:8008
       OWTF_PLUGIN_PROXY_CA: /data/proxy-ca.crt
     ports:
-      - "${OWTF_BIND:-127.0.0.1}:${OWTF_PORT:-8009}:8009"
       - "${OWTF_BIND:-127.0.0.1}:${OWTF_PROXY_PORT:-8008}:8008"
     volumes:
       - owtf_data:/data

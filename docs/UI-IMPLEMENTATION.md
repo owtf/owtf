@@ -4,6 +4,12 @@ This is a coverage record, not an assertion of complete Python-era parity.
 React, TanStack Query and shared shadcn primitives implement the browser UI.
 Mutation retries are disabled. Tests use local, approved targets only.
 
+The frontend is built into `web/dist` and served by its own Nginx container.
+The Go binary contains no UI assets and serves only backend endpoints. Compose
+keeps browser requests same-origin through the frontend's API gateway. The
+Compose smoke test checks deep links, built assets, missing-asset/API 404s,
+backend-only routing and Origin preservation across that gateway.
+
 ## Implemented
 
 - Sessions: create, select, report, filtered export and confirmed deletion.

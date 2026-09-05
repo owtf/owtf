@@ -1,8 +1,7 @@
 # Operator UI
 
 React and TypeScript, TanStack Query for API state, and selected shadcn/Radix
-controls. No Redux, Bootstrap runtime, separate production frontend service,
-or automatic mutation retries.
+controls. No Redux, Bootstrap runtime, or automatic mutation retries.
 
 ## Development
 
@@ -23,9 +22,10 @@ npm test
 npm run build
 ```
 
-The build replaces `internal/api/ui`. Commit that generated bundle with source
-changes so ordinary Go builds do not require Node. Docker rebuilds it from source.
-CI also builds and tests the UI. Do not edit the generated bundle by hand.
+The build writes ignored output to `web/dist`. The frontend Docker image serves
+it with Nginx and forwards API requests to the separate backend. Neither Node
+nor UI assets are needed to build the Go binary. CI builds and tests both images;
+do not commit generated bundles.
 
 ## Structure
 

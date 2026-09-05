@@ -17,7 +17,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: "../internal/api/ui",
+    outDir: "dist",
     emptyOutDir: true,
     assetsDir: "assets",
   },

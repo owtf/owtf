@@ -10,7 +10,7 @@ OWTF_GO_ENV := GOPATH=$(OWTF_GO_PATH) GOMODCACHE=$(OWTF_GO_PATH)/pkg/mod GOCACHE
 
 .PHONY: build check-compose clean fmt fmt-check lint local-down local-logs local-status local-up run test test-unit test-api test-tools test-failures tools-image vet
 
-build: ui-build
+build:
 	@echo "--> Building OWTF"
 	@mkdir -p build
 	@env $(OWTF_GO_ENV) go build -trimpath -o build/owtf ./cmd/owtf

@@ -74,6 +74,17 @@ wait_task() {
 echo 'Starting a fresh Compose deployment...'
 compose up -d --no-build
 wait_health
+echo 'Checking the separate frontend and same-origin API gateway...'
+curl -fsS "$URL/targets/example" >"$PROOF/ui.html"
+UI_SCRIPT=$(sed -n 's/.*src="\(\/assets\/[^" ]*\.js\)".*/\1/p' "$PROOF/ui.html")
+UI_STYLE=$(sed -n 's/.*href="\(\/assets\/[^" ]*\.css\)".*/\1/p' "$PROOF/ui.html")
+[[ -n "$UI_SCRIPT" && -n "$UI_STYLE" ]]
+curl -fsS "$URL$UI_SCRIPT" >"$PROOF/ui.js"
+curl -fsS "$URL$UI_STYLE" >"$PROOF/ui.css"
+[[ -s "$PROOF/ui.js" && -s "$PROOF/ui.css" ]]
+[[ $(curl -s -o /dev/null -w '%{http_code}' "$URL/assets/missing.js") == 404 ]]
+[[ $(curl -s -o /dev/null -w '%{http_code}' "$URL/api/v2/missing") == 404 ]]
+[[ $(compose exec -T owtf curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8009/) == 404 ]]
 cli sessions create --name 'Compose recovery demonstration' >"$PROOF/session.json"
 SESSION=$(jq -r .id "$PROOF/session.json")
 cli targets add --session "$SESSION" http://127.0.0.1:8009/debug/health >"$PROOF/targets.json"
@@ -82,7 +93,8 @@ for attempt in $(seq 1 30); do
   if curl -fsS "$URL/api/v2/proxy/health" >/dev/null 2>&1; then break; fi
   sleep 1
 done
-curl -fsS -X PUT -H 'Content-Type: application/json' -d "{\"target_id\":\"$TARGET\"}" "$URL/api/v2/proxy/capture" >"$PROOF/capture-start.json"
+[[ $(curl -s -o /dev/null -w '%{http_code}' -X PUT -H 'Origin: http://foreign.invalid' -H 'Content-Type: application/json' -d '{}' "$URL/api/v2/proxy/capture") == 403 ]]
+curl -fsS -X PUT -H "Origin: $URL" -H 'Content-Type: application/json' -d "{\"target_id\":\"$TARGET\"}" "$URL/api/v2/proxy/capture" >"$PROOF/capture-start.json"
 compose exec -T owtf curl --noproxy '' -fsS -x http://127.0.0.1:8008 'http://127.0.0.1:8009/debug/health?capture=live' >"$PROOF/captured-body.json"
 for attempt in $(seq 1 30); do
   curl -fsS "$URL/api/v2/targets/$TARGET/transactions" >"$PROOF/captured-transactions.json"
@@ -130,7 +142,7 @@ wait_health
 cli sessions report "$SESSION" >"$PROOF/restarted.json"
 diff -u <(jq -S . "$PROOF/before.json") <(jq -S . "$PROOF/restarted.json")
 echo 'Backing up the stopped volume and restoring into a fresh volume...'
-compose stop proxy owtf
+compose stop frontend proxy owtf
 compose run --rm --no-deps -T --entrypoint tar owtf -C /data -czf - . >"$PROOF/data.tar.gz"
 restore run --rm --no-deps -T --user root --entrypoint tar owtf -C /data -xzf - <"$PROOF/data.tar.gz"
 restore up -d --no-build

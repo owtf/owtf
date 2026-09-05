@@ -2,12 +2,10 @@ package api
 
 import (
 	"bytes"
-	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"log/slog"
 	"mime"
 	"net/http"
@@ -30,9 +28,6 @@ import (
 	"github.com/owtf/owtf/internal/store"
 	targetvalue "github.com/owtf/owtf/internal/target"
 )
-
-//go:embed ui/*
-var uiFiles embed.FS
 
 // Server owns the OWTF HTTP handlers and application services.
 type Server struct {
@@ -133,12 +128,6 @@ func New(config Config) http.Handler {
 	mux.HandleFunc("GET /api/v2/targets/{targetID}/transactions/{transactionID}", server.getTransaction)
 	mux.HandleFunc("DELETE /api/v2/targets/{targetID}/transactions/{transactionID}", server.deleteTransaction)
 	mux.HandleFunc("GET /api/v2/artifacts/{artifactID}", server.getArtifact)
-	staticFS, err := fs.Sub(uiFiles, "ui/assets")
-	if err != nil {
-		panic(err)
-	}
-	mux.Handle("GET /assets/", http.StripPrefix("/assets/", http.FileServerFS(staticFS)))
-	mux.HandleFunc("GET /", server.app)
 	return server.middleware(mux)
 }
 
@@ -166,24 +155,6 @@ func (s *Server) middleware(next http.Handler) http.Handler {
 		w.Header().Set("Referrer-Policy", "no-referrer")
 		next.ServeHTTP(w, r)
 	})
-}
-
-func (s *Server) app(w http.ResponseWriter, r *http.Request) {
-	switch r.URL.Path {
-	case "/", "/settings", "/help", "/work", "/workers", "/transactions", "/reports", "/profiles", "/runs":
-	default:
-		if !strings.HasPrefix(r.URL.Path, "/targets/") {
-			http.NotFound(w, r)
-			return
-		}
-	}
-	data, err := uiFiles.ReadFile("ui/index.html")
-	if err != nil {
-		s.internalError(w, err)
-		return
-	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, _ = w.Write(data)
 }
 
 func (s *Server) health(w http.ResponseWriter, r *http.Request) {

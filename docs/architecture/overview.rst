@@ -357,8 +357,8 @@ Phase 7: operator UI
   Table or Bootstrap runtime; plain semantic tables are sufficient until a
   concrete need says otherwise. Disable automatic mutation retries, especially
   for plugin launches.
-  Reuse the Go API without a frontend server layer. Every screen uses real
-  data; no demo counters or simulated progress. The first embedded React UI
+  Serve the React UI separately with a same-origin gateway to the Go API.
+  Every screen uses real data; no demo counters or simulated progress. The React UI
   covers targets, plugin launch, reports, worklist, workers and transactions.
   Proxy replay and live settings editing are not included in this slice.
   See ``operator-ui.md`` for the historical sources, workflow mappings and

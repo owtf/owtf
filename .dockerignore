@@ -8,3 +8,4 @@ docs/
 infra/
 
 web/node_modules/
+web/dist/

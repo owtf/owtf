@@ -278,16 +278,9 @@ request GET /api/v2/metrics 200
 assert_json '.tasks.total == 0 and .attempts.total == 0 and .workers.total == 1 and .workers.idle == 1' 'initial execution metrics are incorrect'
 cli_json health
 jq -e '.status == "ok"' "${CLI_RESPONSE_FILE}" >/dev/null || fail 'CLI health response is invalid'
-request GET / 200
-# Resolve the build's hashed assets before request overwrites the response file.
-UI_SCRIPT=$(sed -n 's/.*src="\(\/assets\/[^" ]*\.js\)".*/\1/p' "${RESPONSE_FILE}")
-UI_STYLE=$(sed -n 's/.*href="\(\/assets\/[^" ]*\.css\)".*/\1/p' "${RESPONSE_FILE}")
-[[ -n "$UI_SCRIPT" && -n "$UI_STYLE" ]] || fail 'UI HTML is missing its script or stylesheet'
-request GET "$UI_SCRIPT" 200
-[[ -s "${RESPONSE_FILE}" ]] || fail 'UI script is empty'
-request GET "$UI_STYLE" 200
-[[ -s "${RESPONSE_FILE}" ]] || fail 'UI stylesheet is empty'
-request GET /assets/InterVariable.woff2 200
+request GET / 404
+request GET /targets/example 404
+request GET /assets/app.js 404
 request GET /api/v2/transactions 400
 request GET /api/v2/runs 400
 request GET /api/v2/targets/does-not-exist 404

@@ -58,7 +58,7 @@ resulting evidence.
   scriptable show and validation commands.
 - Target and session reports with evidence-preserving output dispositions,
   ranks, notes, and append-only review history through the API and CLI.
-- One API used by the CLI and the embedded proof UI.
+- One API used by the CLI and the separately built React UI.
 - No accounts, passwords, tokens, or user database.
 
 See [the architecture](docs/architecture/overview.rst), [CLI
@@ -108,7 +108,13 @@ settings or validate a file before startup:
 ./build/owtf config validate .owtf/config.yaml
 ```
 
-The API and embedded proof UI are available at `http://127.0.0.1:8009`.
+The API is available at `http://127.0.0.1:8009`; it serves no UI files.
+For frontend development, run `cd web && npm ci && npm run dev` in another
+terminal. Vite forwards `/api` to the backend (`OWTF_DEV_API` overrides its URL).
+`make ui-build` writes standalone files to `web/dist`; `make build` only builds Go.
+Compose serves the UI through a separate Nginx container on the existing port,
+forwarding `/api/` and `/debug/` internally without exposing another backend port.
+Use `OWTF_UI_IMAGE` and `OWTF_IMAGE` to select frontend and backend images independently.
 The CLI uses the same API:
 
 ```bash

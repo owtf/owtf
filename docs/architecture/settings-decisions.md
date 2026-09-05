@@ -37,8 +37,8 @@ Avoid a general key/value settings API. Use typed fields and documented preceden
 Keep current defaults until a change is implemented and tested; do not introduce
 settings which no runtime consumes.
 
-CORS configuration waits for the UI origin/deployment design. The embedded UI
-currently uses the API's origin. Encrypted CA-key loading waits for an actual
+CORS configuration is unnecessary for the shipped deployment: the separate
+frontend forwards API requests through the same origin. Encrypted CA-key loading waits for an actual
 operational requirement. Neither is a release gate for the current local workflow.
 
 ## Explicit retirements
