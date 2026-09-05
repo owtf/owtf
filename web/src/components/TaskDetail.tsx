@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { useAPI, useAction, request } from "../lib/api";
-import type { Task, Event, Review, ReviewEvent } from "../lib/types";
+import type {
+  Task,
+  Event,
+  Review,
+  ReviewEvent,
+  TaskAttempt,
+} from "../lib/types";
 import { ranks, dispositions } from "../lib/types";
 import { Button, ErrorMessage, Loading, StateBadge } from "./shared";
 import { Textarea } from "./ui/textarea";
@@ -69,13 +75,25 @@ export function ReviewEditor({
     </form>
   );
 }
-export default function TaskDetail({ task }: { task: Task }) {
+export default function TaskDetail({
+  task,
+  showReview = false,
+}: {
+  task: Task;
+  showReview?: boolean;
+}) {
   const events = useAPI<Event[]>(
     `/tasks/${task.id}/events`,
     task.status === "running",
   );
-  const review = useAPI<Review>(`/tasks/${task.id}/review`);
-  const history = useAPI<ReviewEvent[]>(`/tasks/${task.id}/review/history`);
+  const review = useAPI<Review>(showReview ? `/tasks/${task.id}/review` : "");
+  const attempts = useAPI<TaskAttempt[]>(
+    `/tasks/${task.id}/attempts`,
+    task.status === "running",
+  );
+  const history = useAPI<ReviewEvent[]>(
+    showReview ? `/tasks/${task.id}/review/history` : "",
+  );
   return (
     <div className="stack">
       <div className="actions">
@@ -83,8 +101,32 @@ export default function TaskDetail({ task }: { task: Task }) {
         <StateBadge value={task.status} />
       </div>
       <ErrorMessage
-        error={task.error || events.error || review.error || history.error}
+        error={
+          task.error ||
+          events.error ||
+          review.error ||
+          history.error ||
+          attempts.error
+        }
       />
+      <details>
+        <summary>Execution attempts</summary>
+        {attempts.isPending ? (
+          <Loading />
+        ) : (
+          attempts.data?.map((attempt) => (
+            <div className="history" key={attempt.id}>
+              <span>Attempt {attempt.attempt_number} </span>
+              <StateBadge value={attempt.status} />
+              <p>
+                {attempt.started_at}{" "}
+                {attempt.ended_at ? `to ${attempt.ended_at}` : ""}
+              </p>
+              <ErrorMessage error={attempt.error} />
+            </div>
+          ))
+        )}
+      </details>
       <h3>Execution log</h3>
       {events.isPending ? (
         <Loading />
@@ -95,24 +137,29 @@ export default function TaskDetail({ task }: { task: Task }) {
             .join("\n") || "No events recorded yet."}
         </pre>
       )}
-      <h3>Output review</h3>
-      <p className="muted">
-        Execution success is not a security finding. Review changes preserve
-        evidence.
-      </p>
-      {review.data && (
-        <ReviewEditor key={task.id} task={task.id} initial={review.data} />
+      {showReview && (
+        <>
+          <h3>Output review</h3>
+          <p className="muted">
+            Execution success is not a security finding. Review changes preserve
+            evidence.
+          </p>
+          {review.data && (
+            <ReviewEditor key={task.id} task={task.id} initial={review.data} />
+          )}
+          <details>
+            <summary>Review history ({history.data?.length || 0})</summary>
+            {history.data?.map((e) => (
+              <div key={e.id} className="history">
+                <span>{new Date(e.created_at).toLocaleString()}</span>{" "}
+                <StateBadge value={e.rank} />{" "}
+                <StateBadge value={e.disposition} />
+                <pre>{e.notes}</pre>
+              </div>
+            ))}
+          </details>
+        </>
       )}
-      <details>
-        <summary>Review history ({history.data?.length || 0})</summary>
-        {history.data?.map((e) => (
-          <div key={e.id} className="history">
-            <span>{new Date(e.created_at).toLocaleString()}</span>{" "}
-            <StateBadge value={e.rank} /> <StateBadge value={e.disposition} />
-            <pre>{e.notes}</pre>
-          </div>
-        ))}
-      </details>
     </div>
   );
 }

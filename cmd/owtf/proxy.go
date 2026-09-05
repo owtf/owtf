@@ -50,6 +50,15 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 	restore := configureLogging(stderr, settings.LogLevel)
 	defer restore()
 	proxySettings := settings.Proxy
+	var attachment *owtfproxy.Attachment
+	if os.Getenv("OWTF_PROXY_ATTACH") == "1" {
+		var closeAttachment func() error
+		attachment, closeAttachment, err = openProxyAttachment(settings.Server.DataDirectory)
+		if err != nil {
+			return err
+		}
+		defer closeAttachment()
+	}
 
 	authority, err := owtfproxy.LoadOrCreateAuthority(proxySettings.CACertificate, proxySettings.CAKey)
 	if err != nil {
@@ -115,7 +124,7 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 		}
 	}
 	handler, err := owtfproxy.New(owtfproxy.Config{
-		Authority: authority, Recorder: recorder, Transport: roundTripper,
+		Authority: authority, Recorder: recorder, Transport: roundTripper, Attachment: attachment,
 		AllowedHosts: proxySettings.TargetHosts, MaximumBody: proxySettings.MaximumBody,
 		Interceptors: interceptors, Live: live,
 		ErrorLog: slog.NewLogLogger(slog.Default().Handler(), slog.LevelError),
@@ -149,7 +158,7 @@ func runProxy(parent context.Context, args []string, stdout, stderr io.Writer) e
 		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
 	}
 	apiHandler, err := owtfproxy.NewAPI(owtfproxy.APIConfig{
-		Authority: authority, Recorder: recorder, RepeatClient: repeatClient,
+		Authority: authority, Recorder: recorder, RepeatClient: repeatClient, Attachment: attachment,
 		Interceptors: interceptors, Live: live, MaximumBody: proxySettings.MaximumBody,
 	})
 	if err != nil {

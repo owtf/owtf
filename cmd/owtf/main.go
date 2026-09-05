@@ -64,7 +64,15 @@ func serve(settings owtfconfig.Config) error {
 	if err != nil {
 		return fmt.Errorf("load plugins: %w", err)
 	}
-	catalog.ConfigureHTTP(&http.Client{Timeout: time.Duration(settings.HTTP.RequestTimeoutSeconds) * time.Second}, settings.HTTP.UserAgent)
+	collectorClient := &http.Client{Timeout: time.Duration(settings.HTTP.RequestTimeoutSeconds) * time.Second}
+	if address := os.Getenv("OWTF_PLUGIN_PROXY"); address != "" {
+		transport, err := plugin.NewProxyTransport(address, os.Getenv("OWTF_PLUGIN_PROXY_CA"))
+		if err != nil {
+			return err
+		}
+		collectorClient.Transport = transport
+	}
+	catalog.ConfigureHTTP(collectorClient, settings.HTTP.UserAgent)
 	catalog.ResolveCommands(settings.Plugins.WordlistDirectory)
 	catalog.ResolveContainers(context.Background(), plugin.NewDockerEngine(settings.Plugins.ContainerEngine), settings.Plugins.WordlistDirectory)
 	profiles, err := profile.Load(os.DirFS(settings.Plugins.ProfilesDirectory))
@@ -99,7 +107,8 @@ func serve(settings owtfconfig.Config) error {
 		Addr:     settings.Server.Address,
 		ErrorLog: slog.NewLogLogger(slog.Default().Handler(), slog.LevelError),
 		Handler: api.New(api.Config{
-			Store: database, Artifacts: artifacts, Plugins: catalog,
+			RuntimeConfig: &settings,
+			Store:         database, Artifacts: artifacts, Plugins: catalog,
 			Profiles: profiles, Help: helpinfo.Default(), DefaultProfile: settings.Plugins.DefaultProfile, Runner: taskRunner,
 		}),
 		ReadHeaderTimeout: 5 * time.Second,

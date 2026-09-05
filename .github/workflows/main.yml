@@ -55,3 +55,15 @@ jobs:
           name: compose-recovery-evidence
           path: build/compose-proof.*/
           retention-days: 7
+      - name: Verify proxy controls and HAR lifecycle
+        env:
+          OWTF_IMAGE: owtf:ci
+          OWTF_PROOF_ROOT: build
+        run: bash scripts/owtf-proxy-ui-smoke.sh
+      - name: Retain proxy evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: proxy-ui-evidence
+          path: build/owtf-proxy-ui.*/
+          retention-days: 7

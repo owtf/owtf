@@ -392,6 +392,8 @@ type WorkerMetrics struct {
 // TargetReport is a retained evidence view for one target. Dispositions records
 // an optional selection of task outputs; an omitted selection includes all.
 type TargetReport struct {
+	Host                     string                    `json:"host,omitempty"`
+	Targets                  []Target                  `json:"targets,omitempty"`
 	Dispositions             []string                  `json:"dispositions,omitempty"`
 	Target                   Target                    `json:"target"`
 	Tasks                    []Task                    `json:"tasks"`

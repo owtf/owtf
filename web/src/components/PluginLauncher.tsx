@@ -1,16 +1,10 @@
 import { useState } from "react";
 import { useAPI, useAction, request } from "../lib/api";
-import type { Plugin, PluginInput } from "../lib/types";
-import {
-  Button,
-  ErrorMessage,
-  Loading,
-  Modal,
-  Pager,
-  StateBadge,
-} from "./shared";
+import type { Plugin, PluginInput, Profile, Target } from "../lib/types";
+import { Button, ErrorMessage, Loading, Pager, StateBadge } from "./shared";
 import { Input } from "./ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
+import Inspector from "./Inspector";
 
 export function inputValue(input: PluginInput, value: string): unknown {
   if (input.type === "integer") {
@@ -36,10 +30,22 @@ export default function PluginLauncher({
   onLaunched: () => void;
 }) {
   const query = useAPI<Plugin[]>("/plugins");
+  const targetQuery = useAPI<Target[]>(`/sessions/${session}/targets`);
+  const [targetIDs, setTargetIDs] = useState(targets);
+  const [mode, setMode] = useState("individual");
+  const [profile, setProfile] = useState("");
+  const profiles = useAPI<Profile[]>(mode === "groups" ? "/profiles" : "");
+  const profileDetail = useAPI<Profile>(
+    mode === "groups" && profile
+      ? `/profiles/${encodeURIComponent(profile)}`
+      : "",
+  );
   const [selected, setSelected] = useState<string[]>([]);
+  const [help, setHelp] = useState<Plugin | null>(null);
   const [search, setSearch] = useState("");
   const [group, setGroup] = useState("");
   const [type, setType] = useState("");
+  const [groupTypes, setGroupTypes] = useState<string[]>([]);
   const [offset, setOffset] = useState(0);
   const [values, setValues] = useState<Record<string, Record<string, string>>>(
     {},
@@ -48,12 +54,19 @@ export default function PluginLauncher({
   const matches = plugins.filter(
     (p) =>
       (!group || p.group === group) &&
-      (!type || p.type === type) &&
+      (mode === "groups"
+        ? !groupTypes.length || groupTypes.includes(p.type)
+        : !type || p.type === type) &&
       `${p.id} ${p.title} ${p.description}`
         .toLowerCase()
-        .includes(search.toLowerCase()),
+        .includes(mode === "groups" ? "" : search.toLowerCase()),
   );
-  const chosen = plugins.filter((p) => selected.includes(p.id));
+  const chosen =
+    mode === "groups"
+      ? group
+        ? matches
+        : []
+      : plugins.filter((p) => selected.includes(p.id));
   const launch = useAction(async () => {
     const plugin_inputs: Record<string, Record<string, unknown>> = {};
     for (const plugin of chosen)
@@ -67,8 +80,14 @@ export default function PluginLauncher({
       }
     return request("/runs", "POST", {
       session_id: session,
-      target_ids: targets,
-      plugin_ids: selected,
+      target_ids: targetIDs,
+      ...(mode === "groups"
+        ? {
+            plugin_group: group,
+            plugin_types: groupTypes,
+            ...(profile ? { profile } : {}),
+          }
+        : { plugin_ids: selected }),
       plugin_inputs,
     });
   });
@@ -76,38 +95,71 @@ export default function PluginLauncher({
     setSelected((s) =>
       s.includes(id) ? s.filter((x) => x !== id) : [...s, id],
     );
-  const ready = matches.filter((p) => p.availability === "ready");
+  const ready = matches
+    .slice(offset, offset + 10)
+    .filter((p) => p.availability === "ready");
   const selectMatches = () =>
     setSelected((s) => [...new Set([...s, ...ready.map((p) => p.id)])]);
   return (
-    <Modal
-      open
-      title="Run plugins"
-      description={`${targets.length} selected target(s). New runs preserve previous evidence.`}
-      onClose={() => {
-        if (!launch.isPending) onClose();
-      }}
-    >
+    <section className="plugin-launcher">
+      <div className="section-head">
+        <h1>Run plugins</h1>
+        <Button variant="ghost" disabled={launch.isPending} onClick={onClose}>
+          Back
+        </Button>
+      </div>
+      <details className="picker-targets">
+        <summary>
+          {targetIDs.length} targets selected{" "}
+          <span className="muted"> · Change</span>
+        </summary>
+        <ErrorMessage error={targetQuery.error} />
+        {targetQuery.data?.map((target) => (
+          <label className="actions" key={target.id}>
+            <input
+              type="checkbox"
+              aria-label={"Target " + target.value}
+              checked={targetIDs.includes(target.id)}
+              disabled={launch.isPending}
+              onChange={(event) =>
+                setTargetIDs((current) =>
+                  event.target.checked
+                    ? [...current, target.id]
+                    : current.filter((id) => id !== target.id),
+                )
+              }
+            />
+            {target.value || target.id}
+          </label>
+        ))}
+      </details>
       <ErrorMessage error={query.error || launch.error} />
       {query.isPending ? (
         <Loading />
       ) : (
         <>
-          <Tabs defaultValue="individual">
+          <Tabs
+            value={mode}
+            onValueChange={(value) => {
+              setMode(value);
+              setOffset(0);
+            }}
+          >
             <TabsList>
               <TabsTrigger value="individual">Launch individually</TabsTrigger>
               <TabsTrigger value="groups">Launch in groups</TabsTrigger>
             </TabsList>
             <div className="filters">
               <label>
-                Search plugins
+                Find a plugin
                 <Input
+                  disabled={mode === "groups" || launch.isPending}
                   value={search}
                   onChange={(e) => {
                     setSearch(e.target.value);
                     setOffset(0);
                   }}
-                  placeholder="Code, name or help"
+                  placeholder="Name or OWTF code"
                 />
               </label>
               <label>
@@ -125,101 +177,151 @@ export default function PluginLauncher({
                   ))}
                 </select>
               </label>
+              {mode === "individual" && (
+                <label>
+                  Plugin type
+                  <select
+                    value={type}
+                    onChange={(e) => {
+                      setType(e.target.value);
+                      setOffset(0);
+                    }}
+                  >
+                    <option value="">All types</option>
+                    {[...new Set(plugins.map((p) => p.type))]
+                      .sort()
+                      .map((t) => (
+                        <option key={t}>{t}</option>
+                      ))}
+                  </select>
+                </label>
+              )}
+            </div>
+            <TabsContent value="groups">
+              <fieldset className="filters">
+                <legend>Plugin types</legend>
+                {[...new Set(plugins.map((p) => p.type))]
+                  .sort()
+                  .map((value) => (
+                    <label className="actions" key={value}>
+                      <input
+                        type="checkbox"
+                        checked={groupTypes.includes(value)}
+                        onChange={(event) => {
+                          setGroupTypes((current) =>
+                            event.target.checked
+                              ? [...current, value]
+                              : current.filter((type) => type !== value),
+                          );
+                          setOffset(0);
+                        }}
+                      />
+                      {value}
+                    </label>
+                  ))}
+                <p className="muted">No types selected includes all types.</p>
+              </fieldset>
+              <p className="muted">
+                The server launches the complete group/type selection.
+                Unavailable or incompatible plugins are recorded as blocked.
+                Profiles set order; they do not restrict selection.
+              </p>
               <label>
-                Type
+                Profile
                 <select
-                  value={type}
-                  onChange={(e) => {
-                    setType(e.target.value);
-                    setOffset(0);
-                  }}
+                  value={profile}
+                  disabled={launch.isPending}
+                  onChange={(e) => setProfile(e.target.value)}
                 >
-                  <option value="">All types</option>
-                  {[...new Set(plugins.map((p) => p.type))].sort().map((t) => (
-                    <option key={t}>{t}</option>
+                  <option value="">Server default</option>
+                  {profiles.data?.map((p) => (
+                    <option key={p.name} value={p.name}>
+                      {p.name}
+                    </option>
                   ))}
                 </select>
               </label>
-            </div>
-            <TabsContent value="groups">
-              <p className="muted">
-                Choose group and type above. Only available matching plugins are
-                selected; unavailable plugins remain visible below.
-              </p>
-              <Button
-                variant="outline"
-                disabled={!group || launch.isPending}
-                onClick={selectMatches}
-              >
-                Select available in group
-              </Button>
+              <ErrorMessage error={profiles.error || profileDetail.error} />
+              {profileDetail.data && (
+                <details>
+                  <summary>Profile: {profileDetail.data.name}</summary>
+                  <p>{profileDetail.data.description}</p>
+                  <ol>
+                    {profileDetail.data.plugins.map((id) => (
+                      <li key={id}>
+                        <code>{id}</code>
+                      </li>
+                    ))}
+                  </ol>
+                </details>
+              )}
             </TabsContent>
             <TabsContent value="individual">
               <p className="muted">Select exactly the plugins to run.</p>
             </TabsContent>
           </Tabs>
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>
-                    <input
-                      type="checkbox"
-                      aria-label="Select available matching plugins"
-                      checked={
-                        ready.length > 0 &&
-                        ready.every((p) => selected.includes(p.id))
-                      }
-                      onChange={(e) =>
-                        e.target.checked
-                          ? selectMatches()
-                          : setSelected((s) =>
-                              s.filter((id) => !ready.some((p) => p.id === id)),
-                            )
-                      }
-                      disabled={launch.isPending}
-                    />
-                  </th>
-                  <th>Code / Name</th>
-                  <th>Type</th>
-                  <th>Group</th>
-                  <th>Help / Availability</th>
-                </tr>
-              </thead>
-              <tbody>
-                {matches.slice(offset, offset + 10).map((p) => (
-                  <tr key={p.id}>
-                    <td>
-                      <input
-                        type="checkbox"
-                        aria-label={`Select ${p.id}`}
-                        checked={selected.includes(p.id)}
-                        disabled={
-                          p.availability !== "ready" || launch.isPending
-                        }
-                        onChange={() => toggle(p.id)}
-                      />
-                    </td>
-                    <td>
-                      <code>{p.id}</code>
-                      <div>{p.title}</div>
-                    </td>
-                    <td>{p.type.replaceAll("_", " ")}</td>
-                    <td>{p.group}</td>
-                    <td className="help-cell">
-                      {p.description}
-                      {p.availability !== "ready" && (
-                        <div>
-                          <StateBadge value="blocked" />
-                          <p>{p.reason}</p>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {!matches.length && <p className="empty">No matching plugins.</p>}
+          <div className="section-head picker-head">
+            <span className="muted">
+              {group || "All groups"} ·{" "}
+              {matches.slice(offset, offset + 10).length} shown of{" "}
+              {matches.length}
+            </span>
+            <Button
+              variant="ghost"
+              disabled={launch.isPending || mode === "groups" || !ready.length}
+              onClick={selectMatches}
+            >
+              Select available shown
+            </Button>
+          </div>
+          <div className="plugin-catalog">
+            {matches.slice(offset, offset + 10).map((p) => (
+              <div
+                className="catalog-row"
+                data-chosen={
+                  mode === "groups" ? !!group : selected.includes(p.id)
+                }
+                key={p.id}
+              >
+                <label>
+                  <input
+                    type="checkbox"
+                    aria-label={"Select " + p.id}
+                    checked={
+                      mode === "groups" ? !!group : selected.includes(p.id)
+                    }
+                    disabled={
+                      mode === "groups" ||
+                      p.availability !== "ready" ||
+                      launch.isPending
+                    }
+                    onChange={() => toggle(p.id)}
+                  />
+                  <span>
+                    <span className="catalog-title">
+                      <strong>{p.title}</strong>
+                      <StateBadge value={p.type} />
+                    </span>
+                    <code>{p.id}</code>
+                    <span className="catalog-description">{p.description}</span>
+                    {p.availability !== "ready" && (
+                      <span className="catalog-unavailable">
+                        {p.reason || "Unavailable"}
+                      </span>
+                    )}
+                  </span>
+                </label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-label={`Help for ${p.id}`}
+                  onClick={() => setHelp(p)}
+                >
+                  Help
+                </Button>
+              </div>
+            ))}
+            {!matches.length && <p>No matching plugins.</p>}
           </div>
           <Pager
             offset={offset}
@@ -283,27 +385,49 @@ export default function PluginLauncher({
                 </div>
               </details>
             ))}
-          <div className="actions justify-between">
-            <span role="status">
-              {selected.length} plugins selected across all filters
-            </span>
-            <Button
-              variant="outline"
-              disabled={launch.isPending}
-              onClick={() => setSelected([])}
-            >
-              Clear selection
-            </Button>
-            <Button
-              disabled={!selected.length || launch.isPending}
-              onClick={() =>
-                launch.mutate(undefined, { onSuccess: onLaunched })
-              }
-            >
-              {launch.isPending
-                ? "Submitting…"
-                : `Run ${selected.length} plugin(s)`}
-            </Button>
+          <div className="picker-summary">
+            <div className="actions justify-between">
+              <span role="status">
+                {chosen.length} plugins selected
+                {mode === "individual" ? " across all filters" : " in group"}
+              </span>
+              <Button
+                variant="outline"
+                disabled={launch.isPending || mode === "groups"}
+                onClick={() => setSelected([])}
+              >
+                Clear selection
+              </Button>
+            </div>
+            {chosen.length > 0 && (
+              <details>
+                <summary>
+                  Review selected plugins (including hidden selections)
+                </summary>
+                {chosen.map((p) => (
+                  <p key={p.id}>
+                    <code>{p.id}</code> · {p.title}
+                  </p>
+                ))}
+              </details>
+            )}
+            <div className="actions justify-between">
+              <span className="muted">No automatic retries.</span>
+              <Button
+                disabled={
+                  !chosen.length ||
+                  !targetIDs.length ||
+                  launch.isPending ||
+                  (mode === "groups" &&
+                    (!!profiles.error || (!!profile && !profileDetail.data)))
+                }
+                onClick={() =>
+                  launch.mutate(undefined, { onSuccess: onLaunched })
+                }
+              >
+                {launch.isPending ? "Submitting…" : "Run"}
+              </Button>
+            </div>
           </div>
           {launch.isError && (
             <p className="muted">
@@ -313,6 +437,41 @@ export default function PluginLauncher({
           )}
         </>
       )}
-    </Modal>
+      {help && (
+        <Inspector title={help.title} onClose={() => setHelp(null)}>
+          <p>
+            <code>{help.id}</code>
+          </p>
+          <p>{help.description}</p>
+          <p className="muted">
+            {help.group} · {help.type} · {help.runtime_type}
+          </p>
+          <h3>Availability</h3>
+          <p>
+            {help.availability}
+            {help.reason ? `: ${help.reason}` : ""}
+          </p>
+          <h3>Inputs</h3>
+          {(help.inputs || []).map((input) => (
+            <section key={input.name}>
+              <h4>
+                {input.name} {input.required ? "(required)" : ""}
+              </h4>
+              <p>{input.description}</p>
+              <p className="muted">
+                Type: {input.type}
+                {input.default !== undefined
+                  ? ` · Default: ${String(input.default)}`
+                  : ""}
+              </p>
+              {input.choices?.length ? (
+                <p>Choices: {input.choices.join(", ")}</p>
+              ) : null}
+            </section>
+          ))}
+          {!help.inputs?.length && <p>No configurable inputs.</p>}
+        </Inspector>
+      )}
+    </section>
   );
 }

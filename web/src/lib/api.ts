@@ -27,8 +27,15 @@ export async function request<T>(
     method,
     signal,
     headers:
-      body === undefined ? undefined : { "Content-Type": "application/json" },
-    body: body === undefined ? undefined : JSON.stringify(body),
+      body === undefined || body instanceof FormData
+        ? undefined
+        : { "Content-Type": "application/json" },
+    body:
+      body === undefined
+        ? undefined
+        : body instanceof FormData
+          ? body
+          : JSON.stringify(body),
   });
   if (!response.ok) {
     const result = await response.json().catch(() => null);

@@ -7,12 +7,48 @@ services:
     restart: unless-stopped
     environment:
       OWTF_WORKERS: ${OWTF_WORKERS:-1}
+      OWTF_PLUGIN_PROXY: http://127.0.0.1:8008
+      OWTF_PLUGIN_PROXY_CA: /data/proxy-ca.crt
     ports:
       - "${OWTF_BIND:-127.0.0.1}:${OWTF_PORT:-8009}:8009"
+      - "${OWTF_BIND:-127.0.0.1}:${OWTF_PROXY_PORT:-8008}:8008"
     volumes:
       - owtf_data:/data
     cpus: 1.0
     mem_limit: 512m
+
+  proxy:
+    image: ${OWTF_IMAGE:-owtf:local}
+    restart: unless-stopped
+    environment:
+      OWTF_PROXY_ATTACH: "1"
+    depends_on:
+      owtf:
+        condition: service_healthy
+    # The backend reaches the control API only over loopback; port 8010 is never published.
+    network_mode: service:owtf
+    command:
+      - proxy
+      - --listen
+      - 0.0.0.0:8008
+      - --api-listen
+      - 127.0.0.1:8010
+      - --ca-cert
+      - /data/proxy-ca.crt
+      - --ca-key
+      - /data/proxy-ca.key
+      - --output
+      - /data/proxy-capture.har
+    volumes:
+      - owtf_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8010/api/v2/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    stop_grace_period: 30s
+    cpus: 1.0
+    mem_limit: 256m
 
 volumes:
   owtf_data:

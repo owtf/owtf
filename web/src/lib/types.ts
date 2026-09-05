@@ -5,6 +5,7 @@ export interface Session {
   created_at: string;
 }
 export interface Target {
+  created_at?: string;
   id: string;
   session_id: string;
   value: string;
@@ -77,6 +78,7 @@ export interface Artifact {
   size: number;
 }
 export interface Transaction {
+  source_artifact_id?: string;
   id: string;
   task_id?: string;
   target_id: string;
@@ -103,6 +105,8 @@ export interface Finding {
   description: string;
 }
 export interface Report {
+  host?: string;
+  targets?: Target[];
   target: Target;
   tasks: Task[];
   plugin_output_reviews: Review[];
@@ -144,3 +148,28 @@ export const dispositions = [
   "false_positive",
   "accepted_risk",
 ];
+
+export interface Profile {
+  name: string;
+  description?: string;
+  plugins: string[];
+}
+export interface Run {
+  id: string;
+  session_id: string;
+  profile?: string;
+  status: string;
+  created_at: string;
+  started_at?: string;
+  finished_at?: string;
+}
+
+export interface TaskAttempt {
+  id: string;
+  task_id: string;
+  attempt_number: number;
+  status: string;
+  started_at: string;
+  ended_at?: string;
+  error?: string;
+}

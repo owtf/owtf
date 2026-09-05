@@ -6,7 +6,6 @@ import {
   Confirm,
   ErrorMessage,
   Loading,
-  Modal,
   PageHead,
   Pager,
   SessionLink,
@@ -15,6 +14,8 @@ import {
 } from "../components/shared";
 import { Input } from "../components/ui/input";
 import TaskDetail from "../components/TaskDetail";
+import Inspector from "../components/Inspector";
+import ExecutionMetrics from "../components/ExecutionMetrics";
 
 export default function Work({
   session,
@@ -62,7 +63,7 @@ export default function Work({
   const controls = (task: Task) => (
     <div className="actions">
       <Button size="sm" variant="outline" onClick={() => setDetail(task.id)}>
-        Log / Review
+        Log
       </Button>
       {task.status === "queued" && (
         <Button
@@ -147,6 +148,11 @@ export default function Work({
           Refresh
         </Button>
       </PageHead>
+      <nav className="section-tabs" aria-label="Work views">
+        <SessionLink to="/work">Worklist</SessionLink>
+        <SessionLink to="/workers">Workers</SessionLink>
+        <SessionLink to="/runs">Runs</SessionLink>
+      </nav>
       <ErrorMessage
         error={
           tasks.error ||
@@ -156,6 +162,7 @@ export default function Work({
           reorder.error
         }
       />
+      {workers && <ExecutionMetrics />}
       {workers && (
         <section className="panel">
           <div className="table-wrap">
@@ -287,14 +294,12 @@ export default function Work({
         )}
       </section>
       {selected && (
-        <Modal
-          open
-          title={selected.plugin_id}
-          description="Recorded execution output and review"
-          onClose={() => setDetail(null)}
-        >
+        <Inspector title={selected.plugin_id} onClose={() => setDetail(null)}>
+          <SessionLink to={`/targets/${selected.target_id}`}>
+            Target report
+          </SessionLink>
           <TaskDetail key={selected.id} task={selected} />
-        </Modal>
+        </Inspector>
       )}
       <Confirm
         open={!!confirm}

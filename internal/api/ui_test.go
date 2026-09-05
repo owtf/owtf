@@ -30,7 +30,7 @@ func TestEmbeddedUIAssets(t *testing.T) {
 
 func TestUIRoutes(t *testing.T) {
 	server := &Server{}
-	for _, path := range []string{"/", "/work", "/workers", "/transactions", "/settings", "/help", "/targets/test"} {
+	for _, path := range []string{"/", "/work", "/workers", "/transactions", "/settings", "/help", "/targets/test", "/targets/new", "/reports", "/profiles", "/runs"} {
 		response := httptest.NewRecorder()
 		server.app(response, httptest.NewRequest("GET", path, nil))
 		if response.Code != 200 || !strings.Contains(response.Body.String(), `id="root"`) {

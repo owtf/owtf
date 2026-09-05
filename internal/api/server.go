@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/owtf/owtf/internal/artifact"
+	owtfconfig "github.com/owtf/owtf/internal/config"
 	"github.com/owtf/owtf/internal/har"
 	helpinfo "github.com/owtf/owtf/internal/help"
 	"github.com/owtf/owtf/internal/model"
@@ -42,6 +43,7 @@ type Server struct {
 	help           *helpinfo.Catalog
 	defaultProfile string
 	runner         *runner.Runner
+	runtimeConfig  *owtfconfig.Config
 }
 
 // Config supplies the services owned by one API server.
@@ -53,6 +55,8 @@ type Config struct {
 	Help           *helpinfo.Catalog
 	DefaultProfile string
 	Runner         *runner.Runner
+	// RuntimeConfig is the effective startup configuration, after overrides.
+	RuntimeConfig *owtfconfig.Config
 }
 
 // New returns the complete OWTF HTTP handler. Authentication is intentionally
@@ -68,9 +72,23 @@ func New(config Config) http.Handler {
 		store: config.Store, artifacts: config.Artifacts, catalog: config.Plugins,
 		profiles: config.Profiles, help: config.Help, defaultProfile: config.DefaultProfile, runner: config.Runner,
 	}
+	if config.RuntimeConfig != nil {
+		redacted := config.RuntimeConfig.Redacted()
+		server.runtimeConfig = &redacted
+	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /debug/health", server.health)
 	mux.HandleFunc("GET /api/v2/health", server.health)
+	mux.HandleFunc("GET /api/v2/config", server.getConfig)
+	mux.HandleFunc("POST /api/v2/config/validate", server.validateConfig)
+	proxyAddress := ""
+	if config.RuntimeConfig != nil {
+		proxyAddress = config.RuntimeConfig.Proxy.APIAddress
+	}
+	proxyHandler := proxyAPI(proxyAddress)
+	for _, method := range []string{"GET", "POST", "PUT", "PATCH", "DELETE"} {
+		mux.Handle(method+" /api/v2/proxy/", proxyHandler)
+	}
 	mux.HandleFunc("GET /api/v2/sessions", server.listSessions)
 	mux.HandleFunc("POST /api/v2/sessions", server.createSession)
 	mux.HandleFunc("GET /api/v2/sessions/{sessionID}", server.getSession)
@@ -151,9 +169,13 @@ func (s *Server) middleware(next http.Handler) http.Handler {
 }
 
 func (s *Server) app(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" && r.URL.Path != "/settings" && r.URL.Path != "/help" && r.URL.Path != "/work" && r.URL.Path != "/workers" && r.URL.Path != "/transactions" && !strings.HasPrefix(r.URL.Path, "/targets/") {
-		http.NotFound(w, r)
-		return
+	switch r.URL.Path {
+	case "/", "/settings", "/help", "/work", "/workers", "/transactions", "/reports", "/profiles", "/runs":
+	default:
+		if !strings.HasPrefix(r.URL.Path, "/targets/") {
+			http.NotFound(w, r)
+			return
+		}
 	}
 	data, err := uiFiles.ReadFile("ui/index.html")
 	if err != nil {
@@ -327,7 +349,11 @@ func (s *Server) deleteTarget(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) targetReport(w http.ResponseWriter, r *http.Request) {
-	report, err := s.store.GetTargetReport(r.Context(), r.PathValue("targetID"), r.URL.Query()["disposition"]...)
+	getReport := s.store.GetTargetReport
+	if r.URL.Query().Get("group") == "host" {
+		getReport = s.store.GetTargetGroupReport
+	}
+	report, err := getReport(r.Context(), r.PathValue("targetID"), r.URL.Query()["disposition"]...)
 	if s.handleStoreError(w, err) {
 		return
 	}

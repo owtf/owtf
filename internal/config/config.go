@@ -132,6 +132,12 @@ func Load(path string) (Config, error) {
 	if err != nil {
 		return Config{}, fmt.Errorf("read configuration: %w", err)
 	}
+	return Parse(data)
+}
+
+// Parse validates a strict YAML configuration without reading files or applying
+// environment overrides. It is shared by file loading and API validation.
+func Parse(data []byte) (Config, error) {
 	if len(data) > maximumFileSize {
 		return Config{}, fmt.Errorf("configuration exceeds %d bytes", maximumFileSize)
 	}

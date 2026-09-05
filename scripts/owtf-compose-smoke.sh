@@ -13,6 +13,7 @@ RESTORED="${PROJECT}-restored"
 mkdir -p "$ROOT/build"
 PROOF=$(mktemp -d "$ROOT/build/compose-proof.XXXXXX")
 export OWTF_PORT=${OWTF_PROOF_PORT:-18209}
+export OWTF_PROXY_PORT=${OWTF_PROOF_PROXY_PORT:-$((OWTF_PORT - 1))}
 URL="http://127.0.0.1:${OWTF_PORT}"
 OVERRIDE="$PROOF/compose.yaml"
 PASSED=false
@@ -77,10 +78,28 @@ cli sessions create --name 'Compose recovery demonstration' >"$PROOF/session.jso
 SESSION=$(jq -r .id "$PROOF/session.json")
 cli targets add --session "$SESSION" http://127.0.0.1:8009/debug/health >"$PROOF/targets.json"
 TARGET=$(jq -r '.created[0].id' "$PROOF/targets.json")
+for attempt in $(seq 1 30); do
+  if curl -fsS "$URL/api/v2/proxy/health" >/dev/null 2>&1; then break; fi
+  sleep 1
+done
+curl -fsS -X PUT -H 'Content-Type: application/json' -d "{\"target_id\":\"$TARGET\"}" "$URL/api/v2/proxy/capture" >"$PROOF/capture-start.json"
+compose exec -T owtf curl --noproxy '' -fsS -x http://127.0.0.1:8008 'http://127.0.0.1:8009/debug/health?capture=live' >"$PROOF/captured-body.json"
+for attempt in $(seq 1 30); do
+  curl -fsS "$URL/api/v2/targets/$TARGET/transactions" >"$PROOF/captured-transactions.json"
+  if jq -e 'any(.[]; .url == "http://127.0.0.1:8009/debug/health?capture=live" and .response_body_artifact_id != "")' "$PROOF/captured-transactions.json" >/dev/null; then break; fi
+  sleep 0.1
+done
+jq -e 'length == 1' "$PROOF/captured-transactions.json" >/dev/null
+curl -fsS -X PUT -H 'Content-Type: application/json' -d '{"target_id":""}' "$URL/api/v2/proxy/capture" >"$PROOF/capture-stop.json"
 cli runs create --session "$SESSION" --target "$TARGET" --plugin OWTF-WSP-001-active >"$PROOF/run.json"
 TASK=$(jq -r '.tasks[0].id' "$PROOF/run.json")
 wait_task "$TASK" succeeded
 cli plugin review --disposition confirmed --rank informational --notes 'Verified against the local Compose health endpoint.' "$TASK" >"$PROOF/review.json"
+cli runs create --session "$SESSION" --target "$TARGET" --plugin OWTF-WSP-001-active >"$PROOF/second-run.json"
+SECOND_TASK=$(jq -r '.tasks[0].id' "$PROOF/second-run.json")
+[[ "$SECOND_TASK" != "$TASK" ]]
+wait_task "$SECOND_TASK" succeeded
+cli plugin review --disposition false_positive --rank passing --notes 'Independent review for the second execution.' "$SECOND_TASK" >"$PROOF/second-review.json"
 echo 'Checking active cancellation and process cleanup...'
 cli runs create --session "$SESSION" --target "$TARGET" --plugin OWTF-SMOKE-001-active >"$PROOF/cancel-run.json"
 CANCEL=$(jq -r '.tasks[0].id' "$PROOF/cancel-run.json")
@@ -99,7 +118,10 @@ wait_task "$CANCEL" cancelled
 # A cancelled task must not leave the sleep child alive in the container.
 compose exec -T owtf sh -c 'for file in /proc/[0-9]*/comm; do if [ "$(cat "$file" 2>/dev/null)" = sleep ]; then exit 1; fi; done'
 cli sessions report "$SESSION" >"$PROOF/before.json"
-jq -e '.summary.tasks == 2 and .summary.succeeded == 1 and .summary.cancelled == 1 and .summary.artifacts > 0 and (.plugin_output_review_events | length) == 1' "$PROOF/before.json" >/dev/null
+jq -e '.summary.tasks == 3 and .summary.succeeded == 2 and .summary.cancelled == 1 and .summary.artifacts > 0 and (.plugin_output_review_events | length) == 2' "$PROOF/before.json" >/dev/null
+jq -e --arg first "$TASK" --arg second "$SECOND_TASK" \
+  'any(.plugin_output_reviews[]; .task_id == $first and .disposition == "confirmed") and any(.plugin_output_reviews[]; .task_id == $second and .disposition == "false_positive")' \
+  "$PROOF/before.json" >/dev/null
 curl -fsS "$URL/api/v2/sessions/$SESSION/export" >"$PROOF/before.zip"
 unzip -tqq "$PROOF/before.zip"
 echo 'Checking restart persistence...'
@@ -108,7 +130,7 @@ wait_health
 cli sessions report "$SESSION" >"$PROOF/restarted.json"
 diff -u <(jq -S . "$PROOF/before.json") <(jq -S . "$PROOF/restarted.json")
 echo 'Backing up the stopped volume and restoring into a fresh volume...'
-compose stop owtf
+compose stop proxy owtf
 compose run --rm --no-deps -T --entrypoint tar owtf -C /data -czf - . >"$PROOF/data.tar.gz"
 restore run --rm --no-deps -T --user root --entrypoint tar owtf -C /data -xzf - <"$PROOF/data.tar.gz"
 restore up -d --no-build

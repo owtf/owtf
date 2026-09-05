@@ -60,15 +60,13 @@ describe("plugin launcher", () => {
     );
     vi.stubGlobal("fetch", fetch);
     launcher();
-    expect(
-      await screen.findByRole("button", { name: "Run 0 plugin(s)" }),
-    ).toBeDisabled();
+    expect(await screen.findByRole("button", { name: "Run" })).toBeDisabled();
     expect(screen.getByLabelText("Select OWTF-X-002-active")).toBeDisabled();
     fireEvent.click(screen.getByLabelText("Select OWTF-X-001-active"));
     fireEvent.change(screen.getByLabelText("OWTF-X-001-active port"), {
       target: { value: "8080" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Run 1 plugin(s)" }));
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
     await waitFor(() =>
       expect(fetch.mock.calls.some(([, init]) => init?.method === "POST")).toBe(
         true,
@@ -95,7 +93,7 @@ describe("plugin launcher", () => {
     vi.stubGlobal("fetch", fetch);
     launcher();
     fireEvent.click(await screen.findByLabelText("Select OWTF-X-001-active"));
-    fireEvent.click(screen.getByRole("button", { name: "Run 1 plugin(s)" }));
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Fixture refused",
     );
@@ -112,12 +110,33 @@ it("rejects invalid integer input rather than truncating it", () => {
     ).toThrow();
   expect(inputValue({ name: "port", type: "integer" }, "8080")).toBe(8080);
 });
-it("groups report execution history by returned technique metadata", () => {
+it("groups repeated report executions by plugin ID", () => {
   const tasks = [
-    { id: "a", techniques: [{ code: "OWTF-A", title: "A" }] },
-    { id: "b", techniques: [{ code: "OWTF-A", title: "A" }] },
+    {
+      id: "a",
+      plugin_id: "OWTF-A-active",
+      techniques: [{ code: "OWTF-A", title: "A" }],
+    },
+    {
+      id: "b",
+      plugin_id: "OWTF-A-active",
+      techniques: [{ code: "OWTF-A", title: "A" }],
+    },
   ] as Task[];
   expect(groupTasks(tasks)[0][1].tasks).toHaveLength(2);
+});
+it("retains repeated plugin runs without technique metadata", () => {
+  const tasks = [
+    { id: "first", plugin_id: "local-command", techniques: [] },
+    { id: "second", plugin_id: "local-command" },
+  ] as unknown as Task[];
+  const groups = groupTasks(tasks);
+  expect(groups).toHaveLength(1);
+  expect(groups[0][0]).toBe("local-command");
+  expect(groups[0][1].tasks.map((task) => task.id)).toEqual([
+    "first",
+    "second",
+  ]);
 });
 it("rejects script and data links", () => {
   expect(safeURL("javascript:alert(1)")).toBeUndefined();
@@ -270,7 +289,10 @@ it("inspects captured transactions without sending replay traffic", async () => 
   );
   vi.stubGlobal("fetch", fetch);
   page(<Transactions session="s1" />);
-  fireEvent.click(await screen.findByRole("button", { name: "Inspect" }));
+  fireEvent.click(
+    await screen.findByRole("button", { name: "GET http://localhost/" }),
+  );
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(screen.getByText(/<script>bad/)).toBeInTheDocument();
   expect(document.querySelector("script")).toBeNull();
   expect(
@@ -283,7 +305,7 @@ it("does not create sessions implicitly", async () => {
   vi.stubGlobal("fetch", fetch);
   page(<App />);
   expect(
-    await screen.findByRole("heading", { name: "Start an OWTF session" }),
+    await screen.findByRole("heading", { name: "Create session" }),
   ).toBeInTheDocument();
   expect(fetch).toHaveBeenCalledTimes(1);
 });

@@ -28,6 +28,7 @@ type httpDoer interface {
 
 // APIConfig defines the dependencies of the loopback proxy API.
 type APIConfig struct {
+	Attachment   *Attachment
 	Authority    *Authority
 	Recorder     *Recorder
 	RepeatClient httpDoer
@@ -75,6 +76,8 @@ func NewAPI(config APIConfig) (http.Handler, error) {
 		live: config.Live, maximumBody: config.MaximumBody,
 	}
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /api/v2/capture", config.Attachment.ServeHTTP)
+	mux.HandleFunc("PUT /api/v2/capture", config.Attachment.ServeHTTP)
 	mux.HandleFunc("GET /api/v2/health", server.health)
 	mux.HandleFunc("GET /api/v2/ca", server.ca)
 	mux.HandleFunc("GET /api/v2/transactions", server.history)

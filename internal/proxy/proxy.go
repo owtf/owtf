@@ -28,6 +28,7 @@ type TransactionRecorder interface {
 
 // Config defines the dependencies and bounds of one proxy instance.
 type Config struct {
+	Attachment   *Attachment
 	Authority    *Authority
 	Recorder     TransactionRecorder
 	Transport    http.RoundTripper
@@ -40,6 +41,7 @@ type Config struct {
 
 // Proxy forwards HTTP and HTTPS requests and records their transactions.
 type Proxy struct {
+	attachment   *Attachment
 	authority    *Authority
 	recorder     TransactionRecorder
 	transport    http.RoundTripper
@@ -77,7 +79,7 @@ func New(config Config) (*Proxy, error) {
 		}
 	}
 	return &Proxy{
-		authority: config.Authority, recorder: config.Recorder, transport: config.Transport,
+		authority: config.Authority, recorder: config.Recorder, transport: config.Transport, attachment: config.Attachment,
 		allowedHosts: allowedHosts, maximumBody: config.MaximumBody,
 		interceptors: config.Interceptors, live: config.Live, errorLog: config.ErrorLog,
 	}, nil
@@ -101,6 +103,7 @@ func (p *Proxy) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 }
 
 func (p *Proxy) forward(writer http.ResponseWriter, request *http.Request, scheme, authority string) {
+	attach := p.attachment.Snapshot()
 	started := time.Now().UTC()
 	interceptors := p.interceptors.snapshot()
 	outgoing := request.Clone(request.Context())
@@ -152,7 +155,7 @@ func (p *Proxy) forward(writer http.ResponseWriter, request *http.Request, schem
 	// through body interceptors before handing ownership to the tunnel.
 	if response.StatusCode == http.StatusSwitchingProtocols && upgrade {
 		transcript := p.upgrade(writer, response)
-		p.record(started, outgoing, response, requestBody.Bytes(), transcript)
+		p.record(attach, started, outgoing, response, requestBody.Bytes(), transcript)
 		return
 	}
 	if err := interceptors.interceptResponse(request.Context(), response); err != nil {
@@ -165,7 +168,7 @@ func (p *Proxy) forward(writer http.ResponseWriter, request *http.Request, schem
 				body, readErr := readInterceptorBody(response.Body, p.maximumBody)
 				if readErr == nil {
 					setResponseBody(response, body)
-					p.record(started, outgoing, response, requestBody.Bytes(), body)
+					p.record(attach, started, outgoing, response, requestBody.Bytes(), body)
 				} else {
 					p.errorLog.Printf("capture dropped response %s: %v", outgoing.URL.Redacted(), readErr)
 				}
@@ -180,7 +183,7 @@ func (p *Proxy) forward(writer http.ResponseWriter, request *http.Request, schem
 	if _, err := io.Copy(writer, io.TeeReader(response.Body, responseBody)); err != nil {
 		p.errorLog.Printf("proxy response %s: %v", outgoing.URL.Redacted(), err)
 	}
-	p.record(started, outgoing, response, requestBody.Bytes(), responseBody.Bytes())
+	p.record(attach, started, outgoing, response, requestBody.Bytes(), responseBody.Bytes())
 }
 
 func (p *Proxy) interceptionError(writer http.ResponseWriter, phase string, err error) {
@@ -316,7 +319,7 @@ func (p *Proxy) upgrade(writer http.ResponseWriter, response *http.Response) []b
 	return capture.bytes()
 }
 
-func (p *Proxy) record(started time.Time, request *http.Request, response *http.Response, requestBody, responseBody []byte) {
+func (p *Proxy) record(attach func(har.Transaction) error, started time.Time, request *http.Request, response *http.Response, requestBody, responseBody []byte) {
 	requestHeaders, _ := json.Marshal(request.Header)
 	responseHeaders, _ := json.Marshal(response.Header)
 	transaction := har.Transaction{
@@ -328,6 +331,11 @@ func (p *Proxy) record(started time.Time, request *http.Request, response *http.
 	}
 	if response.StatusCode == http.StatusSwitchingProtocols && len(responseBody) > 0 {
 		transaction.ResponseMediaType = "application/vnd.owtf.websocket+json"
+	}
+	if attach != nil {
+		if err := attach(transaction); err != nil {
+			p.errorLog.Printf("attach proxy transaction: %v", err)
+		}
 	}
 	if err := p.recorder.Record(transaction); err != nil {
 		p.errorLog.Printf("record proxy transaction: %v", err)

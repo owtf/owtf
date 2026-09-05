@@ -71,6 +71,28 @@ setting/resource occurrence in four pinned source files and records remaining ga
 
 ## Run locally
 
+For the UI, backend, and proxy together:
+
+```bash
+docker compose -f docker/docker-compose.yml up --build -d
+```
+
+Open `http://127.0.0.1:8009`. The traffic proxy listens on
+`127.0.0.1:8008`; its control API stays private in the shared container network
+namespace. Proxy controls are available in the UI's Proxy page. The CA and HAR
+capture persist in the data volume; graceful shutdown flushes the HAR. Use
+`OWTF_PORT` and `OWTF_PROXY_PORT` to change the published ports. Hosts with the
+standalone Compose executable can use `docker-compose` instead of `docker compose`.
+
+Compose routes built-in HTTP plugins through that proxy. Proxy-aware host tools
+receive proxy and CA environment variables; this is not transparent routing for
+raw sockets or isolated containers. In Proxy controls, **Capture to target** saves
+matching-origin traffic directly to the selected target, including request and
+response bodies. No HAR import is needed. Attachment continues when the page is
+closed and stops on proxy restart. Unrelated traffic stays in shared history.
+
+For a direct Go development process:
+
 Install Go 1.24 or newer, then build and start OWTF:
 
 ```bash
@@ -111,8 +133,8 @@ changes it.
 
 ## Run with Docker
 
-Docker is optional. Compose starts one resource-bounded OWTF service backed by
-a named SQLite data volume:
+Docker is optional. Compose starts resource-bounded OWTF and proxy services backed
+by a named SQLite data volume:
 
 ```bash
 make install       # Build OWTF and owtf/kali-tools:local

@@ -12,37 +12,24 @@ import {
   SessionLink,
 } from "../components/shared";
 import { Input } from "../components/ui/input";
-import { Textarea } from "../components/ui/textarea";
 import PluginLauncher from "../components/PluginLauncher";
 
 export default function Targets({ session }: { session: string }) {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [kind, setKind] = useState("");
+  const [scopeFilter, setScopeFilter] = useState("");
   const [offset, setOffset] = useState(0);
-  const [draft, setDraft] = useState("");
-  const [notice, setNotice] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const [launch, setLaunch] = useState<string[] | null>(null);
   const [deleting, setDeleting] = useState<string[] | null>(null);
   const query = useAPI<Page<Target>>(
-    `/sessions/${session}/targets/search?${params({ search, offset, limit: 20 })}`,
+    `/sessions/${session}/targets/search?${params({ search, offset, limit: 20, ...(kind ? { kind } : {}), ...(scopeFilter ? { scope: scopeFilter } : {}) })}`,
   );
-  const add = useAction(async () => {
-    const result = await request<{
-      created: Target[];
-      duplicates: Target[];
-      invalid: { input: string; error: string }[];
-    }>(`/sessions/${session}/targets`, "POST", {
-      targets: draft
-        .split("\n")
-        .map((v) => v.trim())
-        .filter(Boolean),
-    });
-    setNotice(
-      `${result.created.length} added, ${result.duplicates.length} duplicate(s). ${result.invalid.map((v) => `${v.input}: ${v.error}`).join("; ")}`,
-    );
-    setDraft(result.invalid.map((v) => v.input).join("\n"));
-  });
+  const scope = useAction(
+    async ({ id, value }: { id: string; value: boolean }) =>
+      request(`/targets/${id}`, "PATCH", { scope: value }),
+  );
   const remove = useAction(async () => {
     // Sequential deletes preserve the first failure and never replay a mutation.
     for (const id of deleting || []) {
@@ -52,42 +39,28 @@ export default function Targets({ session }: { session: string }) {
     }
     setDeleting(null);
   });
+  if (launch)
+    return (
+      <PluginLauncher
+        session={session}
+        targets={launch}
+        onClose={() => setLaunch(null)}
+        onLaunched={() => navigate(`/work?session=${session}`)}
+      />
+    );
   return (
     <>
       <PageHead
         title="Targets"
         description="Define targets, select plugins, review results."
       >
+        <SessionLink className="button-link" to="/targets/new">
+          Add targets
+        </SessionLink>
         <a className="button-link" href={`/api/v2/sessions/${session}/export`}>
           Export session report
         </a>
       </PageHead>
-      <section className="panel">
-        <h2>Add targets</h2>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            add.mutate(undefined);
-          }}
-        >
-          <label htmlFor="new-targets">
-            One URL, hostname, IP address or CIDR per line
-          </label>
-          <Textarea
-            id="new-targets"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="https://app.example.com"
-          />
-          <div className="actions">
-            <Button disabled={!draft.trim() || add.isPending} type="submit">
-              {add.isPending ? "Adding…" : "Add targets"}
-            </Button>
-            <p role="status">{notice}</p>
-          </div>
-          <ErrorMessage error={add.error} />
-        </form>
-      </section>
       <section className="panel">
         <div className="section-head">
           <h2>Target list</h2>
@@ -96,7 +69,7 @@ export default function Targets({ session }: { session: string }) {
               disabled={!selected.length}
               onClick={() => setLaunch(selected)}
             >
-              Run plugins ({selected.length})
+              Run plugins
             </Button>
             <Button
               variant="outline"
@@ -121,12 +94,42 @@ export default function Targets({ session }: { session: string }) {
               }}
             />
           </label>
+          <label>
+            Target type
+            <select
+              value={kind}
+              onChange={(event) => {
+                setKind(event.target.value);
+                setOffset(0);
+              }}
+            >
+              <option value="">All types</option>
+              <option value="url">URL</option>
+              <option value="hostname">Hostname</option>
+              <option value="ip">IP</option>
+              <option value="cidr">CIDR</option>
+            </select>
+          </label>
+          <label>
+            Scope filter
+            <select
+              value={scopeFilter}
+              onChange={(event) => {
+                setScopeFilter(event.target.value);
+                setOffset(0);
+              }}
+            >
+              <option value="">Any scope</option>
+              <option value="true">In scope</option>
+              <option value="false">Out of scope</option>
+            </select>
+          </label>
           <span className="muted">{selected.length} selected across pages</span>
           <Button variant="ghost" onClick={() => setSelected([])}>
             Clear selection
           </Button>
         </div>
-        <ErrorMessage error={query.error} />
+        <ErrorMessage error={query.error || scope.error} />
         {query.isPending ? (
           <Loading />
         ) : (
@@ -192,7 +195,23 @@ export default function Targets({ session }: { session: string }) {
                         <div className="muted mono">{t.id}</div>
                       </td>
                       <td>{t.kind}</td>
-                      <td>{t.scope ? "In scope" : "Out of scope"}</td>
+                      <td>
+                        <label className="actions">
+                          <input
+                            type="checkbox"
+                            aria-label={`Scope ${t.value}`}
+                            checked={t.scope}
+                            disabled={scope.isPending}
+                            onChange={(e) =>
+                              scope.mutate({
+                                id: t.id,
+                                value: e.target.checked,
+                              })
+                            }
+                          />
+                          In scope
+                        </label>
+                      </td>
                       <td>
                         <div className="actions">
                           <Button
@@ -238,14 +257,7 @@ export default function Targets({ session }: { session: string }) {
           </>
         )}
       </section>
-      {launch && (
-        <PluginLauncher
-          session={session}
-          targets={launch}
-          onClose={() => setLaunch(null)}
-          onLaunched={() => navigate(`/work?session=${session}`)}
-        />
-      )}
+
       <Confirm
         open={deleting !== null}
         title={`Delete ${deleting?.length || 0} target(s)?`}

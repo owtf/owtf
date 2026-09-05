@@ -266,6 +266,16 @@ func commandEnvironment(request Request, workDir string) []string {
 			environment = append(environment, key+"="+value)
 		}
 	}
+	if address := os.Getenv("OWTF_PLUGIN_PROXY"); address != "" {
+		for _, key := range []string{"HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy"} {
+			environment = append(environment, key+"="+address)
+		}
+		if ca := os.Getenv("OWTF_PLUGIN_PROXY_CA"); ca != "" {
+			for _, key := range []string{"SSL_CERT_FILE", "REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE"} {
+				environment = append(environment, key+"="+ca)
+			}
+		}
+	}
 	return append(environment,
 		"OWTF_TARGET="+request.Target.Value,
 		"OWTF_TARGET_KIND="+request.Target.Kind,

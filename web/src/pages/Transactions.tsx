@@ -1,61 +1,97 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useAPI, params } from "../lib/api";
+import { useAPI, useAction, request, params } from "../lib/api";
 import type { Page, Transaction } from "../lib/types";
 import {
   Button,
+  Confirm,
   ErrorMessage,
   Loading,
-  Modal,
   PageHead,
   Pager,
-  pretty,
 } from "../components/shared";
+import ImportHAR from "../components/ImportHAR";
+import ProxyInterception from "../components/ProxyInterception";
+import CaptureTarget from "../components/CaptureTarget";
+import Inspector from "../components/Inspector";
+import HTTPExchange from "../components/HTTPExchange";
 import { Input } from "../components/ui/input";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "../components/ui/tabs";
 
-function BodyLink({ id }: { id?: string }) {
-  return id ? (
-    <a
-      className="button-link"
-      href={`/api/v2/artifacts/${id}`}
-      target="_blank"
-      rel="noreferrer"
-    >
-      Open captured body
-    </a>
-  ) : (
-    <p className="muted">No captured body.</p>
-  );
-}
 export default function Transactions({ session }: { session: string }) {
-  const [url] = useSearchParams();
+  const [url, setURL] = useSearchParams();
+  const [importing, setImporting] = useState(false);
+  const [controls, setControls] = useState(false);
+  const [deleting, setDeleting] = useState<Transaction | null>(null);
+  const remove = useAction(async () => {
+    if (!deleting) return;
+    await request(
+      `/targets/${deleting.target_id}/transactions/${deleting.id}`,
+      "DELETE",
+    );
+    if (selection?.id === deleting.id) setSelected(null);
+    if (url.get("transaction") === deleting.id) {
+      const next = new URLSearchParams(url);
+      next.delete("transaction");
+      setURL(next);
+    }
+    setDeleting(null);
+  });
   const [search, setSearch] = useState("");
   const [method, setMethod] = useState("");
   const [status, setStatus] = useState("");
   const [offset, setOffset] = useState(0);
-  const [selected, setSelected] = useState<Transaction | null>(null);
+  const [selection, setSelected] = useState<Transaction | null>(null);
+  const detail = useAPI<Transaction>(
+    url.get("target") && url.get("transaction")
+      ? `/targets/${encodeURIComponent(url.get("target")!)}/transactions/${encodeURIComponent(url.get("transaction")!)}`
+      : "",
+  );
+  const selected = selection || detail.data;
   const query = useAPI<Page<Transaction>>(
     `/transactions/search?${params({ session_id: session, target_id: url.get("target") || "", search, method, status_code: status, offset, limit: 20 })}`,
+    true,
   );
   const rows = query.data?.data || [];
   const selectedIndex = rows.findIndex((row) => row.id === selected?.id);
   return (
     <>
       <PageHead
-        title="Transactions"
+        title="Proxy"
         description="Captured HTTP requests and responses. Opening evidence does not replay traffic."
       >
+        <Button variant="outline" onClick={() => setImporting(true)}>
+          Import HAR
+        </Button>
         <Button variant="outline" onClick={() => query.refetch()}>
           Refresh
         </Button>
       </PageHead>
-      <section className="panel">
+      <details
+        open={controls}
+        onToggle={(event) => {
+          const open = event.currentTarget.open;
+          setControls(open);
+          if (open) {
+            setSelected(null);
+            if (url.has("transaction")) {
+              const next = new URLSearchParams(url);
+              next.delete("transaction");
+              setURL(next);
+            }
+          }
+        }}
+      >
+        <summary>Proxy controls</summary>
+        {controls && (
+          <>
+            <CaptureTarget session={session} />
+            <ProxyInterception />
+          </>
+        )}
+      </details>
+      <ErrorMessage error={detail.error} />
+      <section className="proxy-history">
+        <h2>Captured requests</h2>
         <div className="filters">
           <label>
             Search URL
@@ -111,37 +147,45 @@ export default function Transactions({ session }: { session: string }) {
           <Loading />
         ) : (
           <>
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Method</th>
-                    <th>Status</th>
-                    <th>URL</th>
-                    <th>Duration</th>
-                    <th>Evidence</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {query.data?.data.map((t) => (
-                    <tr key={t.id}>
-                      <td>{t.method}</td>
-                      <td>{t.status_code}</td>
-                      <td className="break-all">{t.url}</td>
-                      <td>{t.duration_ms}ms</td>
-                      <td>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelected(t)}
-                        >
-                          Inspect
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="transaction-list" aria-label="Captured requests">
+              {rows.map((t) => (
+                <div
+                  className="transaction-row"
+                  data-selected={selected?.id === t.id}
+                  key={t.id}
+                >
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setControls(false);
+                      setSelected(t);
+                    }}
+                  >
+                    <code>
+                      {t.method} {t.url}
+                    </code>
+                  </Button>
+                  <span>
+                    {t.status_code} · {t.duration_ms} ms
+                  </span>
+                  <span className="muted">
+                    {t.task_id ||
+                      (t.source_artifact_id
+                        ? "Imported traffic"
+                        : "Proxy capture")}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      remove.reset();
+                      setDeleting(t);
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              ))}
             </div>
             {!query.data?.data.length && (
               <p className="empty">No captured transactions match.</p>
@@ -154,27 +198,56 @@ export default function Transactions({ session }: { session: string }) {
           </>
         )}
       </section>
+      {importing && (
+        <ImportHAR session={session} onClose={() => setImporting(false)} />
+      )}
+      <Confirm
+        open={!!deleting}
+        title="Delete transaction"
+        description="Remove this transaction from retained HTTP history. This cannot be undone."
+        busy={remove.isPending}
+        error={remove.error}
+        onClose={() => setDeleting(null)}
+        onConfirm={() => remove.mutate(undefined)}
+      />
       {selected && (
-        <Modal
-          open
-          title={`${selected.method} · ${selected.status_code}`}
-          description={selected.url}
-          onClose={() => setSelected(null)}
+        <Inspector
+          title="Transaction request and response"
+          onClose={() => {
+            setSelected(null);
+            const next = new URLSearchParams(url);
+            next.delete("transaction");
+            setURL(next);
+          }}
         >
-          <Tabs defaultValue="request">
-            <TabsList>
-              <TabsTrigger value="request">Request</TabsTrigger>
-              <TabsTrigger value="response">Response</TabsTrigger>
-            </TabsList>
-            <TabsContent value="request">
-              <pre>{pretty(selected.request_headers)}</pre>
-              <BodyLink id={selected.request_body_artifact_id} />
-            </TabsContent>
-            <TabsContent value="response">
-              <pre>{pretty(selected.response_headers)}</pre>
-              <BodyLink id={selected.response_body_artifact_id} />
-            </TabsContent>
-          </Tabs>
+          <h2>Transaction {selected.id} · request / response</h2>
+          <p className="muted">{selected.url}</p>
+          <HTTPExchange
+            key={selected.id}
+            request={{
+              line: selected.method + " " + selected.url,
+              headers: selected.request_headers,
+              artifact: selected.request_body_artifact_id,
+            }}
+            response={{
+              line: String(selected.status_code),
+              headers: selected.response_headers,
+              artifact: selected.response_body_artifact_id,
+            }}
+          />
+          {selected.task_id && (
+            <a
+              className="button-link"
+              href={
+                "/targets/" +
+                selected.target_id +
+                "?" +
+                new URLSearchParams({ session, execution: selected.task_id })
+              }
+            >
+              Review this evidence
+            </a>
+          )}
           <div className="actions">
             <Button
               variant="outline"
@@ -191,7 +264,7 @@ export default function Transactions({ session }: { session: string }) {
               Next transaction
             </Button>
           </div>
-        </Modal>
+        </Inspector>
       )}
     </>
   );
