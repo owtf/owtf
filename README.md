@@ -2,7 +2,7 @@
 
 [![Build status](https://github.com/owtf/owtf/actions/workflows/main.yml/badge.svg)](https://github.com/owtf/owtf/actions/workflows/main.yml)
 [![License: BSD 3-Clause](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square)](LICENSE.md)
-[![Go](https://img.shields.io/badge/Go-1.24-00ADD8.svg)](https://go.dev/)
+[![Go](https://img.shields.io/badge/Go-1.27-00ADD8.svg)](https://go.dev/)
 
 OWTF is a penetration tester's harness for authorized security research,
 plugin execution, evidence capture, and vulnerability reporting. It keeps
@@ -93,7 +93,7 @@ closed and stops on proxy restart. Unrelated traffic stays in shared history.
 
 For a direct Go development process:
 
-Install Go 1.24 or newer, then build and start OWTF:
+Install Go 1.27 or newer, then build and start OWTF:
 
 ```bash
 make build
@@ -107,6 +107,11 @@ settings or validate a file before startup:
 ./build/owtf config show
 ./build/owtf config validate .owtf/config.yaml
 ```
+
+Optional model configuration and CLI qualification are documented in
+[Model qualification](docs/usage/models.md). `owtf models list` is offline;
+`owtf models check --model ALIAS` sends a bounded, harmless provider probe.
+AI does not run plugins or access target evidence in this phase.
 
 The API is available at `http://127.0.0.1:8009`; it serves no UI files.
 For frontend development, run `cd web && npm ci && npm run dev` in another

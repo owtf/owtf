@@ -41,6 +41,8 @@ func run(args []string, stdout, stderr io.Writer) error {
 			return runProxyCommand(context.Background(), args[1:], stdout, stderr)
 		case "config":
 			return runConfig(args[1:], stdout, stderr)
+		case "models":
+			return runModels(args[1:], stdout, stderr)
 		default:
 			return cli.Run(context.Background(), args, stdout, stderr)
 		}

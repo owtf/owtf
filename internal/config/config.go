@@ -35,6 +35,7 @@ type Config struct {
 	Server     Server  `json:"server" yaml:"server"`
 	Plugins    Plugins `json:"plugins" yaml:"plugins"`
 	Proxy      Proxy   `json:"proxy" yaml:"proxy"`
+	AI         AI      `json:"ai" yaml:"ai"`
 }
 
 // HTTP configures OWTF-owned collectors, not external tools or proxy forwarding.
@@ -393,7 +394,7 @@ func (config Config) Validate() error {
 			}
 		}
 	}
-	return nil
+	return config.AI.Validate()
 }
 
 // Redacted returns a copy safe to print. An upstream username and password are

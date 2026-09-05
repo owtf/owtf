@@ -15,6 +15,10 @@ Start the local OWTF server::
 Configuration
 -------------
 
+Optional model connections and ``owtf models list|check`` are documented in
+`Model qualification <models.md>`_. They are local CLI commands and do not call
+the OWTF API. Only an explicit ``models check`` contacts a model provider.
+
 OWTF reads ``.owtf/config.yaml`` when it exists. A different file may be
 selected with ``OWTF_CONFIG`` or ``--config``. Unknown fields and unsupported
 schema versions fail before a listener or worker starts::

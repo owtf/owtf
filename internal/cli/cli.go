@@ -1086,6 +1086,8 @@ func printUsage(output io.Writer) {
   owtf serve [--config FILE] [--workers COUNT] [--task-timeout DURATION]
   owtf config show [--config FILE]
   owtf config validate FILE
+  owtf models list [--config FILE]
+  owtf models check [--config FILE] [--model ALIAS]
   owtf proxy [--config FILE] [--listen ADDRESS] [--api-listen ADDRESS]
   owtf proxy status|transactions|transaction|stats|clear|ca|repeat
   owtf proxy interceptors list|replace|enable|disable

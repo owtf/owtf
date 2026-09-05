@@ -13,6 +13,8 @@ The maintained design and operator documentation is intentionally small:
 - `architecture/settings-decisions.md` records verified differences, planned
   global controls, explicit retirements, and deferred plugin work.
 - `usage/cli.rst` documents the current CLI surface.
+- `usage/models.md` documents opt-in multi-provider model qualification.
+- `architecture/ai.md` defines the AI boundary and subsequent increments.
 - `usage/recovery.rst` covers Compose verification, backup/restore, and a manual CLI walkthrough.
 - `usage/access-model.rst` documents the deliberate absence of application
   authentication.
