@@ -1,0 +1,3 @@
+#!/bin/sh
+set -eu
+git diff --cached --check -- . ':!internal/api/ui/assets'

@@ -74,8 +74,11 @@ an HTTP proxy. Browser proxy configuration is external to the OWTF page.
 - Native browser HAR file selection and phone-sized layout have not been
   exercised live with the available IAB controls. API HAR import and the form's
   multipart behavior are tested; that is not native-picker evidence.
-- Layout follows the target/sidebar/accordion design and later user overrides,
-  but has not received a complete pixel-by-pixel mockup comparison.
+- Compared the saved storyline's plugin catalog and target-report structure
+  with the running UI. Preserved later overrides: right-aligned sessions,
+  severity colors, and the optional HTTP inspector. Fixed narrow host labels
+  and stacked picker actions. This is structural alignment, not pixel identity
+  with the earlier prototype, which predates these overrides.
 - Host grouping is a read model over stable URL targets, not a destructive schema
   migration. CLI target IDs and existing report/export formats remain usable.
 - Process-only actions (server start, trust installation, container tool setup)

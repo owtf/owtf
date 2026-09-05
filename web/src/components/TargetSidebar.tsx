@@ -64,7 +64,7 @@ export default function TargetSidebar({ session }: { session: string }) {
                   aria-label={`${name}${busy ? " Running" : ""}`}
                   to={`/targets/${anchor.id}?session=${session}`}
                 >
-                  <span>{name}</span>
+                  <span className="target-host" title={name}>{name}</span>
                   {busy && <small className="target-running">Running</small>}
                 </Link>
                 <details className="target-urls">

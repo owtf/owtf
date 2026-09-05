@@ -538,6 +538,12 @@ summary {
 .target-sidebar nav a:hover {
   background: #eceef1;
 }
+.target-host {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .target-sidebar nav a.active {
   background: #e7edf3;
 }
@@ -648,6 +654,12 @@ summary {
 .plugin-launcher {
   max-width: 900px;
   margin: 0 auto;
+}
+.plugin-launcher > .section-head,
+.plugin-launcher .picker-head {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
 }
 .picker-targets {
   padding: 12px 0;
