@@ -5,9 +5,12 @@ Manage workers and assign work to them.
 """
 
 import logging
+import sys
 import multiprocessing
 import queue
 import signal
+
+mp_context = multiprocessing.get_context("fork" if sys.platform == "darwin" else None)
 from time import strftime
 
 import psutil
@@ -95,8 +98,8 @@ class WorkerManager(object):
         :rtype: None
         """
         w = LocalWorker(
-            input_q=multiprocessing.Queue(),
-            output_q=multiprocessing.Queue(),
+            input_q=mp_context.Queue(),
+            output_q=mp_context.Queue(),
             index=index,
         )
         worker_dict = {"worker": w, "work": (), "work_id": None, "busy": False, "paused": False}
