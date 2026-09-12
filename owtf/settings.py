@@ -206,15 +206,6 @@ FALLBACK_RESOURCES_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "resources.c
 FALLBACK_WEB_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "profiles", "plugin_web", "order.cfg")
 FALLBACK_NET_PLUGIN_ORDER_PROFILE = os.path.join(ROOT_DIR, "data", "conf", "profiles", "plugin_net", "order.cfg")
 
-# Override the values
-local_conf = os.path.join(OWTF_CONF, "settings.py")
-try:
-    with open(local_conf) as f:
-        settings = compile(f.read(), local_conf, "exec")
-        exec(settings, globals(), locals())
-except FileNotFoundError:
-    pass
-
 # JWT
 JWT_SECRET_KEY = "changeme"  # Add your JWT_SECRET_KEY here
 JWT_ALGORITHM = "HS256"
@@ -226,10 +217,28 @@ JWT_OPTIONS = {
     "verify_iat": True,
     "verify_aud": False,
 }
+
 # Community Plugin Marketplace: seed admins from OWTF_ADMIN_EMAILS
-# (comma-separated). Emails on this list are promoted to admin at
-# registration. Ongoing admin management is done with the owtf-admin CLI.
 ADMIN_EMAILS = [e.strip().lower() for e in os.environ.get("OWTF_ADMIN_EMAILS", "").split(",") if e.strip()]
+
+# Worker scaling constants (Phase 2)
+WORKER_MAX_PROCESSES = 8
+WORKER_HIGH_WATER = 50
+WORKER_LOW_WATER = 10
+WORKER_BATCH_SIZE = 5
+
+# Plugin execution constants
+PLUGIN_TIMEOUT = 300  # 5 minutes
+PLUGIN_MAX_RETRIES = 2  # Max retries on plugin failure
+
+# Override the values
+local_conf = os.path.join(OWTF_CONF, "settings.py")
+try:
+    with open(local_conf) as f:
+        settings = compile(f.read(), local_conf, "exec")
+        exec(settings, globals(), locals())
+except FileNotFoundError:
+    pass
 
 if not ADMIN_EMAILS:
     import logging as _admin_logging
@@ -239,12 +248,3 @@ if not ADMIN_EMAILS:
         "Set the env var to a comma-separated list, or run "
         "'owtf-admin promote <email>' after registering your account."
     )
-# Worker scaling constants (Phase 2)
-WORKER_MAX_PROCESSES = globals().get("WORKER_MAX_PROCESSES", 8)
-WORKER_HIGH_WATER = globals().get("WORKER_HIGH_WATER", 50)
-WORKER_LOW_WATER = globals().get("WORKER_LOW_WATER", 10)
-WORKER_BATCH_SIZE = globals().get("WORKER_BATCH_SIZE", 5)
-
-# Plugin execution constants
-PLUGIN_TIMEOUT = 300  # 5 minutes
-PLUGIN_MAX_RETRIES = 2  # Max retries on plugin failure
