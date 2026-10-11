@@ -1,6 +1,8 @@
 """
 PASSIVE Plugin for Testing_for_SSL-TLS_(OWASP-CM-001)
 """
+
+from owtf.managers.resource import get_resources
 from owtf.plugin.helper import plugin_helper
 
 DESCRIPTION = "Third party resources"
