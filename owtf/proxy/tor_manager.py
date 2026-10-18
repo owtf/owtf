@@ -8,6 +8,8 @@ import socket
 import time
 from multiprocessing import Process
 
+import psutil
+
 from owtf.utils.error import abort_framework
 
 
@@ -57,8 +59,8 @@ class TOR_manager(object):
         :return:
         :rtype:
         """
-        self.tor_conn.send('AUTHENTICATE "%s"\r\n' % self.password)
-        response = self.tor_conn.recv(1024)
+        self.tor_conn.sendall(('AUTHENTICATE "%s"\r\n' % self.password).encode("utf-8"))
+        response = self.tor_conn.recv(1024).decode("utf-8", "replace")
         if response.startswith("250"):  # 250 is the success response
             logging.info("Successfully Authenticated to TOR control")
         else:
@@ -84,7 +86,7 @@ class TOR_manager(object):
         :return:
         :rtype:
         """
-        tor_ctrl_proc = Process(target=self.tor_control_process, args=(self,))
+        tor_ctrl_proc = Process(target=self.tor_control_process, daemon=True)
         tor_ctrl_proc.start()
         return tor_ctrl_proc
 
@@ -96,14 +98,13 @@ class TOR_manager(object):
         :return: True if running, else False
         :rtype: `bool`
         """
-        output = commands.getoutput('ps -A|grep -a " tor$"|wc -l')
-        if output == "1":
-            return True
-        elif output == "0":
-            return False
+        for process in psutil.process_iter(attrs=["name"], ad_value=None):
+            if process.info["name"] == "tor":
+                return True
+        return False
 
     @staticmethod
-    def msg_start_tor(self):
+    def msg_start_tor():
         logging.info("Error : TOR daemon is not running (Tips: service tor start)")
 
     # TOR configuration Info
@@ -139,8 +140,8 @@ class TOR_manager(object):
         :return: True if IP is renewed, else False
         :rtype: `bool`
         """
-        self.tor_conn.send("signal NEWNYM\r\n")
-        response = self.tor_conn.recv(1024)
+        self.tor_conn.sendall(b"SIGNAL NEWNYM\r\n")
+        response = self.tor_conn.recv(1024).decode("utf-8", "replace")
         if response.startswith("250"):
             logging.info("TOR : IP renewed")
             return True

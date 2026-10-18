@@ -49,6 +49,7 @@ from owtf.settings import (
     WEB_TEST_GROUPS,
 )
 from owtf.transactions.main import start_transaction_logger
+from owtf.utils.error import abort_framework
 from owtf.utils.file import clean_temp_storage_dirs, create_temp_storage_dirs
 from owtf.utils.process import _signal_process
 from owtf.utils.signals import owtf_start, workers_finish
@@ -258,6 +259,29 @@ def process_options(user_args):
     return {}
 
 
+def start_tor_mode(tor_mode):
+    """Open the TOR control channel and keep the exit IP rotating during the scan.
+
+    ``--tor`` only configures the outbound SOCKS proxy by itself. The control
+    port, password and renewal interval are handled here, which is what makes
+    the last three fields of the option do anything.
+
+    :param tor_mode: The five ``--tor`` fields, already split on ':'
+    :type tor_mode: `list`
+    :return: The process renewing the IP address
+    :rtype: `multiprocessing.Process`
+    """
+    from owtf.proxy.tor_manager import TOR_manager
+
+    if not TOR_manager.is_tor_running():
+        TOR_manager.msg_start_tor()
+        abort_framework("TOR daemon is not running")
+    # Connecting and authenticating happens in the constructor.
+    tor_manager = TOR_manager(tor_mode)
+    logging.info("Renewing the TOR IP address every %s minute(s)", tor_manager.time)
+    return tor_manager.run()
+
+
 def initialise_framework(options):
     """This function initializes the entire framework
 
@@ -280,6 +304,8 @@ def initialise_framework(options):
         finish()
     target_urls = load_targets(session=db, options=options)
     load_works(session=db, target_urls=target_urls, options=options)
+    if options.get("tor_mode"):
+        start_tor_mode(options["tor_mode"])
     start_proxy()
     start_transaction_logger()
     return True
