@@ -30,7 +30,6 @@ from owtf.settings import INBOUND_PROXY_IP, INBOUND_PROXY_PORT, PROXY_CHECK_URL,
 from owtf.transactions.base import HTTPTransaction
 from owtf.utils.error import abort_framework
 from owtf.utils.http import derive_http_method
-from owtf.utils.strings import str_to_dict
 from owtf.utils.timer import timer
 
 __all__ = ["requester"]
@@ -205,17 +204,16 @@ class Requester(object):
         """Get post request
 
         :param post: Post request
-        :type post: `str`
+        :type post: `str`, `bytes`, `bytearray` or a mapping
         :return: Processed POST request
-        :rtype: `str`
+        :rtype: `bytes`, `bytearray` or None
         """
         if "" == post:
             post = None
         if post:
             if isinstance(post, str):
-                # Must be a dictionary prior to urlencode.
-                post = str_to_dict(post)
-            if not isinstance(post, (bytes, bytearray)):
+                post = post.encode("utf-8")
+            elif not isinstance(post, (bytes, bytearray)):
                 post = urlencode(post).encode("utf-8")
         return post
 
