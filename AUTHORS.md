@@ -33,6 +33,7 @@ OWASP OWTF much better:
  * Dhruv Agarwal
  * Doug Morato
  * Gorantla Sai Krishna
+ * Hitarth Jain @Yeagerist0
  * John Herrlin
  * José Carlos Luna @dreyercito - http://int3pids.blogspot.com/
  * Karan Desai
