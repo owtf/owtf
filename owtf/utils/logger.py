@@ -48,8 +48,11 @@ class OWTFLogger(object):
         stream_handler = logging.StreamHandler(sys.stdout)
         stream_handler.setLevel(logging.INFO)
         stream_handler.setFormatter(ConsoleFormatter())
-        # Replace any old handlers
+        # Close old handlers before replacing them so file descriptors are released.
+        old_handlers = logger.handlers[:]
         logger.handlers = [file_handler, stream_handler]
+        for handler in old_handlers:
+            handler.close()
 
     def disable_console_logging(self, **kwargs):
         """Disables console logging
@@ -64,5 +67,7 @@ class OWTFLogger(object):
         :rtype: None
         """
         logger = logging.getLogger()
-        if isinstance(logger.handlers[-1], logging.StreamHandler):
-            logger.removeHandler(logger.handlers[-1])
+        if logger.handlers and isinstance(logger.handlers[-1], logging.StreamHandler):
+            handler = logger.handlers[-1]
+            logger.removeHandler(handler)
+            handler.close()
