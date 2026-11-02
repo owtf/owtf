@@ -5,6 +5,7 @@ owtf.utils.formatters
 CLI string formatting
 """
 
+import copy
 import logging
 
 # CUSTOM LOG LEVELS
@@ -38,7 +39,8 @@ class ConsoleFormatter(logging.Formatter):
         :rtype: `str`
         """
 
-        # Replace the original message with one customized by logging level
+        record = copy.copy(record)
+        # Customize this handler's message without changing other handlers.
         if record.levelno == logging.DEBUG:
             record.msg = self.debug_fmt.format(record.msg)
         elif record.levelno == logging.INFO:
