@@ -237,14 +237,14 @@ def gen_secure_random_str():
 
 
 def scrub_output(output):
-    """Remove all ANSI control sequences from the output
+    """Remove ANSI CSI control sequences from the output
 
     :param output: Output to scrub
     :type output: `str`
     :return: Scrubbed output
     :rtype: `str`
     """
-    ansi_escape = re.compile(r"\x1b[^m]*m")
+    ansi_escape = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
     return ansi_escape.sub("", output)
 
 
