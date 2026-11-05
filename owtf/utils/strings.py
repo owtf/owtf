@@ -52,7 +52,7 @@ def multi_replace(text, replace_dict, simple_text=False):
     if not simple_text:
         for key in search_regex.findall(new_text):
             # Check if key exists in the replace dict ;)
-            if replace_dict.get(key, None):
+            if key in replace_dict:
                 # A recursive call to remove all level occurrences of place
                 # holders.
                 new_text = new_text.replace(
