@@ -24,7 +24,7 @@ class PluginOutput(Model):
     plugin_code = Column(String)  # OWTF Code
     plugin_group = Column(String)
     plugin_type = Column(String)
-    date_time = Column(DateTime, default=datetime.datetime.now())
+    date_time = Column(DateTime, default=datetime.datetime.now)
     start_time = Column(DateTime)
     end_time = Column(DateTime)
     output = Column(String, nullable=True)
