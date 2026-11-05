@@ -16,10 +16,10 @@ __all__ = ["Timer", "timer"]
 
 class Timer(object):
     # Dictionary of timers, Several timers can be set at any given point in time.
-    timers = {}
 
     def __init__(self, datetime_format="%d/%m/%Y-%H:%M"):
         self.date_time_format = datetime_format
+        self.timers = {}
 
     def start_timer(self, offset="0"):
         """ Adds a start time to the timer
