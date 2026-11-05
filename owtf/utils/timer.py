@@ -7,7 +7,7 @@ certain actions to execute and present this information in both seconds and
 human-readable form.
 """
 import datetime
-import math
+from decimal import Decimal
 
 from owtf.settings import DATE_TIME_FORMAT
 
@@ -68,13 +68,14 @@ class Timer(object):
         :return: Human readable form for the timedelta
         :rtype: `str`
         """
-        microseconds, seconds = math.modf(timedelta.total_seconds())
-        seconds = int(seconds)
-        milliseconds = int(microseconds * 1000)
-        hours = seconds / 3600
-        seconds -= 3600 * hours
-        minutes = seconds / 60
-        seconds -= 60 * minutes
+        total_milliseconds = (timedelta.days * 86400 + timedelta.seconds) * 1000 + timedelta.microseconds // 1000
+        return self._format_milliseconds(total_milliseconds)
+
+    @staticmethod
+    def _format_milliseconds(total_milliseconds):
+        hours, remainder = divmod(total_milliseconds, 3600000)
+        minutes, remainder = divmod(remainder, 60000)
+        seconds, milliseconds = divmod(remainder, 1000)
         timer_str = ""
         if hours > 0:
             timer_str += "%2dh, " % hours
@@ -92,21 +93,7 @@ class Timer(object):
         :return: Timestamp in a human readable string
         :rtype: `str`
         """
-        seconds, milliseconds = str(seconds_str).split(".")
-        seconds = int(seconds)
-        milliseconds = int(milliseconds[0:3])
-        hours = seconds / 3600
-        seconds -= 3600 * hours
-        minutes = seconds / 60
-        seconds -= 60 * minutes
-        timer_str = ""
-        if hours > 0:
-            timer_str += "%2dh, " % hours
-        if minutes > 0:
-            timer_str += "%2dm, " % minutes
-        timer_str += "%2ds, %3dms" % (seconds, milliseconds)
-        # Strip necessary to get rid of leading spaces sometimes.
-        return timer_str.strip()
+        return self._format_milliseconds(int(Decimal(str(seconds_str)) * 1000))
 
     def end_timer(self, offset="0"):
         """Sets the end of the timer
