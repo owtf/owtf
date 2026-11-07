@@ -3,6 +3,7 @@ owtf.models.work
 ~~~~~~~~~~~~~~~~
 
 """
+
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, UniqueConstraint
 
 from owtf.db.model_base import Model

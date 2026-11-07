@@ -202,8 +202,10 @@ def maintain_work_claims(session, claim_owner, work_ids):
         session.query(Work).filter(Work.claim_owner == claim_owner, Work.id.in_(work_ids)).update(
             {Work.claim_expires_at: now + WORK_CLAIM_TTL}, synchronize_session=False
         )
-    recovered = session.query(Work).filter(Work.claim_expires_at <= now).update(
-        {Work.claim_owner: None, Work.claim_expires_at: None}, synchronize_session=False
+    recovered = (
+        session.query(Work)
+        .filter(Work.claim_expires_at <= now)
+        .update({Work.claim_owner: None, Work.claim_expires_at: None}, synchronize_session=False)
     )
     session.commit()
     if recovered:
