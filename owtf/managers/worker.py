@@ -9,12 +9,20 @@ import multiprocessing
 import queue
 import signal
 from time import strftime
+from uuid import uuid4
 
 import psutil
 
 from owtf.db.session import get_scoped_session
 from owtf.lib.exceptions import InvalidWorkerReference
-from owtf.managers.worklist import delete_work, get_pending_count, get_work_batch, get_work_for_target, requeue_work
+from owtf.managers.worklist import (
+    delete_work,
+    get_pending_count,
+    get_work_batch,
+    get_work_for_target,
+    maintain_work_claims,
+    requeue_work,
+)
 from owtf.settings import (
     MIN_RAM_NEEDED,
     PROCESS_PER_CORE,
@@ -44,6 +52,7 @@ class WorkerManager(object):
         owtf_start.connect(handle_signal)
         self.worklist = []  # List of unprocessed (plugin*target)
         self.workers = []  # list of worker and work (worker, work)
+        self.claim_owner = uuid4().hex
         self.session = get_scoped_session()
         self.spawn_workers()
 
@@ -152,9 +161,9 @@ class WorkerManager(object):
             return
 
         if result in ("done", "failed"):
-            delete_work(self.session, work_id)
+            delete_work(self.session, work_id, self.claim_owner)
         elif interrupted:
-            requeue_work(self.session, work_id)
+            requeue_work(self.session, work_id, self.claim_owner)
         else:
             return
 
@@ -220,6 +229,8 @@ class WorkerManager(object):
         self.workers = still_active
 
         # --- Pass 3: scale, then fetch exactly as much work as can be assigned ---
+        work_ids = [worker["work_id"] for worker in self.workers if worker["work_id"] is not None]
+        maintain_work_claims(self.session, self.claim_owner, work_ids)
         pending_count = get_pending_count(self.session)
         current_worker_count = len(self.workers)
         max_allowed_workers = self.get_allowed_process_count()
@@ -240,7 +251,9 @@ class WorkerManager(object):
                     break
 
         ready_workers = [w for w in self.workers if not w["busy"] and not w.get("drain")]
-        work_batch = get_work_batch(self.session, self.targets_in_use(), len(ready_workers), WORKER_BATCH_SIZE)
+        work_batch = get_work_batch(
+            self.session, self.targets_in_use(), len(ready_workers), WORKER_BATCH_SIZE, claim_owner=self.claim_owner
+        )
 
         for worker, (work_id, target, plugin) in zip(ready_workers, work_batch):
             work_to_assign = (target, plugin)
@@ -263,10 +276,14 @@ class WorkerManager(object):
                     work_id,
                     worker["worker"].name,
                 )
-                requeue_work(self.session, work_id)
+                requeue_work(self.session, work_id, self.claim_owner)
                 self._clear_worker_assignment(worker)
 
-        if not self.keep_working and not self.is_any_worker_busy():
+        if (
+            not self.keep_working
+            and not self.is_any_worker_busy()
+            and not get_pending_count(self.session, include_claimed=True)
+        ):
             logging.info("All jobs have been done. Exiting.")
             workers_finish.send(self)
 

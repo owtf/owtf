@@ -46,6 +46,11 @@ _PLUGINS_COLUMN_UPGRADES = [
     ("execution_timeout", "INTEGER"),
 ]
 
+_WORKLIST_COLUMN_UPGRADES = [
+    ("claim_owner", "VARCHAR(32)"),
+    ("claim_expires_at", "TIMESTAMP"),
+]
+
 
 def _existing_columns(engine, table_name):
     inspector = inspect(engine)
@@ -114,4 +119,5 @@ def run_startup_upgrades(engine):
     _add_missing_columns(engine, "user_plugins", _USER_PLUGIN_COLUMN_UPGRADES)
     _add_missing_columns(engine, "users", _USERS_COLUMN_UPGRADES)
     _add_missing_columns(engine, "plugins", _PLUGINS_COLUMN_UPGRADES)
+    _add_missing_columns(engine, "worklist", _WORKLIST_COLUMN_UPGRADES)
     _UPGRADES_APPLIED = True

@@ -5,6 +5,7 @@ The DB stores worklist
 """
 
 import logging
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.sql import not_
 
@@ -17,6 +18,8 @@ from owtf.managers.target import get_target_config_dict, get_target_config_dicts
 from owtf.models.plugin import Plugin
 from owtf.models.target import Target
 from owtf.models.work import Work
+
+WORK_CLAIM_TTL = timedelta(seconds=30)
 
 
 def load_works(session, target_urls, options):
@@ -127,7 +130,7 @@ def _derive_work_dict(work_model):
         wdict["target"] = get_target_config_dict(work_model.target)
         wdict["plugin"] = work_model.plugin.to_dict()
         wdict["id"] = work_model.id
-        wdict["active"] = work_model.active
+        wdict["active"] = work_model.active and work_model.claim_owner is None
         return wdict
 
 
@@ -157,12 +160,12 @@ def get_work_for_target(session, in_use_target_list):
     query = (
         session.query(Work)
         .join(Plugin, Work.plugin_key == Plugin.key)
-        .filter(Work.active.is_(True))
+        .filter(Work.active.is_(True), Work.claim_owner.is_(None))
         .order_by(plugin_priority_expr(Plugin).desc(), Work.id.asc())
     )
     if in_use_target_list:
         query = query.filter(not_(Work.target_id.in_(in_use_target_list)))
-    work_obj = query.first()
+    work_obj = query.with_for_update(of=Work, skip_locked=True).first()
     if work_obj:
         work_dict = _derive_work_dict(work_obj)
         session.delete(work_obj)
@@ -170,45 +173,44 @@ def get_work_for_target(session, in_use_target_list):
         return (work_dict["target"], work_dict["plugin"])
 
 
-def get_pending_count(session):
-    """Get count of pending work items in the worklist.
-
-    :return: Number of pending work items
-    :rtype: `int`
-    """
-    return get_count(session.query(Work).filter(Work.active.is_(True)))
-
-
-def delete_work(session, work_id):
-    """Delete a completed work item.
-
-    :param work_id: Primary key of the Work row to delete
-    :type work_id: `int`
-    :return: None
-    :rtype: None
-    """
-    work_obj = session.query(Work).get(work_id)
-    if work_obj is not None:
-        session.delete(work_obj)
-        session.commit()
+def get_pending_count(session, include_claimed=False):
+    """Count unpaused work, excluding assigned items by default."""
+    query = session.query(Work).filter(Work.active.is_(True))
+    if not include_claimed:
+        query = query.filter(Work.claim_owner.is_(None))
+    return get_count(query)
 
 
-def requeue_work(session, work_id):
-    """Requeue a work item that was claimed but never completed —
-    typically because the worker holding it died mid-task.
-
-    :param work_id: Primary key of the Work row to requeue
-    :type work_id: `int`
-    :return: None
-    :rtype: None
-    """
-    work_obj = session.query(Work).get(work_id)
-    if work_obj is not None:
-        work_obj.active = True
-        session.commit()
+def delete_work(session, work_id, claim_owner):
+    """Delete a completed work item if this manager still owns it."""
+    session.query(Work).filter_by(id=work_id, claim_owner=claim_owner).delete()
+    session.commit()
 
 
-def get_work_batch(session, in_use_target_list, ready_worker_count, batch_size=None):
+def requeue_work(session, work_id, claim_owner):
+    """Release an interrupted claim, preserving the item's pause setting."""
+    session.query(Work).filter_by(id=work_id, claim_owner=claim_owner).update(
+        {Work.claim_owner: None, Work.claim_expires_at: None}
+    )
+    session.commit()
+
+
+def maintain_work_claims(session, claim_owner, work_ids):
+    """Renew tracked assignments and release expired claims from abandoned work."""
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    if work_ids:
+        session.query(Work).filter(Work.claim_owner == claim_owner, Work.id.in_(work_ids)).update(
+            {Work.claim_expires_at: now + WORK_CLAIM_TTL}, synchronize_session=False
+        )
+    recovered = session.query(Work).filter(Work.claim_expires_at <= now).update(
+        {Work.claim_owner: None, Work.claim_expires_at: None}, synchronize_session=False
+    )
+    session.commit()
+    if recovered:
+        logging.info("Released %d expired work claims", recovered)
+
+
+def get_work_batch(session, in_use_target_list, ready_worker_count, batch_size=None, *, claim_owner):
     """Get a batch of work items ordered by priority.
 
     Only as many rows are claimed as there are workers confirmed ready to
@@ -223,6 +225,7 @@ def get_work_batch(session, in_use_target_list, ready_worker_count, batch_size=N
     :type ready_worker_count: `int`
     :param batch_size: Max number of work items to fetch
     :type batch_size: `int`
+    :param claim_owner: ID of the manager claiming these items
     :return: List of (work_id, target, plugin) tuples
     :rtype: `list`
     """
@@ -243,17 +246,19 @@ def get_work_batch(session, in_use_target_list, ready_worker_count, batch_size=N
     query = (
         session.query(Work)
         .join(Plugin, Work.plugin_key == Plugin.key)
-        .filter(Work.active.is_(True))
+        .filter(Work.active.is_(True), Work.claim_owner.is_(None))
         .order_by(plugin_priority_expr(Plugin).desc(), Work.id.asc())
     )
     if in_use_target_list:
         query = query.filter(not_(Work.target_id.in_(in_use_target_list)))
 
-    work_objs = query.limit(fetch_count).all()
+    work_objs = query.with_for_update(of=Work, skip_locked=True).limit(fetch_count).all()
+    expires_at = datetime.now(timezone.utc).replace(tzinfo=None) + WORK_CLAIM_TTL
     results = []
     for work_obj in work_objs:
         work_dict = _derive_work_dict(work_obj)
-        work_obj.active = False  # Soft claim; caller deletes on completion or requeues on failure
+        work_obj.claim_owner = claim_owner
+        work_obj.claim_expires_at = expires_at
         results.append((work_dict["id"], work_dict["target"], work_dict["plugin"]))
     session.commit()
     return results
