@@ -92,6 +92,7 @@ def test_manage_workers_two_cycles_no_stranded_work_and_drain_removal():
         manager = WorkerManager.__new__(WorkerManager)
         manager.session = session
         manager.keep_working = True
+        manager.claim_owner = "test-manager"
         manager.workers = [
             {
                 "worker": FakeWorkerProcess(pid=1001 + i, name=f"worker-{i}"),
@@ -124,9 +125,9 @@ def test_manage_workers_two_cycles_no_stranded_work_and_drain_removal():
             assigned_ids = {w["work_id"] for w in assigned}
             assert assigned_ids == {work1_id, work2_id, work3_id}
 
-            # All rows are soft-claimed (still exist, just inactive) — not lost
+            # All rows are still present and claimed by this manager.
             assert session.query(Work).count() == 3
-            assert session.query(Work).filter(Work.active.is_(True)).count() == 0
+            assert session.query(Work).filter_by(claim_owner=manager.claim_owner).count() == 3
 
             # Simulate one successful attempt, one permanent plugin failure,
             # and one attempt that is still running.
@@ -148,7 +149,7 @@ def test_manage_workers_two_cycles_no_stranded_work_and_drain_removal():
         # The still-in-progress row must remain tracked, not stranded either
         still_in_progress = session.query(Work).get(work3_id)
         assert still_in_progress is not None
-        assert still_in_progress.active is False
+        assert still_in_progress.claim_owner == manager.claim_owner
         holder = next((w for w in manager.workers if w["work_id"] == work3_id), None)
         assert holder is not None, "in-progress work must still be held by a tracked worker"
 
@@ -160,12 +161,12 @@ def test_manage_workers_two_cycles_no_stranded_work_and_drain_removal():
         assert drained_process.is_alive() is False, "drained worker must be joined/terminated"
 
         # No row is stranded: every row is either deleted (accounted
-        # for above) or active=False and held by a real tracked worker.
+        # for above) or claimed by a real tracked worker.
         remaining_rows = session.query(Work).all()
         held_work_ids = {w["work_id"] for w in manager.workers if w["work_id"] is not None}
         for row in remaining_rows:
-            assert row.active is False
-            assert row.id in held_work_ids, f"Work row {row.id} is inactive but not held by any tracked worker"
+            assert row.claim_owner == manager.claim_owner
+            assert row.id in held_work_ids, f"Work row {row.id} is claimed but not held by any tracked worker"
 
         # pending_count must reflect reality, not a phantom non-zero count
         from owtf.managers.worklist import get_pending_count

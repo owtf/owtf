@@ -16,6 +16,9 @@ Use the worklist to review:
 - the order in which available workers will claim work.
 
 The queue is persistent. Paused work remains paused across a normal restart because its state is stored in PostgreSQL.
+If the backend crashes, a restarted backend can pick up interrupted work once its claim expires, 30 seconds after the
+last renewal. The plugin starts over, so it may repeat requests from the interrupted attempt. Jobs paused in the worklist
+remain paused.
 
 ## Pause and resume
 

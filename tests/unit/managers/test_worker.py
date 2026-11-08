@@ -1,5 +1,6 @@
 """Unit tests for worker scaling settings and batch work fetching."""
 
+from datetime import datetime, timedelta, timezone
 from unittest import mock
 
 import pytest
@@ -84,10 +85,10 @@ def test_get_work_batch_respects_ready_workers_and_priority(session):
     high = _add_plugin(session, "OWTF-DV-005", "passive", 2)
     medium = _add_plugin(session, "OWTF-CM-004", "active", 3)
 
-    batch = get_work_batch(session, [], ready_worker_count=2, batch_size=5)
+    batch = get_work_batch(session, [], ready_worker_count=2, batch_size=5, claim_owner="manager")
 
     assert [work_id for work_id, _target, _plugin in batch] == [high.id, medium.id]
-    assert session.query(Work).filter(Work.active.is_(True)).one().id == low.id
+    assert session.query(Work).filter(Work.claim_owner.is_(None)).one().id == low.id
 
 
 def test_get_work_batch_uses_default_batch_size(session):
@@ -99,14 +100,46 @@ def test_get_work_batch_uses_default_batch_size(session):
         session,
         [],
         ready_worker_count=WORKER_BATCH_SIZE + 1,
+        claim_owner="manager",
     )
 
     assert len(batch) == WORKER_BATCH_SIZE
-    assert session.query(Work).filter(Work.active.is_(True)).count() == 1
+    assert session.query(Work).filter(Work.claim_owner.is_(None)).count() == 1
 
 
 @pytest.mark.parametrize("batch_size", [0, -1, "five"])
 def test_get_work_batch_validates_batch_size(session, batch_size):
     get_work_batch = _get_work_batch()
     with pytest.raises(InvalidParameterType):
-        get_work_batch(session, [], ready_worker_count=1, batch_size=batch_size)
+        get_work_batch(session, [], ready_worker_count=1, batch_size=batch_size, claim_owner="manager")
+
+
+def test_expired_claims_are_recovered_after_restart_without_resuming_paused_work(session):
+    with mock.patch("owtf.db.session.get_scoped_session", return_value=mock.MagicMock()):
+        from owtf.managers.worklist import delete_work, get_work_batch, maintain_work_claims, patch_work
+
+    interrupted = _add_plugin(session, "OWTF-TEST-001", "passive", 1)
+    paused = _add_plugin(session, "OWTF-TEST-002", "passive", 2)
+    interrupted_id, paused_id = interrupted.id, paused.id
+    get_work_batch(session, [], ready_worker_count=2, claim_owner="old-manager")
+    patch_work(session, paused_id, active=False)
+    old_expiry = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(seconds=1)
+    interrupted.claim_expires_at = paused.claim_expires_at = old_expiry
+    session.commit()
+
+    # The surviving manager keeps its tracked claims alive, even if a cycle was delayed.
+    maintain_work_claims(session, "old-manager", [interrupted_id, paused_id])
+    assert interrupted.claim_expires_at > old_expiry
+    interrupted.claim_expires_at = paused.claim_expires_at = old_expiry
+    session.commit()
+
+    # A new manager only knows the persisted queue and its own identity.
+    with sessionmaker(bind=session.get_bind())() as restarted:
+        maintain_work_claims(restarted, "new-manager", [])
+        batch = get_work_batch(restarted, [], ready_worker_count=2, claim_owner="new-manager")
+        assert [work_id for work_id, _target, _plugin in batch] == [interrupted_id]
+        assert restarted.get(Work, paused_id).active is False
+        assert restarted.get(Work, paused_id).claim_owner is None
+
+        delete_work(restarted, interrupted_id, "old-manager")
+        assert restarted.get(Work, interrupted_id).claim_owner == "new-manager"
