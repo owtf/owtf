@@ -4,9 +4,10 @@ owtf.plugin.params
 
 Manage parameters to the plugins
 """
+
+import copy
 import logging
 from collections import defaultdict
-import copy
 
 from owtf.config import config_handler
 from owtf.db.session import get_scoped_session
@@ -19,7 +20,6 @@ __all__ = ["plugin_params"]
 
 
 class PluginParams(object):
-
     def __init__(self):
         # Complicated stuff to keep everything Pythonic and from blowing up
         def handle_signal(sender, **kwargs):
@@ -46,7 +46,7 @@ class PluginParams(object):
         for arg in self.raw_args:
             if "O" == arg:
                 continue
-            chunks = arg.split("=")
+            chunks = arg.split("=", 1)
             if len(chunks) < 2:
                 Error.add_error(
                     self.session,
@@ -54,14 +54,7 @@ class PluginParams(object):
                     "user",
                 )
                 return False
-            arg_name = chunks[0]
-            try:
-                arg_val = arg.replace(arg_name, "")[1:]
-            except ValueError:
-                Error.add_error(
-                    self.session, "USER ERROR: {!s} arguments should be in NAME=VALUE format".format(arg_name), "user"
-                )
-                return False
+            arg_name, arg_val = chunks
             self.args[arg_name] = arg_val
         return True
 
@@ -94,7 +87,7 @@ class PluginParams(object):
         :rtype: `str`
         """
         args_str = []
-        for key, value in list(merge_dicts(full_args_list["mandatory"], full_args_list["Optional"]).items()):
+        for key in merge_dicts(full_args_list["Mandatory"], full_args_list["Optional"]):
             args_str.append(key)
         pad = "=? "
         return pad.join(args_str) + pad
@@ -111,7 +104,7 @@ class PluginParams(object):
         """
         logging.info("\nInformation for %s", self.show_plugin(plugin))
         logging.info("\nDescription: %s", str(full_args_list["Description"]))
-        self.list_args(full_args_list["mandatory"], True)
+        self.list_args(full_args_list["Mandatory"], True)
         if len(full_args_list["Optional"]) > 0:
             self.list_args(full_args_list["Optional"], False)
         logging.info("\nUsage: %s\n", self.get_args_example(full_args_list))
@@ -148,7 +141,7 @@ class PluginParams(object):
         logging.info("Could not default not passed: '%s'%s", arg_name, default_order_str)
         return False
 
-    def get_arg_list(self, session, arg_list, plugin, mandatory=True):
+    def get_arg_list(self, arg_list, plugin, mandatory=True):
         """Get args list
 
         :param arg_list: available args
@@ -178,7 +171,7 @@ class PluginParams(object):
                     # argument is optional = ok to skip
                     continue
                 Error.add_error(
-                    session,
+                    self.session,
                     "USER ERROR: {!s} requires argument: '{!s}'".format(self.show_plugin(plugin), arg_name),
                     "user",
                 )
@@ -260,9 +253,8 @@ class PluginParams(object):
         if not all_args:
             return self.no_args
         args_str = []
-        for arg_name, arg_val in list(all_args.items()):
-            args_str.append(arg_name + "=" + str(self.args[arg_name]))
-            all_args[arg_name] = arg_val
+        for arg_name, arg_val in all_args.items():
+            args_str.append(arg_name + "=" + str(arg_val))
         plugin["args"] = " ".join(args_str)  # Record arguments in plugin dictionary
         return [all_args]
 
@@ -312,10 +304,10 @@ class PluginParams(object):
         :return: None
         :rtype: None
         """
-        for index, permutation in enumerate(permutation_list):
+        for index, permutation in enumerate(permutation_list[:]):
             count = 0
             for perm in permutations:
-                perm_args = permutation_list[index].copy()  # 1st copy by value original arguments
+                perm_args = permutation.copy()  # 1st copy by value original arguments
                 perm_args[arg_name] = perm  # 2nd override argument with permutation
                 if count == 0:  # Modify 1st existing record with permutation
                     permutation_list[index] = perm_args
@@ -345,15 +337,15 @@ class PluginParams(object):
             return arg_list  # No permutations, return original arguments
         return permutation_list
 
-    def get_args(self, session, full_args_list, plugin):
+    def get_args(self, full_args_list, plugin):
         """Get args from a full list for a plugin
 
         :param full_args_list: available args
         :type full_args_list: `dict`
         :param plugin: Plugin
         :type plugin: `dict`
-        :return: None
-        :rtype: None
+        :return: Resolved argument dictionaries for the plugin
+        :rtype: `list`
         """
         self.set_arg_error(plugin, False)
         if not self.check_arg_list(full_args_list, plugin):
@@ -361,8 +353,8 @@ class PluginParams(object):
         if "O" in self.raw_args:  # To view available options
             self.show_param_info(full_args_list, plugin)
             return self.no_args  # Abort processing, just showing options
-        mandatory = self.get_arg_list(session, full_args_list["Mandatory"], plugin, True)
-        optional = self.get_arg_list(session, full_args_list["Optional"], plugin, False)
+        mandatory = self.get_arg_list(full_args_list["Mandatory"], plugin, True)
+        optional = self.get_arg_list(full_args_list["Optional"], plugin, False)
         if self.get_arg_error(plugin):
             logging.info("")
             logging.warn("ERROR: Aborting argument processing, please correct the errors above and try again")

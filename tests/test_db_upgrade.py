@@ -33,6 +33,19 @@ def _column_names(engine, table):
     return {c["name"] for c in inspect(engine).get_columns(table)}
 
 
+def test_upgrade_adds_claims_without_resuming_legacy_inactive_work():
+    engine = create_engine("sqlite:///:memory:")
+    with engine.begin() as conn:
+        conn.execute(text("CREATE TABLE worklist (id INTEGER PRIMARY KEY, active BOOLEAN)"))
+        conn.execute(text("INSERT INTO worklist (id, active) VALUES (1, FALSE)"))
+
+    run_startup_upgrades(engine)
+
+    with engine.connect() as conn:
+        row = conn.execute(text("SELECT active, claim_owner, claim_expires_at FROM worklist")).one()
+        assert tuple(row) == (False, None, None)
+
+
 def test_fresh_install_is_a_no_op():
     engine = create_engine("sqlite:///:memory:")
     UserPlugin.metadata.create_all(engine, tables=[User.__table__, UserPlugin.__table__])
