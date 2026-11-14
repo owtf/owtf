@@ -49,7 +49,9 @@ def flush_transaction(method):
     return wrapper
 
 
+@functools.lru_cache(maxsize=1)
 def get_db_engine():
+    """Reuse the engine instead of repeating schema setup for every request."""
     try:
         engine = create_engine(DB_URI, poolclass=NullPool)
         Model.metadata.create_all(engine)
