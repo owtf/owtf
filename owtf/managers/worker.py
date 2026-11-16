@@ -511,5 +511,10 @@ class WorkerManager(object):
         # gracefully and kick the command process's ***
         _signal_process(worker_dict["worker"].pid, signal.SIGINT)
 
+    def abort_all_workers(self):
+        """Abort each worker's current command without removing the workers."""
+        for pseudo_index in range(1, len(self.workers) + 1):
+            self.abort_worker(pseudo_index)
+
 
 worker_manager = WorkerManager()
