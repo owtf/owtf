@@ -416,10 +416,9 @@ class WorkerManager(object):
         :return: Worker info
         :rtype: `dict`
         """
-        try:
-            return self.workers[pseudo_index - 1]
-        except IndexError:
+        if not 1 <= pseudo_index <= len(self.workers):
             raise InvalidWorkerReference("No worker process with id: {!s}".format(pseudo_index))
+        return self.workers[pseudo_index - 1]
 
     def create_worker(self):
         """Create new worker
@@ -510,6 +509,11 @@ class WorkerManager(object):
         # You only send SIGINT to worker since it will handle it more
         # gracefully and kick the command process's ***
         _signal_process(worker_dict["worker"].pid, signal.SIGINT)
+
+    def abort_all_workers(self):
+        """Abort each worker's current command without removing the workers."""
+        for pseudo_index in range(1, len(self.workers) + 1):
+            self.abort_worker(pseudo_index)
 
 
 worker_manager = WorkerManager()
