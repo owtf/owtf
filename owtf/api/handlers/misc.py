@@ -78,9 +78,13 @@ class ErrorDataHandler(APIRequestHandler):
     def patch(self, error_id=None):
         if error_id is None:
             raise tornado.web.HTTPError(400)
-        if self.request.arguments.get_argument("user_message", default=None):
+        user_message = self.request.arguments.get("user_message", [None])[0]
+        if user_message is None:
             raise tornado.web.HTTPError(400)
-        err_obj = Error.update_error(self.session, error_id, self.request.arguments.get_argument("user_message"))
+        try:
+            Error.update_error(self.session, error_id, user_message)
+        except exceptions.InvalidErrorReference:
+            raise tornado.web.HTTPError(400)
         self.finish()
 
     def delete(self, error_id=None):
