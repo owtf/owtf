@@ -124,15 +124,20 @@ class OWTFSessionHandler(APIRequestHandler):
             }
         """
         target_id = self.get_argument("target_id", None)
-        if (session_id is None) or (target_id is None and action in ["add", "remove"]):
+        if session_id is None or action not in ("add", "remove", "activate"):
             raise APIError(400, "Incorrect query parameters")
+        if action in ("add", "remove"):
+            if target_id is None:
+                raise APIError(400, "Incorrect query parameters")
+            try:
+                target_id = int(target_id)
+            except ValueError:
+                raise APIError(400, "Invalid target id provided")
         try:
             if action == "add":
-                add_target_to_session(self.session, int(self.get_argument("target_id")), session_id=int(session_id))
+                add_target_to_session(self.session, target_id, session_id=int(session_id))
             elif action == "remove":
-                remove_target_from_session(
-                    self.session, int(self.get_argument("target_id")), session_id=int(session_id)
-                )
+                remove_target_from_session(self.session, target_id, session_id=int(session_id))
             elif action == "activate":
                 Session.set_by_id(self.session, int(session_id))
             self.success(None)
