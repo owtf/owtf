@@ -61,9 +61,8 @@ class Error(Model):
 
     @classmethod
     def update_error(cls, session, error_id, user_message):
-        obj = session.query(Error).filter(id=error_id)
+        obj = session.query(cls).filter_by(id=error_id).first()
         if not obj:  # If invalid error id, bail out
             raise InvalidErrorReference("No error with id {!s}".format(error_id))
         obj.user_message = user_message
-        session.merge(obj)
         session.commit()
