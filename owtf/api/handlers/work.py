@@ -227,7 +227,7 @@ class WorkerHandler(APIRequestHandler):
                 "data": null
             }
         """
-        if not worker_id and action:
+        if not worker_id:
             raise APIError(400, "Needs worker id")
         try:
             worker_manager.delete_worker(int(worker_id))

@@ -5,6 +5,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from owtf.lib.exceptions import APIError, InvalidWorkerReference
+
 
 def worker_modules():
     # The manager starts workers and opens a DB session at import time.
@@ -58,3 +60,24 @@ def test_abort_all_workers_signals_each_worker_once():
     assert signal_process.call_count == 2
     assert [call.args[0] for call in signal_process.call_args_list] == [101, 202]
     assert manager.workers == original_workers
+
+
+@pytest.mark.parametrize("worker_id", [0, -1, 3])
+def test_worker_lookup_rejects_out_of_range_ids(worker_id):
+    _, worker = worker_modules()
+    manager = worker.WorkerManager.__new__(worker.WorkerManager)
+    manager.workers = [Mock(), Mock()]
+
+    with pytest.raises(InvalidWorkerReference):
+        manager.get_worker_dict(worker_id)
+
+
+def test_delete_requires_a_worker_id():
+    WorkerHandler, _ = worker_modules()
+    handler = SimpleNamespace(success=Mock())
+
+    with pytest.raises(APIError) as exc:
+        WorkerHandler.delete(handler)
+
+    assert exc.value.status_code == 400
+    handler.success.assert_not_called()
