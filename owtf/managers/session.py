@@ -108,6 +108,10 @@ def remove_target_from_session(session, target_id, session_id=None):
         raise exceptions.InvalidTargetReference(
             "No target with id: {!s}".format(target_id)
         )
+    if target_obj not in session_obj.targets:
+        raise exceptions.InvalidTargetReference(
+            "Target {!s} is not in session {!s}".format(target_id, session_id)
+        )
     session_obj.targets.remove(target_obj)
     # Delete target whole together if present in this session alone
     if len(target_obj.sessions) == 0:
