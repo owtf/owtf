@@ -261,7 +261,8 @@ def debug_and_parse(data):
 
     # Extract some interesting info
     codes = server.BaseHTTPRequestHandler.responses
-    global_data["StatusCode"][hop] = str(data.code) + " " + codes[data.code][0]
+    reason = codes.get(data.code, (str(getattr(data, "reason", "Unknown")),))[0]
+    global_data["StatusCode"][hop] = str(data.code) + " " + reason
     analyse_headers(headers)
     analyse_body(body)
 
