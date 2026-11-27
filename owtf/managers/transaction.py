@@ -151,7 +151,7 @@ def transaction_gen_query(session, criteria, target_id, for_stats=False):
         query = query.filter_by(binary_response=str2bool(criteria["binary_response"]))
     if not for_stats:  # query for stats shouldn't have limit and offset
         try:
-            query.order_by(Transaction.local_timestamp)
+            query = query.order_by(Transaction.local_timestamp, Transaction.id)
             if criteria.get("offset", None):
                 if isinstance(criteria.get("offset"), list):
                     criteria["offset"] = int(criteria["offset"][0])
@@ -163,7 +163,7 @@ def transaction_gen_query(session, criteria, target_id, for_stats=False):
                 if criteria["limit"] >= 0:
                     query = query.limit(criteria["limit"])
             else:  # It is too dangerous without a limit argument
-                query.limit(10)  # Default limit value is 10
+                query = query.limit(10)  # Default limit value is 10
         except ValueError:
             raise InvalidParameterType("Invalid parameter type for transaction db")
     return query
