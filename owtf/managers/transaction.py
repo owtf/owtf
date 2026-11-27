@@ -118,7 +118,7 @@ def transaction_gen_query(session, criteria, target_id, for_stats=False):
             if isinstance(criteria.get("response_body"), list):
                 criteria["response_body"] = criteria["response_body"][0]
             query = query.filter(
-                Transaction.binary_response is False,
+                Transaction.binary_response.is_(False),
                 Transaction.response_body.like(
                     "%%{!s}%%".format(criteria.get("response_body"))
                 ),
