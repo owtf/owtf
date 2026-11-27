@@ -97,19 +97,22 @@ def get_resources_from_file(resource_file):
 
     :param resource_file: Path to the resource file
     :type resource_file: `str`
-    :return: Resources as a set
-    :rtype: `set`
+    :return: Unique resources in file order
+    :rtype: `list`
     """
-    resources = set()
-    config_file = FileOperations.open(
-        resource_file, "r"
-    ).read().splitlines()  # To remove stupid '\n' at the end
+    resources = []
+    seen = set()
+    with FileOperations.open(resource_file, "r") as resource_stream:
+        config_file = resource_stream.read().splitlines()
     for line in config_file:
         if line.startswith("#"):
             continue  # Skip comment lines
         try:
             type, name, resource = line.split("_____")
-            resources.add((type, name, resource))
+            entry = (type, name, resource)
+            if entry not in seen:
+                seen.add(entry)
+                resources.append(entry)
         except ValueError:
             logging.info(
                 "ERROR: The delimiter is incorrect in this line at Resource File: %s",
