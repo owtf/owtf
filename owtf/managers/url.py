@@ -208,11 +208,11 @@ def url_gen_query(session, criteria, target_id, for_stats=False):
                 query = query.filter(Url.url.in_(criteria["url"]))
     # For the following section doesn't matter if filter/search because
     # it doesn't make sense to search in a boolean column :P
-    if criteria.get("visited", None):
+    if criteria.get("visited") not in (None, "", []):
         if isinstance(criteria.get("visited"), list):
             criteria["visited"] = criteria["visited"][0]
         query = query.filter_by(visited=str2bool(criteria["visited"]))
-    if criteria.get("scope", None):
+    if criteria.get("scope") not in (None, "", []):
         if isinstance(criteria.get("scope"), list):
             criteria["scope"] = criteria["scope"][0]
         query = query.filter_by(scope=str2bool(criteria["scope"]))
