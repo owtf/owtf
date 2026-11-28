@@ -48,9 +48,7 @@ class FileOperations(object):
         :return:
         :rtype: None
         """
-        # truncate filepath to 255 char (*nix limit)
-        # See issue #521
-        directory = path[:255]
+        directory = os.fspath(path)
         if os.path.isfile(directory):
             directory = os.path.dirname(directory)
         if not os.path.exists(directory):
