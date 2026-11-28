@@ -374,9 +374,11 @@ def target_gen_query(session, filter_data, session_id, for_stats=False):
                 query = query.filter_by(host_ip=filter_data["host_ip"])
             if isinstance(filter_data["host_ip"], list):
                 query = query.filter(Target.host_ip.in_(filter_data.get("host_ip")))
-        if filter_data.get("scope", None):
-            filter_data["scope"] = filter_data["scope"][0]
-            query = query.filter_by(scope=str2bool(filter_data.get("scope")))
+        scope = filter_data.get("scope")
+        if isinstance(scope, list):
+            scope = scope[0] if scope else None
+        if scope is not None and scope != "":
+            query = query.filter_by(scope=str2bool(scope))
         if filter_data.get("host_name", None):
             if isinstance(filter_data["host_name"], str):
                 query = query.filter_by(host_name=filter_data["host_name"])
