@@ -3,8 +3,6 @@ owtf.models.transaction
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-import base64
-
 from sqlalchemy import Boolean, Column, Integer, String, Float, DateTime, Text, ForeignKey, Table, Index
 from sqlalchemy.orm import relationship
 
@@ -56,8 +54,11 @@ class Transaction(Model):
             tdict.pop("response_headers", None)
             tdict.pop("response_body", None)
         else:
-            if tdict["binary_response"]:
-                tdict["response_body"] = base64.b64encode(str(tdict["response_body"]))
+            # Binary bodies are already base64-encoded when stored. Normalize
+            # bytes to JSON text without encoding the payload a second time.
+            if isinstance(tdict.get("response_body"), bytes):
+                encoding = "ascii" if tdict["binary_response"] else "utf-8"
+                tdict["response_body"] = tdict["response_body"].decode(encoding)
         return tdict
 
     def __repr__(self):
