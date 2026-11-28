@@ -137,6 +137,11 @@ def load_resources_from_file(session, default, fallback):
     # Delete all old resources which are not edited by user
     # because we may have updated the resource
     session.query(Resource).filter_by(dirty=False).delete()
+    edited_resources = set(
+        session.query(Resource.resource_type, Resource.resource_name, Resource.resource).filter_by(dirty=True).all()
+    )
     for type, name, resource in resources:
+        if (type, name, resource) in edited_resources:
+            continue
         session.add(Resource(resource_type=type, resource_name=name, resource=resource))
     session.commit()
